@@ -1,0 +1,22 @@
+<html>
+    <head>
+		<title>JavaScript MP4 Reader</title>
+        <script src="DataStream.js"></script>
+        <script src="mp4fragmenter.js"></script>
+		<script>
+		var mp4box = new MP4Fragmenter();
+		mp4box.onInit = function (d) {
+			console.log("Received init data:"+d);
+		}
+		mp4box.onFragment = function (d) {
+			console.log("Received fragment data:"+d);
+		}
+		mp4box.onError = function (d) {
+			console.log("Error during fragmentation:"+d);
+		}
+		</script>
+    </head>
+	<body>
+        <button onclick="mp4box.fragmentURL('./video1.mp4');">Parse</button>
+	</body>
+</html>
