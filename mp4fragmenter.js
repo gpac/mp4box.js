@@ -1,4 +1,54 @@
-var mp4parser = {
+var mp4boxParser = {
+	boxes : [ "mdat" ],
+	fullBoxes : [ "mvhd", "tkhd", "mdhd" ],
+	containerBoxes : [ 
+		[ "moov", [ "trak" ] ],
+		[ "trak" ],
+		[ "mdia" ],
+	],
+	initialize: function() {
+		var i;
+		var length;
+		mp4boxParser.basicContainerBox.prototype = new mp4boxParser.Box();
+		/* creating constructors for simple boxes */
+		length = mp4boxParser.boxes.length;
+		for (i=0; i<length; i++) {
+			mp4boxParser[mp4boxParser.boxes[i]+"Box"] = (function (j) { /* creating a closure around the iterating value of i */
+				return function(size) {
+					mp4boxParser.Box.call(this, mp4boxParser.boxes[j], size);
+				}
+			})(i);
+			mp4boxParser[mp4boxParser.boxes[i]+"Box"].prototype = new mp4boxParser.Box();
+		}
+		/* creating constructors for full boxes */
+		length = mp4boxParser.fullBoxes.length;
+		for (i=0; i<length; i++) {
+			mp4boxParser[mp4boxParser.fullBoxes[i]+"Box"] = (function (j) { 
+				return function(size) {
+					mp4boxParser.FullBox.call(this, mp4boxParser.fullBoxes[j], size);
+				}
+			})(i);
+			mp4boxParser[mp4boxParser.fullBoxes[i]+"Box"].prototype = new mp4boxParser.FullBox();
+		}
+		/* creating constructors for basic container boxes */
+		length = mp4boxParser.containerBoxes.length;
+		for (i=0; i<length; i++) {
+			mp4boxParser[mp4boxParser.containerBoxes[i][0]+"Box"] = (function (j, subBoxNames) { 
+				return function(size) {
+					mp4boxParser.basicContainerBox.call(this, mp4boxParser.containerBoxes[j][0], size);
+					if (subBoxNames) {
+						this.subBoxNames = subBoxNames;
+						var nbSubBoxes = subBoxNames.length;
+						for (var k = 0; k<nbSubBoxes; k++) {
+							this[subBoxNames[k]+"s"] = new Array();
+						}
+					}
+				}
+			})(i, mp4boxParser.containerBoxes[i][1]);
+			mp4boxParser[mp4boxParser.containerBoxes[i][0]+"Box"].prototype = new mp4boxParser.basicContainerBox();
+		}
+
+	},
 	ISOFile: function() {
 		this.mdats = new Array();
 	},
@@ -7,9 +57,12 @@ var mp4parser = {
 		this.size = _size;
 	},
 	FullBox: function(type, size) {
-		mp4parser.Box.call(this, type, size);
+		mp4boxParser.Box.call(this, type, size);
 		this.flags = 0;
 		this.version = 0;
+	},
+	basicContainerBox: function(type, size) {
+		mp4boxParser.Box.call(this, type, size);
 	},
 	parseOneBox: function(stream) {
 		var box;
@@ -32,50 +85,42 @@ var mp4parser = {
 		if (size - hdr_size > stream.byteLength ) {
 			return MP4Fragmenter.NOT_ENOUGH_DATA;
 		}
-		if (mp4parser[type+"Box"]) {
-			box = new mp4parser[type+"Box"](size - hdr_size);		
+		if (mp4boxParser[type+"Box"]) {
+			box = new mp4boxParser[type+"Box"](size - hdr_size);		
 		} else {
-			box = new mp4parser.Box(type, size - hdr_size);
+			box = new mp4boxParser.Box(type, size - hdr_size);
 		}
 		box.parse(stream);
 		return box;
 	},
-	mvhdBox: function(size) {
-		mp4parser.FullBox.call(this, "mvhd", size);
-		this.timescale = 0;
-		this.duration = 0;
-	},
-	tkhdBox: function(size) {
-		mp4parser.FullBox.call(this, "tkhd", size);
-		this.id = 0;
-		this.duration = 0;
-	},
-	mdhdBox: function(size) {
-		mp4parser.FullBox.call(this, "mdhd", size);
-		this.timescale = 0;
-		this.duration = 0;
-	},
-	basicContainerBox: function(type, size) {
-		mp4parser.Box.call(this, type, size);
-	},
-	moovBox: function(size) {
-		mp4parser.basicContainerBox.call(this, "moov", size);
-		this.tracks = new Array();
-	},
-	trakBox: function(size) {
-		mp4parser.basicContainerBox.call(this, "trak", size);
-	},
-	mdiaBox: function(size) {
-		mp4parser.basicContainerBox.call(this, "mdia", size);
-	},
-	mdatBox: function(size) {
-		mp4parser.Box.call(this, "mdat", size);
-		this.data = null;
+}
+
+mp4boxParser.initialize();
+
+mp4boxParser.Box.prototype.parse = function(stream) {
+	this.data = stream.readUint8Array(this.size);
+}
+
+mp4boxParser.FullBox.prototype.parseFullHeader = function (stream) {
+	this.version = stream.readUint8();
+	this.flags = stream.readUint24();
+}
+
+mp4boxParser.basicContainerBox.prototype.parse = function(stream) {
+	var box;
+	var start;
+	start = stream.position;
+	while (stream.position < start+this.size) {
+		box = mp4boxParser.parseOneBox(stream);
+		if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
+			this[box.type+"s"].push(box);
+		} else {
+			this[box.type] = box;
+		}
 	}
 }
 
-mp4parser.mvhdBox.prototype = new mp4parser.FullBox();
-mp4parser.mvhdBox.prototype.parse = function(stream) {
+mp4boxParser.mvhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.version == 1) {
 		stream.readUint64();
@@ -97,8 +142,7 @@ mp4parser.mvhdBox.prototype.parse = function(stream) {
 	stream.readUint32();
 }
 
-mp4parser.tkhdBox.prototype = new mp4parser.FullBox();
-mp4parser.tkhdBox.prototype.parse = function(stream) {
+mp4boxParser.tkhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.version == 1) {
 		stream.readUint64();
@@ -123,8 +167,7 @@ mp4parser.tkhdBox.prototype.parse = function(stream) {
 	stream.readUint32();
 }
 
-mp4parser.mdhdBox.prototype = new mp4parser.FullBox();
-mp4parser.mdhdBox.prototype.parse = function(stream) {
+mp4boxParser.mdhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.version == 1) {
 		stream.readUint64();
@@ -141,43 +184,10 @@ mp4parser.mdhdBox.prototype.parse = function(stream) {
 	stream.readUint16();
 }
 
-mp4parser.basicContainerBox.prototype = new mp4parser.Box();
-mp4parser.basicContainerBox.prototype.parse = function(stream) {
-	var box;
-	var start;
-	start = stream.position;
-	while (stream.position < start+this.size) {
-		box = mp4parser.parseOneBox(stream);
-		switch (box.type) {
-		case "trak":
-			this.tracks.push(box);
-			break;
-		default:
-			this[box.type] = box;
-		}
-	}
-}
-
-mp4parser.moovBox.prototype = new mp4parser.basicContainerBox();
-mp4parser.trakBox.prototype = new mp4parser.basicContainerBox();
-mp4parser.mdiaBox.prototype = new mp4parser.basicContainerBox();
-mp4parser.mdatBox.prototype = new mp4parser.Box();
-mp4parser.mdatBox.prototype.parse = function(stream) {
-	this.data = stream.readUint8Array(this.size);
-}
-mp4parser.Box.prototype.parse = function(stream) {
-	this.data = stream.readUint8Array(this.size);
-}
-
-mp4parser.FullBox.prototype.parseFullHeader = function (stream) {
-	this.version = stream.readUint8();
-	this.flags = stream.readUint24();
-}
-
-mp4parser.ISOFile.prototype.parse = function(stream) {
+mp4boxParser.ISOFile.prototype.parse = function(stream) {
 	var box;
 	while (!stream.isEof()) {
-		box = mp4parser.parseOneBox(stream);
+		box = mp4boxParser.parseOneBox(stream);
 		switch (box.type) {
 			case "mdat":
 				this.mdats.push(box);
@@ -200,7 +210,7 @@ DataStream.prototype.readUint24 = function () {
 
 function MP4Fragmenter() {
 	this.inputStream = null;
-	this.inputIsoFile = new mp4parser.ISOFile();
+	this.inputIsoFile = new mp4boxParser.ISOFile();
 	this.outputStream = new DataStream();
 	this.buffer = null;
 	this.onInit = null;
