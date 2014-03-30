@@ -32,7 +32,7 @@ DataStream.prototype = {};
   @return {null}
   */
 DataStream.prototype.save = function(filename) {
-  var blob = new Blob(this.buffer);
+  var blob = new Blob([this.buffer]);
   var URL = (window.webkitURL || window.URL);
   if (URL && URL.createObjectURL) {
       var url = URL.createObjectURL(blob);
