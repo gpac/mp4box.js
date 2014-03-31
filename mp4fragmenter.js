@@ -1,7 +1,7 @@
 var mp4boxParser = {
 	boxes : [ "mdat", "vmhd", "dref" ],
 	fullBoxes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", /*stsd: special case */,
-				  "ctts", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh" ],
+				  "ctts", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt" ],
 	containerBoxes : [ 
 		[ "moov", [ "trak" ] ],
 		[ "trak" ],
@@ -9,6 +9,9 @@ var mp4boxParser = {
 		[ "minf" ],
 		[ "dinf" ],
 		[ "stbl" ],
+		[ "mvex" ],
+		[ "moof" ],
+		[ "traf" ],
 	],
 	sampleDescriptions : [ "metx", "mett", "urim" ],
 	initialize: function() {
@@ -68,7 +71,6 @@ var mp4boxParser = {
 	},
 	ISOFile: function() {
 		this.boxes = new Array();
-		this.mdats = new Array();
 	},
 	Box: function(_type, _size) {
 		this.type = _type;
@@ -93,6 +95,7 @@ var mp4boxParser = {
 		var hdr_size = 0;
 		var size = stream.readUint32();
 		var type = stream.readString(4);
+		console.log("Found box of type "+type+" and size "+size);
 		hdr_size = 8;
 		if (type == "uuid") {
 			/* TODO */
@@ -136,12 +139,12 @@ mp4boxParser.basicContainerBox.prototype.parse = function(stream) {
 	start = stream.position;
 	while (stream.position < start+this.size) {
 		box = mp4boxParser.parseOneBox(stream);
+		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
 		this.boxes.push(box);
-		// if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
-			// this[box.type+"s"].push(box);
-		// } else {
-			// this[box.type] = box;
-		// }
+		if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
+		} else {
+			this[box.type] = box;
+		}
 	}
 }
 
@@ -365,19 +368,145 @@ mp4boxParser.stszBox.prototype.parse = function(stream) {
 	}
 }
 
+mp4boxParser.mehdBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	if (this.version == 1) {
+		this.fragment_duration = stream.readUint64();
+	} else {
+		this.fragment_duration = stream.readUint32();
+	}
+}
+
+mp4boxParser.trexBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.track_ID = stream.readUint32();
+	this.default_sample_description_index = stream.readUint32();
+	this.default_sample_duration = stream.readUint32();
+	this.default_sample_size = stream.readUint32();
+	this.default_sample_flags = stream.readUint32();
+}
+
+mp4boxParser.mfhdBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.sequence_number = stream.readUint32();
+}
+
+mp4boxParser.TFHD_FLAG_BASE_OFFSET			= 0x01;
+mp4boxParser.TFHD_FLAG_SAMPLE_DESC			= 0x02;
+mp4boxParser.TFHD_FLAG_SAMPLE_DUR			= 0x08;
+mp4boxParser.TFHD_FLAG_SAMPLE_SIZE			= 0x10;
+mp4boxParser.TFHD_FLAG_SAMPLE_FLAGS			= 0x20;
+mp4boxParser.TFHD_FLAG_DUR_EMPTY			= 0x10000;
+mp4boxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF	= 0x20000;
+
+mp4boxParser.tfhdBox.prototype.parse = function(stream) {
+	var readBytes = 0;
+	this.parseFullHeader(stream);
+	this.track_ID = stream.readUint32();
+	if (this.size > readBytes && (this.flags & mp4boxParser.TFHD_FLAG_BASE_OFFSET)) {
+		this.base_data_offset = stream.readUint64();
+		readBytes += 8;
+	} else {
+		this.base_data_offset = 0;
+	}
+	if (this.size > readBytes && (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_DESC)) {
+		this.default_sample_description_index = stream.readUint32();
+		readBytes += 4;
+	} else {
+		this.default_sample_description_index = 0;
+	}
+	if (this.size > readBytes && (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_DUR)) {
+		this.default_sample_duration = stream.readUint32();
+		readBytes += 4;
+	} else {
+		this.default_sample_duration = 0;
+	}
+	if (this.size > readBytes && (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_SIZE)) {
+		this.default_sample_size = stream.readUint32();
+		readBytes += 4;
+	} else {
+		this.default_sample_size = 0;
+	}
+	if (this.size > readBytes && (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_FLAGS)) {
+		this.default_sample_flags = stream.readUint32();
+		readBytes += 4;
+	} else {
+		this.default_sample_flags = 0;
+	}
+}
+
+mp4boxParser.TRUN_FLAGS_DATA_OFFSET	= 0x01;
+mp4boxParser.TRUN_FLAGS_FIRST_FLAG	= 0x04;
+mp4boxParser.TRUN_FLAGS_DURATION	= 0x100;
+mp4boxParser.TRUN_FLAGS_SIZE		= 0x200;
+mp4boxParser.TRUN_FLAGS_FLAGS		= 0x400;
+mp4boxParser.TRUN_FLAGS_CTS_OFFSET	= 0x800;
+
+mp4boxParser.trunBox.prototype.parse = function(stream) {
+	var readBytes = 0;
+	this.parseFullHeader(stream);
+	this.sample_count = stream.readUint32();
+	readBytes+= 4;
+	if (this.size > readBytes && (this.flags & mp4boxParser.TRUN_FLAGS_DATA_OFFSET) ) {
+		this.data_offset = stream.readInt32(); //signed
+		readBytes += 4;
+	} else {
+		this.data_offset = 0;
+	}
+	if (this.size > readBytes && (this.flags & mp4boxParser.TRUN_FLAGS_FIRST_FLAG) ) {
+		this.first_sample_flags = stream.readUint32();
+		readBytes += 4;
+	} else {
+		this.first_sample_flags = 0;
+	}
+	this.default_sample_duration = new Array();
+	this.default_sample_size = new Array();
+	this.default_sample_flags = new Array();
+	this.sample_composition_time_offset = new Array();
+	if (this.size > readBytes) {
+		for (var i = 0; i < this.sample_count; i++) {
+			if (this.flags & mp4boxParser.TRUN_FLAGS_DURATION) {
+				this.default_sample_duration[i] = stream.readUint32();
+			}
+			if (this.flags & mp4boxParser.TRUN_FLAGS_SIZE) {
+				this.default_sample_size[i] = stream.readUint32();
+			}
+			if (this.flags & mp4boxParser.TRUN_FLAGS_FLAGS) {
+				this.default_sample_flags[i] = stream.readUint32();
+			}
+			if (this.flags & mp4boxParser.TRUN_FLAGS_CTS_OFFSET) {
+				if (this.version == 0) {
+					this.sample_composition_time_offset[i] = stream.readUint32();
+				} else {
+					this.sample_composition_time_offset[i] = stream.readInt32(); //signed
+				}
+			}
+		}
+	}
+}
+
+mp4boxParser.tfdtBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	if (this.version == 1) {
+		this.baseMediaDecodeTime = stream.readUint64();
+	} else {
+		this.baseMediaDecodeTime = stream.readUint32();
+	}
+}
+
 mp4boxParser.ISOFile.prototype.parse = function(stream) {
 	var box;
 	while (!stream.isEof()) {
 		box = mp4boxParser.parseOneBox(stream);
+		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
 		this.boxes.push(box);
-		// switch (box.type) {
-			// case "mdat":
-				// this.mdats.push(box);
-				// break;
-			// default:
-				// this[box.type] = box;
-				// break;
-		// }
+		switch (box.type) {
+			case "mdat":
+				break;
+			default:
+				this[box.type] = box;
+				break;
+		}
 	}
 }
 
@@ -391,7 +520,7 @@ DataStream.prototype.readUint24 = function () {
 }
 
 DataStream.prototype.writeUint64 = function (v) {
-	var h = (v >> 32);
+	var h = Math.floor(v / MAX_SIZE);
 	this.writeUint32(h);
 	this.writeUint32(v & 0xFFFFFFFF);
 }
@@ -436,14 +565,6 @@ mp4boxParser.Box.prototype.write = function(stream) {
 }
 
 mp4boxParser.ISOFile.prototype.write = function(stream) {
-	// for (key in this) {
-		// if (this[key]["write"]) {
-			// this[key].write(stream);
-		// } 
-	// }
-	// for (var i=0; i<this.mdats.length; i++) {
-		// this.mdats[i].write(stream);
-	// }
 	for (var i=0; i<this.boxes.length; i++) {
 		this.boxes[i].write(stream);
 	}
@@ -451,17 +572,6 @@ mp4boxParser.ISOFile.prototype.write = function(stream) {
 
 mp4boxParser.basicContainerBox.prototype.write = function(stream) {
 	this.writeHeader(stream);
-	// for (key in this) {
-		// if (this[key]["write"]) {
-			// this[key].write(stream);
-		// } else if (Object.prototype.toString.call( this[key] ) === '[object Array]') {
-			// if (this[key].length && this[key][0]["write"]) {
-				// for (var i=0; i<this[key].length; i++) {
-					// this[key][i].write(stream);
-				// }
-			// }
-		// }
-	// }
 	for (var i=0; i<this.boxes.length; i++) {
 		this.boxes[i].write(stream);
 	}
@@ -612,6 +722,88 @@ mp4boxParser.stszBox.prototype.write = function(stream) {
 	stream.writeUint32(0);
 	stream.writeUint32(this.sample_sizes.length);
 	stream.writeUint32Array(this.sample_sizes);
+}
+
+mp4boxParser.mehdBox.prototype.write = function(stream) {
+	this.version = 0;
+	this.writeHeader(stream);
+	stream.writeUint32(this.fragment_duration);
+}
+
+mp4boxParser.trexBox.prototype.write = function(stream) {
+	this.version = 0;
+	this.writeHeader(stream);
+	stream.writeUint32(this.track_ID);
+	stream.writeUint32(this.default_sample_description_index);
+	stream.writeUint32(this.default_sample_duration);
+	stream.writeUint32(this.default_sample_size);
+	stream.writeUint32(this.default_sample_flags);
+}
+
+mp4boxParser.mfhdBox.prototype.write = function(stream) {
+	this.version = 0;
+	this.writeHeader(stream);
+	stream.writeUint32(this.sequence_number);
+}
+
+mp4boxParser.tfhdBox.prototype.write = function(stream) {
+	this.version = 0;
+	this.writeHeader(stream);
+	stream.writeUint32(this.track_ID);
+	if (this.flags & mp4boxParser.TFHD_FLAG_BASE_OFFSET) {
+		stream.writeUint64(this.base_data_offset);
+	}
+	if (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_DESC) {
+		stream.writeUint32(this.default_sample_description_index);
+	}
+	if (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_DUR) {
+		stream.writeUint32(this.default_sample_duration);
+	}
+	if (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_SIZE) {
+		stream.writeUint32(this.default_sample_size);
+	}
+	if (this.flags & mp4boxParser.TFHD_FLAG_SAMPLE_FLAGS) {
+		stream.writeUint32(this.default_sample_flags);
+	}
+}
+
+mp4boxParser.trunBox.prototype.write = function(stream) {
+	//this.size = 3*4+this.sample_count*(4*4);
+	this.writeHeader(stream);
+	stream.writeUint32(this.sample_count);
+	if (this.flags & mp4boxParser.TRUN_FLAGS_DATA_OFFSET) {
+		stream.writeInt32(this.data_offset); //signed
+	}
+	if (this.flags & mp4boxParser.TRUN_FLAGS_FIRST_FLAG) {
+		stream.writeUint32(this.first_sample_flags);
+	}
+	for (var i = 0; i < this.sample_count; i++) {
+		if (this.flags & mp4boxParser.TRUN_FLAGS_DURATION) {
+			stream.writeUint32(this.default_sample_duration[i]);
+		}
+		if (this.flags & mp4boxParser.TRUN_FLAGS_SIZE) {
+			stream.writeUint32(this.default_sample_size[i]);
+		}
+		if (this.flags & mp4boxParser.TRUN_FLAGS_FLAGS) {
+			stream.writeUint32(this.default_sample_flags[i]);
+		}
+		if (this.flags & mp4boxParser.TRUN_FLAGS_CTS_OFFSET) {
+			if (this.version == 0) {
+				stream.writeUint32(this.sample_composition_time_offset[i]);
+			} else {
+				stream.writeInt32(this.sample_composition_time_offset[i]); //signed
+			}
+		}
+	}		
+}
+
+mp4boxParser.tfdtBox.prototype.write = function(stream) {
+	this.writeHeader(stream);
+	if (this.version == 1) {
+		stream.writeUint64(this.baseMediaDecodeTime);
+	} else {
+		stream.writeUInt32(this.baseMediaDecodeTime); 
+	}
 }
 
 function MP4Fragmenter() {
