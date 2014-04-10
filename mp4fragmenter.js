@@ -823,7 +823,7 @@ mp4boxParser.ISOFile.prototype.write = function(stream) {
 }
 
 mp4boxParser.ISOFile.prototype.writeInitializationSegment = function(stream) {
-	this.ftyp.write(stream);
+	//this.ftyp.write(stream);
 	var mvex = new mp4boxParser.mvexBox();
 	this.moov.boxes.push(mvex);
 	for (var i = 0; i < this.moov.traks.length; i++) {
@@ -1555,7 +1555,12 @@ MP4Fragmenter.prototype.fragment = function(ab) {
 	
 	if (this.onFragment) {
 		stream = null;
-		stream = this.createNextFragment(this.inputIsoFile, 0, stream);
+//		for (var i = 0; i < this.inputIsoFile.moov.traks[0].samples.length; i++) {
+		for (var i = 0; i < 50; i++) {
+			//stream = this.createNextFragment(this.inputIsoFile, 0, stream);
+			stream = this.createFragment(this.inputIsoFile, 0, i, stream);
+			
+		}
 		if (stream) {
 			this.onFragment(stream);
 		}
@@ -1596,7 +1601,7 @@ function getfile(url, callback)
 
 function chunkArrayBuffer(ab){
     var chunkStart;
-	var chunkSize = 100;
+	var chunkSize = Infinity;
 	var length = ab.byteLength;	
     for(chunkStart = 0; chunkStart < length; chunkStart += chunkSize) {	
 		/* the following does not seem to work in Chrome, the new buffer length is 0 from the 2nd slice

@@ -7,6 +7,7 @@
 		var video;
 		var mediaSource;
 		var mp4box;
+		var sb;
 		
 		window.onload = function () {
 			video = document.getElementById('v');
@@ -39,8 +40,18 @@
 		
 			mp4box.onInit = function (d) {
 				var codecs = mp4box.inputIsoFile.getCodecs();
+				var mime = "video/mp4;codecs=\""+codecs+"\"";
+				sb = mediaSource.addSourceBuffer(mime);
+				sb.appendBuffer(d.buffer);
 			}
 			mp4box.onFragment = function (d) {
+				if (sb.updating) {
+					sb.addEventListener("updateend", function () { 
+														sb.appendBuffer(d.buffer); 
+													 });
+				} else {
+					sb.appendBuffer(d.buffer);
+				}
 			}
 			mp4box.onError = function (d) {
 			}
@@ -52,6 +63,6 @@
 	<body>
         <button onclick="mseplay('./video_frag.mp4');">Parse Frag</button>
         <button onclick="mseplay('./video1.mp4');">Parse</button>
-		<video id="v"> </video>
+		<video id="v" autoplay> </video>
 	</body>
 </html>
