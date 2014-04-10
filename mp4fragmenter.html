@@ -5,11 +5,14 @@
         <script src="mp4fragmenter.js"></script>
 		<script>
 		var mp4box = new MP4Fragmenter();
+		var frag_index = 1;
 		mp4box.onInit = function (d) {
 			console.log("Received init data:"+d);
+			d.save('init.mp4');
 		}
 		mp4box.onFragment = function (d) {
 			console.log("Received fragment data:"+d);
+			d.save('frag'+frag_index+'.m4s');
 		}
 		mp4box.onError = function (d) {
 			console.log("Error during fragmentation:"+d);
