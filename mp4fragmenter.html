@@ -13,7 +13,7 @@
 			video = document.getElementById('v');
 			mediaSource = new MediaSource();
 			mediaSource.addEventListener("sourceclose", function () { 
-												console.log("Source closed, video error: "+ (video.error ? video.error.code : ""));
+												console.log("Source closed, video error: "+ (video.error ? video.error.code : "(none)"));
 												console.log(mediaSource);
 											 });
 			video.src = window.URL.createObjectURL(mediaSource);
@@ -29,52 +29,109 @@
 				return;
 			}
 		
+			function onInitAppended(e) {
+				console.log("Init segment appended");
+				console.log(sb);
+				console.log(mediaSource);
+				sb.removeEventListener('updateend', onInitAppended);
+				sb.addEventListener('updateend', onUpdateEnd);
+				onUpdateEnd();
+			}
+			
+			function printRanges(ranges) 
+			{
+				var length = ranges.length;
+				if (length > 0) {
+					var str = "";
+					for (var i = 0; i < length; i++) {
+					  if (i > 0) str += ",";
+					  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
+					}
+					return str;
+				} else {
+					return "(empty)";
+				}
+			}
+			
+			function onUpdateEnd() {
+				if (sb.pendingAppends.length > 0 && !sb.updating) {
+					console.log("Appending new buffer (sb.buffered = "+printRanges(sb.buffered)+")");
+					sb.appendBuffer(sb.pendingAppends.shift());
+				}
+			}
+
 			mp4box.onInit = function (d) {
 				var codecs = mp4box.inputIsoFile.getCodecs();
 				var mime = 'video/mp4; codecs=\"'+codecs+'\"';
 				sb = mediaSource.addSourceBuffer(mime);
+				sb.pendingAppends = new Array();
 				console.log("Adding source buffer of type '"+mime+"'");
 				console.log(sb);
 				console.log(mediaSource);
-				sb.addEventListener("updateend", function () { 
-													console.log("Init segment appended");
-													console.log(sb);
-													console.log(mediaSource);
-												 });
-				d.save('init.mp4');
+				sb.addEventListener("updateend", onInitAppended);
+				//d.save('init.mp4');
 				sb.appendBuffer(d.buffer);
-				/*
-				getfile("./mp4-live/mp4-live-h264bl_low-.mp4", function (ab) { 
-																	d.buffer = ab.slice(87);
-																	d.save('init2.mp4');
-																	//var nab = ab.slice(87);
-																	//nab.copy(d.buffer);
-																	sb.appendBuffer(d.buffer);
-																});
-				*/
 			}
 			
 			mp4box.onFragment = function (d) {	
-/*
-				if (sb.updating) {
-					sb.addEventListener("updateend", appendNext.bind(sb, d) );
-				} else {
-					sb.appendBuffer(d.buffer);
-				}
-				d.save('frag'+frag_index+'.m4s');
-				frag_index++;
-*/
+				/*d.save('frag'+frag_index+'.m4s');
+				frag_index++;*/
+				sb.pendingAppends.push(d.buffer);
+				onUpdateEnd();
 			}
+			
 			mp4box.onError = function (d) {
 			}
-			
-			function appendNext(sb, d) {
-				sb.appendBuffer(d.buffer);
-			}
-			
-			mp4box.fragmentURL(url);
+						
+			getfile(url, chunkArrayBuffer.bind(mp4box));
 		}
-			
+
+		function getfile(url, callback)
+		{
+			var xhr = new XMLHttpRequest;
+			xhr.open("GET", url, true);
+			xhr.responseType = "arraybuffer";
+			xhr.onreadystatechange = function (e) { 
+				if (this.readyState == this.DONE) {
+					callback(this.response); 
+				}
+			};
+			xhr.send();
+		}
+
+		ArrayBuffer.prototype.chunk = function (start, size) {
+			var that = new Uint8Array(this);
+			if (!size || that.byteLength - start < size) {
+				size = that.byteLength - start;
+			}
+			var result = new ArrayBuffer(size);
+			var resultArray = new Uint8Array(result);
+			for (var i = 0; i < resultArray.length; i++)
+			   resultArray[i] = that[i + start];
+			return result;
+		}
+
+		ArrayBuffer.prototype.copy = function (ab) {
+			var source = new Uint8Array(ab);
+			var dest = new Uint8Array(this);
+			for (var i = 0; i < dest.length; i++) {
+				if (dest[i] != source[i]) { console.log("["+i+"] "+dest[i]+"!="+source[i]); }
+				dest[i] = source[i];
+			}
+		}
+
+		function chunkArrayBuffer(ab){
+			var chunkStart;
+			var chunkSize = Infinity;
+			var length = ab.byteLength;	
+			for(chunkStart = 0; chunkStart < length; chunkStart += chunkSize) {	
+				/* the following does not seem to work in Chrome, the new buffer length is 0 from the 2nd slice
+				buffer = ab.slice(chunkStart, chunkSize); */
+				console.log("Chunking input buffer from "+chunkStart+" to "+(chunkStart+chunkSize));
+				var abchunk = ab.chunk(chunkStart, chunkSize);
+				this.fragment(abchunk);
+			}
+		}			
 		</script>
     </head>
 	<body>

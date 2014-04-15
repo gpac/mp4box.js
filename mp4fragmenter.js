@@ -114,10 +114,14 @@ var mp4boxParser = {
 	AudioSampleEntry: function(type, size) {
 		mp4boxParser.SampleEntry.call(this, type, size);	
 	},
-	DEBUG: false,
-	log: function(msg) {
-		if (mp4boxParser.DEBUG) {
-			console.log(msg);
+	LOG_LEVEL_ERROR: 4,
+	LOG_LEVEL_WARNING: 3,
+	LOG_LEVEL_INFO: 2,
+	LOG_LEVEL_DEBUG: 1,
+	log_level: 2,
+	log: function(level, msg) {
+		if (level >= mp4boxParser.log_level) {
+			console.log("[MP4Box] "+msg);
 		}
 	},
 	stsdBox: function(size) {
@@ -133,7 +137,7 @@ var mp4boxParser = {
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
-		mp4boxParser.log("Found box of type "+type+" and size "+size+" at position "+stream.position);
+		mp4boxParser.log(mp4boxParser.LOG_LEVEL_DEBUG, "Found box of type "+type+" and size "+size+" at position "+stream.position);
 		hdr_size = 8;
 		if (type == "uuid") {
 			/* TODO */
@@ -785,7 +789,7 @@ mp4boxParser.Box.prototype.writeHeader = function(stream, msg) {
 	if (this.size > MAX_SIZE) {
 		this.size += 8;
 	}
-	mp4boxParser.log("writing "+this.type+" size: "+this.size+" at position "+stream.position+(msg || ""));
+	mp4boxParser.log(mp4boxParser.LOG_LEVEL_DEBUG, "writing "+this.type+" size: "+this.size+" at position "+stream.position+(msg || ""));
 	if (this.size > MAX_SIZE) {
 		stream.writeUint32(1);
 	} else {
@@ -848,7 +852,7 @@ mp4boxParser.basicContainerBox.prototype.write = function(stream) {
 		}
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	mp4boxParser.log("Adjusting box "+this.type+" with new size "+this.size);
+	mp4boxParser.log(mp4boxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 
@@ -936,7 +940,7 @@ mp4boxParser.stsdBox.prototype.write = function(stream) {
 		this.size += this.entries[i].size;
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	mp4boxParser.log("Adjusting box "+this.type+" with new size "+this.size);
+	mp4boxParser.log(mp4boxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 
@@ -957,7 +961,7 @@ mp4boxParser.SampleEntry.prototype.writeFooter = function(stream) {
 		this.boxes[i].write(stream);
 		this.size += this.boxes[i].size;
 	}
-	mp4boxParser.log("Adjusting box "+this.type+" with new size "+this.size);
+	mp4boxParser.log(mp4boxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);	
 }
 
@@ -1493,7 +1497,7 @@ MP4Fragmenter.prototype.createFragment = function(input, trackNumber, sampleNumb
 
 	/* adjusting the data_offset now that the moof size is known*/
 	moof.trun.data_offset = moof.size+8; //8 is mdat header
-	mp4boxParser.log("Adjusting data_offset with new value "+moof.trun.data_offset);
+	mp4boxParser.log(mp4boxParser.LOG_LEVEL_DEBUG, "Adjusting data_offset with new value "+moof.trun.data_offset);
 	stream.adjustUint32(moof.trun.data_offset_position, moof.trun.data_offset);
 		
 	var mdat = new mp4boxParser.mdatBox();
@@ -1560,73 +1564,21 @@ MP4Fragmenter.prototype.fragment = function(ab) {
 		stream = new DataStream();
 		stream.endianness = DataStream.BIG_ENDIAN;
 		this.inputIsoFile.writeInitializationSegment(stream);
+		mp4boxParser.log(mp4boxParser.LOG_LEVEL_INFO, "Sending initialization segment");
 		this.onInit(stream);
 		this.initSent = true;
 	}
 	
 	if (this.onFragment) {
 		stream = null;
-//		for (var i = 0; i < this.inputIsoFile.moov.traks[0].samples.length; i++) {
-		for (var i = 0; i < 50; i++) {
+		for (var i = 0; i < this.inputIsoFile.moov.traks[0].samples.length; i++) {
+//		for (var i = 0; i < 50; i++) {
 			//stream = this.createNextFragment(this.inputIsoFile, 0, stream);
-			//stream = this.createFragment(this.inputIsoFile, 0, i, stream);
-			
-		}
-		if (stream) {
+			stream = this.createFragment(this.inputIsoFile, 0, i, null);						
+			mp4boxParser.log(mp4boxParser.LOG_LEVEL_INFO, "Sending media fragment"); 
 			this.onFragment(stream);
 		}
 	}
 }
 
-MP4Fragmenter.prototype.fragmentURL = function(url) {
-//	getfile(url, this.fragment.bind(this));
-	getfile(url, chunkArrayBuffer.bind(this));
-}
-
 MP4Fragmenter.NOT_ENOUGH_DATA = 0;
-
-function getfile(url, callback)
-{
-	var xhr = new XMLHttpRequest;
-	xhr.open("GET", url, true);
-    xhr.responseType = "arraybuffer";
-    xhr.onreadystatechange = function (e) { 
-		if (this.readyState == this.DONE) {
-			callback(this.response); 
-		}
-	};
-    xhr.send();
-}
-
-ArrayBuffer.prototype.chunk = function (start, size) {
-	var that = new Uint8Array(this);
-	if (!size || that.byteLength - start < size) {
-		size = that.byteLength - start;
-	}
-	var result = new ArrayBuffer(size);
-	var resultArray = new Uint8Array(result);
-	for (var i = 0; i < resultArray.length; i++)
-	   resultArray[i] = that[i + start];
-	return result;
-}
-
-ArrayBuffer.prototype.copy = function (ab) {
-	var source = new Uint8Array(ab);
-	var dest = new Uint8Array(this);
-	for (var i = 0; i < dest.length; i++) {
-		if (dest[i] != source[i]) { console.log("["+i+"] "+dest[i]+"!="+source[i]); }
-		dest[i] = source[i];
-	}
-}
-
-function chunkArrayBuffer(ab){
-    var chunkStart;
-	var chunkSize = Infinity;
-	var length = ab.byteLength;	
-    for(chunkStart = 0; chunkStart < length; chunkStart += chunkSize) {	
-		/* the following does not seem to work in Chrome, the new buffer length is 0 from the 2nd slice
-		buffer = ab.slice(chunkStart, chunkSize); */
-		var abchunk = ab.chunk(chunkStart, chunkSize);
-		this.fragment(abchunk);
-    }
-}
