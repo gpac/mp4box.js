@@ -2,24 +2,56 @@
     <head>
 		<title>JavaScript MP4 Reader</title>
         <script src="DataStream.js"></script>
+        <script src="descriptor.js"></script>
         <script src="mp4fragmenter.js"></script>
 		<script>
-		var video;
 		var mediaSource;
 		var mp4box;
 		var sb;
 		
+		function onSourceClose(e) {
+			var ms = e.target;
+			console.log("Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
+			console.log(ms);
+		}
+		
 		window.onload = function () {
-			video = document.getElementById('v');
+			var video = document.getElementById('v');
 			mediaSource = new MediaSource();
-			mediaSource.addEventListener("sourceclose", function () { 
-												console.log("Source closed, video error: "+ (video.error ? video.error.code : "(none)"));
-												console.log(mediaSource);
-											 });
-			video.src = window.URL.createObjectURL(mediaSource);
-			
+			mediaSource.video = video;
+			mediaSource.addEventListener("sourceclose", onSourceClose);
+			video.src = window.URL.createObjectURL(mediaSource);			
 			mp4box = new MP4Fragmenter();
-			mp4box.DEBUG = false;
+		}
+		
+		function onInitAppended(e) {
+			console.log("Init segment appended");
+			console.log(sb);
+			console.log(mediaSource);
+			sb.removeEventListener('updateend', onInitAppended);
+			sb.addEventListener('updateend', onUpdateEnd);
+			onUpdateEnd();
+		}
+		
+		function printRanges(ranges) {
+			var length = ranges.length;
+			if (length > 0) {
+				var str = "";
+				for (var i = 0; i < length; i++) {
+				  if (i > 0) str += ",";
+				  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
+				}
+				return str;
+			} else {
+				return "(empty)";
+			}
+		}
+		
+		function onUpdateEnd() {
+			if (sb.pendingAppends.length > 0 && !sb.updating) {
+				console.log("Appending new buffer, buffered: "+printRanges(sb.buffered));
+				sb.appendBuffer(sb.pendingAppends.shift());
+			}
 		}
 		
 		function mseplay(url) {
@@ -28,46 +60,14 @@
 			if (mediaSource.readyState != "open") {
 				return;
 			}
-		
-			function onInitAppended(e) {
-				console.log("Init segment appended");
-				console.log(sb);
-				console.log(mediaSource);
-				sb.removeEventListener('updateend', onInitAppended);
-				sb.addEventListener('updateend', onUpdateEnd);
-				onUpdateEnd();
-			}
-			
-			function printRanges(ranges) 
-			{
-				var length = ranges.length;
-				if (length > 0) {
-					var str = "";
-					for (var i = 0; i < length; i++) {
-					  if (i > 0) str += ",";
-					  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
-					}
-					return str;
-				} else {
-					return "(empty)";
-				}
-			}
-			
-			function onUpdateEnd() {
-				if (sb.pendingAppends.length > 0 && !sb.updating) {
-					console.log("Appending new buffer (sb.buffered = "+printRanges(sb.buffered)+")");
-					sb.appendBuffer(sb.pendingAppends.shift());
-				}
-			}
 
 			mp4box.onInit = function (d) {
 				var codecs = mp4box.inputIsoFile.getCodecs();
 				var mime = 'video/mp4; codecs=\"'+codecs+'\"';
-				sb = mediaSource.addSourceBuffer(mime);
-				sb.pendingAppends = new Array();
 				console.log("Adding source buffer of type '"+mime+"'");
-				console.log(sb);
-				console.log(mediaSource);
+				sb = mediaSource.addSourceBuffer(mime);
+				sb.ms = mediaSource;
+				sb.pendingAppends = new Array();
 				sb.addEventListener("updateend", onInitAppended);
 				//d.save('init.mp4');
 				sb.appendBuffer(d.buffer);
@@ -86,8 +86,7 @@
 			getfile(url, chunkArrayBuffer.bind(mp4box));
 		}
 
-		function getfile(url, callback)
-		{
+		function getfile(url, callback) {
 			var xhr = new XMLHttpRequest;
 			xhr.open("GET", url, true);
 			xhr.responseType = "arraybuffer";
@@ -137,7 +136,10 @@
 	<body>
         <!--button onclick="mseplay('./v2.mp4');">Parse Frag</button-->
         <!--button onclick="mseplay('./video1.mp4');">Parse</button-->
-        <button onclick="mseplay('./h264bl.mp4');">Parse</button>
+        <select onchange="mseplay(this.value);">
+			<option value="./h264bl.mp4">H.264/AVC Baseline</option>
+			<option value="./aaclow.mp4">AAC</option>
+		</select>
 		<video id="v" autoplay controls> </video>
 	</body>
 </html>

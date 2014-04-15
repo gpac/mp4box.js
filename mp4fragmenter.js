@@ -5,7 +5,9 @@ var mp4boxParser = {
 			],
 	fullBoxes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", /*stsd: special case */,
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
-				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt" ],
+				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
+				  "esds"
+				],
 	containerBoxes : [ 
 		[ "moov", [ "trak" ] ],
 		[ "trak" ],
@@ -114,6 +116,7 @@ var mp4boxParser = {
 	AudioSampleEntry: function(type, size) {
 		mp4boxParser.SampleEntry.call(this, type, size);	
 	},
+	NOT_ENOUGH_DATA: 0,
 	LOG_LEVEL_ERROR: 4,
 	LOG_LEVEL_WARNING: 3,
 	LOG_LEVEL_INFO: 2,
@@ -133,7 +136,7 @@ var mp4boxParser = {
 		var start = stream.position;
 		var hdr_size = 0;
 		if (stream.byteLength < 8) {
-			return MP4Fragmenter.NOT_ENOUGH_DATA;
+			return mp4boxParser.NOT_ENOUGH_DATA;
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
@@ -152,7 +155,7 @@ var mp4boxParser = {
 		
 		if (size - hdr_size > stream.byteLength ) {
 			stream.seek(start);
-			return MP4Fragmenter.NOT_ENOUGH_DATA;
+			return mp4boxParser.NOT_ENOUGH_DATA;
 		}
 		if (mp4boxParser[type+"Box"]) {
 			box = new mp4boxParser[type+"Box"](size - hdr_size);		
@@ -208,6 +211,7 @@ mp4boxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	while (stream.position < this.start+this.size) {
 		box = mp4boxParser.parseOneBox(stream);
 		this.boxes.push(box);
+		this[box.type] = box;
 	}	
 }
 
@@ -382,15 +386,30 @@ function decimalToHex(d, padding) {
 
 mp4boxParser.avc1Box.prototype.getCodec = function() {
 	var baseCodec = mp4boxParser.SampleEntry.prototype.getCodec.call(this);
-	var avcC = null;
-	for (var i = 0; i < this.boxes.length; i++) {
-		if (this.boxes[i].type == "avcC") avcC = this.boxes[i];
-	}
-	if (avcC) {
+	if (this.avcC) {
 		return baseCodec+"."+decimalToHex(avcC.AVCProfileIndication)+""+decimalToHex(avcC.profile_compatibility)+""+decimalToHex(avcC.AVCLevelIndication);		
 	} else {
 		return baseCodec;
 	}
+}
+
+mp4boxParser.mp4aBox.prototype.getCodec = function() {
+	var baseCodec = mp4boxParser.SampleEntry.prototype.getCodec.call(this);
+	if (this.esds && this.esds.esd) {
+		var oti = this.esds.esd.getOTI();
+		var dsi = this.esds.esd.getAudioConfig();
+		return baseCodec+"."+decimalToHex(oti)+(dsi ? "."+dsi: "");
+	} else {
+		return baseCodec;
+	}
+}
+
+mp4boxParser.esdsBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.data = stream.readUint8Array(this.size);
+	this.size = 0;
+	var esd_parser = new MPEG4DescriptorParser();
+	this.esd = esd_parser.parseOneDescriptor(new DataStream(this.data.buffer, 0, DataStream.BIG_ENDIAN));
 }
 
 mp4boxParser.cttsBox.prototype.parse = function(stream) {
@@ -732,7 +751,7 @@ mp4boxParser.ISOFile.prototype.parse = function(stream) {
 	var err;
 	while (!stream.isEof()) {
 		box = mp4boxParser.parseOneBox(stream);
-		if (box == MP4Fragmenter.NOT_ENOUGH_DATA) {
+		if (box == mp4boxParser.NOT_ENOUGH_DATA) {
 			return;
 		}
 		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
@@ -1531,6 +1550,7 @@ var appendBuffer = function(buffer1, buffer2) {
  * @see http://www.iso.org/iso/catalogue_detail.htm?csnumber=61988
  *     (ISO/IEC 14496-12:2012 section 8.16.3)
  */
+
 MP4Fragmenter.prototype.fragment = function(ab) {
 	var stream;
 	
@@ -1571,8 +1591,8 @@ MP4Fragmenter.prototype.fragment = function(ab) {
 	
 	if (this.onFragment) {
 		stream = null;
-		for (var i = 0; i < this.inputIsoFile.moov.traks[0].samples.length; i++) {
-//		for (var i = 0; i < 50; i++) {
+//		for (var i = 0; i < this.inputIsoFile.moov.traks[0].samples.length; i++) {
+		for (var i = 0; i < 50; i++) {
 			//stream = this.createNextFragment(this.inputIsoFile, 0, stream);
 			stream = this.createFragment(this.inputIsoFile, 0, i, null);						
 			mp4boxParser.log(mp4boxParser.LOG_LEVEL_INFO, "Sending media fragment"); 
@@ -1580,5 +1600,3 @@ MP4Fragmenter.prototype.fragment = function(ab) {
 		}
 	}
 }
-
-MP4Fragmenter.NOT_ENOUGH_DATA = 0;
