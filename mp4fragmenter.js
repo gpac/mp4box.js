@@ -114,7 +114,7 @@ var mp4boxParser = {
 	AudioSampleEntry: function(type, size) {
 		mp4boxParser.SampleEntry.call(this, type, size);	
 	},
-	DEBUG: true,
+	DEBUG: false,
 	log: function(msg) {
 		if (mp4boxParser.DEBUG) {
 			console.log(msg);
@@ -244,13 +244,13 @@ mp4boxParser.mvhdBox.prototype.parse = function(stream) {
 	this.flags = 0;
 	this.parseFullHeader(stream);
 	if (this.version == 1) {
-		stream.readUint64();
-		stream.readUint64();
+		this.creation_time = stream.readUint64();
+		this.modification_time = stream.readUint64();
 		this.timescale = stream.readUint32();
 		this.duration = stream.readUint64();
 	} else {
-		stream.readUint32();
-		stream.readUint32();
+		this.creation_time = stream.readUint32();
+		this.modification_time = stream.readUint32();
 		this.timescale = stream.readUint32();
 		this.duration = stream.readUint32();
 	}
@@ -270,14 +270,14 @@ mp4boxParser.TKHD_FLAG_IN_PREVIEW = 0x000004;
 mp4boxParser.tkhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.version == 1) {
-		stream.readUint64();
-		stream.readUint64();
+		this.creation_time = stream.readUint64();
+		this.modification_time = stream.readUint64();
 		this.track_id = stream.readUint32();
 		stream.readUint32();
 		this.duration = stream.readUint64();
 	} else {
-		stream.readUint32();
-		stream.readUint32();
+		this.creation_time = stream.readUint32();
+		this.modification_time = stream.readUint32();
 		this.track_id = stream.readUint32();
 		stream.readUint32();
 		this.duration = stream.readUint32();
@@ -295,13 +295,13 @@ mp4boxParser.tkhdBox.prototype.parse = function(stream) {
 mp4boxParser.mdhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.version == 1) {
-		stream.readUint64();
-		stream.readUint64();
+		this.creation_time = stream.readUint64();
+		this.modification_time = stream.readUint64();
 		this.timescale = stream.readUint32();
 		this.duration = stream.readUint64();
 	} else {
-		stream.readUint32();
-		stream.readUint32();
+		this.creation_time = stream.readUint32();
+		this.modification_time = stream.readUint32();
 		this.timescale = stream.readUint32();
 		this.duration = stream.readUint32();
 	}
@@ -370,11 +370,9 @@ mp4boxParser.avcCBox.prototype.parse = function(stream) {
 function decimalToHex(d, padding) {
     var hex = Number(d).toString(16);
     padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
-
     while (hex.length < padding) {
         hex = "0" + hex;
     }
-
     return hex;
 }
 
@@ -390,7 +388,6 @@ mp4boxParser.avc1Box.prototype.getCodec = function() {
 		return baseCodec;
 	}
 }
-
 
 mp4boxParser.cttsBox.prototype.parse = function(stream) {
 	var entry_count;
@@ -783,12 +780,12 @@ DataStream.prototype.adjustUint32 = function(position, value) {
 	this.seek(pos);
 }
 
-mp4boxParser.Box.prototype.writeHeader = function(stream) {
+mp4boxParser.Box.prototype.writeHeader = function(stream, msg) {
 	this.size += 8;
 	if (this.size > MAX_SIZE) {
 		this.size += 8;
 	}
-	mp4boxParser.log("writing "+this.type+" size: "+this.size);
+	mp4boxParser.log("writing "+this.type+" size: "+this.size+" at position "+stream.position+(msg || ""));
 	if (this.size > MAX_SIZE) {
 		stream.writeUint32(1);
 	} else {
@@ -803,7 +800,7 @@ mp4boxParser.Box.prototype.writeHeader = function(stream) {
 
 mp4boxParser.FullBox.prototype.writeHeader = function(stream) {
 	this.size += 4;
-	mp4boxParser.Box.prototype.writeHeader.call(this, stream);
+	mp4boxParser.Box.prototype.writeHeader.call(this, stream, " v="+this.version+" f="+this.flags);
 	stream.writeUint8(this.version);
 	stream.writeUint24(this.flags);
 }
@@ -826,14 +823,17 @@ mp4boxParser.ISOFile.prototype.writeInitializationSegment = function(stream) {
 	//this.ftyp.write(stream);
 	var mvex = new mp4boxParser.mvexBox();
 	this.moov.boxes.push(mvex);
+	var mehd = new mp4boxParser.mehdBox();
+	mvex.boxes.push(mehd);
+	mehd.fragment_duration = 0;
 	for (var i = 0; i < this.moov.traks.length; i++) {
 		var trex = new mp4boxParser.trexBox();
 		mvex.boxes.push(trex);
 		trex.track_ID = this.moov.traks[i].tkhd.track_id;
 		trex.default_sample_description_index = 1;
-		trex.default_sample_duration = 0;
+		trex.default_sample_duration = this.moov.traks[i].samples[0].duration;
 		trex.default_sample_size = 0;
-		trex.default_sample_flags = 0;
+		trex.default_sample_flags = 1<<16;
 	}
 	this.moov.write(stream);
 }
@@ -842,8 +842,10 @@ mp4boxParser.basicContainerBox.prototype.write = function(stream) {
 	this.size = 0;
 	this.writeHeader(stream);
 	for (var i=0; i<this.boxes.length; i++) {
-		this.boxes[i].write(stream);
-		this.size += this.boxes[i].size;
+		if (this.boxes[i]) {
+			this.boxes[i].write(stream);
+			this.size += this.boxes[i].size;
+		}
 	}
 	/* adjusting the size, now that all sub-boxes are known */
 	mp4boxParser.log("Adjusting box "+this.type+" with new size "+this.size);
@@ -855,8 +857,8 @@ mp4boxParser.mvhdBox.prototype.write = function(stream) {
 	this.flags = 0;
 	this.size = 23*4+2*2;
 	this.writeHeader(stream);
-	stream.writeUint32(0);
-	stream.writeUint32(0);
+	stream.writeUint32(this.creation_time);
+	stream.writeUint32(this.modification_time);
 	stream.writeUint32(this.timescale);
 	stream.writeUint32(this.duration);
 	stream.writeUint32(this.rate);
@@ -879,8 +881,8 @@ mp4boxParser.tkhdBox.prototype.write = function(stream) {
 	//this.flags = 0;
 	this.size = 4*18+2*4;
 	this.writeHeader(stream);
-	stream.writeUint32(0);
-	stream.writeUint32(0);
+	stream.writeUint32(this.creation_time);
+	stream.writeUint32(this.modification_time);
 	stream.writeUint32(this.track_id);
 	stream.writeUint32(0);
 	stream.writeUint32(this.duration);
@@ -900,8 +902,8 @@ mp4boxParser.mdhdBox.prototype.write = function(stream) {
 	this.flags = 0;
 	this.version = 0;
 	this.writeHeader(stream);
-	stream.writeUint32(0);
-	stream.writeUint32(0);
+	stream.writeUint32(this.creation_time);
+	stream.writeUint32(this.modification_time);
 	stream.writeUint32(this.timescale);
 	stream.writeUint32(this.duration);
 	stream.writeUint16(this.language);
@@ -965,8 +967,8 @@ mp4boxParser.SampleEntry.prototype.write = function(stream) {
 }
 
 mp4boxParser.VisualSampleEntry.prototype.write = function(stream) {
-	this.size = 2*7+6*4+32;
 	this.writeHeader(stream);
+	this.size += 2*7+6*4+32;
 	stream.writeUint16(0); 
 	stream.writeUint16(0);
 	stream.writeUint32(0);
@@ -980,13 +982,13 @@ mp4boxParser.VisualSampleEntry.prototype.write = function(stream) {
 	stream.writeUint16(this.frame_count);
 	stream.writeString(this.compressorname, null, 32);
 	stream.writeUint16(this.depth);
-	stream.writeUint16(0);
+	stream.writeInt16(-1);
 	this.writeFooter(stream);
 }
 
 mp4boxParser.AudioSampleEntry.prototype.write = function(stream) {
-	this.size = 2*4+3*4;
 	this.writeHeader(stream);
+	this.size += 2*4+3*4;
 	stream.writeUint32(0);
 	stream.writeUint32(0);
 	stream.writeUint16(this.channel_count);
@@ -1014,13 +1016,13 @@ mp4boxParser.avcCBox.prototype.write = function(stream) {
 	stream.writeUint8(this.AVCProfileIndication);
 	stream.writeUint8(this.profile_compatibility);
 	stream.writeUint8(this.AVCLevelIndication);
-	stream.writeUint8(this.lengthSizeMinusOne | 0x3);
-	stream.writeUint8(this.SPS.length | 0x1F);
+	stream.writeUint8(this.lengthSizeMinusOne + (63<<2));
+	stream.writeUint8(this.SPS.length + (7<<5));
 	for (i = 0; i < this.SPS.length; i++) {
 		stream.writeUint16(this.SPS[i].length);
 		stream.writeUint8Array(this.SPS[i]);
 	}
-	stream.writeUint8(this.PPS.length | 0x1F);
+	stream.writeUint8(this.PPS.length);
 	for (i = 0; i < this.PPS.length; i++) {
 		stream.writeUint16(this.PPS[i].length);
 		stream.writeUint8Array(this.PPS[i]);
@@ -1267,8 +1269,11 @@ mp4boxParser.tfdtBox.prototype.write = function(stream) {
 mp4boxParser.ISOFile.prototype.resetTables = function () {
 	var i;
 	var trak, stco, stsc, stsz, stts, ctts, stss;
+	this.moov.mvhd.duration = 0;
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
+		trak.tkhd.duration = 0;
+		trak.mdia.mdhd.duration = 0;
 		stco = trak.mdia.minf.stbl.stco;
 		stco.chunk_offsets = new Array();
 		stsc = trak.mdia.minf.stbl.stsc;
@@ -1281,10 +1286,16 @@ mp4boxParser.ISOFile.prototype.resetTables = function () {
 		stts.sample_counts = new Array();
 		stts.sample_deltas = new Array();
 		ctts = trak.mdia.minf.stbl.ctts;
-		ctts.sample_counts = new Array();
-		ctts.sample_offsets = new Array();
+		if (ctts) {
+			ctts.sample_counts = new Array();
+			ctts.sample_offsets = new Array();
+		}
 		stss = trak.mdia.minf.stbl.stss;
-		stss.sample_numbers = new Array();
+		var k = trak.mdia.minf.stbl.boxes.indexOf(stss);
+		if (k != -1) trak.mdia.minf.stbl.boxes[k] = null;
+		// if (stss) {
+			// stss.sample_numbers = new Array();
+		// }
 	}
 }
 
@@ -1558,7 +1569,7 @@ MP4Fragmenter.prototype.fragment = function(ab) {
 //		for (var i = 0; i < this.inputIsoFile.moov.traks[0].samples.length; i++) {
 		for (var i = 0; i < 50; i++) {
 			//stream = this.createNextFragment(this.inputIsoFile, 0, stream);
-			stream = this.createFragment(this.inputIsoFile, 0, i, stream);
+			//stream = this.createFragment(this.inputIsoFile, 0, i, stream);
 			
 		}
 		if (stream) {
@@ -1587,9 +1598,9 @@ function getfile(url, callback)
     xhr.send();
 }
 
- ArrayBuffer.prototype.chunk = function (start, size) {
+ArrayBuffer.prototype.chunk = function (start, size) {
 	var that = new Uint8Array(this);
-	if (that.byteLength - start < size) {
+	if (!size || that.byteLength - start < size) {
 		size = that.byteLength - start;
 	}
 	var result = new ArrayBuffer(size);
@@ -1597,6 +1608,15 @@ function getfile(url, callback)
 	for (var i = 0; i < resultArray.length; i++)
 	   resultArray[i] = that[i + start];
 	return result;
+}
+
+ArrayBuffer.prototype.copy = function (ab) {
+	var source = new Uint8Array(ab);
+	var dest = new Uint8Array(this);
+	for (var i = 0; i < dest.length; i++) {
+		if (dest[i] != source[i]) { console.log("["+i+"] "+dest[i]+"!="+source[i]); }
+		dest[i] = source[i];
+	}
 }
 
 function chunkArrayBuffer(ab){

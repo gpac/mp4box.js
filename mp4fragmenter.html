@@ -12,57 +12,75 @@
 		window.onload = function () {
 			video = document.getElementById('v');
 			mediaSource = new MediaSource();
+			mediaSource.addEventListener("sourceclose", function () { 
+												console.log("Source closed, video error: "+ (video.error ? video.error.code : ""));
+												console.log(mediaSource);
+											 });
 			video.src = window.URL.createObjectURL(mediaSource);
-			mp4box = new MP4Fragmenter();
-		}
-		
-		function msesave() {
-			var frag_index = 1;
 			
-			mp4box.onInit = function (d) {
-				console.log("Received init data:"+d);
-				d.save('init.mp4');
-			}
-			mp4box.onFragment = function (d) {
-				console.log("Received fragment data:"+d);
-				d.save('frag'+frag_index+'.m4s');
-				frag_index++;
-			}
-			mp4box.onError = function (d) {
-				console.log("Error during fragmentation:"+d);
-			}
+			mp4box = new MP4Fragmenter();
+			mp4box.DEBUG = false;
 		}
 		
 		function mseplay(url) {
+			var frag_index = 1;
+
 			if (mediaSource.readyState != "open") {
 				return;
 			}
 		
 			mp4box.onInit = function (d) {
 				var codecs = mp4box.inputIsoFile.getCodecs();
-				var mime = "video/mp4;codecs=\""+codecs+"\"";
+				var mime = 'video/mp4; codecs=\"'+codecs+'\"';
 				sb = mediaSource.addSourceBuffer(mime);
+				console.log("Adding source buffer of type '"+mime+"'");
+				console.log(sb);
+				console.log(mediaSource);
+				sb.addEventListener("updateend", function () { 
+													console.log("Init segment appended");
+													console.log(sb);
+													console.log(mediaSource);
+												 });
+				d.save('init.mp4');
 				sb.appendBuffer(d.buffer);
+				/*
+				getfile("./mp4-live/mp4-live-h264bl_low-.mp4", function (ab) { 
+																	d.buffer = ab.slice(87);
+																	d.save('init2.mp4');
+																	//var nab = ab.slice(87);
+																	//nab.copy(d.buffer);
+																	sb.appendBuffer(d.buffer);
+																});
+				*/
 			}
-			mp4box.onFragment = function (d) {
+			
+			mp4box.onFragment = function (d) {	
+/*
 				if (sb.updating) {
-					sb.addEventListener("updateend", function () { 
-														sb.appendBuffer(d.buffer); 
-													 });
+					sb.addEventListener("updateend", appendNext.bind(sb, d) );
 				} else {
 					sb.appendBuffer(d.buffer);
 				}
+				d.save('frag'+frag_index+'.m4s');
+				frag_index++;
+*/
 			}
 			mp4box.onError = function (d) {
 			}
+			
+			function appendNext(sb, d) {
+				sb.appendBuffer(d.buffer);
+			}
+			
 			mp4box.fragmentURL(url);
 		}
 			
 		</script>
     </head>
 	<body>
-        <button onclick="mseplay('./video_frag.mp4');">Parse Frag</button>
-        <button onclick="mseplay('./video1.mp4');">Parse</button>
-		<video id="v" autoplay> </video>
+        <!--button onclick="mseplay('./v2.mp4');">Parse Frag</button-->
+        <!--button onclick="mseplay('./video1.mp4');">Parse</button-->
+        <button onclick="mseplay('./h264bl.mp4');">Parse</button>
+		<video id="v" autoplay controls> </video>
 	</body>
 </html>
