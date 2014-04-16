@@ -121,11 +121,21 @@
 							if (check.checked) { 
 								var mime = 'video/mp4; codecs=\"'+codec+'\"';
 								console.log("[SourceBuffer #"+track_id+"] Creation with type '"+mime+"'");
-								sb = mediaSource.addSourceBuffer(mime);
+								var sb = mediaSource.addSourceBuffer(mime);
 								sb.ms = mediaSource;
 								sb.id = track_id;
 								mp4box.setFragmentOptions(track_id, sb);
 								sb.pendingAppends = new Array();
+							} else {
+								console.log("[SourceBuffer #"+track_id+"] Removing buffer");
+								mp4box.unsetFragmentOptions(track_id);
+								for (var i = 0; i < mediaSource.sourceBuffers.length; i++) {
+									var sb = mediaSource.sourceBuffers[i];
+									if (sb.id == track_id) {
+										mediaSource.removeSourceBuffer(sb);
+										break;
+									}
+								}
 							}
 						};
 					})(info.tracks[i].id, info.tracks[i].codec));

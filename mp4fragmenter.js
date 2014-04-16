@@ -1470,6 +1470,19 @@ MP4Fragmenter.prototype.setFragmentOptions = function(id, user, options) {
 	}
 }
 
+MP4Fragmenter.prototype.unsetFragmentOptions = function(id) {
+	var index = -1;
+	for (var i = 0; i < this.fragmentedTracks.length; i++) {
+		var fragTrack = this.fragmentedTracks[i];
+		if (fragTrack.id == id) {
+			index = i;
+		}
+	}
+	if (index > -1) {
+		this.fragmentedTracks.splice(index, 1);
+	}
+}
+
 MP4Fragmenter.prototype.createSingleSampleMoof = function(sample) {
 	var moof = new mp4boxParser.moofBox();
 	var mfhd = new mp4boxParser.mfhdBox();
