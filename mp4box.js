@@ -1,8 +1,9 @@
 var mp4boxParser = {
-	boxCodes : [ "mdat", 
-			  "avcC",
-			  "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
-			],
+	boxCodes : [ 
+	             "mdat", 
+				 "avcC", "ftyp",
+			     "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
+			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", /*stsd: special case */,
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
@@ -247,6 +248,19 @@ mp4boxParser.AudioSampleEntry.prototype.parse = function(stream) {
 	stream.readUint16();
 	this.samplerate = (stream.readUint32()>>16);
 	this.parseFooter(stream);
+}
+
+mp4boxParser.ftypBox.prototype.parse = function(stream) {
+	this.major_brand = stream.readString(4);
+	this.minor_version = stream.readUint32();
+	this.size -= 8;
+	this.compatible_brands = new Array();
+	var i = 0;
+	while (this.size>=4) {
+		this.compatible_brands[i] = stream.readString(4);
+		this.size -= 4;
+		i++;
+	}
 }
 
 mp4boxParser.mvhdBox.prototype.parse = function(stream) {
@@ -880,6 +894,16 @@ mp4boxParser.basicContainerBox.prototype.write = function(stream) {
 	/* adjusting the size, now that all sub-boxes are known */
 	mp4boxParser.log(mp4boxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
+}
+
+mp4boxParser.ftypBox.prototype.write = function(stream) {
+	this.size = 8+4*this.compatible_brands.length;
+	this.writeHeader(stream);
+	stream.writeString(this.major_brand, null, 4);
+	stream.writeUint32(this.minor_version);
+	for (var i = 0; i < this.compatible_brands.length; i++) {
+		stream.writeString(this.compatible_brands[i], null, 4);
+	}
 }
 
 mp4boxParser.mvhdBox.prototype.write = function(stream) {
@@ -1614,7 +1638,9 @@ MP4Fragmenter.prototype.getInfo = function() {
 	}
 	movie.isProgressive = this.inputIsoFile.isProgressive;
 	movie.hasIOD = (this.inputIsoFile.moov.iods != null);
-	movie.brands = {}; /* TODO */
+	movie.brands = []; 
+	movie.brands.push(this.inputIsoFile.ftyp.major_brand);
+	movie.brands.join(this.inputIsoFile.ftyp.compatible_brands);
 	movie.created = new Date(this.inputIsoFile.moov.mvhd.creation_time);
 	movie.modified = new Date(this.inputIsoFile.moov.mvhd.modification_time);
 	movie.tracks = new Array();
