@@ -1,14 +1,14 @@
 var mp4boxParser = {
-	boxes : [ "mdat", 
+	boxCodes : [ "mdat", 
 			  "avcC",
 			  "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
 			],
-	fullBoxes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", /*stsd: special case */,
+	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", /*stsd: special case */,
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
 				  "esds"
 				],
-	containerBoxes : [ 
+	containerBoxCodes : [ 
 		[ "moov", [ "trak" ] ],
 		[ "trak" ],
 		[ "edts" ],
@@ -20,7 +20,7 @@ var mp4boxParser = {
 		[ "moof", [ "traf" ] ],
 		[ "traf", [ "trun" ] ],
 	],
-	sampleEntries : [ 
+	sampleEntryCodes : [ 
 		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4" ] },
 		{ prefix: "Audio", 	types: [ "mp4a" ] },
 		{ prefix: "", 		types: [ "metx", "mett", "urim" ] }
@@ -35,31 +35,31 @@ var mp4boxParser = {
 		mp4boxParser.VisualSampleEntry.prototype = new mp4boxParser.SampleEntry();
 		mp4boxParser.AudioSampleEntry.prototype = new mp4boxParser.SampleEntry();
 		/* creating constructors for simple boxes */
-		length = mp4boxParser.boxes.length;
+		length = mp4boxParser.boxCodes.length;
 		for (i=0; i<length; i++) {
-			mp4boxParser[mp4boxParser.boxes[i]+"Box"] = (function (j) { /* creating a closure around the iterating value of i */
+			mp4boxParser[mp4boxParser.boxCodes[i]+"Box"] = (function (j) { /* creating a closure around the iterating value of i */
 				return function(size) {
-					mp4boxParser.Box.call(this, mp4boxParser.boxes[j], size);
+					mp4boxParser.Box.call(this, mp4boxParser.boxCodes[j], size);
 				}
 			})(i);
-			mp4boxParser[mp4boxParser.boxes[i]+"Box"].prototype = new mp4boxParser.Box();
+			mp4boxParser[mp4boxParser.boxCodes[i]+"Box"].prototype = new mp4boxParser.Box();
 		}
 		/* creating constructors for full boxes */
-		length = mp4boxParser.fullBoxes.length;
+		length = mp4boxParser.fullBoxCodes.length;
 		for (i=0; i<length; i++) {
-			mp4boxParser[mp4boxParser.fullBoxes[i]+"Box"] = (function (j) { 
+			mp4boxParser[mp4boxParser.fullBoxCodes[i]+"Box"] = (function (j) { 
 				return function(size) {
-					mp4boxParser.FullBox.call(this, mp4boxParser.fullBoxes[j], size);
+					mp4boxParser.FullBox.call(this, mp4boxParser.fullBoxCodes[j], size);
 				}
 			})(i);
-			mp4boxParser[mp4boxParser.fullBoxes[i]+"Box"].prototype = new mp4boxParser.FullBox();
+			mp4boxParser[mp4boxParser.fullBoxCodes[i]+"Box"].prototype = new mp4boxParser.FullBox();
 		}
 		/* creating constructors for basic container boxes */
-		length = mp4boxParser.containerBoxes.length;
+		length = mp4boxParser.containerBoxCodes.length;
 		for (i=0; i<length; i++) {
-			mp4boxParser[mp4boxParser.containerBoxes[i][0]+"Box"] = (function (j, subBoxNames) { 
+			mp4boxParser[mp4boxParser.containerBoxCodes[i][0]+"Box"] = (function (j, subBoxNames) { 
 				return function(size) {
-					mp4boxParser.basicContainerBox.call(this, mp4boxParser.containerBoxes[j][0], size);
+					mp4boxParser.basicContainerBox.call(this, mp4boxParser.containerBoxCodes[j][0], size);
 					if (subBoxNames) {
 						this.subBoxNames = subBoxNames;
 						var nbSubBoxes = subBoxNames.length;
@@ -68,19 +68,19 @@ var mp4boxParser = {
 						}
 					}
 				}
-			})(i, mp4boxParser.containerBoxes[i][1]);
-			mp4boxParser[mp4boxParser.containerBoxes[i][0]+"Box"].prototype = new mp4boxParser.basicContainerBox();
+			})(i, mp4boxParser.containerBoxCodes[i][1]);
+			mp4boxParser[mp4boxParser.containerBoxCodes[i][0]+"Box"].prototype = new mp4boxParser.basicContainerBox();
 		}
 		/* creating constructors for stsd entries  */
-		length = mp4boxParser.sampleEntries.length;
+		length = mp4boxParser.sampleEntryCodes.length;
 		for (j = 0; j < length; j++) {
-			var prefix = mp4boxParser.sampleEntries[j].prefix;
-			var types = mp4boxParser.sampleEntries[j].types;
+			var prefix = mp4boxParser.sampleEntryCodes[j].prefix;
+			var types = mp4boxParser.sampleEntryCodes[j].types;
 			var nb_types = types.length;
 			for (i=0; i<nb_types; i++) {
 				mp4boxParser[types[i]+"Box"] = (function (k, l) { 
 					return function(size) {
-						mp4boxParser[mp4boxParser.sampleEntries[k].prefix+"SampleEntry"].call(this, mp4boxParser.sampleEntries[k].types[l], size);
+						mp4boxParser[mp4boxParser.sampleEntryCodes[k].prefix+"SampleEntry"].call(this, mp4boxParser.sampleEntryCodes[k].types[l], size);
 					}
 				})(j, i);
 				mp4boxParser[types[i]+"Box"].prototype = new mp4boxParser[prefix+"SampleEntry"]();
@@ -387,7 +387,9 @@ function decimalToHex(d, padding) {
 mp4boxParser.avc1Box.prototype.getCodec = function() {
 	var baseCodec = mp4boxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.avcC) {
-		return baseCodec+"."+decimalToHex(avcC.AVCProfileIndication)+""+decimalToHex(avcC.profile_compatibility)+""+decimalToHex(avcC.AVCLevelIndication);		
+		return baseCodec+"."+decimalToHex(this.avcC.AVCProfileIndication)+
+						  ""+decimalToHex(this.avcC.profile_compatibility)+
+						  ""+decimalToHex(this.avcC.AVCLevelIndication);		
 	} else {
 		return baseCodec;
 	}
@@ -1322,34 +1324,6 @@ mp4boxParser.ISOFile.prototype.resetTables = function () {
 	}
 }
 
-function MP4Fragmenter() {
-	this.is_init = false;
-	this.inputStream = null;
-	this.inputIsoFile = null;
-	this.onInit = null;
-	this.initSent = false;
-	this.onFragment = null;
-	this.onError = null;
-	this.flags = 0;
-	this.nextMoofNumber = 0;
-	this.fragdur = 500;
-	this.startWithRap = false;
-	this.noDefault = false;
-}
-
-/**
- * Sets the options for fragmentations
- *
- * @param {Number} dur The duration for fragments in milliseconds.
- * @param {Boolean} startWithRap A Boolean indicating if fragments should start with RAP or not.
- * @param {Boolean} noDefault A Boolean indicating if default flags should be placed in the moov or not.
- */
-MP4Fragmenter.prototype.setFragmentOptions = function(dur, startWithRap, noDefault) {
-	this.fragdur = dur;
-	this.startWithRap = startWithRap;
-	this.noDefault = noDefault;
-}
-
 mp4boxParser.ISOFile.prototype.buildSampleLists = function() {	
 	var i, j, k;
 	var trak, stco, stsc, stsz, stts, ctts, stss;
@@ -1465,6 +1439,37 @@ mp4boxParser.ISOFile.prototype.getCodecs = function() {
 	return codecs;
 }
 
+function MP4Fragmenter() {
+	this.inputStream = null;
+	this.inputIsoFile = null;
+	this.onReady = null;
+	this.readySent = false;
+	this.onFragment = null;
+	this.onError = null;
+
+	this.default_options = {
+		fragdur : 500,
+		startWithRap: true,
+		noDefault: false
+	};
+	this.fragmentedTracks = new Array();
+	this.isFragmentationStarted = false;
+	this.nextMoofNumber = 0;
+}
+
+MP4Fragmenter.prototype.setFragmentOptions = function(id, user, options) {
+	var fragTrack = {};
+	this.fragmentedTracks.push(fragTrack);
+	fragTrack.id = id;
+	fragTrack.user = user;
+	fragTrack.nextSample = 0;
+	if (options) {
+		fragTrack.dur = options.dur || this.default_options.fragdur;
+		fragTrack.startWithRap = options.startWithRap || this.default_options.startWithRap;
+		fragTrack.noDefault = options.noDefault || this.default_options.noDefault;
+	}
+}
+
 MP4Fragmenter.prototype.createSingleSampleMoof = function(sample) {
 	var moof = new mp4boxParser.moofBox();
 	var mfhd = new mp4boxParser.mfhdBox();
@@ -1500,8 +1505,8 @@ MP4Fragmenter.prototype.createSingleSampleMoof = function(sample) {
 	return moof;
 }
 
-MP4Fragmenter.prototype.createFragment = function(input, trackNumber, sampleNumber, stream_) {
-	var trak = input.moov.traks[trackNumber];
+MP4Fragmenter.prototype.createFragment = function(input, track_id, sampleNumber, stream_) {
+	var trak = this.getTrackById(track_id);
 	var sample = trak.samples[sampleNumber];
 
 	if (this.inputStream.byteLength < sample.offset + sample.size) {
@@ -1527,37 +1532,20 @@ MP4Fragmenter.prototype.createFragment = function(input, trackNumber, sampleNumb
 	return stream;
 }
 
-MP4Fragmenter.prototype.createNextFragment = function(input, track_number, stream) {
-	var result;	
-	result = this.createFragment(input, track_number, this.nextSample[track_number], stream);
-	if (result) {
-		this.nextSample[track_number]++;
-	}
-	return result;
-}
-
-var appendBuffer = function(buffer1, buffer2) {
-  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-  tmp.set(new Uint8Array(buffer1), 0);
-  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-  return tmp.buffer;
-};		
-
-/**
- * Parse an ArrayBuffer as an ISOBMFF file, fragments it and calls back the appropriate functions (
- *
- * @param {ArrayBuffer} ab The ArrayBuffer representing the file.
- * @see http://www.iso.org/iso/catalogue_detail.htm?csnumber=61988
- *     (ISO/IEC 14496-12:2012 section 8.16.3)
- */
-
-MP4Fragmenter.prototype.fragment = function(ab) {
+MP4Fragmenter.prototype.open = function(ab) {
+	var concatenateBuffers = function(buffer1, buffer2) {
+	  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+	  tmp.set(new Uint8Array(buffer1), 0);
+	  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+	  return tmp.buffer;
+	};
+	
 	var stream;
 	
 	if (!this.inputStream) {
 		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
 	} else {
-		this.inputStream.buffer = appendBuffer(this.inputStream.buffer, ab);
+		this.inputStream.buffer = concatenateBuffers(this.inputStream.buffer, ab);
 	}
 	if (!this.inputIsoFile) {
 		this.inputIsoFile = new mp4boxParser.ISOFile();
@@ -1566,37 +1554,120 @@ MP4Fragmenter.prototype.fragment = function(ab) {
 		this.inputIsoFile.parse(this.inputStream);
 	}
 	if (!this.inputIsoFile.moov) {
-		return;	
-	} 
-	if (!this.is_init) {
+		return false;	
+	} else {
 		this.inputIsoFile.buildSampleLists();
-		this.inputIsoFile.resetTables();
-		this.nextSample = new Array(this.inputIsoFile.moov.traks.length);
-		for(var i = 0; i < this.nextSample.length; i++) {
-			this.nextSample[i] = 0;
+		if (this.onReady && !this.readySent) {
+			var info = this.getInfo();
+			this.readySent = true;
+			this.onReady(info);
+		}	
+		return true;
+	}
+}
+
+MP4Fragmenter.prototype.processFragments = function() {
+	if (this.isFragmentationStarted) {
+		for (var i = 0; i < this.fragmentedTracks.length; i++) {
+			for (var j = 0; j < 50; j++) {
+				stream = this.createFragment(this.inputIsoFile, this.fragmentedTracks[i].id, this.fragmentedTracks[i].nextSample, null);
+				mp4boxParser.log(mp4boxParser.LOG_LEVEL_INFO, "Sending media fragment on track #"+i+" for sample "+this.fragmentedTracks[i].nextSample); 
+				this.fragmentedTracks[i].nextSample++;
+				if (this.onFragment) this.onFragment(this.fragmentedTracks[i].user, stream.buffer);
+			}
 		}
+	}
+}
+
+MP4Fragmenter.prototype.appendBuffer = function(ab) {
+	var stream;
+	var is_open = this.open(ab);
+	if (!is_open) return;
+	this.processFragments();
+}
+
+MP4Fragmenter.prototype.getInfo = function() {
+	var movie = {};
+	movie.duration = this.inputIsoFile.moov.mvhd.duration;
+	movie.timescale = this.inputIsoFile.moov.mvhd.timescale;
+	movie.isFragmented = (this.inputIsoFile.moov.mvex != null);
+	if (movie.isFragmented) {
+		movie.fragment_duration = this.inputIsoFile.moov.mvex.mehd.fragment_duration;
+	}
+	movie.isProgressive = true;
+	movie.hasIOD = (this.inputIsoFile.moov.iods != null);
+	movie.brands = {}; /* TODO */
+	movie.created = new Date(this.inputIsoFile.moov.mvhd.creation_time);
+	movie.modified = new Date(this.inputIsoFile.moov.mvhd.modification_time);
+	movie.tracks = new Array();
+	for (i = 0; i < this.inputIsoFile.moov.traks.length; i++) {
+		var trak = this.inputIsoFile.moov.traks[i];
+		var track = {};
+		movie.tracks.push(track);
+		track.id = trak.tkhd.track_id;
+		track.created = new Date(trak.tkhd.creation_time);
+		track.modified = new Date(trak.tkhd.modification_time);
+		track.movie_duration = trak.tkhd.duration;
+		track.layer = trak.tkhd.layer;
+		track.alternate_group = trak.tkhd.alternate_group;
+		track.volume = trak.tkhd.volume;
+		track.matrix = trak.tkhd.matrix;
+		track.track_width = trak.tkhd.width;
+		track.track_height = trak.tkhd.height;
+		track.timescale = trak.mdia.mdhd.timescale;
+		track.duration = trak.mdia.mdhd.duration;
+		track.codec = trak.mdia.minf.stbl.stsd.entries[0].getCodec();		
+		track.language = trak.mdia.mdhd.language;
+	}
+	return movie;
+}
+
+MP4Fragmenter.prototype.getInitializationSegment = function() {
+	var stream = new DataStream();
+	stream.endianness = DataStream.BIG_ENDIAN;
+	this.inputIsoFile.writeInitializationSegment(stream);
+	return stream.buffer;
+}
+
+MP4Fragmenter.prototype.getTrackById = function(id) {
+	for (var j = 0; j < this.inputIsoFile.moov.traks.length; j++) {
+		var trak = this.inputIsoFile.moov.traks[j];
+		if (trak.tkhd.track_id == id) return trak;
+	}
+	return null;
+}
+
+MP4Fragmenter.prototype.initializeFragmentation = function() {
+	if (!this.isFragmentationStarted) {
+		this.isFragmentationStarted = true;		
 		this.nextMoofNumber = 0;
-		this.is_init = true;		
-	}
-//	this.inputIsoFile.write(this.outputStream);
-	
-	if (this.onInit && !this.initSent) {
-		stream = new DataStream();
-		stream.endianness = DataStream.BIG_ENDIAN;
-		this.inputIsoFile.writeInitializationSegment(stream);
-		mp4boxParser.log(mp4boxParser.LOG_LEVEL_INFO, "Sending initialization segment");
-		this.onInit(stream);
-		this.initSent = true;
-	}
-	
-	if (this.onFragment) {
-		stream = null;
-//		for (var i = 0; i < this.inputIsoFile.moov.traks[0].samples.length; i++) {
-		for (var i = 0; i < 50; i++) {
-			//stream = this.createNextFragment(this.inputIsoFile, 0, stream);
-			stream = this.createFragment(this.inputIsoFile, 0, i, null);						
-			mp4boxParser.log(mp4boxParser.LOG_LEVEL_INFO, "Sending media fragment"); 
-			this.onFragment(stream);
+		this.inputIsoFile.resetTables();
+	}	
+	var initSegs = new Array();
+	for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
+		var box = this.inputIsoFile.moov.boxes[j];
+		if (box.type == "trak") {
+			this.inputIsoFile.moov.boxes[j] = null;
 		}
 	}
+	for (var i = 0; i < this.fragmentedTracks.length; i++) {
+		var trak = this.getTrackById(this.fragmentedTracks[i].id);
+		for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
+			var box = this.inputIsoFile.moov.boxes[j];
+			if (box == null) {
+				this.inputIsoFile.moov.boxes[j] = trak;
+			}
+		}
+		seg = {};
+		seg.track_id = trak.tkhd.track_id;
+		seg.user = this.fragmentedTracks[i].user;
+		seg.buffer = this.getInitializationSegment();
+		initSegs.push(seg);
+	}
+	return initSegs;
+}
+
+MP4Fragmenter.prototype.flush = function() {
+	mp4boxParser.log(mp4boxParser.LOG_LEVEL_INFO, "Flushing remaining samples");
+	this.processFragments();
 }
