@@ -1,6 +1,7 @@
 <html>
     <head>
 		<title>JavaScript MP4 Reader</title>
+		<link rel="stylesheet" href="style.css" />
         <script src="DataStream.js"></script>
         <script src="descriptor.js"></script>
         <script src="mp4fragmenter.js"></script>
@@ -63,8 +64,15 @@
 			}
 		}
 		
-		function load(url) {
-
+		function setUrl(url) {
+			var urlInput;
+			urlInput = document.getElementById('url');
+			urlInput.value = url;
+		}
+		
+		function load() {
+			var url = document.getElementById('url').value;
+			
 			if (mediaSource.readyState != "open") {
 				return;
 			}
@@ -78,7 +86,7 @@
 				}				
 				var html = "Movie Info";
 				html += "<div>";
-				html += "<table style=\"text-align: left;\">";
+				html += "<table>";
 				html += "<tr><th>Brands</th><td>"+"</td></tr>";
 				html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
 				html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
@@ -91,7 +99,7 @@
 					html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+"</td></tr>";
 				}
 				html += "</table>";
-				html += "<table style=\"text-align: left;\">";
+				html += "<table>";
 				html += "<tr>";
 				html += "<th>Track #</th>";
 				html += "<th>Track ID</th>";
@@ -140,6 +148,7 @@
 						};
 					})(info.tracks[i].id, info.tracks[i].codec));
 				}
+				document.getElementById("startButton").disabled = false;
 			}
 						
 			mp4box.onError = function (d) {
@@ -179,7 +188,7 @@
 			xhr.open("GET", url, true);
 			xhr.responseType = "arraybuffer";
 			xhr.onreadystatechange = function (e) { 
-				if (this.readyState == this.DONE) {
+				if (this.status == 200 && this.readyState == this.DONE) {
 					callback(this.response); 
 				}
 			};
@@ -226,20 +235,22 @@
 				}
 			}
 		}		
-
 		</script>
     </head>
-	<body style="font-family: Sans-Serif;">
+	<body>
 		<div>
 			<label>Load input file:</label>
-			<select id="s" onchange="load(this.value);" disabled onfocus="this.selectedIndex = -1;">
+			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
 				<option value="./h264bl.mp4">Video Counter (unfragmented, H.264/AVC Baseline)</option>
 				<option value="./aaclow.mp4">Audio Bips (unfragmented, AAC)</option>
 				<option value="./av.mp4">Multiplexed Audio/Video (unfragmented, H.264/AVC Baseline+AAC)</option>
 				<option value="./2v.mp4">2 video (unfragmented, H.264/AVC Baseline)</option>
+				<option value="./mp4-onDemand-h264bl_low.mp4">DASH onDemand video (fragmented, H.264/AVC Baseline)</option>
 			</select>
-			<button id="b" onclick="start()">Start</button>
-			<div id="infoDiv" style="margin: 5px; padding: 5px; border: solid 1px black;">
+			<input id="url" type="texte"></input>
+			<button onclick="load()">Load</button>
+			<button id="startButton" onclick="start()" disabled>Start</button>
+			<div id="infoDiv">
 			</div>
 		</div>
 		<div>

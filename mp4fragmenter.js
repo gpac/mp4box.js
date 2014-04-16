@@ -92,6 +92,7 @@ var mp4boxParser = {
 		this.boxes = new Array();
 		this.mdats = new Array();
 		this.moofs = new Array();
+		this.isProgressive = false;
 	},
 	Box: function(_type, _size) {
 		this.type = _type;
@@ -765,6 +766,10 @@ mp4boxParser.ISOFile.prototype.parse = function(stream) {
 			case "moof":
 				this.moofs.push(box);
 				break;
+			case "moov":
+				if (this.mdats.length == 0) {
+					this.isProgressive = true;
+				}
 			default:
 				this[box.type] = box;
 				break;
@@ -1422,7 +1427,7 @@ mp4boxParser.ISOFile.prototype.buildSampleLists = function() {
 				sample.is_rap = true;
 			}
 		}
-		trak.samples[j-1].duration = trak.mdia.mdhd.duration - trak.samples[j-1].dts;
+		if (j>0) trak.samples[j-1].duration = trak.mdia.mdhd.duration - trak.samples[j-1].dts;
 	}
 }
 
@@ -1607,7 +1612,7 @@ MP4Fragmenter.prototype.getInfo = function() {
 	if (movie.isFragmented) {
 		movie.fragment_duration = this.inputIsoFile.moov.mvex.mehd.fragment_duration;
 	}
-	movie.isProgressive = true;
+	movie.isProgressive = this.inputIsoFile.isProgressive;
 	movie.hasIOD = (this.inputIsoFile.moov.iods != null);
 	movie.brands = {}; /* TODO */
 	movie.created = new Date(this.inputIsoFile.moov.mvhd.creation_time);
