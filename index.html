@@ -4,6 +4,8 @@
 		<link rel="stylesheet" href="style.css" />
         <script src="DataStream.js"></script>
         <script src="descriptor.js"></script>
+        <script src="box.js"></script>
+        <script src="isofile.js"></script>
         <script src="mp4box.js"></script>
 		<script>
 		var mediaSource;
@@ -77,7 +79,7 @@
 				return;
 			}
 
-			mp4box = new MP4Fragmenter();
+			mp4box = new MP4Box();
 			mp4box.onReady = function (info) {
 				console.log("Movie information received");
 				if (this.timeoutId) {
@@ -99,6 +101,7 @@
 					html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+"</td></tr>";
 				}
 				html += "</table>";
+				html += "Track info";
 				html += "<table>";
 				html += "<tr>";
 				html += "<th>Track #</th>";
@@ -134,6 +137,7 @@
 								sb.id = track_id;
 								mp4box.setFragmentOptions(track_id, sb);
 								sb.pendingAppends = new Array();
+								document.getElementById("startButton").disabled = false;
 							} else {
 								console.log("[SourceBuffer #"+track_id+"] Removing buffer");
 								mp4box.unsetFragmentOptions(track_id);
@@ -144,11 +148,11 @@
 										break;
 									}
 								}
+								if (mediaSource.sourceBuffers.length==0) document.getElementById("startButton").disabled = true;
 							}
 						};
 					})(info.tracks[i].id, info.tracks[i].codec));
 				}
-				document.getElementById("startButton").disabled = false;
 			}
 						
 			mp4box.onError = function (d) {
@@ -239,7 +243,7 @@
     </head>
 	<body>
 		<div>
-			<label>Load input file:</label>
+			<label>Select input file or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
 				<option value="./h264bl.mp4">Video Counter (unfragmented, H.264/AVC Baseline)</option>
 				<option value="./aaclow.mp4">Audio Bips (unfragmented, AAC)</option>
@@ -247,14 +251,15 @@
 				<option value="./2v.mp4">2 video (unfragmented, H.264/AVC Baseline)</option>
 				<option value="./mp4-onDemand-h264bl_low.mp4">DASH onDemand video (fragmented, H.264/AVC Baseline)</option>
 			</select>
+			<label>URL:</label>
 			<input id="url" type="texte"></input>
-			<button onclick="load()">Load</button>
-			<button id="startButton" onclick="start()" disabled>Start</button>
+			<button onclick="load()">Get Info</button>
+			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
 			<div id="infoDiv">
 			</div>
 		</div>
 		<div>
-			<video id="v" controls> </video>
+			<video id="v" autoplay controls> </video>
 		<div>
 	</body>
 </html>
