@@ -188,6 +188,22 @@ BoxParser.SampleEntry.prototype.getCodec = function() {
 	return this.type;
 }
 
+BoxParser.SampleEntry.prototype.getWidth = function() {
+	return "";
+}
+
+BoxParser.SampleEntry.prototype.getHeight = function() {
+	return "";
+}
+
+BoxParser.SampleEntry.prototype.getChannelCount = function() {
+	return "";
+}
+
+BoxParser.SampleEntry.prototype.getSampleRate = function() {
+	return "";
+}
+
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	this.start = stream.position;
 	stream.readUint8Array(6);
@@ -224,6 +240,14 @@ BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
 	this.parseFooter(stream);
 }
 
+BoxParser.VisualSampleEntry.prototype.getWidth = function() {
+	return this.width;
+}
+
+BoxParser.VisualSampleEntry.prototype.getHeight = function() {
+	return this.height;
+}
+
 BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	stream.readUint32Array(2);
@@ -231,8 +255,16 @@ BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
 	this.samplesize = stream.readUint16();
 	stream.readUint16();
 	stream.readUint16();
-	this.samplerate = (stream.readUint32()>>16);
+	this.samplerate = (stream.readUint32()/(1<<16));
 	this.parseFooter(stream);
+}
+
+BoxParser.AudioSampleEntry.prototype.getChannelCount = function() {
+	return this.channel_count;
+}
+
+BoxParser.AudioSampleEntry.prototype.getSampleRate = function() {
+	return this.samplerate;
 }
 
 BoxParser.ftypBox.prototype.parse = function(stream) {
@@ -314,6 +346,11 @@ BoxParser.mdhdBox.prototype.parse = function(stream) {
 		this.duration = stream.readUint32();
 	}
 	this.language = stream.readUint16();
+	var chars = [];
+	chars[0] = (this.language>>10)&0x1F;
+	chars[1] = (this.language>>5)&0x1F;
+	chars[2] = (this.language)&0x1F;
+	this.languageString = String.fromCharCode(chars[0]+0x60, chars[1]+0x60, chars[2]+0x60);
 	stream.readUint16();
 }
 

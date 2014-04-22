@@ -71,6 +71,100 @@
 			urlInput.value = url;
 		}
 		
+		function displayMovieInfo(info) {
+			var html = "Movie Info";
+			html += "<div>";
+			html += "<table>";
+			html += "<tr><th>Brands</th><td>"+info.brands+"</td></tr>";
+			html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
+			html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
+			html += "<tr><th>Timescale</th><td>"+info.timescale+"</td></tr>";
+			html += "<tr><th>Duration</th><td>"+info.duration+" ("+(info.duration/info.timescale)+"s.)</td></tr>";
+			html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
+			html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
+			html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
+			if (info.isFragmented) {
+				html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+(info.fragment_duration/info.timescale)+"s.)</td></tr>";
+			}
+			html += "</table>";
+			html += "Track info";
+			html += "<table>";
+			html += "<tr>";
+			html += "<th>Track #</th>";
+			html += "<th>Track ID</th>";
+			html += "<th>Alternate Group</th>";
+			html += "<th>Creation Date</th>";
+			html += "<th>Modified Date</th>";
+			html += "<th>Timescale</th>";
+			html += "<th>Media Duration</th>";
+			html += "<th>Number of frames</th>";
+			html += "<th>Codec</th>";
+			html += "<th>Language</th>";
+			html += "<th>Track Width</th>";
+			html += "<th>Track Height</th>";
+			html += "<th>Track Layer</th>";
+			html += "<th>Video Width</th>";
+			html += "<th>Video Height</th>";
+			html += "<th>Audio Sample Rate</th>";
+			html += "<th>Audio Channel Count</th>";
+			html += "<th>Add Source Buffer</th>";
+			html += "</tr>";
+			for (var i = 0; i < info.tracks.length; i++) {
+				html += "<tr>";
+				html += "<td>"+(i+1)+"</td>";
+				html += "<td>"+info.tracks[i].id+"</td>";
+				html += "<td>"+info.tracks[i].alternate_group+"</td>";
+				html += "<td>"+info.tracks[i].created+"</td>";
+				html += "<td>"+info.tracks[i].modified+"</td>";
+				html += "<td>"+info.tracks[i].timescale+"</td>";
+				html += "<td>"+info.tracks[i].duration+" ("+(info.tracks[i].duration/info.tracks[i].timescale)+"s.) </td>";
+				html += "<td>"+info.tracks[i].nb_samples+"</td>";
+				html += "<td>"+info.tracks[i].codec+"</td>";
+				html += "<td>"+info.tracks[i].language+"</td>";
+				html += "<td>"+info.tracks[i].track_width+"</td>";
+				html += "<td>"+info.tracks[i].track_height+"</td>";
+				html += "<td>"+info.tracks[i].layer+"</td>";
+				html += "<td>"+info.tracks[i].video_width+"</td>";
+				html += "<td>"+info.tracks[i].video_height+"</td>";
+				html += "<td>"+info.tracks[i].audio_sample_rate+"</td>";
+				html += "<td>"+info.tracks[i].audio_channel_count+"</td>";
+				html += "<td>"+"<input id=\"addTrack"+i+"\" type=\"checkbox\">"+"</td>";
+				html += "</tr>";
+			}
+			html += "</table>";
+			html += "</div>";
+			infoDiv.innerHTML = html;
+			for (var i = 0; i < info.tracks.length; i++) {
+				var checkBox = document.getElementById("addTrack"+i);
+				checkBox.addEventListener("change", (function (track_id, codec) { 
+					return function (e) {
+						var check = e.target;
+						if (check.checked) { 
+							var mime = 'video/mp4; codecs=\"'+codec+'\"';
+							console.log("[SourceBuffer #"+track_id+"] Creation with type '"+mime+"'");
+							var sb = mediaSource.addSourceBuffer(mime);
+							sb.ms = mediaSource;
+							sb.id = track_id;
+							mp4box.setFragmentOptions(track_id, sb);
+							sb.pendingAppends = new Array();
+							document.getElementById("startButton").disabled = false;
+						} else {
+							console.log("[SourceBuffer #"+track_id+"] Removing buffer");
+							mp4box.unsetFragmentOptions(track_id);
+							for (var i = 0; i < mediaSource.sourceBuffers.length; i++) {
+								var sb = mediaSource.sourceBuffers[i];
+								if (sb.id == track_id) {
+									mediaSource.removeSourceBuffer(sb);
+									break;
+								}
+							}
+							if (mediaSource.sourceBuffers.length==0) document.getElementById("startButton").disabled = true;
+						}
+					};
+				})(info.tracks[i].id, info.tracks[i].codec));
+			}
+		}
+
 		function load() {
 			var url = document.getElementById('url').value;
 			
@@ -80,78 +174,12 @@
 
 			mp4box = new MP4Box();
 			mp4box.onReady = function (info) {
-				console.log("Movie information received");
 				if (this.timeoutId) {
 					window.clearTimeout(this.timeoutId);
 					delete this.timeoutId;
 				}				
-				var html = "Movie Info";
-				html += "<div>";
-				html += "<table>";
-				html += "<tr><th>Brands</th><td>"+info.brands+"</td></tr>";
-				html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
-				html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
-				html += "<tr><th>Timescale</th><td>"+info.timescale+"</td></tr>";
-				html += "<tr><th>Duration</th><td>"+info.duration+"</td></tr>";
-				html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
-				html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
-				html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
-				if (info.isFragmented) {
-					html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+"</td></tr>";
-				}
-				html += "</table>";
-				html += "Track info";
-				html += "<table>";
-				html += "<tr>";
-				html += "<th>Track #</th>";
-				html += "<th>Track ID</th>";
-				html += "<th>Timescale</th>";
-				html += "<th>Media Duration</th>";
-				html += "<th>Codec</th>";
-				html += "<th>Add Source Buffer</th>";
-				html += "</tr>";
-				for (var i = 0; i < info.tracks.length; i++) {
-					html += "<tr>";
-					html += "<td>"+(i+1)+"</td>";
-					html += "<td>"+info.tracks[i].id+"</td>";
-					html += "<td>"+info.tracks[i].timescale+"</td>";
-					html += "<td>"+info.tracks[i].duration+"</td>";
-					html += "<td>"+info.tracks[i].codec+"</td>";
-					html += "<td>"+"<input id=\"addTrack"+i+"\" type=\"checkbox\">"+"</td>";
-					html += "</tr>";
-				}
-				html += "</table>";
-				html += "</div>";
-				infoDiv.innerHTML = html;
-				for (var i = 0; i < info.tracks.length; i++) {
-					var checkBox = document.getElementById("addTrack"+i);
-					checkBox.addEventListener("change", (function (track_id, codec) { 
-						return function (e) {
-							var check = e.target;
-							if (check.checked) { 
-								var mime = 'video/mp4; codecs=\"'+codec+'\"';
-								console.log("[SourceBuffer #"+track_id+"] Creation with type '"+mime+"'");
-								var sb = mediaSource.addSourceBuffer(mime);
-								sb.ms = mediaSource;
-								sb.id = track_id;
-								mp4box.setFragmentOptions(track_id, sb);
-								sb.pendingAppends = new Array();
-								document.getElementById("startButton").disabled = false;
-							} else {
-								console.log("[SourceBuffer #"+track_id+"] Removing buffer");
-								mp4box.unsetFragmentOptions(track_id);
-								for (var i = 0; i < mediaSource.sourceBuffers.length; i++) {
-									var sb = mediaSource.sourceBuffers[i];
-									if (sb.id == track_id) {
-										mediaSource.removeSourceBuffer(sb);
-										break;
-									}
-								}
-								if (mediaSource.sourceBuffers.length==0) document.getElementById("startButton").disabled = true;
-							}
-						};
-					})(info.tracks[i].id, info.tracks[i].codec));
-				}
+				console.log("Movie information received");
+				displayMovieInfo(info);
 			}
 						
 			mp4box.onError = function (d) {
@@ -242,7 +270,7 @@
     </head>
 	<body>
 		<div>
-			<label>Select input file or set URL:</label>
+			<label>Select or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
 				<option value="./h264bl.mp4">Video Counter (unfragmented, H.264/AVC Baseline)</option>
 				<option value="./aaclow.mp4">Audio Bips (unfragmented, AAC)</option>
@@ -252,7 +280,7 @@
 			</select>
 			<label>URL:</label>
 			<input id="url" type="texte"></input>
-			<button onclick="load()">Get Info</button>
+			<button onclick="load()">Load Media Info</button>
 			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
 			<div id="infoDiv">
 			</div>

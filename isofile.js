@@ -206,3 +206,11 @@ ISOFile.prototype.getCodecs = function() {
 	return codecs;
 }
 
+ISOFile.prototype.getTrackById = function(id) {
+	for (var j = 0; j < this.moov.traks.length; j++) {
+		var trak = this.moov.traks[j];
+		if (trak.tkhd.track_id == id) return trak;
+	}
+	return null;
+}
+
