@@ -1,6 +1,6 @@
 <html>
     <head>
-		<title>JavaScript MP4 Reader</title>
+		<title>JavaScript MP4 Reader/Fragmenter</title>
 		<link rel="stylesheet" href="style.css" />
         <script src="DataStream.js"></script>
         <script src="descriptor.js"></script>
@@ -11,6 +11,16 @@
 		var mediaSource;
 		var infoDiv;
 		var mp4box;
+		
+		window.onload = function () {
+			var video = document.getElementById('v');
+			infoDiv = document.getElementById('infoDiv');
+			mediaSource = new MediaSource();
+			mediaSource.video = video;
+			mediaSource.addEventListener("sourceopen", onSourceOpen);
+			mediaSource.addEventListener("sourceclose", onSourceClose);
+			video.src = window.URL.createObjectURL(mediaSource);			
+		}
 		
 		function onSourceClose(e) {
 			var ms = e.target;
@@ -26,16 +36,6 @@
 			selector.disabled = false;
 		}
 		
-		window.onload = function () {
-			var video = document.getElementById('v');
-			infoDiv = document.getElementById('infoDiv');
-			mediaSource = new MediaSource();
-			mediaSource.video = video;
-			mediaSource.addEventListener("sourceopen", onSourceOpen);
-			mediaSource.addEventListener("sourceclose", onSourceClose);
-			video.src = window.URL.createObjectURL(mediaSource);			
-		}
-		
 		function onInitAppended(e) {
 			var sb = e.target;
 			console.log("[SourceBuffer #"+sb.id+"] Init segment append end");
@@ -44,22 +44,21 @@
 			sb.addEventListener('updateend', onUpdateEnd.bind(sb));
 			onUpdateEnd.call(sb);
 		}
-		
-		function printRanges(ranges) {
-			var length = ranges.length;
-			if (length > 0) {
-				var str = "";
-				for (var i = 0; i < length; i++) {
-				  if (i > 0) str += ",";
-				  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
-				}
-				return str;
-			} else {
-				return "(empty)";
-			}
-		}
-		
+
 		function onUpdateEnd() {
+			function printRanges(ranges) {
+				var length = ranges.length;
+				if (length > 0) {
+					var str = "";
+					for (var i = 0; i < length; i++) {
+					  if (i > 0) str += ",";
+					  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
+					}
+					return str;
+				} else {
+					return "(empty)";
+				}
+			}
 			if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
 				console.log("[SourceBuffer #"+this.id+"] Appending new buffer, buffered: "+printRanges(this.buffered));
 				this.appendBuffer(this.pendingAppends.shift());

@@ -5,10 +5,11 @@ var BoxParser = {
 				 "avcC", "ftyp",
 				 "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
 			   ],
-	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", /*stsd: special case */,
+	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
-				  "esds"
+				  "esds",
+				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
 		[ "moov", [ "trak" ] ],
@@ -31,7 +32,7 @@ var BoxParser = {
 		var i, j;
 		var length;
 		BoxParser.FullBox.prototype = new BoxParser.Box();
-		BoxParser.basicContainerBox.prototype = new BoxParser.Box();
+		BoxParser.ContainerBox.prototype = new BoxParser.Box();
 		BoxParser.stsdBox.prototype = new BoxParser.FullBox();
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
 		BoxParser.VisualSampleEntry.prototype = new BoxParser.SampleEntry();
@@ -56,12 +57,12 @@ var BoxParser = {
 			})(i);
 			BoxParser[BoxParser.fullBoxCodes[i]+"Box"].prototype = new BoxParser.FullBox();
 		}
-		/* creating constructors for basic container boxes */
+		/* creating constructors for container boxes */
 		length = BoxParser.containerBoxCodes.length;
 		for (i=0; i<length; i++) {
 			BoxParser[BoxParser.containerBoxCodes[i][0]+"Box"] = (function (j, subBoxNames) { 
 				return function(size) {
-					BoxParser.basicContainerBox.call(this, BoxParser.containerBoxCodes[j][0], size);
+					BoxParser.ContainerBox.call(this, BoxParser.containerBoxCodes[j][0], size);
 					if (subBoxNames) {
 						this.subBoxNames = subBoxNames;
 						var nbSubBoxes = subBoxNames.length;
@@ -71,7 +72,7 @@ var BoxParser = {
 					}
 				}
 			})(i, BoxParser.containerBoxCodes[i][1]);
-			BoxParser[BoxParser.containerBoxCodes[i][0]+"Box"].prototype = new BoxParser.basicContainerBox();
+			BoxParser[BoxParser.containerBoxCodes[i][0]+"Box"].prototype = new BoxParser.ContainerBox();
 		}
 		/* creating constructors for stsd entries  */
 		length = BoxParser.sampleEntryCodes.length;
@@ -99,7 +100,7 @@ var BoxParser = {
 		this.flags = 0;
 		this.version = 0;
 	},
-	basicContainerBox: function(type, size) {
+	ContainerBox: function(type, size) {
 		BoxParser.Box.call(this, type, size);
 		this.boxes = new Array();
 	},
@@ -167,7 +168,7 @@ BoxParser.FullBox.prototype.parseFullHeader = function (stream) {
 	this.size -= 4;
 }
 
-BoxParser.basicContainerBox.prototype.parse = function(stream) {
+BoxParser.ContainerBox.prototype.parse = function(stream) {
 	var box;
 	var start;
 	start = stream.position;
@@ -747,39 +748,6 @@ BoxParser.tfdtBox.prototype.parse = function(stream) {
 	}
 }
 
-/* 
-   TODO: fix endianness for 24/64-bit fields
-   TODO: check range/support for 64-bits numbers in JavaScript
-*/
-var MAX_SIZE = Math.pow(2, 32);
-
-DataStream.prototype.readUint64 = function () {
-	return (this.readUint32()*MAX_SIZE)+this.readUint32();
-}
-
-DataStream.prototype.writeUint64 = function (v) {
-	var h = Math.floor(v / MAX_SIZE);
-	this.writeUint32(h);
-	this.writeUint32(v & 0xFFFFFFFF);
-}
-
-DataStream.prototype.readUint24 = function () {
-	return (this.readUint8()<<16)+(this.readUint8()<<8)+this.readUint8();
-}
-
-DataStream.prototype.writeUint24 = function (v) {
-	this.writeUint8((v & 0x00FF0000)>>16);
-	this.writeUint8((v & 0x0000FF00)>>8);
-	this.writeUint8((v & 0x000000FF));
-}
-
-DataStream.prototype.adjustUint32 = function(position, value) {
-	var pos = this.position;
-	this.seek(position);
-	this.writeUint32(value);
-	this.seek(pos);
-}
-
 BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 	this.size += 8;
 	if (this.size > MAX_SIZE) {
@@ -813,7 +781,7 @@ BoxParser.Box.prototype.write = function(stream) {
 	}
 }
 
-BoxParser.basicContainerBox.prototype.write = function(stream) {
+BoxParser.ContainerBox.prototype.write = function(stream) {
 	this.size = 0;
 	this.writeHeader(stream);
 	for (var i=0; i<this.boxes.length; i++) {

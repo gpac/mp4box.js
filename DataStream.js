@@ -1479,3 +1479,36 @@ DataStream.prototype.writeType = function(t, v, struct) {
   }
 };
 
+
+/* 
+   TODO: fix endianness for 24/64-bit fields
+   TODO: check range/support for 64-bits numbers in JavaScript
+*/
+var MAX_SIZE = Math.pow(2, 32);
+
+DataStream.prototype.readUint64 = function () {
+	return (this.readUint32()*MAX_SIZE)+this.readUint32();
+}
+
+DataStream.prototype.writeUint64 = function (v) {
+	var h = Math.floor(v / MAX_SIZE);
+	this.writeUint32(h);
+	this.writeUint32(v & 0xFFFFFFFF);
+}
+
+DataStream.prototype.readUint24 = function () {
+	return (this.readUint8()<<16)+(this.readUint8()<<8)+this.readUint8();
+}
+
+DataStream.prototype.writeUint24 = function (v) {
+	this.writeUint8((v & 0x00FF0000)>>16);
+	this.writeUint8((v & 0x0000FF00)>>8);
+	this.writeUint8((v & 0x000000FF));
+}
+
+DataStream.prototype.adjustUint32 = function(position, value) {
+	var pos = this.position;
+	this.seek(position);
+	this.writeUint32(value);
+	this.seek(pos);
+}
