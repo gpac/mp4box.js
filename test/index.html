@@ -16,6 +16,7 @@
 		}
 
 		function reset() {
+			downloader.stop = true;
 			resetMediaSource();
 			resetDisplay();
 		}
@@ -175,7 +176,7 @@
 							sb.id = track_id;
 							mp4box.setSegmentOptions(track_id, sb);
 							sb.pendingAppends = new Array();
-							document.getElementById("startButton").disabled = false;
+							document.getElementById("initButton").disabled = false;
 						} else {
 							console.log("[SourceBuffer #"+track_id+"] Removing buffer");
 							mp4box.unsetSegmentOptions(track_id);
@@ -186,7 +187,7 @@
 									break;
 								}
 							}
-							if (ms.sourceBuffers.length==0) document.getElementById("startButton").disabled = true;
+							if (ms.sourceBuffers.length==0) document.getElementById("initButton").disabled = true;
 						}
 					};
 				})(info.tracks[i].id, info.tracks[i].codec));
@@ -235,7 +236,7 @@
 			//d.save(name);
 		}
 		
-		function start() {
+		function initializeSourceBuffers() {
 			mp4box.onSegment = function (id, user, buffer) {	
 				var sb = user;
 				saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
@@ -254,6 +255,12 @@
 				saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
 				sb.segmentNumber = 0;
 			}
+			document.getElementById("initButton").disabled = true;
+			document.getElementById("startButton").disabled = false;
+		}
+		
+		function start() {
+			document.getElementById("startButton").disabled = true;
 			console.log("Resuming file download");
 			downloader.stop = false;
 			getfile(downloader);
@@ -312,6 +319,7 @@
 			<label>URL:</label>
 			<input id="url" type="texte"></input>
 			<button onclick="load()">Load Media Info</button>
+			<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
 			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
 			<button onclick="reset()">Reset Media Source</button>
 			<div id="infoDiv">
