@@ -36,31 +36,35 @@
 			selector.disabled = false;
 		}
 		
+		function printRanges(ranges) {
+			var length = ranges.length;
+			if (length > 0) {
+				var str = "";
+				for (var i = 0; i < length; i++) {
+				  if (i > 0) str += ",";
+				  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
+				}
+				return str;
+			} else {
+				return "(empty)";
+			}
+		}
+
 		function onInitAppended(e) {
 			var sb = e.target;
-			console.log("[SourceBuffer #"+sb.id+"] Init segment append end");
+			console.log("[SourceBuffer #"+sb.id+"] Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
 			console.log(sb);
 			sb.removeEventListener('updateend', onInitAppended);
 			sb.addEventListener('updateend', onUpdateEnd.bind(sb));
-			onUpdateEnd.call(sb);
+			onUpdateEnd.call(sb, null);
 		}
 
-		function onUpdateEnd() {
-			function printRanges(ranges) {
-				var length = ranges.length;
-				if (length > 0) {
-					var str = "";
-					for (var i = 0; i < length; i++) {
-					  if (i > 0) str += ",";
-					  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
-					}
-					return str;
-				} else {
-					return "(empty)";
-				}
+		function onUpdateEnd(e) {
+			if (e != null) {
+				console.log("[SourceBuffer #"+this.id+"] Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered), " pending: "+this.pendingAppends.length);
 			}
 			if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
-				console.log("[SourceBuffer #"+this.id+"] Appending new buffer, buffered: "+printRanges(this.buffered));
+				console.log("[SourceBuffer #"+this.id+"] Appending new buffer");
 				this.appendBuffer(this.pendingAppends.shift());
 			}
 		}
@@ -200,13 +204,15 @@
 				frag_index++;*/
 				var sb = user;
 				sb.pendingAppends.push(buffer);
-				onUpdateEnd.call(sb);
+				console.log("[SourceBuffer #"+user.id+"] Received new fragmented data, pending: "+sb.pendingAppends.length);
+				onUpdateEnd.call(sb, null);
 			}
 
 			var initSegs = mp4box.initializeFragmentation();
 			for (var i = 0; i < initSegs.length; i++) {
 				var sb = initSegs[i].user;
 				sb.addEventListener("updateend", onInitAppended);
+				console.log("[SourceBuffer #"+sb.id+"] Appending initialization data");
 				sb.appendBuffer(initSegs[i].buffer);
 				//var d = new DataStream(initSegs[i].buffer);
 				//d.save('init'+i+'.mp4');					
@@ -249,11 +255,12 @@
 
 		function chunkArrayBuffer(){
 
-			console.log("["+this.url+"] Chunking input buffer from "+this.chunkStart+" to "+(this.chunkStart+this.chunkSize));
 			if (this.chunkStart == Infinity) {
+				console.log("["+this.url+"] Flushing remaining data ");
 				this.flush();
 			} else {
 				var length = this.input.byteLength;	
+				console.log("["+this.url+"] Chunking input buffer from "+this.chunkStart+" to "+(this.chunkStart+this.chunkSize));
 
 				/* the following does not seem to work in Chrome, the new buffer length is 0 from the 2nd slice
 				buffer = ab.slice(chunkStart, chunkSize); */

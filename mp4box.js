@@ -1,4 +1,19 @@
-function MP4Box() {
+/*
+ * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * This notice must stay in all subsequent versions of this code.
+ */
+ function MP4Box() {
 	this.log_level = this.LOG_LEVEL_INFO;
 
 	this.inputStream = null;
@@ -35,6 +50,8 @@ MP4Box.prototype.setFragmentOptions = function(id, user, options) {
 	fragTrack.id = id;
 	fragTrack.user = user;
 	fragTrack.nextSample = 0;
+	fragTrack.stream = null;
+	fragTrack.nb_samples = 999;
 	if (options) {
 		fragTrack.dur = options.dur || this.default_options.fragdur;
 		fragTrack.startWithRap = options.startWithRap || this.default_options.startWithRap;
@@ -152,17 +169,21 @@ MP4Box.prototype.open = function(ab) {
 }
 
 MP4Box.prototype.processFragments = function() {
-	var stream = null;
 	if (this.isFragmentationStarted) {
 		for (var i = 0; i < this.fragmentedTracks.length; i++) {
-			for (var j = this.fragmentedTracks[i].nextSample; j < 50; j++) {
-//			var trak = this.inputIsoFile.getTrackById(this.fragmentedTracks[i].id);			
-//			for (var j = this.fragmentedTracks[i].nextSample; j < trak.samples.length; j++) {
-				stream = this.createFragment(this.inputIsoFile, this.fragmentedTracks[i].id, this.fragmentedTracks[i].nextSample, stream);
-				this.log(MP4Box.LOG_LEVEL_INFO, "Sending media fragment on track #"+this.fragmentedTracks[i].id
-												+" for sample "+this.fragmentedTracks[i].nextSample); 
-				this.fragmentedTracks[i].nextSample++;
-				if (this.onFragment) this.onFragment(this.fragmentedTracks[i].user, stream.buffer);
+			var fragTrak = this.fragmentedTracks[i];
+			var trak = this.inputIsoFile.getTrackById(fragTrak.id);			
+//			for (var j = this.fragmentedTracks[i].nextSample; j < 50; j++) {
+			while (fragTrak.nextSample < trak.samples.length) {				
+				this.log(MP4Box.LOG_LEVEL_INFO, "Creating media fragment on track #"+fragTrak.id
+												+" for sample "+fragTrak.nextSample); 
+				fragTrak.stream = this.createFragment(this.inputIsoFile, fragTrak.id, fragTrak.nextSample, fragTrak.stream);
+				fragTrak.nextSample++;
+				if (this.onFragment && (fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
+					this.log(MP4Box.LOG_LEVEL_INFO, "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
+					this.onFragment(fragTrak.user, fragTrak.stream.buffer);
+					fragTrak.stream = null;
+				}
 			}
 		}
 	}
