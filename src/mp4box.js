@@ -23,11 +23,6 @@
 	this.onSegment = null;
 	this.onError = null;
 
-	this.default_options = {
-		fragdur : 500,
-		startWithRap: true,
-		noDefault: false
-	};
 	this.fragmentedTracks = new Array();
 	this.isFragmentationStarted = false;
 	this.nextMoofNumber = 0;
@@ -45,17 +40,20 @@ MP4Box.prototype.log = function(level, msg) {
 }
 
 MP4Box.prototype.setSegmentOptions = function(id, user, options) {
-	var fragTrack = {};
-	this.fragmentedTracks.push(fragTrack);
-	fragTrack.id = id;
-	fragTrack.user = user;
-	fragTrack.nextSample = 0;
-	fragTrack.stream = null;
-	fragTrack.nb_samples = 999;
-	if (options) {
-		fragTrack.dur = options.dur || this.default_options.fragdur;
-		fragTrack.startWithRap = options.startWithRap || this.default_options.startWithRap;
-		fragTrack.noDefault = options.noDefault || this.default_options.noDefault;
+	var trak = this.inputIsoFile.getTrackById(id);
+	if (trak) {
+		var fragTrack = {};
+		this.fragmentedTracks.push(fragTrack);
+		fragTrack.id = id;
+		fragTrack.user = user;
+		fragTrack.nextSample = 0;
+		fragTrack.stream = null;
+		fragTrack.nb_samples = 1000;
+		fragTrack.rapAlignement = true;
+		if (options) {
+			if (options.nb_samples != undefined) fragTrack.nb_samples = options.nbSamples;
+			if (options.rapAlignement != undefined) fragTrack.rapAlignement = options.rapAlignement;
+		}
 	}
 }
 
@@ -181,7 +179,7 @@ MP4Box.prototype.processFragments = function() {
 				fragTrak.nextSample++;
 				if (this.onSegment && (fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
 					this.log(MP4Box.LOG_LEVEL_INFO, "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
-					this.onSegment(fragTrak.user, fragTrak.stream.buffer);
+					this.onSegment(fragTrak.id, fragTrak.user, fragTrak.stream.buffer);
 					fragTrak.stream = null;
 				}
 			}
@@ -230,11 +228,14 @@ MP4Box.prototype.getInfo = function() {
 		track.track_height = trak.tkhd.height/(1<<16);
 		track.timescale = trak.mdia.mdhd.timescale;
 		track.duration = trak.mdia.mdhd.duration;
-		track.codec = sample_desc.getCodec();		
-		track.video_width = sample_desc.getWidth();		
-		track.video_height = sample_desc.getHeight();		
-		track.audio_sample_rate = sample_desc.getSampleRate();		
-		track.audio_channel_count = sample_desc.getChannelCount();		
+		track.codec = sample_desc.getCodec();	
+		track.video = {};
+		track.video.width = sample_desc.getWidth();		
+		track.video.height = sample_desc.getHeight();		
+		track.audio = {};
+		track.audio.sample_rate = sample_desc.getSampleRate();		
+		track.audio.channel_count = sample_desc.getChannelCount();		
+		track.audio.sample_size = sample_desc.getSampleSize();		
 		track.language = trak.mdia.mdhd.languageString;
 		track.nb_samples = trak.samples.length;
 	}
@@ -270,7 +271,7 @@ MP4Box.prototype.initializeSegmentation = function() {
 			}
 		}
 		seg = {};
-		seg.track_id = trak.tkhd.track_id;
+		seg.id = trak.tkhd.track_id;
 		seg.user = this.fragmentedTracks[i].user;
 		seg.buffer = this.getInitializationSegment();
 		initSegs.push(seg);

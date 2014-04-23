@@ -128,10 +128,10 @@
 				html += "<td>"+info.tracks[i].track_width+"</td>";
 				html += "<td>"+info.tracks[i].track_height+"</td>";
 				html += "<td>"+info.tracks[i].layer+"</td>";
-				html += "<td>"+info.tracks[i].video_width+"</td>";
-				html += "<td>"+info.tracks[i].video_height+"</td>";
-				html += "<td>"+info.tracks[i].audio_sample_rate+"</td>";
-				html += "<td>"+info.tracks[i].audio_channel_count+"</td>";
+				html += "<td>"+info.tracks[i].video.width+"</td>";
+				html += "<td>"+info.tracks[i].video.height+"</td>";
+				html += "<td>"+info.tracks[i].audio.sample_rate+"</td>";
+				html += "<td>"+info.tracks[i].audio.channel_count+"</td>";
 				html += "<td>"+"<input id=\"addTrack"+i+"\" type=\"checkbox\">"+"</td>";
 				html += "</tr>";
 			}
@@ -199,7 +199,7 @@
 		}
 		
 		function start() {
-			mp4box.onSegment = function (user, buffer) {	
+			mp4box.onSegment = function (id, user, buffer) {	
 				/*d.save('frag'+frag_index+'.m4s');
 				frag_index++;*/
 				var sb = user;

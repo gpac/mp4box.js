@@ -219,6 +219,10 @@ BoxParser.SampleEntry.prototype.getSampleRate = function() {
 	return "";
 }
 
+BoxParser.SampleEntry.prototype.getSampleSize = function() {
+	return "";
+}
+
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	this.start = stream.position;
 	stream.readUint8Array(6);
@@ -282,6 +286,10 @@ BoxParser.AudioSampleEntry.prototype.getSampleRate = function() {
 	return this.samplerate;
 }
 
+BoxParser.AudioSampleEntry.prototype.getSampleSize = function() {
+	return this.samplesize;
+}
+
 BoxParser.ftypBox.prototype.parse = function(stream) {
 	this.major_brand = stream.readString(4);
 	this.minor_version = stream.readUint32();
@@ -310,7 +318,7 @@ BoxParser.mvhdBox.prototype.parse = function(stream) {
 		this.duration = stream.readUint32();
 	}
 	this.rate = stream.readUint32();
-	this.volume = stream.readUint16();
+	this.volume = stream.readUint16()>>8;
 	stream.readUint16();
 	stream.readUint32Array(2);
 	this.matrix = stream.readUint32Array(9);
@@ -340,7 +348,7 @@ BoxParser.tkhdBox.prototype.parse = function(stream) {
 	stream.readUint32Array(2);
 	this.layer = stream.readUint16();
 	this.alternate_group = stream.readUint16();
-	this.volume = stream.readUint16();
+	this.volume = stream.readUint16()>>8;
 	stream.readUint16();
 	this.matrix = stream.readUint32Array(9);
 	this.width = stream.readUint32();
@@ -867,7 +875,7 @@ BoxParser.mvhdBox.prototype.write = function(stream) {
 	stream.writeUint32(this.timescale);
 	stream.writeUint32(this.duration);
 	stream.writeUint32(this.rate);
-	stream.writeUint16(this.volume);
+	stream.writeUint16(this.volume<<8);
 	stream.writeUint16(0);
 	stream.writeUint32(0);
 	stream.writeUint32(0);
@@ -895,7 +903,7 @@ BoxParser.tkhdBox.prototype.write = function(stream) {
 	stream.writeUint32(0);
 	stream.writeUint16(this.layer);
 	stream.writeUint16(this.alternate_group);
-	stream.writeUint16(this.volume);
+	stream.writeUint16(this.volume<<8);
 	stream.writeUint16(0);
 	stream.writeUint32Array(this.matrix);
 	stream.writeUint32(this.width);
