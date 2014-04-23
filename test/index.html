@@ -149,12 +149,12 @@
 							var sb = mediaSource.addSourceBuffer(mime);
 							sb.ms = mediaSource;
 							sb.id = track_id;
-							mp4box.setFragmentOptions(track_id, sb);
+							mp4box.setSegmentOptions(track_id, sb);
 							sb.pendingAppends = new Array();
 							document.getElementById("startButton").disabled = false;
 						} else {
 							console.log("[SourceBuffer #"+track_id+"] Removing buffer");
-							mp4box.unsetFragmentOptions(track_id);
+							mp4box.unsetSegmentOptions(track_id);
 							for (var i = 0; i < mediaSource.sourceBuffers.length; i++) {
 								var sb = mediaSource.sourceBuffers[i];
 								if (sb.id == track_id) {
@@ -199,16 +199,16 @@
 		}
 		
 		function start() {
-			mp4box.onFragment = function (user, buffer) {	
+			mp4box.onSegment = function (user, buffer) {	
 				/*d.save('frag'+frag_index+'.m4s');
 				frag_index++;*/
 				var sb = user;
 				sb.pendingAppends.push(buffer);
-				console.log("[SourceBuffer #"+user.id+"] Received new fragmented data, pending: "+sb.pendingAppends.length);
+				console.log("[SourceBuffer #"+user.id+"] Received new segment, pending: "+sb.pendingAppends.length);
 				onUpdateEnd.call(sb, null);
 			}
 
-			var initSegs = mp4box.initializeFragmentation();
+			var initSegs = mp4box.initializeSegmentation();
 			for (var i = 0; i < initSegs.length; i++) {
 				var sb = initSegs[i].user;
 				sb.addEventListener("updateend", onInitAppended);

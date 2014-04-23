@@ -20,7 +20,7 @@
 	this.inputIsoFile = null;
 	this.onReady = null;
 	this.readySent = false;
-	this.onFragment = null;
+	this.onSegment = null;
 	this.onError = null;
 
 	this.default_options = {
@@ -44,7 +44,7 @@ MP4Box.prototype.log = function(level, msg) {
 	}
 }
 
-MP4Box.prototype.setFragmentOptions = function(id, user, options) {
+MP4Box.prototype.setSegmentOptions = function(id, user, options) {
 	var fragTrack = {};
 	this.fragmentedTracks.push(fragTrack);
 	fragTrack.id = id;
@@ -59,7 +59,7 @@ MP4Box.prototype.setFragmentOptions = function(id, user, options) {
 	}
 }
 
-MP4Box.prototype.unsetFragmentOptions = function(id) {
+MP4Box.prototype.unsetSegmentOptions = function(id) {
 	var index = -1;
 	for (var i = 0; i < this.fragmentedTracks.length; i++) {
 		var fragTrack = this.fragmentedTracks[i];
@@ -179,9 +179,9 @@ MP4Box.prototype.processFragments = function() {
 												+" for sample "+fragTrak.nextSample); 
 				fragTrak.stream = this.createFragment(this.inputIsoFile, fragTrak.id, fragTrak.nextSample, fragTrak.stream);
 				fragTrak.nextSample++;
-				if (this.onFragment && (fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
+				if (this.onSegment && (fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
 					this.log(MP4Box.LOG_LEVEL_INFO, "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
-					this.onFragment(fragTrak.user, fragTrak.stream.buffer);
+					this.onSegment(fragTrak.user, fragTrak.stream.buffer);
 					fragTrak.stream = null;
 				}
 			}
@@ -248,7 +248,7 @@ MP4Box.prototype.getInitializationSegment = function() {
 	return stream.buffer;
 }
 
-MP4Box.prototype.initializeFragmentation = function() {
+MP4Box.prototype.initializeSegmentation = function() {
 	if (!this.isFragmentationStarted) {
 		this.isFragmentationStarted = true;		
 		this.nextMoofNumber = 0;
