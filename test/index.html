@@ -2,16 +2,25 @@
     <head>
 		<title>JavaScript MP4 Reader/Fragmenter</title>
 		<link rel="stylesheet" href="style.css" />
-        <script src="../src/DataStream.js"></script>
-        <script src="../src/descriptor.js"></script>
-        <script src="../src/box.js"></script>
-        <script src="../src/isofile.js"></script>
-        <script src="../src/mp4box.js"></script>
+        <script src="DataStream.js"></script>
+        <script src="descriptor.js"></script>
+        <script src="box.js"></script>
+        <script src="isofile.js"></script>
+        <script src="mp4box.js"></script>
 		<script>
 		var mp4box;
 		var downloader = {};
 		
 		window.onload = function () {
+			reset();
+		}
+
+		function reset() {
+			resetMediaSource();
+			resetDisplay();
+		}
+		
+		function resetMediaSource() {
 			var mediaSource;
 			var video;
 			video = document.getElementById('v');
@@ -21,6 +30,12 @@
 			mediaSource.addEventListener("sourceopen", onSourceOpen);
 			mediaSource.addEventListener("sourceclose", onSourceClose);
 			video.src = window.URL.createObjectURL(mediaSource);			
+		}
+		
+		function resetDisplay() {
+			var infoDiv;
+			infoDiv = document.getElementById('infoDiv');
+			infoDiv.innerHTML = '';
 		}
 		
 		function onSourceClose(e) {
@@ -304,6 +319,7 @@
 			<input id="url" type="texte"></input>
 			<button onclick="load()">Load Media Info</button>
 			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
+			<button onclick="reset()">Reset Media Source</button>
 			<div id="infoDiv">
 			</div>
 		</div>
