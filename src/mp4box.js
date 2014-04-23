@@ -267,13 +267,13 @@ MP4Box.prototype.initializeSegmentation = function() {
 		this.inputIsoFile.resetTables();
 	}	
 	var initSegs = new Array();
-	for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
-		var box = this.inputIsoFile.moov.boxes[j];
-		if (box.type == "trak") {
-			this.inputIsoFile.moov.boxes[j] = null;
-		}
-	}
 	for (var i = 0; i < this.fragmentedTracks.length; i++) {
+		for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
+			var box = this.inputIsoFile.moov.boxes[j];
+			if (box.type == "trak") {
+				this.inputIsoFile.moov.boxes[j] = null;
+			}
+		}
 		var trak = this.inputIsoFile.getTrackById(this.fragmentedTracks[i].id);
 		for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
 			var box = this.inputIsoFile.moov.boxes[j];

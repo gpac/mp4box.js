@@ -2,11 +2,11 @@
     <head>
 		<title>JavaScript MP4 Reader/Fragmenter</title>
 		<link rel="stylesheet" href="style.css" />
-        <script src="DataStream.js"></script>
-        <script src="descriptor.js"></script>
-        <script src="box.js"></script>
-        <script src="isofile.js"></script>
-        <script src="mp4box.js"></script>
+        <script src="../src/DataStream.js"></script>
+        <script src="../src/descriptor.js"></script>
+        <script src="../src/box.js"></script>
+        <script src="../src/isofile.js"></script>
+        <script src="../src/mp4box.js"></script>
 		<script>
 		var mp4box;
 		var downloader = {};
@@ -218,15 +218,16 @@
 			downloader.chunkStart = 0;
 			downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
 			downloader.url = url;		
-			console.log("Starting file download");			
-			getfile(downloader, function (response, end) { 
+			downloader.callback = function (response, end) { 
 									if (response) {
 										mp4box.appendBuffer(response); 
 									}
 									if (end) {
 										mp4box.flush();
 									}
-								} );
+								}
+			console.log("Starting file download");			
+			getfile(downloader);
 		}
 		
 		function saveBuffer(buffer, name) {		
@@ -255,20 +256,13 @@
 			}
 			console.log("Resuming file download");
 			downloader.stop = false;
-			getfile(downloader, function (response, end) { 
-									if (response) {
-										mp4box.appendBuffer(response); 
-									}
-									if (end) {
-										mp4box.flush();
-									}
-								} );
+			getfile(downloader);
 		}		
 
-		function getfile(dl, callback) {
+		function getfile(dl) {
 			if (dl.chunkStart == Infinity) {
 				console.log("File download done.");
-				callback(null, true);
+				dl.callback(null, true);
 				return;
 			}
 			var xhr = new XMLHttpRequest;
@@ -284,10 +278,10 @@
 				if ((xhr.status == 200 || xhr.status == 206) && xhr.readyState == this.DONE) {
 					console.log("Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
 					var eof = !(xhr.response.byteLength == dl.chunkSize);
-					callback(xhr.response, eof); 
+					dl.callback(xhr.response, eof); 
 					dl.chunkStart+=dl.chunkSize;
 					if (dl.stop == false && eof == false) {
-						window.setTimeout(getfile.call(this, dl, callback), 1000);
+						window.setTimeout(getfile.call(this, dl, dl.callback), 1000);
 					} else {
 						/* end of file */
 					}
