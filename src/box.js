@@ -39,9 +39,11 @@ var BoxParser = {
 		[ "traf", [ "trun" ] ],
 	],
 	sampleEntryCodes : [ 
-		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4" ] },
-		{ prefix: "Audio", 	types: [ "mp4a" ] },
-		{ prefix: "", 		types: [ "metx", "mett", "urim" ] }
+		/* 4CC as registered on http://mp4ra.org/codecs.html */
+		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4", "avcp", "drac", "encv", "mjp2", "mvc1", "mvc2", "resv", "s263", "svc1", "vc-1"  ] },
+		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos" ] },
+		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
+		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] }
 	],
 	initialize: function() {
 		var i, j;
@@ -52,6 +54,8 @@ var BoxParser = {
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
 		BoxParser.VisualSampleEntry.prototype = new BoxParser.SampleEntry();
 		BoxParser.AudioSampleEntry.prototype = new BoxParser.SampleEntry();
+		BoxParser.HintSampleEntry.prototype = new BoxParser.SampleEntry();
+		BoxParser.MetadataSampleEntry.prototype = new BoxParser.SampleEntry();
 		/* creating constructors for simple boxes */
 		length = BoxParser.boxCodes.length;
 		for (i=0; i<length; i++) {
@@ -129,6 +133,12 @@ var BoxParser = {
 	AudioSampleEntry: function(type, size) {
 		BoxParser.SampleEntry.call(this, type, size);	
 	},
+	HintSampleEntry: function(type, size) {
+		BoxParser.SampleEntry.call(this, type, size);	
+	},
+	MetadataSampleEntry: function(type, size) {
+		BoxParser.SampleEntry.call(this, type, size);	
+	},
 	stsdBox: function(size) {
 		BoxParser.FullBox.call(this, "stsd", size);
 		this.entries = new Array();
@@ -142,7 +152,7 @@ var BoxParser = {
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
-		//BoxParser.log(BoxParser.LOG_LEVEL_DEBUG, "Found box of type "+type+" and size "+size+" at position "+stream.position);
+		mp4box.log(mp4box.LOG_LEVEL_DEBUG, "Found box of type "+type+" and size "+size+" at position "+stream.position);
 		hdr_size = 8;
 		if (type == "uuid") {
 			/* TODO */
@@ -155,7 +165,7 @@ var BoxParser = {
 			/* box extends till the end of file */
 		}
 		
-		if (size - hdr_size > stream.byteLength ) {
+		if (start + size - hdr_size > stream.byteLength ) {
 			stream.seek(start);
 			return BoxParser.ERR_NOT_ENOUGH_DATA;
 		}
