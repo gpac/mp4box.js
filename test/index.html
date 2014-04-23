@@ -8,15 +8,16 @@
         <script src="../src/isofile.js"></script>
         <script src="../src/mp4box.js"></script>
 		<script>
-		var mediaSource;
-		var infoDiv;
 		var mp4box;
+		var downloader = {};
 		
 		window.onload = function () {
-			var video = document.getElementById('v');
-			infoDiv = document.getElementById('infoDiv');
+			var mediaSource;
+			var video;
+			video = document.getElementById('v');
 			mediaSource = new MediaSource();
 			mediaSource.video = video;
+			video.ms = mediaSource;
 			mediaSource.addEventListener("sourceopen", onSourceOpen);
 			mediaSource.addEventListener("sourceclose", onSourceClose);
 			video.src = window.URL.createObjectURL(mediaSource);			
@@ -56,6 +57,7 @@
 			console.log(sb);
 			sb.removeEventListener('updateend', onInitAppended);
 			sb.addEventListener('updateend', onUpdateEnd.bind(sb));
+			/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
 			onUpdateEnd.call(sb, null);
 		}
 
@@ -137,7 +139,14 @@
 			}
 			html += "</table>";
 			html += "</div>";
+			var infoDiv;
+			infoDiv = document.getElementById('infoDiv');
 			infoDiv.innerHTML = html;
+		}
+		
+		function addSourceBufferListener(info) {
+			var v = document.getElementById('v');
+			var ms = v.ms;
 			for (var i = 0; i < info.tracks.length; i++) {
 				var checkBox = document.getElementById("addTrack"+i);
 				checkBox.addEventListener("change", (function (track_id, codec) { 
@@ -146,8 +155,8 @@
 						if (check.checked) { 
 							var mime = 'video/mp4; codecs=\"'+codec+'\"';
 							console.log("[SourceBuffer #"+track_id+"] Creation with type '"+mime+"'");
-							var sb = mediaSource.addSourceBuffer(mime);
-							sb.ms = mediaSource;
+							var sb = ms.addSourceBuffer(mime);
+							sb.ms = ms;
 							sb.id = track_id;
 							mp4box.setSegmentOptions(track_id, sb);
 							sb.pendingAppends = new Array();
@@ -155,14 +164,14 @@
 						} else {
 							console.log("[SourceBuffer #"+track_id+"] Removing buffer");
 							mp4box.unsetSegmentOptions(track_id);
-							for (var i = 0; i < mediaSource.sourceBuffers.length; i++) {
-								var sb = mediaSource.sourceBuffers[i];
+							for (var i = 0; i < ms.sourceBuffers.length; i++) {
+								var sb = ms.sourceBuffers[i];
 								if (sb.id == track_id) {
-									mediaSource.removeSourceBuffer(sb);
+									ms.removeSourceBuffer(sb);
 									break;
 								}
 							}
-							if (mediaSource.sourceBuffers.length==0) document.getElementById("startButton").disabled = true;
+							if (ms.sourceBuffers.length==0) document.getElementById("startButton").disabled = true;
 						}
 					};
 				})(info.tracks[i].id, info.tracks[i].codec));
@@ -170,39 +179,51 @@
 		}
 
 		function load() {
+			var v = document.getElementById('v');
+			var ms = v.ms;
 			var url = document.getElementById('url').value;
 			
-			if (mediaSource.readyState != "open") {
+			if (ms.readyState != "open") {
 				return;
 			}
 
 			mp4box = new MP4Box();
 			mp4box.onReady = function (info) {
-				if (this.timeoutId) {
-					window.clearTimeout(this.timeoutId);
-					delete this.timeoutId;
-				}				
 				console.log("Movie information received");
+				console.log("Stopping file download");
+				downloader.stop = true;
 				displayMovieInfo(info);
+				addSourceBufferListener(info);
 			}
 						
 			mp4box.onError = function (d) {
 			}
-			
-			mp4box.chunkStart = 0;
-			mp4box.chunkSize = Infinity;
-			mp4box.url = url;
-			getfile(url, function (response) { 
-							mp4box.input = response; 
-							chunkArrayBuffer.call(mp4box); 
-						} );
+
+			downloader.stop = false;
+			downloader.chunkStart = 0;
+			downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
+			downloader.url = url;		
+			console.log("Starting file download");			
+			getfile(downloader, function (response, end) { 
+									if (response) {
+										mp4box.appendBuffer(response); 
+									}
+									if (end) {
+										mp4box.flush();
+									}
+								} );
+		}
+		
+		function saveBuffer(buffer, name) {		
+			//var d = new DataStream(buffer);
+			//d.save(name);
 		}
 		
 		function start() {
 			mp4box.onSegment = function (id, user, buffer) {	
-				/*d.save('frag'+frag_index+'.m4s');
-				frag_index++;*/
 				var sb = user;
+				saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
+				sb.segmentIndex++;
 				sb.pendingAppends.push(buffer);
 				console.log("[SourceBuffer #"+user.id+"] Received new segment, pending: "+sb.pendingAppends.length);
 				onUpdateEnd.call(sb, null);
@@ -214,69 +235,63 @@
 				sb.addEventListener("updateend", onInitAppended);
 				console.log("[SourceBuffer #"+sb.id+"] Appending initialization data");
 				sb.appendBuffer(initSegs[i].buffer);
-				//var d = new DataStream(initSegs[i].buffer);
-				//d.save('init'+i+'.mp4');					
+				saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
+				sb.segmentNumber = 0;
 			}
-			chunkArrayBuffer.call(mp4box); 
+			console.log("Resuming file download");
+			downloader.stop = false;
+			getfile(downloader, function (response, end) { 
+									if (response) {
+										mp4box.appendBuffer(response); 
+									}
+									if (end) {
+										mp4box.flush();
+									}
+								} );
 		}		
 
-		function getfile(url, callback) {
+		function getfile(dl, callback) {
+			if (dl.chunkStart == Infinity) {
+				console.log("File download done.");
+				callback(null, true);
+				return;
+			}
 			var xhr = new XMLHttpRequest;
-			xhr.open("GET", url, true);
+			xhr.open("GET", dl.url, true);
 			xhr.responseType = "arraybuffer";
+			var range = null;
+			if (dl.chunkStart+dl.chunkSize < Infinity) {
+				range = 'bytes=' + dl.chunkStart + '-';
+				range += (dl.chunkStart+dl.chunkSize-1);
+				xhr.setRequestHeader('Range', range);
+			}
 			xhr.onreadystatechange = function (e) { 
-				if (this.status == 200 && this.readyState == this.DONE) {
-					callback(this.response); 
+				if ((xhr.status == 200 || xhr.status == 206) && xhr.readyState == this.DONE) {
+					console.log("Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
+					var eof = !(xhr.response.byteLength == dl.chunkSize);
+					callback(xhr.response, eof); 
+					dl.chunkStart+=dl.chunkSize;
+					if (dl.stop == false && eof == false) {
+						window.setTimeout(getfile.call(this, dl, callback), 1000);
+					} else {
+						/* end of file */
+					}
 				}
 			};
+			if (range) {
+				console.log("Fetching data range: "+range);
+			}
 			xhr.send();
-		}
-
-		ArrayBuffer.prototype.chunk = function (start, size) {
-			var that = new Uint8Array(this);
-			if (!size || that.byteLength - start < size) {
-				size = that.byteLength - start;
-			}
-			var result = new ArrayBuffer(size);
-			var resultArray = new Uint8Array(result);
-			for (var i = 0; i < resultArray.length; i++)
-			   resultArray[i] = that[i + start];
-			return result;
-		}
-
-		ArrayBuffer.prototype.copy = function (ab) {
-			var source = new Uint8Array(ab);
-			var dest = new Uint8Array(this);
-			for (var i = 0; i < dest.length; i++) {
-				if (dest[i] != source[i]) { console.log("["+i+"] "+dest[i]+"!="+source[i]); }
-				dest[i] = source[i];
-			}
-		}
-
-		function chunkArrayBuffer(){
-
-			if (this.chunkStart == Infinity) {
-				console.log("["+this.url+"] Flushing remaining data ");
-				this.flush();
-			} else {
-				var length = this.input.byteLength;	
-				console.log("["+this.url+"] Chunking input buffer from "+this.chunkStart+" to "+(this.chunkStart+this.chunkSize));
-
-				/* the following does not seem to work in Chrome, the new buffer length is 0 from the 2nd slice
-				buffer = ab.slice(chunkStart, chunkSize); */
-				var abchunk = this.input.chunk(this.chunkStart, this.chunkSize);
-
-				this.appendBuffer(abchunk);
-				this.chunkStart += this.chunkSize;
-				if (this.chunkStart < length) {
-					this.timeoutId = window.setTimeout(chunkArrayBuffer.bind(this), 1000);
-				}
-			}
-		}		
+		}	
 		</script>
     </head>
 	<body>
 		<div>
+			<div>
+				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
+				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="10000" onchange="document.querySelector('#chunk_size_range_out').value = value;"></input>
+				<output id="chunk_size_range_out" for="chunk_size_range">10000</output>
+			<div>
 			<label>Select or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
 				<option value="./h264bl.mp4">Video Counter (unfragmented, H.264/AVC Baseline)</option>

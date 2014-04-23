@@ -16,10 +16,11 @@
  function MP4Box() {
 	this.log_level = this.LOG_LEVEL_INFO;
 
+	this.sampleListBuilt = false;
 	this.inputStream = null;
 	this.inputIsoFile = null;
 	this.onReady = null;
-	this.readySent = false;
+	this.readySent = false;	
 	this.onSegment = null;
 	this.onError = null;
 
@@ -156,7 +157,10 @@ MP4Box.prototype.open = function(ab) {
 	if (!this.inputIsoFile.moov) {
 		return false;	
 	} else {
-		this.inputIsoFile.buildSampleLists();
+		if (!this.sampleListBuilt) {
+			this.inputIsoFile.buildSampleLists();
+			this.sampleListBuilt = true;
+		}
 		if (this.onReady && !this.readySent) {
 			var info = this.getInfo();
 			this.readySent = true;
@@ -175,11 +179,18 @@ MP4Box.prototype.processFragments = function() {
 			while (fragTrak.nextSample < trak.samples.length) {				
 				this.log(MP4Box.LOG_LEVEL_INFO, "Creating media fragment on track #"+fragTrak.id
 												+" for sample "+fragTrak.nextSample); 
-				fragTrak.stream = this.createFragment(this.inputIsoFile, fragTrak.id, fragTrak.nextSample, fragTrak.stream);
-				fragTrak.nextSample++;
-				if (this.onSegment && (fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
+				var result = this.createFragment(this.inputIsoFile, fragTrak.id, fragTrak.nextSample, fragTrak.stream);
+				if (result) {
+					fragTrak.stream = result;
+					fragTrak.nextSample++;
+				} else {
+					return;
+				}
+				if (this.onSegment && 
+					(fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
 					this.log(MP4Box.LOG_LEVEL_INFO, "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
 					this.onSegment(fragTrak.id, fragTrak.user, fragTrak.stream.buffer);
+					/* force the creation of a new buffer */
 					fragTrak.stream = null;
 				}
 			}

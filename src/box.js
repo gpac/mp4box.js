@@ -138,7 +138,7 @@ var BoxParser = {
 		var start = stream.position;
 		var hdr_size = 0;
 		if (stream.byteLength < 8) {
-			return BoxParser.NOT_ENOUGH_DATA;
+			return BoxParser.ERR_NOT_ENOUGH_DATA;
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
@@ -157,7 +157,7 @@ var BoxParser = {
 		
 		if (size - hdr_size > stream.byteLength ) {
 			stream.seek(start);
-			return BoxParser.NOT_ENOUGH_DATA;
+			return BoxParser.ERR_NOT_ENOUGH_DATA;
 		}
 		if (BoxParser[type+"Box"]) {
 			box = new BoxParser[type+"Box"](size - hdr_size);		
