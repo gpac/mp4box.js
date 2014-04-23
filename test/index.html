@@ -305,7 +305,7 @@
 		<div>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
-				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="10000" onchange="document.querySelector('#chunk_size_range_out').value = value;"></input>
+				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="10000" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
 				<output id="chunk_size_range_out" for="chunk_size_range">10000</output>
 			<div>
 			<label>Select or set URL:</label>
