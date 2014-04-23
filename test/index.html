@@ -1,6 +1,6 @@
 <html>
     <head>
-		<title>JavaScript MP4 Reader/Fragmenter</title>
+		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
 		<link rel="stylesheet" href="style.css" />
         <script src="../src/DataStream.js"></script>
         <script src="../src/descriptor.js"></script>
@@ -303,6 +303,8 @@
     </head>
 	<body>
 		<div>
+			<h2>Demonstration of MP4Box.js to play unfragmented files in the browser using the MSE API</h2>
+			<video id="v" autoplay controls> </video>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
 				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="10000" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
@@ -314,7 +316,7 @@
 				<option value="./aaclow.mp4">Audio Bips (unfragmented, AAC)</option>
 				<option value="./av.mp4">Multiplexed Audio/Video (unfragmented, H.264/AVC Baseline+AAC)</option>
 				<option value="./2v.mp4">2 video (unfragmented, H.264/AVC Baseline)</option>
-				<option value="./mp4-onDemand-h264bl_low.mp4">DASH onDemand video (fragmented, H.264/AVC Baseline)</option>
+				<option value="./mp4-onDemand-h264bl_low.mp4">DASH onDemand video (fragmented, H.264/AVC Baseline) - not yet working </option>
 			</select>
 			<label>URL:</label>
 			<input id="url" type="texte"></input>
@@ -326,7 +328,27 @@
 			</div>
 		</div>
 		<div>
-			<video id="v" autoplay controls> </video>
-		<div>
+			<h3>Notes</h3>					
+			<ul>
+			  <li>To run this demo (in Chrome), you should:
+				<ol>
+				  <li>Select an existing file or enter a URL. Be careful to select a video hosted on a server which allows this page to fetch those videos using XHR (i.e. using CORS)</li>
+				  <li>Select a chunk size for the download of the media file, the download speed will be one chunk per second.</li>
+				  <li>Hit the "Load Media Info" button, chunks will be downloaded until there is enough data to display the file information</li>
+				  <li>Once the file information is displayed, (un)select the tracks you want to play. For each track a SourceBuffer is created. You cannot (for now) mix tracks from different files.</li>
+				  <li>Once your tracks are selected, initialize the Source Buffers with the button.</li>
+				  <li>Then hit the "Load Media Data & Play" button to resume the download and let the playback start</li>
+				</ol>
+			  </li> 
+			  <li>The Media Source API in Chrome has some limitations, which you might encounter when playing with this demo:
+				<ul>
+				  <li>It does not support more than 1 video and 1 audio</li>
+				  <li>It does not support adding new SourceBuffers once the existing SourceBuffers are initialized. But you can remove some, even during playback.</li>
+				</ul>
+			  </li>
+			  <li>At any time, you can reset the mediasource and downloads with the associated button.</li>
+			  <li>To get the code of this demo, or to send patchs or feedback, check out the <a href="https://github.com/gpac/mp4box.js">Git Hub Repository</a>.</li>
+			</ul>
+		</div>
 	</body>
 </html>
