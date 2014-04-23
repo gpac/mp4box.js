@@ -23,6 +23,7 @@ mp4box.onReady = function(info) {};
 mp4box.appendBuffer(data);
 mp4box.appendBuffer(data);
 mp4box.appendBuffer(data);
+...
 ```
 
 ####onReady(info)####
@@ -72,7 +73,7 @@ The `info` argument is an object with the following structure.
 	  "movie_duration":360002,
 	  "layer":0,
 	  "alternate_group":0,
-	  "volume":256,
+	  "volume":1,
 	  "track_width":0,
 	  "track_height":0,
 	  "timescale":44100,
@@ -89,16 +90,16 @@ The `info` argument is an object with the following structure.
   ]
 }
 ```
-- **brands: Array of 4CC codes corresponding to the file brands,
-- **created: Date object, indicating the creation date of the file as given in the file header,
-- **created: Date object, indicating the last modification date of the file as given in the file header,
-- **timescale: Number, corresponding to the timescale as given in the file header,
-- **duration: Number, providing the duration of the movie (unfragmented part) in timescale units,
-- **isProgressive: boolean, indicating if the file can be played progressively,
-- **isFragmented: boolean, indicating if the file is already fragmented,
-- **fragment_duration: Number, giving the duration of the fragmented part of the file, in timescale units,
-- **hasIOD: boolean, indicating if the the file contains an MPEG-4 Initial Object Descriptor
-- **tracks: Array of track information objects
+- **brands**: Array of 4CC codes corresponding to the file brands,
+- **created**: Date object, indicating the creation date of the file as given in the file header,
+- **modified**: Date object, indicating the last modification date of the file as given in the file header,
+- **timescale**: Number, corresponding to the timescale as given in the file header,
+- **duration**: Number, providing the duration of the movie (unfragmented part) in timescale units,
+- **isProgressive**: boolean, indicating if the file can be played progressively,
+- **isFragmented**: boolean, indicating if the file is already fragmented,
+- **fragment_duration**: Number, giving the duration of the fragmented part of the file, in timescale units,
+- **hasIOD**: boolean, indicating if the the file contains an MPEG-4 Initial Object Descriptor
+- **tracks**: Array of track information objects
 
 Track information object:
 - **id**: Number, giving track identifier,
@@ -108,7 +109,7 @@ Track information object:
 - **timescale**: Number, indicating the track timescale, as given in the track header,
 - **duration**: Number, providing the duration of the (unfragmented part of) track, in timescale units,
 - **nb_samples**: Number, giving the number of track samples (ie. frames),
-- **codec**: String, giving the MIME codecs parameter for this track,
+- **codec**: String, giving the MIME codecs parameter for this track (e.g. "avc1.42c00d" or "mp4a.40.2"), to be used to create SourceBuffer objects with [Media Source Extensions](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - **language**: String, giving the 3-letter language code,
 - **track_width**: Number, width of the track as indicated in the track header,
 - **track_height**: Number, height of the track as indicated in the track header,
@@ -192,7 +193,7 @@ Indicates that the application is ready to receive segments. Returns an array of
 ```
 Dependencies
 =======
-This code uses DataStream.js, with some modifications for Uint24 and Uint64 types.
+This code uses [DataStream.js](https://github.com/kig/DataStream.js), with some modifications for Uint24 and Uint64 types.
 
 Browser Usage
 =======
