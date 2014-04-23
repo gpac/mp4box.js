@@ -14,7 +14,7 @@
  * This notice must stay in all subsequent versions of this code.
  */
  function MP4Box() {
-	this.log_level = this.LOG_LEVEL_INFO;
+	this.log_level = this.LOG_LEVEL_DEBUG;
 
 	this.sampleListBuilt = false;
 	this.inputStream = null;
@@ -217,7 +217,7 @@ MP4Box.prototype.getInfo = function() {
 	movie.hasIOD = (this.inputIsoFile.moov.iods != null);
 	movie.brands = []; 
 	movie.brands.push(this.inputIsoFile.ftyp.major_brand);
-	movie.brands.join(this.inputIsoFile.ftyp.compatible_brands);
+	movie.brands = movie.brands.concat(this.inputIsoFile.ftyp.compatible_brands);
 	var _1904 = (new Date(4, 0, 1, 0, 0, 0, 0).getTime());
 	movie.created = new Date(_1904+this.inputIsoFile.moov.mvhd.creation_time*1000);
 	movie.modified = new Date(_1904+this.inputIsoFile.moov.mvhd.modification_time*1000);
