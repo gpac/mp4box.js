@@ -18,12 +18,16 @@ function ISOFile() {
 	this.mdats = new Array();
 	this.moofs = new Array();
 	this.isProgressive = false;
+	this.lastMoofIndex = 0;
+	this.lastPosition = 0;
 }
 
 ISOFile.prototype.parse = function(stream) {
 	var box;
 	var err;
+	stream.seek(this.lastPosition);
 	while (!stream.isEof()) {
+		this.lastPosition = stream.position;
 		box = BoxParser.parseOneBox(stream);
 		if (box == BoxParser.ERR_NOT_ENOUGH_DATA) {
 			return;
@@ -56,21 +60,32 @@ ISOFile.prototype.write = function(stream) {
 
 ISOFile.prototype.writeInitializationSegment = function(stream) {
 	//this.ftyp.write(stream);
-	if (!this.moov.mvex) {
-		var mvex = new BoxParser.mvexBox();
-		this.moov.boxes.push(mvex);
-		var mehd = new BoxParser.mehdBox();
-		mvex.boxes.push(mehd);
-		mehd.fragment_duration = 0;
-		for (var i = 0; i < this.moov.traks.length; i++) {
-			var trex = new BoxParser.trexBox();
-			mvex.boxes.push(trex);
-			trex.track_ID = this.moov.traks[i].tkhd.track_id;
-			trex.default_sample_description_index = 1;
-			trex.default_sample_duration = this.moov.traks[i].samples[0].duration;
-			trex.default_sample_size = 0;
-			trex.default_sample_flags = 1<<16;
+	if (this.moov.mvex) {
+		var index;
+		for (var i = 0; i < this.moov.boxes.length; i++) {
+			var box = this.moov.boxes[i];
+			if (box == this.moov.mvex) {
+				index = i;
+			}
 		}
+		if (index > -1) {
+			this.moov.boxes.splice(index, 1);
+		}
+		
+	}
+	var mvex = new BoxParser.mvexBox();
+	this.moov.boxes.push(mvex);
+	var mehd = new BoxParser.mehdBox();
+	mvex.boxes.push(mehd);
+	mehd.fragment_duration = 0;
+	for (var i = 0; i < this.moov.traks.length; i++) {
+		var trex = new BoxParser.trexBox();
+		mvex.boxes.push(trex);
+		trex.track_id = this.moov.traks[i].tkhd.track_id;
+		trex.default_sample_description_index = 1;
+		trex.default_sample_duration = this.moov.traks[i].samples[0].duration;
+		trex.default_sample_size = 0;
+		trex.default_sample_flags = 1<<16;
 	}
 	this.moov.write(stream);
 }
@@ -208,6 +223,121 @@ ISOFile.prototype.buildSampleLists = function() {
 		}
 		if (j>0) trak.samples[j-1].duration = trak.mdia.mdhd.duration - trak.samples[j-1].dts;
 	}
+}
+
+ISOFile.prototype.getTrexById = function(id) {	
+	var i;
+	if (!this.moov || !this.moov.mvex) return null;
+	for (i = 0; i < this.moov.mvex.trexs.length; i++) {
+		var trex = this.moov.mvex.trexs[i];
+		if (trex.track_id == id) return trex;
+	}
+	return null;
+}
+
+ISOFile.prototype.updateSampleLists = function() {	
+	var i, j, k;
+	var default_sample_description_index, default_sample_duration, default_sample_size, default_sample_flags;
+	var last_run_position;
+	var box, moof, traf, trak, trex;
+	
+	while (this.lastMoofIndex < this.boxes.length) {
+		box = this.boxes[this.lastMoofIndex];
+		this.lastMoofIndex++;
+		if (box.type == "moof") {
+			moof = box;
+			for (i = 0; i < moof.trafs.length; i++) {
+				traf = moof.trafs[i];
+				trak = this.getTrackById(traf.tfhd.track_id);
+				trex = this.getTrexById(traf.tfhd.track_id);
+				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC) {
+					default_sample_description_index = traf.tfhd.default_sample_description_index;
+				} else {
+					default_sample_description_index = trex.default_sample_description_index;
+				}
+				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DUR) {
+					default_sample_duration = traf.tfhd.default_sample_duration;
+				} else {
+					default_sample_duration = trex.default_sample_duration;
+				}
+				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_SIZE) {
+					default_sample_size = traf.tfhd.default_sample_size;
+				} else {
+					default_sample_size = trex.default_sample_size;
+				}
+				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_FLAGS) {
+					default_sample_flags = traf.tfhd.default_sample_flags;
+				} else {
+					default_sample_flags = trex.default_sample_flags;
+				}
+				for (j = 0; j < traf.truns.length; j++) {
+					var trun = traf.truns[j];
+					for (k = 0; k < trun.sample_count; k++) {
+						var sample = {};
+						sample.track_id = trak.tkhd.track_id;
+						trak.samples.push(sample);
+						sample.description_index = default_sample_description_index;
+						sample.size = default_sample_size;
+						if (trun.flags & BoxParser.TRUN_FLAGS_SIZE) {
+							sample.size = trun.sample_size[k];
+						}
+						sample.duration = default_sample_duration;
+						if (trun.flags & BoxParser.TRUN_FLAGS_DURATION) {
+							sample.duration = trun.sample_duration[k];
+						}
+						if (trak.first_traf_merged || k > 0) {
+							sample.dts = trak.samples[trak.samples.length-2].dts+trak.samples[trak.samples.length-2].duration;
+						} else {
+							if (traf.tfdt) {
+								sample.dts = traf.tfdt.baseMediaDecodeTime;
+							} else {
+								sample.dts = 0;
+							}
+							trak.first_traf_merged = true;
+						}
+						sample.cts = sample.dts;
+						if (trun.flags & BoxParser.TRUN_FLAGS_CTS_OFFSET) {
+							sample.cts = sample.dts + trun.sample_composition_time_offset[k];
+						}
+						sample_flags = default_sample_flags;
+						if (trun.flags & BoxParser.TRUN_FLAGS_FLAGS) {
+							sample_flags = trun.sample_flags[k];
+						} else if (k == 0 && (trun.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG)) {
+							sample_flags = trun.first_sample_flags;
+						}
+						sample.is_rap = ((sample_flags >> 16 & 0x1) ? false : true);
+						var bdop = (traf.tfhd.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET) ? true : false;
+						var dbim = (traf.tfhd.flags & BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF) ? true : false;
+						var dop = (trun.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) ? true : false;
+						var bdo = 0;
+						if (!bdop) {
+							if (!dbim) {
+								if (j == 0) { // the first track in the movie fragment
+									bdo = moof.inputStart; // the position of the first byte of the enclosing Movie Fragment Box
+								} else {
+									bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
+								}
+							} else {
+								bdo = moof.inputStart;
+							}
+						} else {
+							bdo = tfhd.base_data_offset;
+						}
+						if (j == 0 && k == 0) {
+							if (dop) {
+								sample.offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
+							} else {
+								sample.offset = bdo; // the data for this run starts the base-data-offset defined by the track fragment header
+							}
+						} else {
+							sample.offset = last_run_position; // this run starts immediately after the data of the previous run
+						}
+						last_run_position = sample.offset + sample.size;
+					}
+				}
+			}
+		}
+	}	
 }
 
 ISOFile.prototype.getCodecs = function() {	

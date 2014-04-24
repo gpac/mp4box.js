@@ -218,6 +218,9 @@
 			downloader.stop = false;
 			downloader.chunkStart = 0;
 			downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
+			if (downloader.chunkSize == 0) {
+				downloader.chunkSize = Infinity;
+			}
 			downloader.url = url;		
 			downloader.callback = function (response, end) { 
 									if (response) {
@@ -232,8 +235,11 @@
 		}
 		
 		function saveBuffer(buffer, name) {		
-			//var d = new DataStream(buffer);
-			//d.save(name);
+			var saveChecked = document.getElementById("saveChecked").checked;
+			if (saveChecked) {
+				var d = new DataStream(buffer);
+				d.save(name);
+			}
 		}
 		
 		function initializeSourceBuffers() {
@@ -253,7 +259,7 @@
 				console.log("[SourceBuffer #"+sb.id+"] Appending initialization data");
 				sb.appendBuffer(initSegs[i].buffer);
 				saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
-				sb.segmentNumber = 0;
+				sb.segmentIndex = 0;
 			}
 			document.getElementById("initButton").disabled = true;
 			document.getElementById("startButton").disabled = false;
@@ -324,6 +330,10 @@
 			<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
 			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
 			<button onclick="reset()">Reset Media Source</button>
+			<div>
+				<label>Save results:</label>
+				<input id="saveChecked" type="checkbox"></input>
+			</div>
 			<div id="infoDiv">
 			</div>
 		</div>

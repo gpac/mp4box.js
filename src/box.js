@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,7 +35,7 @@ var BoxParser = {
 		[ "minf" ],
 		[ "dinf" ],
 		[ "stbl" ],
-		[ "mvex" ],
+		[ "mvex", [ "trex" ] ],
 		[ "moof", [ "traf" ] ],
 		[ "traf", [ "trun" ] ],
 	],
@@ -333,7 +334,7 @@ BoxParser.mvhdBox.prototype.parse = function(stream) {
 	stream.readUint32Array(2);
 	this.matrix = stream.readUint32Array(9);
 	stream.readUint32Array(6);
-	this.next_track_ID = stream.readUint32();
+	this.next_track_id = stream.readUint32();
 }
 
 BoxParser.TKHD_FLAG_ENABLED    = 0x000001;
@@ -703,7 +704,7 @@ BoxParser.mehdBox.prototype.parse = function(stream) {
 
 BoxParser.trexBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
-	this.track_ID = stream.readUint32();
+	this.track_id = stream.readUint32();
 	this.default_sample_description_index = stream.readUint32();
 	this.default_sample_duration = stream.readUint32();
 	this.default_sample_size = stream.readUint32();
@@ -726,7 +727,7 @@ BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF	= 0x20000;
 BoxParser.tfhdBox.prototype.parse = function(stream) {
 	var readBytes = 0;
 	this.parseFullHeader(stream);
-	this.track_ID = stream.readUint32();
+	this.track_id = stream.readUint32();
 	if (this.size > readBytes && (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET)) {
 		this.base_data_offset = stream.readUint64();
 		readBytes += 8;
@@ -896,7 +897,7 @@ BoxParser.mvhdBox.prototype.write = function(stream) {
 	stream.writeUint32(0);
 	stream.writeUint32(0);
 	stream.writeUint32(0);
-	stream.writeUint32(this.next_track_ID);
+	stream.writeUint32(this.next_track_id);
 }
 
 BoxParser.tkhdBox.prototype.write = function(stream) {
@@ -1175,7 +1176,7 @@ BoxParser.trexBox.prototype.write = function(stream) {
 	this.flags = 0;
 	this.size = 4*5;
 	this.writeHeader(stream);
-	stream.writeUint32(this.track_ID);
+	stream.writeUint32(this.track_id);
 	stream.writeUint32(this.default_sample_description_index);
 	stream.writeUint32(this.default_sample_duration);
 	stream.writeUint32(this.default_sample_size);
@@ -1209,7 +1210,7 @@ BoxParser.tfhdBox.prototype.write = function(stream) {
 		this.size += 4;
 	}
 	this.writeHeader(stream);
-	stream.writeUint32(this.track_ID);
+	stream.writeUint32(this.track_id);
 	if (this.flags & BoxParser.TFHD_FLAG_BASE_OFFSET) {
 		stream.writeUint64(this.base_data_offset);
 	}

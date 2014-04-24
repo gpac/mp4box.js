@@ -14,7 +14,7 @@
  * This notice must stay in all subsequent versions of this code.
  */
  function MP4Box() {
-	this.log_level = this.LOG_LEVEL_DEBUG;
+	this.log_level = this.LOG_LEVEL_INFO;
 
 	this.sampleListBuilt = false;
 	this.inputStream = null;
@@ -81,7 +81,7 @@ MP4Box.prototype.createSingleSampleMoof = function(sample) {
 	moof.boxes.push(traf);
 	var tfhd = new BoxParser.tfhdBox();
 	traf.boxes.push(tfhd);
-	tfhd.track_ID = sample.track_id;
+	tfhd.track_id = sample.track_id;
 	tfhd.flags = BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
 	var tfdt = new BoxParser.tfdtBox();
 	traf.boxes.push(tfdt);
@@ -151,16 +151,15 @@ MP4Box.prototype.open = function(ab) {
 	if (!this.inputIsoFile) {
 		this.inputIsoFile = new ISOFile();
 	}
-	if (!this.inputIsoFile.moov) {
-		this.inputIsoFile.parse(this.inputStream);
-	}
+	this.inputIsoFile.parse(this.inputStream);
 	if (!this.inputIsoFile.moov) {
 		return false;	
 	} else {
 		if (!this.sampleListBuilt) {
 			this.inputIsoFile.buildSampleLists();
 			this.sampleListBuilt = true;
-		}
+		} 
+		this.inputIsoFile.updateSampleLists();
 		if (this.onReady && !this.readySent) {
 			var info = this.getInfo();
 			this.readySent = true;
@@ -268,12 +267,14 @@ MP4Box.prototype.initializeSegmentation = function() {
 	}	
 	var initSegs = new Array();
 	for (var i = 0; i < this.fragmentedTracks.length; i++) {
+		/* removing all tracks to create initialization segments with only one track */
 		for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
 			var box = this.inputIsoFile.moov.boxes[j];
 			if (box.type == "trak") {
 				this.inputIsoFile.moov.boxes[j] = null;
 			}
 		}
+		/* adding only the needed track */
 		var trak = this.inputIsoFile.getTrackById(this.fragmentedTracks[i].id);
 		for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
 			var box = this.inputIsoFile.moov.boxes[j];
@@ -292,5 +293,6 @@ MP4Box.prototype.initializeSegmentation = function() {
 
 MP4Box.prototype.flush = function() {
 	this.log(MP4Box.LOG_LEVEL_INFO, "Flushing remaining samples");
+	this.inputIsoFile.updateSampleLists();
 	this.processFragments();
 }
