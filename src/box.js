@@ -44,7 +44,8 @@ var BoxParser = {
 		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4", "avcp", "drac", "encv", "mjp2", "mvc1", "mvc2", "resv", "s263", "svc1", "vc-1"  ] },
 		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos" ] },
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
-		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] }
+		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
+		{ prefix: "Text", types: [ "stpp", "wvtt" ] }
 	],
 	initialize: function() {
 		var i, j;
@@ -53,10 +54,6 @@ var BoxParser = {
 		BoxParser.ContainerBox.prototype = new BoxParser.Box();
 		BoxParser.stsdBox.prototype = new BoxParser.FullBox();
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
-		BoxParser.VisualSampleEntry.prototype = new BoxParser.SampleEntry();
-		BoxParser.AudioSampleEntry.prototype = new BoxParser.SampleEntry();
-		BoxParser.HintSampleEntry.prototype = new BoxParser.SampleEntry();
-		BoxParser.MetadataSampleEntry.prototype = new BoxParser.SampleEntry();
 		/* creating constructors for simple boxes */
 		length = BoxParser.boxCodes.length;
 		for (i=0; i<length; i++) {
@@ -100,6 +97,8 @@ var BoxParser = {
 			var prefix = BoxParser.sampleEntryCodes[j].prefix;
 			var types = BoxParser.sampleEntryCodes[j].types;
 			var nb_types = types.length;
+			BoxParser[prefix+"SampleEntry"] = function(type, size) { BoxParser.SampleEntry.call(this, type, size); };
+			BoxParser[prefix+"SampleEntry"].prototype = new BoxParser.SampleEntry();
 			for (i=0; i<nb_types; i++) {
 				BoxParser[types[i]+"Box"] = (function (k, l) { 
 					return function(size) {
@@ -127,18 +126,6 @@ var BoxParser = {
 	SampleEntry: function(type, size) {
 		BoxParser.Box.call(this, type, size);	
 		this.boxes = new Array();
-	},
-	VisualSampleEntry: function(type, size) {
-		BoxParser.SampleEntry.call(this, type, size);	
-	},
-	AudioSampleEntry: function(type, size) {
-		BoxParser.SampleEntry.call(this, type, size);	
-	},
-	HintSampleEntry: function(type, size) {
-		BoxParser.SampleEntry.call(this, type, size);	
-	},
-	MetadataSampleEntry: function(type, size) {
-		BoxParser.SampleEntry.call(this, type, size);	
 	},
 	stsdBox: function(size) {
 		BoxParser.FullBox.call(this, "stsd", size);
@@ -243,13 +230,17 @@ BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	while (stream.position < this.start+this.size) {
 		box = BoxParser.parseOneBox(stream);
+		if (box == BoxParser.ERR_NOT_ENOUGH_DATA) {
+			stream.seek(this.start+this.size);
+			return;
+		}
 		this.boxes.push(box);
 		this[box.type] = box;
 	}	
 }
 
 BoxParser.SampleEntry.prototype.parse = function(stream) {
-	this.parserHeader(stream);
+	this.parseHeader(stream);
 	this.parseFooter(stream);
 }
 
@@ -357,11 +348,11 @@ BoxParser.tkhdBox.prototype.parse = function(stream) {
 		this.duration = stream.readUint32();
 	}
 	stream.readUint32Array(2);
-	this.layer = stream.readUint16();
-	this.alternate_group = stream.readUint16();
-	this.volume = stream.readUint16()>>8;
+	this.layer = stream.readInt16();
+	this.alternate_group = stream.readInt16();
+	this.volume = stream.readInt16()>>8;
 	stream.readUint16();
-	this.matrix = stream.readUint32Array(9);
+	this.matrix = stream.readInt32Array(9);
 	this.width = stream.readUint32();
 	this.height = stream.readUint32();
 }
@@ -409,11 +400,6 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 		var box = BoxParser.parseOneBox(stream);
 		this.entries.push(box);
 	}
-}
-
-BoxParser.SampleEntry.prototype.parse = function(stream) {
-	this.parserHeader(stream);
-	this.parseFooter(stream);
 }
 
 BoxParser.avcCBox.prototype.parse = function(stream) {
@@ -912,11 +898,11 @@ BoxParser.tkhdBox.prototype.write = function(stream) {
 	stream.writeUint32(this.duration);
 	stream.writeUint32(0);
 	stream.writeUint32(0);
-	stream.writeUint16(this.layer);
-	stream.writeUint16(this.alternate_group);
-	stream.writeUint16(this.volume<<8);
+	stream.writeInt16(this.layer);
+	stream.writeInt16(this.alternate_group);
+	stream.writeInt16(this.volume<<8);
 	stream.writeUint16(0);
-	stream.writeUint32Array(this.matrix);
+	stream.writeInt32Array(this.matrix);
 	stream.writeUint32(this.width);
 	stream.writeUint32(this.height);
 }

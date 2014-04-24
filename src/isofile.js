@@ -83,7 +83,7 @@ ISOFile.prototype.writeInitializationSegment = function(stream) {
 		mvex.boxes.push(trex);
 		trex.track_id = this.moov.traks[i].tkhd.track_id;
 		trex.default_sample_description_index = 1;
-		trex.default_sample_duration = this.moov.traks[i].samples[0].duration;
+		trex.default_sample_duration = (this.moov.traks[i].samples.length>0 ? this.moov.traks[i].samples[0].duration: 0);
 		trex.default_sample_size = 0;
 		trex.default_sample_flags = 1<<16;
 	}

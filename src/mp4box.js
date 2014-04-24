@@ -14,7 +14,7 @@
  * This notice must stay in all subsequent versions of this code.
  */
  function MP4Box() {
-	this.log_level = this.LOG_LEVEL_INFO;
+	this.log_level = this.LOG_LEVEL_DEBUG;
 
 	this.sampleListBuilt = false;
 	this.inputStream = null;
