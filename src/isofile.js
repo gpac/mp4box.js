@@ -56,19 +56,21 @@ ISOFile.prototype.write = function(stream) {
 
 ISOFile.prototype.writeInitializationSegment = function(stream) {
 	//this.ftyp.write(stream);
-	var mvex = new BoxParser.mvexBox();
-	this.moov.boxes.push(mvex);
-	var mehd = new BoxParser.mehdBox();
-	mvex.boxes.push(mehd);
-	mehd.fragment_duration = 0;
-	for (var i = 0; i < this.moov.traks.length; i++) {
-		var trex = new BoxParser.trexBox();
-		mvex.boxes.push(trex);
-		trex.track_ID = this.moov.traks[i].tkhd.track_id;
-		trex.default_sample_description_index = 1;
-		trex.default_sample_duration = this.moov.traks[i].samples[0].duration;
-		trex.default_sample_size = 0;
-		trex.default_sample_flags = 1<<16;
+	if (!this.moov.mvex) {
+		var mvex = new BoxParser.mvexBox();
+		this.moov.boxes.push(mvex);
+		var mehd = new BoxParser.mehdBox();
+		mvex.boxes.push(mehd);
+		mehd.fragment_duration = 0;
+		for (var i = 0; i < this.moov.traks.length; i++) {
+			var trex = new BoxParser.trexBox();
+			mvex.boxes.push(trex);
+			trex.track_ID = this.moov.traks[i].tkhd.track_id;
+			trex.default_sample_description_index = 1;
+			trex.default_sample_duration = this.moov.traks[i].samples[0].duration;
+			trex.default_sample_size = 0;
+			trex.default_sample_flags = 1<<16;
+		}
 	}
 	this.moov.write(stream);
 }
