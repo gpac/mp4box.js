@@ -18,13 +18,14 @@ var BoxParser = {
 	ERR_NOT_ENOUGH_DATA : 0,
 	boxCodes : [ 
 				 "mdat", 
-				 "avcC", "ftyp",
+				 "avcC", "ftyp", 
+				 "payl",
 				 "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
-				  "esds",
+				  "esds", "subs"
 				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -38,6 +39,7 @@ var BoxParser = {
 		[ "mvex", [ "trex" ] ],
 		[ "moof", [ "traf" ] ],
 		[ "traf", [ "trun" ] ],
+		[ "vttc" ], 
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
@@ -802,6 +804,40 @@ BoxParser.tfdtBox.prototype.parse = function(stream) {
 		this.baseMediaDecodeTime = stream.readUint64();
 	} else {
 		this.baseMediaDecodeTime = stream.readUint32();
+	}
+}
+
+BoxParser.paylBox.prototype.parse = function(stream) {
+	this.text = stream.readString(this.size);
+}
+
+BoxParser.subsBox.prototype.parse = function(stream) {
+	var i,j;
+	var entry_count;
+	var subsample_count;
+	this.parseFullHeader(stream);
+	entry_count = stream.readUint32();
+	this.samples = [];
+	for (i = 0; i < entry_count; i++) {
+		var sampleInfo = {};
+		this.samples[i] = sampleInfo;
+		sampleInfo.sample_delta = stream.readUint32();
+		sampleInfo.subsamples = [];
+		subsample_count = stream.readUint16();
+		if (subsample_count>0) {
+			for (j = 0; j < subsample_count; j++) {
+				var subsample = {};
+				sampleInfo.subsamples.push(subsample);
+				if (this.version == 1) {
+					subsample.size = stream.readUint32();
+				} else {
+					subsample.size = stream.readUint16();
+				}
+				subsample.priority = stream.readUint8();
+				subsample.discardable = stream.readUint8();
+				subsample.reserved = stream.readUint32();
+			}
+		}
 	}
 }
 

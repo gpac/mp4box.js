@@ -5,6 +5,7 @@
         <script src="../src/DataStream.js"></script>
         <script src="../src/descriptor.js"></script>
         <script src="../src/box.js"></script>
+        <script src="../src/text-mp4.js"></script>
         <script src="../src/isofile.js"></script>
         <script src="../src/mp4box.js"></script>
 		<script>
@@ -30,7 +31,8 @@
 			video.ms = mediaSource;
 			mediaSource.addEventListener("sourceopen", onSourceOpen);
 			mediaSource.addEventListener("sourceclose", onSourceClose);
-			video.src = window.URL.createObjectURL(mediaSource);			
+			video.src = window.URL.createObjectURL(mediaSource);
+			/* TODO: remove Text tracks */
 		}
 		
 		function resetDisplay() {
@@ -170,13 +172,20 @@
 						var check = e.target;
 						if (check.checked) { 
 							var mime = 'video/mp4; codecs=\"'+codec+'\"';
-							console.log("[SourceBuffer #"+track_id+"] Creation with type '"+mime+"'");
-							var sb = ms.addSourceBuffer(mime);
-							sb.ms = ms;
-							sb.id = track_id;
-							mp4box.setSegmentOptions(track_id, sb);
-							sb.pendingAppends = new Array();
-							document.getElementById("initButton").disabled = false;
+							if (MediaSource.isTypeSupported(mime)) {
+								console.log("[SourceBuffer #"+track_id+"] Creation with type '"+mime+"'");
+								var sb = ms.addSourceBuffer(mime);
+								sb.ms = ms;
+								sb.id = track_id;
+								mp4box.setSegmentOptions(track_id, sb);
+								sb.pendingAppends = new Array();
+								document.getElementById("initButton").disabled = false;
+							} else {
+								console.log("MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
+								var textrack = v.addTextTrack("subtitles", "Text track for track "+track_id);
+								mp4box.setExtractionOptions(track_id, textrack);
+								//check.checked = false;
+							}
 						} else {
 							console.log("[SourceBuffer #"+track_id+"] Removing buffer");
 							mp4box.unsetSegmentOptions(track_id);
@@ -250,6 +259,23 @@
 				sb.pendingAppends.push(buffer);
 				console.log("[SourceBuffer #"+user.id+"] Received new segment, pending: "+sb.pendingAppends.length);
 				onUpdateEnd.call(sb, null);
+			}
+
+			mp4box.onSamples = function (id, user, sample) {	
+				var texttrack = user;
+				console.log("[TextTrack #"+id+"] Received new samples, pending: ");
+				if (sample.description.type == "wvtt") {
+					var vtt4Parser = new VTTin4Parser();
+					var cues = vtt4Parser.parseSample(sample.data);
+					for (var i = 0; i < cues.length; i++) {
+						var cueIn4 = cues[i];
+						var cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4["payl"].text);
+						texttrack.addCue(cue);
+					}
+				} else {
+					var ttml4Parser = new TTMLin4Parser();
+					var ttmlSample = ttml4Parser.parseSample(sample); 
+				}
 			}
 
 			var initSegs = mp4box.initializeSegmentation();

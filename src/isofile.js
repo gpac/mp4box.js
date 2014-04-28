@@ -125,9 +125,9 @@ ISOFile.prototype.resetTables = function () {
 
 ISOFile.prototype.buildSampleLists = function() {	
 	var i, j, k;
-	var trak, stco, stsc, stsz, stts, ctts, stss;
+	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs;
 	var chunk_run_index, chunk_index, last_chunk_in_run, offset_in_chunk, last_sample_in_chunk;
-	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index;
+	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index;
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
 		trak.samples = new Array();
@@ -137,6 +137,8 @@ ISOFile.prototype.buildSampleLists = function() {
 		stts = trak.mdia.minf.stbl.stts;
 		ctts = trak.mdia.minf.stbl.ctts;
 		stss = trak.mdia.minf.stbl.stss;
+		stsd = trak.mdia.minf.stbl.stsd;
+		subs = trak.mdia.minf.stbl.subs;
 		chunk_index = -1;
 		chunk_run_index = -1;
 		last_chunk_in_run = -1;
@@ -147,10 +149,13 @@ ISOFile.prototype.buildSampleLists = function() {
 		last_sample_in_ctts_run = -1;
 		ctts_run_index = -1;
 		last_stss_index = 0;
+		subs_entry_index = 0;
+		last_subs_sample_index = 0;
 		/* we build the samples one by one and compute their properties */
 		for (j = 0; j < stsz.sample_sizes.length; j++) {
 			var sample = {};
 			sample.track_id = trak.tkhd.track_id;
+			sample.timescale = trak.mdia.mdhd.timescale;
 			trak.samples[j] = sample;
 			/* size can be known directly */
 			sample.size = stsz.sample_sizes[j];
@@ -181,7 +186,7 @@ ISOFile.prototype.buildSampleLists = function() {
 				last_sample_in_chunk += stsc.samples_per_chunk[chunk_run_index];
 				sample.chunk_run_index = chunk_run_index;
 			}	
-			sample.description_index = stsc.sample_description_index[sample.chunk_run_index];
+			sample.description = stsd.entries[stsc.sample_description_index[sample.chunk_run_index]-1];
 			sample.offset = stco.chunk_offsets[sample.chunk_index] + offset_in_chunk;
 			offset_in_chunk += sample.size;
 			/* setting dts, cts, duration and rap flags */
@@ -219,6 +224,12 @@ ISOFile.prototype.buildSampleLists = function() {
 				}
 			} else {
 				sample.is_rap = true;
+			}
+			if (subs) {
+				if (subs.samples[subs_entry_index].sample_delta + last_subs_sample_index == j) {
+					sample.subsamples = subs.samples[subs_entry_index].subsamples;
+					last_subs_sample_index += subs.samples[subs_entry_index].sample_delta;
+				}
 			}
 		}
 		if (j>0) trak.samples[j-1].duration = trak.mdia.mdhd.duration - trak.samples[j-1].dts;
@@ -274,9 +285,11 @@ ISOFile.prototype.updateSampleLists = function() {
 					var trun = traf.truns[j];
 					for (k = 0; k < trun.sample_count; k++) {
 						var sample = {};
-						sample.track_id = trak.tkhd.track_id;
+						traf.first_sample_index = trak.samples.length;
 						trak.samples.push(sample);
-						sample.description_index = default_sample_description_index;
+						sample.track_id = trak.tkhd.track_id;
+						sample.timescale = trak.mdia.mdhd.timescale;
+						sample.description = trak.mdia.minf.stbl.stsd.entries[default_sample_description_index-1];
 						sample.size = default_sample_size;
 						if (trun.flags & BoxParser.TRUN_FLAGS_SIZE) {
 							sample.size = trun.sample_size[k];
@@ -334,6 +347,14 @@ ISOFile.prototype.updateSampleLists = function() {
 						}
 						last_run_position = sample.offset + sample.size;
 					}
+				}
+				if (traf.subs) {
+					var sample_index = traf.first_sample_index;
+					for (j = 0; j < traf.subs.samples.length; j++) {
+						sample_index += traf.subs.samples[j].sample_delta;
+						var sample = trak.samples[sample_index-1];
+						sample.subsamples = traf.subs.samples[j].subsamples;
+					}					
 				}
 			}
 		}

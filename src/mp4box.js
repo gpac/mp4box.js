@@ -22,9 +22,11 @@
 	this.onReady = null;
 	this.readySent = false;	
 	this.onSegment = null;
+	this.onSamples = null;
 	this.onError = null;
 
 	this.fragmentedTracks = new Array();
+	this.extractedTracks = new Array();
 	this.isFragmentationStarted = false;
 	this.nextMoofNumber = 0;
 }
@@ -68,6 +70,34 @@ MP4Box.prototype.unsetSegmentOptions = function(id) {
 	}
 	if (index > -1) {
 		this.fragmentedTracks.splice(index, 1);
+	}
+}
+
+MP4Box.prototype.setExtractionOptions = function(id, user, options) {
+	var trak = this.inputIsoFile.getTrackById(id);
+	if (trak) {
+		var extractTrack = {};
+		this.extractedTracks.push(extractTrack);
+		extractTrack.id = id;
+		extractTrack.user = user;
+		extractTrack.nextSample = 0;
+		extractTrack.nb_samples = 1;
+		if (options) {
+			if (options.nb_samples != undefined) extractTrack.nb_samples = options.nbSamples;
+		}
+	}
+}
+
+MP4Box.prototype.unsetExtractionOptions = function(id) {
+	var index = -1;
+	for (var i = 0; i < this.extractedTracks.length; i++) {
+		var extractTrack = this.extractedTracks[i];
+		if (extractTrack.id == id) {
+			index = i;
+		}
+	}
+	if (index > -1) {
+		this.extractedTracks.splice(index, 1);
 	}
 }
 
@@ -126,7 +156,6 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	stream.adjustUint32(moof.trun.data_offset_position, moof.trun.data_offset);
 		
 	var mdat = new BoxParser.mdatBox();
-	mdat.data = new ArrayBuffer();
 	this.inputStream.seek(sample.offset);
 	mdat.data = this.inputStream.readUint8Array(sample.size);
 	mdat.write(stream);
@@ -169,7 +198,7 @@ MP4Box.prototype.open = function(ab) {
 	}
 }
 
-MP4Box.prototype.processFragments = function() {
+MP4Box.prototype.processSamples = function() {
 	if (this.isFragmentationStarted) {
 		for (var i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
@@ -195,13 +224,32 @@ MP4Box.prototype.processFragments = function() {
 			}
 		}
 	}
+	for (var i = 0; i < this.extractedTracks.length; i++) {
+		var extractTrak = this.extractedTracks[i];
+		var trak = this.inputIsoFile.getTrackById(extractTrak.id);			
+		while (extractTrak.nextSample < trak.samples.length) {				
+			this.log(MP4Box.LOG_LEVEL_INFO, "Exporting on track #"+extractTrak.id +" sample "+extractTrak.nextSample); 
+			var sample = trak.samples[extractTrak.nextSample];
+			if (this.inputStream.byteLength >= sample.offset+sample.size) {
+				extractTrak.nextSample++;
+				this.inputStream.seek(sample.offset);
+				sample.data = this.inputStream.readUint8Array(sample.size);
+			} else {
+				return;
+			}
+			//if (this.onSamples && (extractTrak.nextSample % extractTrak.nb_samples == 0 || extractTrak.nextSample >= trak.samples.length)) {
+				this.log(MP4Box.LOG_LEVEL_INFO, "Sending samples on track #"+extractTrak.id+" for sample "+extractTrak.nextSample); 
+				this.onSamples(extractTrak.id, extractTrak.user, sample);
+			//}
+		}
+	}
 }
 
 MP4Box.prototype.appendBuffer = function(ab) {
 	var stream;
 	var is_open = this.open(ab);
 	if (!is_open) return;
-	this.processFragments();
+	this.processSamples();
 }
 
 MP4Box.prototype.getInfo = function() {
@@ -294,5 +342,5 @@ MP4Box.prototype.initializeSegmentation = function() {
 MP4Box.prototype.flush = function() {
 	this.log(MP4Box.LOG_LEVEL_INFO, "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();
-	this.processFragments();
+	this.processSamples();
 }
