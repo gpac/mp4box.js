@@ -39,7 +39,7 @@ function MPEG4DescriptorParser() {
 		byteRead = stream.readUint8();
 		hdrSize++;
 		while (byteRead & 0x80) {		
-			size = byteRead<<7;
+			size = (byteRead & 0x7F)<<7;
 			byteRead = stream.readUint8();
 			hdrSize++;
 		} 
