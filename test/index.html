@@ -417,8 +417,8 @@
 			<video id="v" autoplay controls> </video>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
-				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="10000" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
-				<output id="chunk_size_range_out" for="chunk_size_range">10000</output>
+				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="0" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
+				<output id="chunk_size_range_out" for="chunk_size_range">0</output>
 			<div>
 			<label>Select or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
@@ -426,7 +426,8 @@
 				<option value="./aaclow.mp4">Audio Bips (unfragmented, AAC)</option>
 				<option value="./av.mp4">Multiplexed Audio/Video (unfragmented, H.264/AVC Baseline+AAC)</option>
 				<option value="./2v.mp4">2 video (unfragmented, H.264/AVC Baseline)</option>
-				<option value="./bbb_sunflower_1080p_30fps_normal.mp4">Big Buck Bunny (1080p, 30fps)</option>
+				<option value="./bbb_sunflower_1080p_30fps_normal.mp4">Big Buck Bunny (unfragmented)</option>
+				<option value="./Bad.Influence.se4ep13.mp4">Bad Influence (S04E13 from Archive.org, unfragmented long)</option>
 				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-aaclc_high.mp4">DASH onDemand audio (fragmented, AAC High)</option>
 				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-aaclc_low.mp4">DASH onDemand audio (fragmented, AAC Low)</option>
 				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-h264bl_full.mp4">DASH onDemand audio (fragmented, H.264/AVC Baseline Full HD)</option>
