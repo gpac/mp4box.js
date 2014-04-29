@@ -157,7 +157,7 @@ Indicates that the track with the given `track_id` should be segmented, with the
 - **rapAlignement**: boolean, indicating if segments should start with a RAP. If not provided, the default is true.
 
 ```javascript
-mp4box.setSegmentOptions(1, sb, { duration: 1000 });
+mp4box.setSegmentOptions(1, sb, { nbSamples: 1000 });
 ```
  
 ####unsetSegmentOptions(track_id)####
@@ -203,7 +203,7 @@ var mp4box = new MP4Box();
 mp4box.onReady = function(info) {
   ...
   /* create a texttrack */
-  var texttrack = v.addTextTrack("metadata", "Text track for extraction of track "+track.id);
+  var texttrack = v.addTextTrack("metadata", "Text track for extraction of track "+info.tracks[0].id);
   mp4box.onSamples = function (id, user, samples) {}
   mp4box.setExtractionsOptions(info.tracks[0].id, texttrack, options);  
   ...
@@ -216,7 +216,7 @@ Indicates that the track with the given `track_id` for which samples should be e
 - **rapAlignement**: boolean, indicating if sample arrays should start with a RAP. If not provided, the default is true.
 
 ```javascript
-mp4box.setExtractionOptions(1, texttrack, { duration: 1000 });
+mp4box.setExtractionOptions(1, texttrack, { nbSamples: 1000 });
 ```
  
 ####unsetExtractionOptions(track_id)####
