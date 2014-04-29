@@ -14,7 +14,7 @@
  * This notice must stay in all subsequent versions of this code.
  */
  function MP4Box() {
-	this.log_level = this.LOG_LEVEL_DEBUG;
+	this.log_level = this.LOG_LEVEL_INFO;
 
 	this.sampleListBuilt = false;
 	this.inputStream = null;
@@ -81,7 +81,8 @@ MP4Box.prototype.setExtractionOptions = function(id, user, options) {
 		extractTrack.id = id;
 		extractTrack.user = user;
 		extractTrack.nextSample = 0;
-		extractTrack.nb_samples = 1;
+		extractTrack.nb_samples = 1000;
+		extractTrack.samples = [];
 		if (options) {
 			if (options.nb_samples != undefined) extractTrack.nb_samples = options.nbSamples;
 		}
@@ -234,13 +235,15 @@ MP4Box.prototype.processSamples = function() {
 				extractTrak.nextSample++;
 				this.inputStream.seek(sample.offset);
 				sample.data = this.inputStream.readUint8Array(sample.size);
+				extractTrak.samples.push(sample);
 			} else {
 				return;
 			}
-			//if (this.onSamples && (extractTrak.nextSample % extractTrak.nb_samples == 0 || extractTrak.nextSample >= trak.samples.length)) {
+			if (this.onSamples && (extractTrak.nextSample % extractTrak.nb_samples == 0 || extractTrak.nextSample >= trak.samples.length)) {
 				this.log(MP4Box.LOG_LEVEL_INFO, "Sending samples on track #"+extractTrak.id+" for sample "+extractTrak.nextSample); 
-				this.onSamples(extractTrak.id, extractTrak.user, [sample]);
-			//}
+				this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
+				extractTrak.samples = [];
+			}
 		}
 	}
 }

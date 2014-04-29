@@ -346,7 +346,7 @@
 
 			mp4box.onSamples = function (id, user, samples) {	
 				var texttrack = user;
-				console.log("[TextTrack #"+id+"] Received new sample");
+				console.log("[TextTrack #"+id+"] Received "+samples.length+" new sample(s)");
 				for (var j = 0; j < samples.length; j++) {
 					var sample = samples[j];
 					if (sample.description.type == "wvtt") {
@@ -422,8 +422,9 @@
     </head>
 	<body>
 		<div>
-			<h2>Demonstration of MP4Box.js to play unfragmented files in the browser using the MSE API</h2>
-			<video id="v" autoplay controls> </video>
+			<h2>Demonstration of MP4Box.js</h2>
+			<h3>HTML5 video beyond the MSE API</h2>
+			<video id="v" width="640" height="480" autoplay controls> </video>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
 				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="0" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
