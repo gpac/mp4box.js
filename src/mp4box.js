@@ -269,6 +269,11 @@ MP4Box.prototype.getInfo = function() {
 	movie.created = new Date(_1904+this.inputIsoFile.moov.mvhd.creation_time*1000);
 	movie.modified = new Date(_1904+this.inputIsoFile.moov.mvhd.modification_time*1000);
 	movie.tracks = new Array();
+	movie.audioTracks = new Array();
+	movie.videoTracks = new Array();
+	movie.subtitleTracks = new Array();
+	movie.metadataTracks = new Array();
+	movie.hintTracks = new Array();
 	for (i = 0; i < this.inputIsoFile.moov.traks.length; i++) {
 		var trak = this.inputIsoFile.moov.traks[i];
 		var sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
@@ -287,15 +292,26 @@ MP4Box.prototype.getInfo = function() {
 		track.timescale = trak.mdia.mdhd.timescale;
 		track.duration = trak.mdia.mdhd.duration;
 		track.codec = sample_desc.getCodec();	
-		track.video = {};
-		track.video.width = sample_desc.getWidth();		
-		track.video.height = sample_desc.getHeight();		
-		track.audio = {};
-		track.audio.sample_rate = sample_desc.getSampleRate();		
-		track.audio.channel_count = sample_desc.getChannelCount();		
-		track.audio.sample_size = sample_desc.getSampleSize();		
 		track.language = trak.mdia.mdhd.languageString;
 		track.nb_samples = trak.samples.length;
+		if (sample_desc.isAudio()) {
+			movie.audioTracks.push(track);
+			track.audio = {};
+			track.audio.sample_rate = sample_desc.getSampleRate();		
+			track.audio.channel_count = sample_desc.getChannelCount();		
+			track.audio.sample_size = sample_desc.getSampleSize();		
+		} else if (sample_desc.isVideo()) {
+			movie.videoTracks.push(track);
+			track.video = {};
+			track.video.width = sample_desc.getWidth();		
+			track.video.height = sample_desc.getHeight();		
+		} else if (sample_desc.isSubtitle()) {
+			movie.subtitleTracks.push(track);
+		} else if (sample_desc.isHint()) {
+			movie.hintTracks.push(track);
+		} else if (sample_desc.isMetadata()) {
+			movie.metadataTracks.push(track);
+		}
 	}
 	return movie;
 }

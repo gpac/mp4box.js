@@ -47,7 +47,7 @@ var BoxParser = {
 		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos" ] },
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
-		{ prefix: "Text", types: [ "stpp", "wvtt" ] }
+		{ prefix: "Subtitle", types: [ "stpp", "wvtt" ] }
 	],
 	initialize: function() {
 		var i, j;
@@ -199,6 +199,26 @@ BoxParser.ContainerBox.prototype.parse = function(stream) {
 	}
 }
 
+BoxParser.SampleEntry.prototype.isVideo = function() {
+	return false;
+}
+
+BoxParser.SampleEntry.prototype.isAudio = function() {
+	return false;
+}
+
+BoxParser.SampleEntry.prototype.isSubtitle = function() {
+	return false;
+}
+
+BoxParser.SampleEntry.prototype.isMetadata = function() {
+	return false;
+}
+
+BoxParser.SampleEntry.prototype.isHint = function() {
+	return false;
+}
+
 BoxParser.SampleEntry.prototype.getCodec = function() {
 	return this.type;
 }
@@ -263,6 +283,10 @@ BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
 	this.parseFooter(stream);
 }
 
+BoxParser.VisualSampleEntry.prototype.isVideo = function() {
+	return true;
+}
+
 BoxParser.VisualSampleEntry.prototype.getWidth = function() {
 	return this.width;
 }
@@ -282,6 +306,10 @@ BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
 	this.parseFooter(stream);
 }
 
+BoxParser.AudioSampleEntry.prototype.isAudio = function() {
+	return true;
+}
+
 BoxParser.AudioSampleEntry.prototype.getChannelCount = function() {
 	return this.channel_count;
 }
@@ -292,6 +320,10 @@ BoxParser.AudioSampleEntry.prototype.getSampleRate = function() {
 
 BoxParser.AudioSampleEntry.prototype.getSampleSize = function() {
 	return this.samplesize;
+}
+
+BoxParser.SubtitleSampleEntry.prototype.isSubtitle = function() {
+	return true;
 }
 
 BoxParser.ftypBox.prototype.parse = function(stream) {

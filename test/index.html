@@ -94,7 +94,124 @@
 			urlInput = document.getElementById('url');
 			urlInput.value = url;
 		}
+
+		function getBasicTrackHeader() {
+			var html = '';
+			html += "<th>Track ID</th>";
+			html += "<th>Alternate Group</th>";
+			html += "<th>Creation Date</th>";
+			html += "<th>Modified Date</th>";
+			html += "<th>Timescale</th>";
+			html += "<th>Media Duration</th>";
+			html += "<th>Number of Samples</th>";
+			html += "<th>Codec</th>";
+			html += "<th>Language</th>";
+			html += "<th>Track Width</th>";
+			html += "<th>Track Height</th>";
+			html += "<th>Track Layer</th>";
+			return html;
+		}
+			
+		function getBasicTrackInfo(track) {
+			var html = '';
+			html += "<td>"+track.id+"</td>";
+			html += "<td>"+track.alternate_group+"</td>";
+			html += "<td>"+track.created+"</td>";
+			html += "<td>"+track.modified+"</td>";
+			html += "<td>"+track.timescale+"</td>";
+			html += "<td>"+track.duration+" ("+(track.duration/track.timescale)+"s.) </td>";
+			html += "<td>"+track.nb_samples+"</td>";
+			html += "<td>"+track.codec+"</td>";
+			html += "<td>"+track.language+"</td>";
+			html += "<td>"+track.track_width+"</td>";
+			html += "<td>"+track.track_height+"</td>";
+			html += "<td>"+track.layer+"</td>";
+			return html;
+		}
 		
+		function getVideoTrackHeader() {
+			var html = '';
+			html += "<th>Width</th>";
+			html += "<th>Height</th>";
+			return html;
+		}
+		
+		function getVideoTrackInfo(track) {
+			var html = '';
+			html += "<td>"+track.video.width+"</td>";
+			html += "<td>"+track.video.height+"</td>";
+			return html;
+		}
+		
+		function getAudioTrackHeader() {
+			var html = '';
+			html += "<th>Sample Rate</th>";
+			html += "<th>Channel Count</th>";
+			html += "<th>Volume</th>";
+			return html;
+		}
+		
+		function getAudioTrackInfo(track) {
+			var html = '';
+			html += "<td>"+track.audio.sample_rate+"</td>";
+			html += "<td>"+track.audio.channel_count+"</td>";
+			html += "<td>"+track.volume+"</td>";
+			return html;
+		}
+		
+		function getTrackListInfo(tracks, type) {
+			var html = '';
+			if (tracks.length>0) {
+				html += type+" track(s) info";
+				html += "<table>";
+				html += "<tr>";
+				html += getBasicTrackHeader();
+				switch (type) {
+					case "Video":
+						html += getVideoTrackHeader();
+						break;				
+					case "Audio":
+						html += getAudioTrackHeader();
+						break;				
+					case "Subtitle":
+						break;				
+					case "Metadata":
+						break;				
+					case "Hint":
+						break;				
+				}
+				html += "<th>Add Source Buffer</th>";
+				html += "</tr>";
+				for (var i = 0; i < tracks.length; i++) {
+					html += "<tr>";
+					html += getBasicTrackInfo(tracks[i]);
+					switch (type) {
+						case "Video":
+							html += getVideoTrackInfo(tracks[i]);
+							break;				
+						case "Audio":
+							html += getAudioTrackInfo(tracks[i]);
+							break;				
+						case "Subtitle":
+							break;				
+						case "Metadata":
+							break;				
+						case "Hint":
+							break;				
+					}					
+					var mime = 'video/mp4; codecs=\"'+tracks[i].codec+'\"';
+					if (MediaSource.isTypeSupported(mime)) {
+						html += "<td>"+"<input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\">"+"</td>";
+					} else {
+						html += "<td>Not supported, adding as TextTrack <input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\"></td>";
+					}
+					html += "</tr>";
+				}
+				html += "</table>";	
+			}
+			return html;
+		}
+
 		function displayMovieInfo(info) {
 			var html = "Movie Info";
 			html += "<div>";
@@ -111,51 +228,10 @@
 				html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+(info.fragment_duration/info.timescale)+"s.)</td></tr>";
 			}
 			html += "</table>";
-			html += "Track info";
-			html += "<table>";
-			html += "<tr>";
-			html += "<th>Track #</th>";
-			html += "<th>Track ID</th>";
-			html += "<th>Alternate Group</th>";
-			html += "<th>Creation Date</th>";
-			html += "<th>Modified Date</th>";
-			html += "<th>Timescale</th>";
-			html += "<th>Media Duration</th>";
-			html += "<th>Number of frames</th>";
-			html += "<th>Codec</th>";
-			html += "<th>Language</th>";
-			html += "<th>Track Width</th>";
-			html += "<th>Track Height</th>";
-			html += "<th>Track Layer</th>";
-			html += "<th>Video Width</th>";
-			html += "<th>Video Height</th>";
-			html += "<th>Audio Sample Rate</th>";
-			html += "<th>Audio Channel Count</th>";
-			html += "<th>Add Source Buffer</th>";
-			html += "</tr>";
-			for (var i = 0; i < info.tracks.length; i++) {
-				html += "<tr>";
-				html += "<td>"+(i+1)+"</td>";
-				html += "<td>"+info.tracks[i].id+"</td>";
-				html += "<td>"+info.tracks[i].alternate_group+"</td>";
-				html += "<td>"+info.tracks[i].created+"</td>";
-				html += "<td>"+info.tracks[i].modified+"</td>";
-				html += "<td>"+info.tracks[i].timescale+"</td>";
-				html += "<td>"+info.tracks[i].duration+" ("+(info.tracks[i].duration/info.tracks[i].timescale)+"s.) </td>";
-				html += "<td>"+info.tracks[i].nb_samples+"</td>";
-				html += "<td>"+info.tracks[i].codec+"</td>";
-				html += "<td>"+info.tracks[i].language+"</td>";
-				html += "<td>"+info.tracks[i].track_width+"</td>";
-				html += "<td>"+info.tracks[i].track_height+"</td>";
-				html += "<td>"+info.tracks[i].layer+"</td>";
-				html += "<td>"+info.tracks[i].video.width+"</td>";
-				html += "<td>"+info.tracks[i].video.height+"</td>";
-				html += "<td>"+info.tracks[i].audio.sample_rate+"</td>";
-				html += "<td>"+info.tracks[i].audio.channel_count+"</td>";
-				html += "<td>"+"<input id=\"addTrack"+i+"\" type=\"checkbox\">"+"</td>";
-				html += "</tr>";
-			}
-			html += "</table>";
+			html += getTrackListInfo(info.videoTracks, "Video");
+			html += getTrackListInfo(info.audioTracks, "Audio");
+			html += getTrackListInfo(info.subtitleTracks, "Subtitle");
+			html += getTrackListInfo(info.metadataTracks, "Metadata");
 			html += "</div>";
 			var infoDiv;
 			infoDiv = document.getElementById('infoDiv');
@@ -166,7 +242,9 @@
 			var v = document.getElementById('v');
 			var ms = v.ms;
 			for (var i = 0; i < info.tracks.length; i++) {
-				var checkBox = document.getElementById("addTrack"+i);
+				var track = info.tracks[i];
+				var checkBox = document.getElementById("addTrack"+track.id);
+				if (!checkBox) continue;
 				checkBox.addEventListener("change", (function (track_id, codec) { 
 					return function (e) {
 						var check = e.target;
@@ -199,7 +277,7 @@
 							if (ms.sourceBuffers.length==0) document.getElementById("initButton").disabled = true;
 						}
 					};
-				})(info.tracks[i].id, info.tracks[i].codec));
+				})(track.id, track.codec));
 			}
 		}
 
@@ -263,7 +341,7 @@
 
 			mp4box.onSamples = function (id, user, sample) {	
 				var texttrack = user;
-				console.log("[TextTrack #"+id+"] Received new samples, pending: ");
+				console.log("[TextTrack #"+id+"] Received new sample");
 				if (sample.description.type == "wvtt") {
 					var vtt4Parser = new VTTin4Parser();
 					var cues = vtt4Parser.parseSample(sample.data);
