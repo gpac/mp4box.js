@@ -339,20 +339,23 @@
 				onUpdateEnd.call(sb, null);
 			}
 
-			mp4box.onSamples = function (id, user, sample) {	
+			mp4box.onSamples = function (id, user, samples) {	
 				var texttrack = user;
 				console.log("[TextTrack #"+id+"] Received new sample");
-				if (sample.description.type == "wvtt") {
-					var vtt4Parser = new VTTin4Parser();
-					var cues = vtt4Parser.parseSample(sample.data);
-					for (var i = 0; i < cues.length; i++) {
-						var cueIn4 = cues[i];
-						var cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4["payl"].text);
-						texttrack.addCue(cue);
+				for (var j = 0; j < samples.length; j++) {
+					var sample = samples[j];
+					if (sample.description.type == "wvtt") {
+						var vtt4Parser = new VTTin4Parser();
+						var cues = vtt4Parser.parseSample(sample.data);
+						for (var i = 0; i < cues.length; i++) {
+							var cueIn4 = cues[i];
+							var cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4["payl"].text);
+							texttrack.addCue(cue);
+						}
+					} else {
+						var ttml4Parser = new TTMLin4Parser();
+						var ttmlSample = ttml4Parser.parseSample(sample); 
 					}
-				} else {
-					var ttml4Parser = new TTMLin4Parser();
-					var ttmlSample = ttml4Parser.parseSample(sample); 
 				}
 			}
 
@@ -424,7 +427,7 @@
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
 				<option value="./h264bl.mp4">Video Counter (unfragmented, H.264/AVC Baseline)</option>
 				<option value="./aaclow.mp4">Audio Bips (unfragmented, AAC)</option>
-				<option value="./av.mp4">Multiplexed Audio/Video (unfragmented, H.264/AVC Baseline+AAC)</option>
+				<option value="./av.mp4">Multiplexed Audio/Video/Subtitle (unfragmented, H.264/AVC Baseline+AAC+WebVTT)</option>
 				<option value="./2v.mp4">2 video (unfragmented, H.264/AVC Baseline)</option>
 				<option value="./bbb_sunflower_1080p_30fps_normal.mp4">Big Buck Bunny (unfragmented)</option>
 				<option value="./Bad.Influence.se4ep13.mp4">Bad Influence (S04E13 from Archive.org, unfragmented long)</option>
@@ -438,7 +441,7 @@
 			<button onclick="load()">Load Media Info</button>
 			<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
 			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
-			<button onclick="reset()">Reset Media Source</button>
+			<button onclick="reset()">Reset</button>
 			<div>
 				<label>Save results:</label>
 				<input id="saveChecked" type="checkbox"></input>
@@ -447,25 +450,28 @@
 			</div>
 		</div>
 		<div>
-			<h3>Notes</h3>					
+			<h3>Instructions</h3>					
 			<ul>
 			  <li>To run this demo (in Chrome), you should:
 				<ol>
-				  <li>Select an existing file or enter a URL. Be careful to select a video hosted on a server which allows this page to fetch those videos using XHR (i.e. using CORS)</li>
-				  <li>Select a chunk size for the download of the media file, the download speed will be one chunk per second.</li>
-				  <li>Hit the "Load Media Info" button, chunks will be downloaded until there is enough data to display the file information</li>
-				  <li>Once the file information is displayed, (un)select the tracks you want to play. For each track a SourceBuffer is created. You cannot (for now) mix tracks from different files.</li>
-				  <li>Once your tracks are selected, initialize the Source Buffers with the button.</li>
-				  <li>Then hit the "Load Media Data & Play" button to resume the download and let the playback start</li>
+				  <li>Select an existing file or enter a URL. <br>Be careful to select a video hosted on a server which allows this page to fetch those videos using XHR (i.e. using CORS)</li>
+				  <li>Select a chunk size for the download of the media file, the download speed will be one chunk per second. <br>The default is 0, meaning fetching the whole file in one XHR.</li>
+				  <li>Hit the "Load Media Info" button. <br>Chunks will be downloaded until there is enough data to display the file information.</li>
+				  <li>Once the file information is displayed, (un)select the tracks you want to play. <br>For each track a SourceBuffer or a TextTrack is created. You cannot (for now) mix tracks from different files.</li>
+				  <li>Once your tracks are selected, initialize the Source Buffers with the "Initialize Source Buffers" button.</li>
+				  <li>Then hit the "Load Media Data & Play" button to resume the download and let the playback start.</li>
 				</ol>
 			  </li> 
+			</ul>
+			<h3>Notes</h3>					
+			<ul>
 			  <li>The Media Source API in Chrome has some limitations, which you might encounter when playing with this demo:
 				<ul>
 				  <li>It does not support more than 1 video and 1 audio</li>
 				  <li>It does not support adding new SourceBuffers once the existing SourceBuffers are initialized. But you can remove some, even during playback.</li>
 				</ul>
 			  </li>
-			  <li>At any time, you can reset the mediasource and downloads with the associated button.</li>
+			  <li>At any time, you can reset the mediasource and downloads with the "Reset" button.</li>
 			  <li>To get the code of this demo, or to send patchs or feedback, check out the <a href="https://github.com/gpac/mp4box.js">Git Hub Repository</a>.</li>
 			</ul>
 		</div>

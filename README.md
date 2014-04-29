@@ -24,6 +24,7 @@ mp4box.appendBuffer(data);
 mp4box.appendBuffer(data);
 mp4box.appendBuffer(data);
 ...
+mp4box.flush();
 ```
 
 ####onReady(info)####
@@ -134,6 +135,9 @@ mp4box.onError = function (e) {
 }
 ```
 
+####flush()####
+Indicates that no more data will be received and that all remaining samples should be flushed in the segmentation or extraction process.
+
 ###Segmentation###
 
 ```javascript
@@ -191,6 +195,60 @@ Indicates that the application is ready to receive segments. Returns an array of
   }
 ]
 ```
+
+###Extraction###
+It is possible to extract the samples of a track, in a similar manner to the segmentation process.
+```javascript
+var mp4box = new MP4Box();
+mp4box.onReady = function(info) {
+  ...
+  /* create a texttrack */
+  var texttrack = v.addTextTrack("metadata", "Text track for extraction of track "+track.id);
+  mp4box.onSamples = function (id, user, samples) {}
+  mp4box.setExtractionsOptions(info.tracks[0].id, texttrack, options);  
+  ...
+};
+```
+
+####setExtractionOptions(track_id, user, options)####
+Indicates that the track with the given `track_id` for which samples should be extracted, with the given options. When samples are ready, the callback [onSamples](#onSamples) is called with the `user` parameter. The `options` argument is an object with the following properties:
+- **nbSamples**: Number, representing the number of samples per callback callt. If not enough data is received to extract the number of samples, the samples received so far are kept. If not provided, the default is 1000.
+- **rapAlignement**: boolean, indicating if sample arrays should start with a RAP. If not provided, the default is true.
+
+```javascript
+mp4box.setExtractionOptions(1, texttrack, { duration: 1000 });
+```
+ 
+####unsetExtractionOptions(track_id)####
+Indicates that the samples for the track with the given `track_id` should not be extracted.
+```javascript
+mp4box.unsetExtractionOptions(1);
+```
+
+####onSamples(id, user, samples)####
+Callback called when a set of samples is ready, according to the options passed in [setExtractionOptions](#setExtractionOptions). `user` is the caller of the segmentation, for this track, and `samples` is an Array of samples.
+
+```javascript
+mp4box.onSamples = function (id, user, samples) {
+	console.log("Received "+samples.length+" samples on track "+id+" for object "+user);
+}
+```
+
+Each sample has the following structure:
+```json
+{
+	"track_id":4,
+	"description": [Box],
+	"is_rap":true,
+	"timescale":1000,
+	"dts":0,
+	"cts":0,
+	"duration":1000,
+	"size":41,
+	"data": [ArrayBuffer]
+}
+```
+
 Dependencies
 =======
 This code uses [DataStream.js](https://github.com/kig/DataStream.js), with some modifications for Uint24 and Uint64 types.

@@ -239,7 +239,7 @@ MP4Box.prototype.processSamples = function() {
 			}
 			//if (this.onSamples && (extractTrak.nextSample % extractTrak.nb_samples == 0 || extractTrak.nextSample >= trak.samples.length)) {
 				this.log(MP4Box.LOG_LEVEL_INFO, "Sending samples on track #"+extractTrak.id+" for sample "+extractTrak.nextSample); 
-				this.onSamples(extractTrak.id, extractTrak.user, sample);
+				this.onSamples(extractTrak.id, extractTrak.user, [sample]);
 			//}
 		}
 	}
