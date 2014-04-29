@@ -4,8 +4,9 @@ MP4Box.js
 JavaScript library to process MP4 files in the browser, with support for progressive parsing. 
 Inspired by the [MP4Box](http://gpac.wp.mines-telecom.fr/mp4box/) tool from the [GPAC](http://gpac.wp.mines-telecom.fr) project. 
 It can be used to:
-- get information about an MP4 file, 
-- segment an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
+- [get information about an MP4 file] (#getting-information), 
+- [segment](#segmentation) an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
+- [extract](#extraction) samples from an MP4 to create TextTracks.
 - more to come.
 
 A demo is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/).
@@ -152,7 +153,7 @@ mp4box.onReady = function(info) {
 ```
 
 ####setSegmentOptions(track_id, user, options)####
-Indicates that the track with the given `track_id` should be segmented, with the given options. When segments are ready, the callback [onSegment](#onSegment) is called with the `user` parameter. The `options` argument is an object with the following properties:
+Indicates that the track with the given `track_id` should be segmented, with the given options. When segments are ready, the callback [onSegment](#onsegmentid_user_buffer) is called with the `user` parameter. The `options` argument is an object with the following properties:
 - **nbSamples**: Number, representing the number of frames per segment, i.e. the time between 2 callbacks to onSegment. If not enough data is received to form a segment, received samples are kept. If not provided, the default is 1000.
 - **rapAlignement**: boolean, indicating if segments should start with a RAP. If not provided, the default is true.
 
@@ -167,7 +168,7 @@ mp4box.unsetSegmentOptions(1);
 ```
 
 ####onSegment(id, user, buffer)####
-Callback called when a segment is ready, according to the options passed in [setSegmentOptions](#setSegmentOptions). `user` is the caller of the segmentation, for this track, and `buffer` is an ArrayBuffer containing the Movie Fragments for this segment.
+Callback called when a segment is ready, according to the options passed in [setSegmentOptions](##setsegmentoptionstrack_id-user-options). `user` is the caller of the segmentation, for this track, and `buffer` is an ArrayBuffer containing the Movie Fragments for this segment.
 
 ```javascript
 mp4box.onSegment = function (id, user, buffer) {
@@ -178,7 +179,7 @@ mp4box.onSegment = function (id, user, buffer) {
 ####initializeSegmentation()####
 Indicates that the application is ready to receive segments. Returns an array of objects containing the following properties:
 - **id**: Number, the track id 
-- **user**: Object, the caller of the segmentation for this track, as given in [setSegmentOptions](#setSegmentOptions)
+- **user**: Object, the caller of the segmentation for this track, as given in [setSegmentOptions](##setsegmentoptionstrack_id-user-options)
 - **buffer**: ArrayBuffer, the initialization segment for this track.
 
 ```json
@@ -211,7 +212,7 @@ mp4box.onReady = function(info) {
 ```
 
 ####setExtractionOptions(track_id, user, options)####
-Indicates that the track with the given `track_id` for which samples should be extracted, with the given options. When samples are ready, the callback [onSamples](#onSamples) is called with the `user` parameter. The `options` argument is an object with the following properties:
+Indicates that the track with the given `track_id` for which samples should be extracted, with the given options. When samples are ready, the callback [onSamples](#onsamplesid-user-samples) is called with the `user` parameter. The `options` argument is an object with the following properties:
 - **nbSamples**: Number, representing the number of samples per callback callt. If not enough data is received to extract the number of samples, the samples received so far are kept. If not provided, the default is 1000.
 - **rapAlignement**: boolean, indicating if sample arrays should start with a RAP. If not provided, the default is true.
 
@@ -226,7 +227,7 @@ mp4box.unsetExtractionOptions(1);
 ```
 
 ####onSamples(id, user, samples)####
-Callback called when a set of samples is ready, according to the options passed in [setExtractionOptions](#setExtractionOptions). `user` is the caller of the segmentation, for this track, and `samples` is an Array of samples.
+Callback called when a set of samples is ready, according to the options passed in [setExtractionOptions](#setextractionoptionstrack_id-user-options). `user` is the caller of the segmentation, for this track, and `samples` is an Array of samples.
 
 ```javascript
 mp4box.onSamples = function (id, user, samples) {
