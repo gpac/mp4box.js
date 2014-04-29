@@ -295,6 +295,11 @@
 				console.log("Movie information received");
 				console.log("Stopping file download");
 				downloader.stop = true;
+				if (info.isFragmented) {
+					ms.duration = info.fragment_duration/info.timescale;
+				} else {
+					ms.duration = info.duration/info.timescale;
+				}
 				displayMovieInfo(info);
 				addSourceBufferListener(info);
 			}
@@ -368,6 +373,7 @@
 				saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
 				sb.segmentIndex = 0;
 			}
+			
 			document.getElementById("initButton").disabled = true;
 			document.getElementById("startButton").disabled = false;
 		}
@@ -433,7 +439,7 @@
 				<option value="./Bad.Influence.se4ep13.mp4">Bad Influence (S04E13 from Archive.org, unfragmented long)</option>
 				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-aaclc_high.mp4">DASH onDemand audio (fragmented, AAC High)</option>
 				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-aaclc_low.mp4">DASH onDemand audio (fragmented, AAC Low)</option>
-				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-h264bl_full.mp4">DASH onDemand audio (fragmented, H.264/AVC Baseline Full HD)</option>
+				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-h264bl_full.mp4">DASH onDemand video (fragmented, H.264/AVC Baseline Full HD)</option>
 				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-h264bl_low.mp4">DASH onDemand video (fragmented, H.264/AVC Baseline Low Resolution)</option>
 			</select>
 			<label>URL:</label>
@@ -472,6 +478,7 @@
 				</ul>
 			  </li>
 			  <li>At any time, you can reset the mediasource and downloads with the "Reset" button.</li>
+			  <li>You can save the generated segments to disk, by ticking The "Save Results" checkbox.</li>
 			  <li>To get the code of this demo, or to send patchs or feedback, check out the <a href="https://github.com/gpac/mp4box.js">Git Hub Repository</a>.</li>
 			</ul>
 		</div>

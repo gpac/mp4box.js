@@ -62,6 +62,7 @@ ISOFile.prototype.writeInitializationSegment = function(stream) {
 	//this.ftyp.write(stream);
 	if (this.moov.mvex) {
 		var index;
+		this.initial_duration = this.moov.mvex.fragment_duration;
 		for (var i = 0; i < this.moov.boxes.length; i++) {
 			var box = this.moov.boxes[i];
 			if (box == this.moov.mvex) {
@@ -77,7 +78,7 @@ ISOFile.prototype.writeInitializationSegment = function(stream) {
 	this.moov.boxes.push(mvex);
 	var mehd = new BoxParser.mehdBox();
 	mvex.boxes.push(mehd);
-	mehd.fragment_duration = 0;
+	mehd.fragment_duration = this.initial_duration;
 	for (var i = 0; i < this.moov.traks.length; i++) {
 		var trex = new BoxParser.trexBox();
 		mvex.boxes.push(trex);
@@ -93,6 +94,7 @@ ISOFile.prototype.writeInitializationSegment = function(stream) {
 ISOFile.prototype.resetTables = function () {
 	var i;
 	var trak, stco, stsc, stsz, stts, ctts, stss;
+	this.initial_duration = this.moov.mvhd.duration;
 	this.moov.mvhd.duration = 0;
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
