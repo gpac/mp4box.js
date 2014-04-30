@@ -98,6 +98,7 @@
 		function getBasicTrackHeader() {
 			var html = '';
 			html += "<th>Track ID</th>";
+			html += "<th>Track References</th>";
 			html += "<th>Alternate Group</th>";
 			html += "<th>Creation Date</th>";
 			html += "<th>Modified Date</th>";
@@ -115,6 +116,16 @@
 		function getBasicTrackInfo(track) {
 			var html = '';
 			html += "<td>"+track.id+"</td>";
+			html += "<td>";
+			if (track.references.length == 0) {
+				html += "none";
+			} else {
+				for (var i = 0; i < track.references.length; i++) {
+					if (i > 0) html += "<br>";
+					html += "Reference of type "+track.references[i]+" to tracks "+track.references[i].track_ids;
+				}
+			}
+			html += "</td>";
 			html += "<td>"+track.alternate_group+"</td>";
 			html += "<td>"+track.created+"</td>";
 			html += "<td>"+track.modified+"</td>";

@@ -283,6 +283,15 @@ MP4Box.prototype.getInfo = function() {
 		var track = {};
 		movie.tracks.push(track);
 		track.id = trak.tkhd.track_id;
+		track.references = [];
+		if (trak.tref) {
+			for (j = 0; j < trak.tref.boxes.length; j++) {
+				var ref = {};
+				track.references.push(ref);
+				ref.type = trak.tref.boxes[j].type;
+				ref.track_ids = trak.tref.boxes[j].track_ids;
+			}
+		}
 		track.created = new Date(_1904+trak.tkhd.creation_time*1000);
 		track.modified = new Date(_1904+trak.tkhd.modification_time*1000);
 		track.movie_duration = trak.tkhd.duration;

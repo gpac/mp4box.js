@@ -40,6 +40,7 @@ var BoxParser = {
 		[ "moof", [ "traf" ] ],
 		[ "traf", [ "trun" ] ],
 		[ "vttc" ], 
+		[ "tref" ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
@@ -49,6 +50,9 @@ var BoxParser = {
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
 		{ prefix: "Subtitle", types: [ "stpp", "wvtt" ] }
 	],
+	trackReferenceTypes: [
+		"scal"
+	],
 	initialize: function() {
 		var i, j;
 		var length;
@@ -56,6 +60,7 @@ var BoxParser = {
 		BoxParser.ContainerBox.prototype = new BoxParser.Box();
 		BoxParser.stsdBox.prototype = new BoxParser.FullBox();
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
+		BoxParser.TrackReferenceTypeBox.prototype = new BoxParser.Box();
 		/* creating constructors for simple boxes */
 		length = BoxParser.boxCodes.length;
 		for (i=0; i<length; i++) {
@@ -110,7 +115,16 @@ var BoxParser = {
 				BoxParser[types[i]+"Box"].prototype = new BoxParser[prefix+"SampleEntry"]();
 			}
 		}
-
+		/* creating constructors for track reference type boxes */
+		length = BoxParser.trackReferenceTypes.length;
+		for (i=0; i<length; i++) {
+			BoxParser[BoxParser.trackReferenceTypes[i]+"Box"] = (function (j) { 
+				return function(size) {
+					BoxParser.TrackReferenceTypeBox.call(this, BoxParser.trackReferenceTypes[j], size);
+				}
+			})(i);
+			BoxParser[BoxParser.trackReferenceTypes[i]+"Box"].prototype = new BoxParser.Box();
+		}
 	},
 	Box: function(_type, _size) {
 		this.type = _type;
@@ -128,6 +142,10 @@ var BoxParser = {
 	SampleEntry: function(type, size) {
 		BoxParser.Box.call(this, type, size);	
 		this.boxes = new Array();
+	},
+	TrackReferenceTypeBox: function(type, size) {
+		BoxParser.Box.call(this, type, size);	
+		this.track_ids = [];
 	},
 	stsdBox: function(size) {
 		BoxParser.FullBox.call(this, "stsd", size);
@@ -324,6 +342,10 @@ BoxParser.AudioSampleEntry.prototype.getSampleSize = function() {
 
 BoxParser.SubtitleSampleEntry.prototype.isSubtitle = function() {
 	return true;
+}
+
+BoxParser.TrackReferenceTypeBox.prototype.parse = function(stream) {
+	this.track_ids = stream.readUint8Array(this.size);
 }
 
 BoxParser.ftypBox.prototype.parse = function(stream) {
@@ -918,6 +940,12 @@ BoxParser.ContainerBox.prototype.write = function(stream) {
 	/* adjusting the size, now that all sub-boxes are known */
 	//BoxParser.log(BoxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
+}
+
+BoxParser.TrackReferenceTypeBox.prototype.write = function(stream) {
+	this.size = this.track_ids.length*4;
+	this.writeHeader(stream);
+	stream.writeUint32Array(this.track_ids);
 }
 
 BoxParser.ftypBox.prototype.write = function(stream) {
