@@ -13,7 +13,7 @@
  *
  * This notice must stay in all subsequent versions of this code.
  */
-function ISOFile() {
+var ISOFile = function () {
 	this.boxes = new Array();
 	this.mdats = new Array();
 	this.moofs = new Array();

@@ -13,7 +13,7 @@
  *
  * This notice must stay in all subsequent versions of this code.
  */
-function MPEG4DescriptorParser() {
+var MPEG4DescriptorParser = function () {
 	var ES_DescrTag 			= 0x03;
 	var DecoderConfigDescrTag 	= 0x04;
 	var DecSpecificInfoTag 		= 0x05;

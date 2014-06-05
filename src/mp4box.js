@@ -13,7 +13,7 @@
  *
  * This notice must stay in all subsequent versions of this code.
  */
- function MP4Box() {
+ var MP4Box = function () {
 	this.log_level = this.LOG_LEVEL_INFO;
 
 	this.sampleListBuilt = false;

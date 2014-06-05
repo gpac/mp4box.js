@@ -14,7 +14,7 @@
  *
  * This notice must stay in all subsequent versions of this code.
  */
-VTTin4Parser = function() {	
+var VTTin4Parser = function() {	
 }
 
 VTTin4Parser.prototype.parseSample = function(data) {
@@ -30,7 +30,7 @@ VTTin4Parser.prototype.parseSample = function(data) {
 	return cues;
 }
 
-TTMLin4Parser = function() {	
+var TTMLin4Parser = function() {	
 }
 
 TTMLin4Parser.prototype.parseSample = function(sample) {
