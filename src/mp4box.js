@@ -14,8 +14,6 @@
  * This notice must stay in all subsequent versions of this code.
  */
  var MP4Box = function () {
-	this.log_level = this.LOG_LEVEL_INFO;
-
 	this.sampleListBuilt = false;
 	this.inputStream = null;
 	this.inputIsoFile = null;
@@ -29,17 +27,6 @@
 	this.extractedTracks = new Array();
 	this.isFragmentationStarted = false;
 	this.nextMoofNumber = 0;
-}
-
-MP4Box.prototype.LOG_LEVEL_ERROR 	= 4;
-MP4Box.prototype.LOG_LEVEL_WARNING 	= 3;
-MP4Box.prototype.LOG_LEVEL_INFO 	= 2;
-MP4Box.prototype.LOG_LEVEL_DEBUG 	= 1;
-
-MP4Box.prototype.log = function(level, msg) {
-	if (level >= this.log_level) {
-		console.log("[MP4Box] "+msg);
-	}
 }
 
 MP4Box.prototype.setSegmentOptions = function(id, user, options) {
@@ -153,7 +140,7 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 
 	/* adjusting the data_offset now that the moof size is known*/
 	moof.trun.data_offset = moof.size+8; //8 is mdat header
-	this.log(MP4Box.LOG_LEVEL_DEBUG, "Adjusting data_offset with new value "+moof.trun.data_offset);
+	Log.d("MP4Box", "Adjusting data_offset with new value "+moof.trun.data_offset);
 	stream.adjustUint32(moof.trun.data_offset_position, moof.trun.data_offset);
 		
 	var mdat = new BoxParser.mdatBox();
@@ -206,8 +193,7 @@ MP4Box.prototype.processSamples = function() {
 			var trak = this.inputIsoFile.getTrackById(fragTrak.id);			
 //			for (var j = this.fragmentedTracks[i].nextSample; j < 50; j++) {
 			while (fragTrak.nextSample < trak.samples.length) {				
-				this.log(MP4Box.LOG_LEVEL_INFO, "Creating media fragment on track #"+fragTrak.id
-												+" for sample "+fragTrak.nextSample); 
+				Log.i("MP4Box", "Creating media fragment on track #"+fragTrak.id +" for sample "+fragTrak.nextSample); 
 				var result = this.createFragment(this.inputIsoFile, fragTrak.id, fragTrak.nextSample, fragTrak.stream);
 				if (result) {
 					fragTrak.stream = result;
@@ -217,7 +203,7 @@ MP4Box.prototype.processSamples = function() {
 				}
 				if (this.onSegment && 
 					(fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
-					this.log(MP4Box.LOG_LEVEL_INFO, "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
+					Log.i("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
 					this.onSegment(fragTrak.id, fragTrak.user, fragTrak.stream.buffer);
 					/* force the creation of a new buffer */
 					fragTrak.stream = null;
@@ -229,7 +215,7 @@ MP4Box.prototype.processSamples = function() {
 		var extractTrak = this.extractedTracks[i];
 		var trak = this.inputIsoFile.getTrackById(extractTrak.id);			
 		while (extractTrak.nextSample < trak.samples.length) {				
-			this.log(MP4Box.LOG_LEVEL_INFO, "Exporting on track #"+extractTrak.id +" sample "+extractTrak.nextSample); 
+			Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+extractTrak.nextSample); 
 			var sample = trak.samples[extractTrak.nextSample];
 			if (this.inputStream.byteLength >= sample.offset+sample.size) {
 				extractTrak.nextSample++;
@@ -240,7 +226,7 @@ MP4Box.prototype.processSamples = function() {
 				return;
 			}
 			if (this.onSamples && (extractTrak.nextSample % extractTrak.nb_samples == 0 || extractTrak.nextSample >= trak.samples.length)) {
-				this.log(MP4Box.LOG_LEVEL_INFO, "Sending samples on track #"+extractTrak.id+" for sample "+extractTrak.nextSample); 
+				Log.i("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+extractTrak.nextSample); 
 				this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
 				extractTrak.samples = [];
 			}
@@ -368,7 +354,7 @@ MP4Box.prototype.initializeSegmentation = function() {
 }
 
 MP4Box.prototype.flush = function() {
-	this.log(MP4Box.LOG_LEVEL_INFO, "Flushing remaining samples");
+	Log.i("MP4Box", "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();
 	this.processSamples();
 }

@@ -2,6 +2,7 @@
     <head>
 		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
 		<link rel="stylesheet" href="style.css" />
+        <script src="../src/Log.js"></script>
         <script src="../src/DataStream.js"></script>
         <script src="../src/descriptor.js"></script>
         <script src="../src/box.js"></script>
@@ -9,6 +10,7 @@
         <script src="../src/isofile.js"></script>
         <script src="../src/mp4box.js"></script>
 		<script>
+		Log.setLogLevel(Log.e);
 		var mp4box;
 		var downloader = {};
 		

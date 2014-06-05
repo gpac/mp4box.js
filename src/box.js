@@ -160,7 +160,7 @@ var BoxParser = {
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
-		mp4box.log(mp4box.LOG_LEVEL_DEBUG, "Found box of type "+type+" and size "+size+" at position "+stream.position);
+		Log.d("BoxParser", "Found box of type "+type+" and size "+size+" at position "+stream.position);
 		hdr_size = 8;
 		if (type == "uuid") {
 			/* TODO */
@@ -900,7 +900,7 @@ BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 	if (this.size > MAX_SIZE) {
 		this.size += 8;
 	}
-	//BoxParser.log(BoxParser.LOG_LEVEL_DEBUG, "writing "+this.type+" size: "+this.size+" at position "+stream.position+(msg || ""));
+	Log.d("BoxParser", "writing "+this.type+" size: "+this.size+" at position "+stream.position+(msg || ""));
 	if (this.size > MAX_SIZE) {
 		stream.writeUint32(1);
 	} else {
@@ -938,7 +938,7 @@ BoxParser.ContainerBox.prototype.write = function(stream) {
 		}
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	//BoxParser.log(BoxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
+	Log.d("BoxParser", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 
@@ -1042,7 +1042,7 @@ BoxParser.stsdBox.prototype.write = function(stream) {
 		this.size += this.entries[i].size;
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	//BoxParser.log(BoxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
+	Log.d("BoxParser", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 
@@ -1063,7 +1063,7 @@ BoxParser.SampleEntry.prototype.writeFooter = function(stream) {
 		this.boxes[i].write(stream);
 		this.size += this.boxes[i].size;
 	}
-	//BoxParser.log(BoxParser.LOG_LEVEL_DEBUG, "Adjusting box "+this.type+" with new size "+this.size);
+	Log.d("BoxParser", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);	
 }
 
