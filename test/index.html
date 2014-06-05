@@ -112,6 +112,23 @@
 			html += "<th>Track Layer</th>";
 			return html;
 		}
+		
+		function pad(number, length) {
+			var str = '' + number;
+			while (str.length < length) {
+				str = '0' + str;
+			}
+			return str;
+		}
+		
+		function getDurationString(duration, timescale) {
+			var duration_sec = duration/timescale;
+			var hours = Math.floor(duration_sec/3600);
+			duration_sec -= hours * 3600;
+			var minutes = Math.floor(duration_sec/60);
+			duration_sec -= minutes * 60;
+			return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2);
+		}
 			
 		function getBasicTrackInfo(track) {
 			var html = '';
@@ -130,7 +147,7 @@
 			html += "<td>"+track.created+"</td>";
 			html += "<td>"+track.modified+"</td>";
 			html += "<td>"+track.timescale+"</td>";
-			html += "<td>"+track.duration+" ("+(track.duration/track.timescale)+"s.) </td>";
+			html += "<td>"+track.duration+" ("+getDurationString(track.duration,track.timescale)+") </td>";
 			html += "<td>"+track.nb_samples+"</td>";
 			html += "<td>"+track.codec+"</td>";
 			html += "<td>"+track.language+"</td>";
@@ -231,12 +248,12 @@
 			html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
 			html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
 			html += "<tr><th>Timescale</th><td>"+info.timescale+"</td></tr>";
-			html += "<tr><th>Duration</th><td>"+info.duration+" ("+(info.duration/info.timescale)+"s.)</td></tr>";
+			html += "<tr><th>Duration</th><td>"+info.duration+" ("+getDurationString(info.duration,info.timescale)+")</td></tr>";
 			html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
 			html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
 			html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
 			if (info.isFragmented) {
-				html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+(info.fragment_duration/info.timescale)+"s.)</td></tr>";
+				html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+getDurationString(info.fragment_duration,info.timescale)+")</td></tr>";
 			}
 			html += "</table>";
 			html += getTrackListInfo(info.videoTracks, "Video");
@@ -434,7 +451,7 @@
 	<body>
 		<div>
 			<h2>Demonstration of MP4Box.js</h2>
-			<h3>HTML5 video beyond the MSE API</h2>
+			<h3>HTML5 video beyond the MSE API</h3>
 			<video id="v" width="640" height="480" autoplay controls> </video>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
