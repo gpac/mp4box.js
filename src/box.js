@@ -163,8 +163,8 @@ var BoxParser = {
 		Log.d("BoxParser", "Found box of type "+type+" and size "+size+" at position "+stream.position);
 		hdr_size = 8;
 		if (type == "uuid") {
-			/* TODO */
-			throw "UUID not supported";
+			uuid = stream.readString(16);
+			hdr_size += 16;
 		}
 		if (size == 1) {
 			size = stream.readUint64();
