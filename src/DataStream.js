@@ -191,6 +191,21 @@ DataStream.prototype._trimAlloc = function() {
 };
 
 /**
+  Internal function to trim the DataStream buffer when required.
+  Used for stripping out the first bytes when not needed anymore.
+
+  @return {null}
+  */
+DataStream.prototype.shift = function(offset) {
+  var buf = new ArrayBuffer(this._byteLength-offset);
+  var dst = new Uint8Array(buf);
+  var src = new Uint8Array(this._buffer, offset, dst.length);
+  dst.set(src);
+  this.buffer = buf;
+  this.position -= offset;
+};
+
+/**
   Sets the DataStream read/write position to given position.
   Clamps between 0 and DataStream length.
 

@@ -126,9 +126,8 @@ MP4Box.prototype.createSingleSampleMoof = function(sample) {
 
 MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream_) {
 	var trak = this.inputIsoFile.getTrackById(track_id);
-	var sample = trak.samples[sampleNumber];
-
-	if (this.inputStream.byteLength < sample.offset + sample.size) {
+	var sample = this.inputIsoFile.getSample(trak, sampleNumber);
+	if (sample == null) {
 		return null;
 	}
 	
@@ -144,13 +143,13 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	stream.adjustUint32(moof.trun.data_offset_position, moof.trun.data_offset);
 		
 	var mdat = new BoxParser.mdatBox();
-	this.inputStream.seek(sample.offset);
-	mdat.data = this.inputStream.readUint8Array(sample.size);
+	mdat.data = sample.data;
 	mdat.write(stream);
 	return stream;
 }
 
 MP4Box.prototype.open = function(ab) {
+	/* helper functions to enable calling "open" with additional buffers */
 	var concatenateBuffers = function(buffer1, buffer2) {
 	  Log.d("MP4Box", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
 	  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
@@ -159,49 +158,66 @@ MP4Box.prototype.open = function(ab) {
 	  return tmp.buffer;
 	};
 	
-	var stream;
-	
+	/* if we don't have a DataStream object yet, we create it, otherwise we concatenate the new one with the existing one. */
 	if (!this.inputStream) {
 		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
 	} else {
 		this.inputStream.buffer = concatenateBuffers(this.inputStream.buffer, ab);
 	}
+	/* Initialize the ISOFile object if not yet created */
 	if (!this.inputIsoFile) {
-		this.inputIsoFile = new ISOFile();
+		this.inputIsoFile = new ISOFile(this.inputStream);
 	}
-	this.inputIsoFile.parse(this.inputStream);
+	/* Parse whatever is already in the buffer */
+	this.inputIsoFile.parse();
+	
 	if (!this.inputIsoFile.moov) {
+		/* The parsing has not yet found a moov, not much can be done */
 		return false;	
 	} else {
+		/* A moov box has been found */
+		
+		/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
 		if (!this.sampleListBuilt) {
 			this.inputIsoFile.buildSampleLists();
 			this.sampleListBuilt = true;
 		} 
+		/* We update the sample information if there are any new moof boxes */
 		this.inputIsoFile.updateSampleLists();
+		
+		/* If the application needs to be informed that the 'moov' has been found, 
+		   we create the information object and callback the application */
 		if (this.onReady && !this.readySent) {
 			var info = this.getInfo();
 			this.readySent = true;
 			this.onReady(info);
 		}	
+		
 		return true;
 	}
 }
 
 MP4Box.prototype.processSamples = function() {
+	/* For each track marked for fragmentation, 
+	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) and create a fragment with it */
 	if (this.isFragmentationStarted) {
 		for (var i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
 			var trak = this.inputIsoFile.getTrackById(fragTrak.id);			
-//			for (var j = this.fragmentedTracks[i].nextSample; j < 50; j++) {
 			while (fragTrak.nextSample < trak.samples.length) {				
+				/* The sample information is there (either because the file is not fragmented and this is not the last sample, 
+				or because the file is fragmented and the moof for that sample has been received */
 				Log.i("MP4Box", "Creating media fragment on track #"+fragTrak.id +" for sample "+fragTrak.nextSample); 
 				var result = this.createFragment(this.inputIsoFile, fragTrak.id, fragTrak.nextSample, fragTrak.stream);
 				if (result) {
 					fragTrak.stream = result;
 					fragTrak.nextSample++;
 				} else {
+					/* The fragment could not be created because the media data is not there (not downloaded), wait for it */
 					return;
 				}
+				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
+				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
 				if (this.onSegment && 
 					(fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
 					Log.i("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
@@ -212,16 +228,17 @@ MP4Box.prototype.processSamples = function() {
 			}
 		}
 	}
+
+	/* For each track marked for data export, 
+	   check if the next sample is there (i.e. has been downloaded) and send it */
 	for (var i = 0; i < this.extractedTracks.length; i++) {
 		var extractTrak = this.extractedTracks[i];
 		var trak = this.inputIsoFile.getTrackById(extractTrak.id);			
 		while (extractTrak.nextSample < trak.samples.length) {				
-			Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+extractTrak.nextSample); 
-			var sample = trak.samples[extractTrak.nextSample];
-			if (this.inputStream.byteLength >= sample.offset+sample.size) {
+			Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+extractTrak.nextSample); 			
+			var sample = this.inputIsoFile.getSample(trak, extractTrak.nextSample);
+			if (sample) {
 				extractTrak.nextSample++;
-				this.inputStream.seek(sample.offset);
-				sample.data = this.inputStream.readUint8Array(sample.size);
 				extractTrak.samples.push(sample);
 			} else {
 				return;
@@ -354,6 +371,12 @@ MP4Box.prototype.initializeSegmentation = function() {
 	return initSegs;
 }
 
+/* Called by the application to release the resources associated to samples already forwarded to the application */
+MP4Box.prototype.releaseSamples = function () {
+	
+}
+
+/* Called by the application to flush the remaining samples, once the download is finished */
 MP4Box.prototype.flush = function() {
 	Log.i("MP4Box", "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();

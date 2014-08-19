@@ -13,7 +13,8 @@
  *
  * This notice must stay in all subsequent versions of this code.
  */
-var ISOFile = function () {
+var ISOFile = function (stream) {
+	this.stream = stream;
 	this.boxes = new Array();
 	this.mdats = new Array();
 	this.moofs = new Array();
@@ -22,13 +23,13 @@ var ISOFile = function () {
 	this.lastPosition = 0;
 }
 
-ISOFile.prototype.parse = function(stream) {
+ISOFile.prototype.parse = function() {
 	var box;
 	var err;
-	stream.seek(this.lastPosition);
-	while (!stream.isEof()) {
-		this.lastPosition = stream.position;
-		box = BoxParser.parseOneBox(stream);
+	this.stream.seek(this.lastPosition);
+	while (!this.stream.isEof()) {
+		this.lastPosition = this.stream.position;
+		box = BoxParser.parseOneBox(this.stream);
 		if (box == BoxParser.ERR_NOT_ENOUGH_DATA) {
 			return;
 		}
@@ -49,17 +50,38 @@ ISOFile.prototype.parse = function(stream) {
 				this[box.type] = box;
 				break;
 		}
+		/* Getting rid of all non-mdat boxes data from the buffer */
+		if (box.type == "mdat") {
+			var prevMdatEnd;
+			var discardedLength;
+			
+			/* we record in the mdat box its original position in the file */
+			box.filePos = box.start;
+			if (this.mdats.length>1) {
+				var prevMdat = this.mdats[this.mdats.length-2];
+				prevMdatEnd = prevMdat.start+prevMdat.size;
+				/* the box.start value is computed after the buffer has been trimmed, it needs to be adjusted */ 
+				box.filePos += prevMdat.filePos;
+			} else {
+				prevMdatEnd = 0;
+			}
+			discardedLength = box.start - prevMdatEnd;			
+			DataStream.memcpy(this.stream.buffer, prevMdatEnd, this.stream.buffer, box.start, this.stream.byteLength-discardedLength);
+			this.stream.byteLength -= discardedLength;
+			this.stream.position -= discardedLength;
+			box.start -= discardedLength;
+		}
 	}
 }
 
-ISOFile.prototype.write = function(stream) {
+ISOFile.prototype.write = function(outstream) {
 	for (var i=0; i<this.boxes.length; i++) {
-		this.boxes[i].write(stream);
+		this.boxes[i].write(outstream);
 	}
 }
 
-ISOFile.prototype.writeInitializationSegment = function(stream) {
-	//this.ftyp.write(stream);
+ISOFile.prototype.writeInitializationSegment = function(outstream) {
+	//this.ftyp.write(outstream);
 	if (this.moov.mvex) {
 		var index;
 		this.initial_duration = this.moov.mvex.fragment_duration;
@@ -88,7 +110,7 @@ ISOFile.prototype.writeInitializationSegment = function(stream) {
 		trex.default_sample_size = 0;
 		trex.default_sample_flags = 1<<16;
 	}
-	this.moov.write(stream);
+	this.moov.write(outstream);
 }
 
 ISOFile.prototype.resetTables = function () {
@@ -119,9 +141,6 @@ ISOFile.prototype.resetTables = function () {
 		stss = trak.mdia.minf.stbl.stss;
 		var k = trak.mdia.minf.stbl.boxes.indexOf(stss);
 		if (k != -1) trak.mdia.minf.stbl.boxes[k] = null;
-		// if (stss) {
-			// stss.sample_numbers = new Array();
-		// }
 	}
 }
 
@@ -380,6 +399,22 @@ ISOFile.prototype.getTrackById = function(id) {
 	for (var j = 0; j < this.moov.traks.length; j++) {
 		var trak = this.moov.traks[j];
 		if (trak.tkhd.track_id == id) return trak;
+	}
+	return null;
+}
+
+ISOFile.prototype.getSample = function(trak, sampleNum) {	
+	var mdat;
+	var i;
+	var sample = trak.samples[sampleNum];
+	for (i = 0; i< this.mdats.length; i++) {
+		mdat = this.mdats[i];
+		sample.mdatIndex = i;
+		if (sample.offset >= mdat.filePos && sample.offset+sample.size <= mdat.filePos+mdat.size) {
+			this.stream.seek(mdat.start + (sample.offset - mdat.filePos));
+			sample.data = this.stream.readUint8Array(sample.size);
+			return sample;
+		}
 	}
 	return null;
 }

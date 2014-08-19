@@ -183,7 +183,7 @@ var BoxParser = {
 			box = new BoxParser.Box(type, size - hdr_size);
 		}
 		/* recording the position of the box in the input stream */
-		box.inputStart = start;
+		box.start = start;
 		box.parse(stream);
 		return box;
 	},
