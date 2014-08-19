@@ -19,7 +19,7 @@ var Log = (function (){
 		var LOG_LEVEL_WARNING 	= 3;
 		var LOG_LEVEL_INFO 		= 2;
 		var LOG_LEVEL_DEBUG		= 1;
-		var log_level = LOG_LEVEL_INFO;
+		var log_level = LOG_LEVEL_DEBUG;
 		var log = function(level, module, msg) {
 			if (level >= log_level) {
 				console.log("["+module+"] "+msg);

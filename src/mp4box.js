@@ -152,6 +152,7 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 
 MP4Box.prototype.open = function(ab) {
 	var concatenateBuffers = function(buffer1, buffer2) {
+	  Log.d("MP4Box", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
 	  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
 	  tmp.set(new Uint8Array(buffer1), 0);
 	  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);

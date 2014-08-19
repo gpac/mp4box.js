@@ -15,11 +15,12 @@
 		var downloader = {};
 		
 		window.onload = function () {
+			downloader.chunkStart = 0;
 			reset();
 		}
 
 		function reset() {
-			downloader.stop = true;
+			stop();
 			resetMediaSource();
 			resetDisplay();
 		}
@@ -56,14 +57,14 @@
 			var selector = document.getElementById('s');
 			selector.disabled = false;
 		}
-		
+			
 		function printRanges(ranges) {
 			var length = ranges.length;
 			if (length > 0) {
 				var str = "";
 				for (var i = 0; i < length; i++) {
 				  if (i > 0) str += ",";
-				  str += "["+ranges.start(i)+ ","+ranges.end(i)+"]";
+				  str += "["+getDurationString(ranges.start(i))+ ","+getDurationString(ranges.end(i))+"]";
 				}
 				return str;
 			} else {
@@ -117,18 +118,20 @@
 		
 		function pad(number, length) {
 			var str = '' + number;
-			while (str.length < length) {
-				str = '0' + str;
+			var a = str.split('.');		
+			while (a[0].length < length) {
+				a[0] = '0' + a[0];
 			}
-			return str;
+			return a.join('.');
 		}
 		
 		function getDurationString(duration, timescale) {
+			var timescale = timescale || 1;
 			var duration_sec = duration/timescale;
 			var hours = Math.floor(duration_sec/3600);
 			duration_sec -= hours * 3600;
 			var minutes = Math.floor(duration_sec/60);
-			duration_sec -= minutes * 60;
+			duration_sec -= minutes * 60;			
 			return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2);
 		}
 			
@@ -323,8 +326,7 @@
 			mp4box = new MP4Box();
 			mp4box.onReady = function (info) {
 				console.log("Movie information received");
-				console.log("Stopping file download");
-				downloader.stop = true;
+				stop();
 				if (info.isFragmented) {
 					ms.duration = info.fragment_duration/info.timescale;
 				} else {
@@ -337,12 +339,15 @@
 			mp4box.onError = function (d) {
 			}
 
+			document.getElementById("startButton").disabled = true;
+			document.getElementById("stopButton").disabled = false;
+			console.log("Resuming file download");
 			downloader.stop = false;
-			downloader.chunkStart = 0;
 			downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
 			if (downloader.chunkSize == 0) {
 				downloader.chunkSize = Infinity;
 			}
+			downloader.chunkStart = 0;
 			downloader.url = url;		
 			downloader.callback = function (response, end) { 
 									if (response) {
@@ -410,9 +415,21 @@
 		
 		function start() {
 			document.getElementById("startButton").disabled = true;
+			document.getElementById("stopButton").disabled = false;
 			console.log("Resuming file download");
 			downloader.stop = false;
+			downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
+			if (downloader.chunkSize == 0) {
+				downloader.chunkSize = Infinity;
+			}
 			getfile(downloader);
+		}		
+
+		function stop() {
+			document.getElementById("startButton").disabled = false;
+			document.getElementById("stopButton").disabled = true;
+			console.log("Stopping file download");
+			downloader.stop = true;
 		}		
 
 		function getfile(dl) {
@@ -457,11 +474,18 @@
 			<video id="v" width="640" height="480" autoplay controls> </video>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
-				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="1000000" step="1000" value="0" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
+				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="0" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
 				<output id="chunk_size_range_out" for="chunk_size_range">0</output>
 			<div>
 			<label>Select or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
+				<option value="./mp4-torrents/Gravity%202013.mp4">Gravity 2013.mp4 (3.48 GB)</option>
+				<option value="./mp4-torrents/Gravity.mp4">Gravity.mp4 (2.72 GB)</option>
+				<option value="./mp4-torrents/Iron%20Man%202008.720p.BrRip.x264.YIFY.mp4">Iron Man 2008.720p.BrRip.x264.YIFY.mp4 (749 MB)</option>
+				<option value="./mp4-torrents/Iron.man.2DAZA.mp4">Iron.man.2DAZA.mp4 (1.5 GB)</option>
+				<option value="./mp4-torrents/Iron.Man.3.2013.720p.BluRay.x264.YIFY.mp4">Iron.Man.3.2013.720p.BluRay.x264.YIFY.mp4 (925 MB)</option>
+				<option value="./mp4-torrents/the%20wolf%20of%20wall%20street%20esp%20castellano%20dvds%202013.MP4">the wolf of wall street español castellano dvds 2013.MP4(1.02 GB)</option>
+				<option value="./mp4-torrents/The%20Wolf%20of%20Wall%20Street.mp4">The Wolf of Wall Street.mp4 (7.08 GB)</option>
 				<option value="./h264bl.mp4">Video Counter (unfragmented, H.264/AVC Baseline)</option>
 				<option value="./aaclow.mp4">Audio Bips (unfragmented, AAC)</option>
 				<option value="./av.mp4">Multiplexed Audio/Video/Subtitle (unfragmented, H.264/AVC Baseline+AAC+WebVTT)</option>
@@ -478,6 +502,7 @@
 			<button onclick="load()">Load Media Info</button>
 			<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
 			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
+			<button id="stopButton" onclick="stop()" disabled>Stop Media Download</button>
 			<button onclick="reset()">Reset</button>
 			<div>
 				<label>Save results:</label>
