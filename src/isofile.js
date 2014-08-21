@@ -19,57 +19,136 @@ var ISOFile = function (stream) {
 	this.mdats = new Array();
 	this.moofs = new Array();
 	this.isProgressive = false;
+	/* Index of the last moof box received */
 	this.lastMoofIndex = 0;
+	/* position of the beginning of the current buffer in the (virtual) file */
+	this.bufferFilePosition = 0;
+	/* position in the current buffer of the beginning of the last box parsed */
 	this.lastPosition = 0;
+	/* indicator if the parsing is stuck in the middle of an mdat box */
+	this.parsingMdat = false;
+	/* list of discontinuity in the buffer */
+	this.offsetAdjusts = [];
+}
+
+ISOFile.prototype.findMdatEnd = function(box, size) {
+	/* if there are no more buffers to parse, we wait for the next one to arrive */
+	if (this.stream.nextBuffers.length==0) {
+		return false;
+	} else {					
+		/* check which existing buffers contain data for this mdat */
+		var length = this.stream.buffer.byteLength - this.stream.position;
+		while (this.stream.nextBuffers.length > 0) {
+			this.bufferFilePosition += this.stream.buffer.byteLength;
+			/* using a new buffer */
+			this.stream.buffer = this.stream.nextBuffers.shift();
+			this.lastPosition = 0;
+			this.stream.position = 0;
+			length += this.stream.buffer.byteLength;
+			var obj = { 
+				data: this.stream.buffer,
+				dataStart: 0,
+				fileStart: this.bufferFilePosition
+			};
+			box.buffers.push(obj);
+			if (length > size) {
+				/* we've found the end of the mdat */
+				obj.dataEnd = this.stream.buffer.byteLength - (length - ret.size);				
+				this.parsingMdat = false;
+				this.lastPosition = obj.dataEnd;
+				this.stream.position = obj.dataEnd;
+				return true;
+			}
+		} 
+		return false; 
+	}		
 }
 
 ISOFile.prototype.parse = function() {
+	var found;
+	var ret;
 	var box;
-	var err;
 	this.stream.seek(this.lastPosition);
 	while (!this.stream.isEof()) {
-		this.lastPosition = this.stream.position;
-		box = BoxParser.parseOneBox(this.stream);
-		if (box == BoxParser.ERR_NOT_ENOUGH_DATA) {
-			return;
-		}
-		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
-		this.boxes.push(box);
-		switch (box.type) {
-			case "mdat":
-				this.mdats.push(box);
-				break;
-			case "moof":
-				this.moofs.push(box);
-				break;
-			case "moov":
-				if (this.mdats.length == 0) {
-					this.isProgressive = true;
-				}
-			default:
-				this[box.type] = box;
-				break;
-		}
-		/* Getting rid of all non-mdat boxes data from the buffer */
-		if (box.type == "mdat") {
-			var prevMdatEnd;
-			var discardedLength;
-			
-			/* we record in the mdat box its original position in the file */
-			box.filePos = box.start;
-			if (this.mdats.length>1) {
-				var prevMdat = this.mdats[this.mdats.length-2];
-				prevMdatEnd = prevMdat.start+prevMdat.size;
-				/* the box.start value is computed after the buffer has been trimmed, it needs to be adjusted */ 
-				box.filePos += prevMdat.filePos;
+		/* check if we are in the parsing of an incomplete mdat box */
+		if (this.parsingMdat) {
+			box = this.mdats[this.mdats.length - 1];
+			found = this.findMdatEnd(box, box.size+box.hdr_size);
+			if (found) {
+				/* let's see if we can parse more in this buffer */
+				continue;
 			} else {
-				prevMdatEnd = 0;
+				/* let's wait for more buffer to come */
+				return;
 			}
-			discardedLength = box.start - prevMdatEnd;			
-			DataStream.memcpy(this.stream.buffer, prevMdatEnd, this.stream.buffer, box.start, this.stream.byteLength-discardedLength);
-			this.stream.byteLength -= discardedLength;
-			this.stream.position -= discardedLength;
-			box.start -= discardedLength;
+		} else {		
+			/* remember the position of the box start in case we need to role back */
+			this.lastPosition = this.stream.position;
+			ret = BoxParser.parseOneBox(this.stream);
+			if (ret.code == BoxParser.ERR_NOT_ENOUGH_DATA) {		
+				/* we did not have enough bytes to parse the entire box */
+				if (ret.type === "mdat") { 
+					/* we had enough bytes to get its type and size */
+					/* special handling for mdat boxes */					
+					this.parsingMdat = true;
+					box = new BoxParser[ret.type+"Box"](ret.size-ret.hdr_size);	
+					box.hdr_size = ret.hdr_size;
+					box.buffers = [];
+					box.buffers[0] = { 
+						data: this.stream.buffer, 
+						dataStart: this.stream.position, 
+						fileStart: this.bufferFilePosition
+					};
+					this.mdats.push(box);			
+					
+					found = this.findMdatEnd(box, box.size+box.hdr_size);
+					if (found) {
+						/* let's see if we can parse more in this buffer */
+						continue;
+					} else {
+						/* let's wait for more buffer to come */
+						return;
+					}
+				} else {
+					/* either it's not an mdat box or we did not have enough data to parse the type and size of the box, 
+					   so we concatenate with the next buffer if possible to restart parsing */
+					if (this.stream.nextBuffers.length > 0) {
+						var oldLength = this.stream.buffer.byteLength;
+						this.stream.buffer = ArrayBuffer.concat(this.stream.buffer, this.stream.nextBuffers.shift());
+						Log.d("ISOFile", "Concatenating buffer for box parsing length: "+oldLength+"->"+this.stream.buffer.byteLength);
+						continue;
+					} else {
+						/* not enough buffers received, wait */
+						return;
+					}
+				}
+			} else {
+				/* the box is entirely parsed */
+				box = ret.box;
+				/* store the box in the 'boxes' array to preserve box order (for offset) 
+				   but also store box in a property for more direct access */
+				this.boxes.push(box);
+				switch (box.type) {
+					case "mdat":
+						this.mdats.push(box);
+						box.buffers = [ { data: this.stream.buffer, 
+										  dataStart: start, 
+										  dataEnd: this.stream.position,
+										  fileStart: this.bufferFilePosition
+									  } ];
+						break;
+					case "moof":
+						this.moofs.push(box);
+						break;
+					case "moov":
+						if (this.mdats.length == 0) {
+							this.isProgressive = true;
+						}
+					default:
+						this[box.type] = box;
+						break;
+				}
+			}
 		}
 	}
 }
@@ -81,7 +160,7 @@ ISOFile.prototype.write = function(outstream) {
 }
 
 ISOFile.prototype.writeInitializationSegment = function(outstream) {
-	//this.ftyp.write(outstream);
+	this.ftyp.write(outstream);
 	if (this.moov.mvex) {
 		var index;
 		this.initial_duration = this.moov.mvex.fragment_duration;
@@ -403,19 +482,148 @@ ISOFile.prototype.getTrackById = function(id) {
 	return null;
 }
 
+ISOFile.prototype.getAdjustedPosition = function (pos) {
+	/* This assumes that the adjustements are cumulated and sorted by original positions */
+	for (var i = this.offsetAdjusts.length-1; i >= 0 ; i--) {
+		var adjust = this.offsetAdjusts[i];
+		if (pos > adjust.position) {
+			return pos - adjust.offset;
+		} 
+	}
+	return pos;
+}
+
+ISOFile.prototype.insertAdjust = function(adj) {
+	var entry;
+	var added = false;
+	var nextI;
+	/* The list of position adjustments is sorted by original positions, 
+	   so we start from the end assuming the new adjustment is (very likely to be) after the previous one */
+	for (var i = this.offsetAdjusts.length-1; i >= 0 ; i--) {
+		entry = this.offsetAdjusts[i];
+		if (entry.position < adj.position) {
+			/* The new adjustment is after this one */
+			if (entry.position+entry.size == adj.position) {
+				/* the new adjustment is contiguous with this one, so we merge them */
+				entry.size += adj.offset;
+				entry.offset += adj.offset;
+				if (this.offsetAdjusts.length > i+1) { 
+					/* if there is a entry after this one, we need to check it */
+					var nextEntry = this.offsetAdjusts[i+1];
+					if (entry.position+entry.size == nextEntry.position) { 
+						/* the extended entry is contiguous with the previous one, so we merge them */
+						entry.size += nextEntry.size;
+						this.offsetAdjusts.splice(i+1, 1);
+					} else {
+						/* the next entry is still not contiguous */
+					}
+				}
+				nextI = i+1;
+			} else {
+				/* the new adjustment cannot be merged with the previous one, we insert it */
+				this.offsetAdjusts.splice(i+1, 0, adj);
+				/* accumulate with the offset of the previous entry */
+				adj.size = adj.offset;
+				adj.offset += entry.offset;
+				nextI = i+2;
+			}		
+			/* add the new offset to all future adjustments */
+			for (var j = nextI; j < this.offsetAdjusts.length; j++) {
+				this.offsetAdjusts[j].offset += adj.offset;
+			}
+			added = true;
+			break;
+		} else {
+			/* The new adjustment is before this one, check the previous one */
+		}
+	}
+	if (!added) {
+		adj.size = adj.offset;
+		this.offsetAdjusts.push(adj);
+		if (this.offsetAdjusts.length > 1) {
+			adj.offset += this.offsetAdjusts[this.offsetAdjusts.length-2].offset;
+		}
+	}
+	Log.d("MP4Box", "Number of entries in the list of position adjustments: "+this.offsetAdjusts.length);
+}
+
 ISOFile.prototype.getSample = function(trak, sampleNum) {	
 	var mdat;
-	var i;
+	var buffer;
+	var i, j;
 	var sample = trak.samples[sampleNum];
+	
+	if (!sample.data) {
+		sample.data = new Uint8Array(sample.size);
+		sample.alreadyRead = 0;
+	} else if (sample.alreadyRead == sample.size) {
+		return sample;
+	}
+	for (i = 0; i < this.mdats.length; i++) {
+		mdat = this.mdats[i];
+		for (j = 0; j < mdat.buffers.length; j++) {
+			buffer = mdat.buffers[j];
+			if (sample.offset + sample.alreadyRead >= buffer.fileStart &&
+			    sample.offset + sample.alreadyRead <  buffer.fileStart + buffer.data.byteLength) {
+				/* The sample starts in this buffer */
+				var lengthAfterStart = buffer.data.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
+				if (sample.size - sample.alreadyRead <= lengthAfterStart) {
+					/* the sample is entirely contained in this buffer */
+					Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
+					DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
+					                  buffer.data, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
+					sample.alreadyRead = sample.size;
+					return sample;
+				} else {
+					/* the sample does not end in this buffer */				
+					Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
+					DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
+					                  buffer.data, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);
+					sample.alreadyRead += lengthAfterStart;
+				}
+			}
+		}
+	}	
+/*	var adjustedOffset = this.getAdjustedPosition(sample.offset);	
+	if (adjustedOffset+sample.size <= this.stream.byteLength) {
+		this.stream.seek(adjustedOffset);
+		sample.data = this.stream.readUint8Array(sample.size);
+		return sample;
+	}
+*/
+/*	
 	for (i = 0; i< this.mdats.length; i++) {
 		mdat = this.mdats[i];
-		sample.mdatIndex = i;
-		if (sample.offset >= mdat.filePos && sample.offset+sample.size <= mdat.filePos+mdat.size) {
+//		if (sample.offset >= mdat.start && sample.offset+sample.size <= mdat.start+mdat.size) {
+//		if (sample.offset >= mdat.filePos && sample.offset+sample.size <= mdat.filePos+mdat.size) {
 			this.stream.seek(mdat.start + (sample.offset - mdat.filePos));
 			sample.data = this.stream.readUint8Array(sample.size);
 			return sample;
 		}
 	}
+*/
 	return null;
 }
 
+ISOFile.prototype.releaseData = function(offset, size) {	
+	var adjustedOffset = this.getAdjustedPosition(offset);	
+	DataStream.memcpy(this.stream.buffer, adjustedOffset, 
+	                  this.stream.buffer, adjustedOffset+size, this.stream.buffer.byteLength-adjustedOffset-size);	
+	this.insertAdjust({position: offset, offset: size});	
+	if (this.stream._byteLength < size) {
+		throw "Size problem";
+	}
+	this.stream._byteLength -= size;
+	if (this.stream.position>adjustedOffset) this.stream.position -= size;
+	Log.d("MP4Box", "Released data of size "+size+" at position "+adjustedOffset+", new buffer size: "+this.stream.buffer.byteLength);
+}
+
+ISOFile.prototype.releaseSample = function(trak, sampleNum) {	
+
+	return;
+	
+	var sample = trak.samples[sampleNum];
+	Log.d("MP4Box", "Track #"+trak.tkhd.track_id+" Trying to release sample #"+sampleNum+", buffer size: "+this.stream.buffer.byteLength+", initial offset: "+sample.offset+", size:"+sample.size+", new offset: "+sample.newOffset);
+	this.releaseData(sample.offset, sample.size);
+	return sample.size;
+}

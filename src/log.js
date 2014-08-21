@@ -40,10 +40,10 @@ var Log = (function (){
 				log(LOG_LEVEL_INFO, module, msg);
 			},
 			w : function(module, msg) {
-				log(LOG_LEVEL_WARNING, module, LOG_LEVEL_WARNING+": "+ msg);
+				log(LOG_LEVEL_WARNING, module, msg);
 			},
 			e : function(module, msg) {
-				log(LOG_LEVEL_ERROR, module, LOG_LEVEL_ERROR+":" + msg);
+				log(LOG_LEVEL_ERROR, module, msg);
 			}
 		};
 		return logObject;

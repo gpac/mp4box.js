@@ -16,6 +16,7 @@
  */
 var BoxParser = {
 	ERR_NOT_ENOUGH_DATA : 0,
+	OK : 1,
 	boxCodes : [ 
 				 "mdat", 
 				 "avcC", "ftyp", 
@@ -156,17 +157,23 @@ var BoxParser = {
 		var start = stream.position;
 		var hdr_size = 0;
 		if (stream.byteLength < 8) {
-			return BoxParser.ERR_NOT_ENOUGH_DATA;
+			Log.d("BoxParser", "Not enough data in stream to parse the type and size of the box");
+			return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
-		Log.d("BoxParser", "Found box of type "+type+" and size "+size+" at position "+stream.position);
+		Log.w("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start);
 		hdr_size = 8;
 		if (type == "uuid") {
 			uuid = stream.readString(16);
 			hdr_size += 16;
 		}
 		if (size == 1) {
+			if (stream.byteLength - stream.position < 8) {
+				stream.seek(start);
+				Log.w("BoxParser", "Not enough data in stream to parse the extended size of the \""+type+"\" box");
+				return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
+			}
 			size = stream.readUint64();
 			hdr_size += 8;
 		} else if (size == 0) {
@@ -175,7 +182,8 @@ var BoxParser = {
 		
 		if (start + size - hdr_size > stream.byteLength ) {
 			stream.seek(start);
-			return BoxParser.ERR_NOT_ENOUGH_DATA;
+			Log.w("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
+			return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size };
 		}
 		if (BoxParser[type+"Box"]) {
 			box = new BoxParser[type+"Box"](size - hdr_size);		
@@ -183,16 +191,19 @@ var BoxParser = {
 			box = new BoxParser.Box(type, size - hdr_size);
 		}
 		/* recording the position of the box in the input stream */
+		box.hdr_size = hdr_size;
 		box.start = start;
 		box.parse(stream);
-		return box;
+		return { code: BoxParser.OK, box: box };
 	},
 }
 
 BoxParser.initialize();
 
 BoxParser.Box.prototype.parse = function(stream) {
-	this.data = stream.readUint8Array(this.size);
+	if (this.type != "mdat") {
+		this.data = stream.readUint8Array(this.size);
+	}
 }
 
 BoxParser.FullBox.prototype.parseFullHeader = function (stream) {
@@ -202,11 +213,13 @@ BoxParser.FullBox.prototype.parseFullHeader = function (stream) {
 }
 
 BoxParser.ContainerBox.prototype.parse = function(stream) {
+	var ret;
 	var box;
 	var start;
 	start = stream.position;
 	while (stream.position < start+this.size) {
-		box = BoxParser.parseOneBox(stream);
+		ret = BoxParser.parseOneBox(stream);
+		box = ret.box;
 		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
 		this.boxes.push(box);
 		if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
@@ -268,8 +281,11 @@ BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 }
 
 BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
+	var ret;
+	var box;
 	while (stream.position < this.start+this.size) {
-		box = BoxParser.parseOneBox(stream);
+		ret = BoxParser.parseOneBox(stream);
+		box = ret.box;
 		if (box == BoxParser.ERR_NOT_ENOUGH_DATA) {
 			stream.seek(this.start+this.size);
 			return;
@@ -448,13 +464,13 @@ BoxParser.hdlrBox.prototype.parse = function(stream) {
 }
 
 BoxParser.stsdBox.prototype.parse = function(stream) {
-	var box;
+	var ret;
 	var entryCount;
 	this.parseFullHeader(stream);
 	entryCount = stream.readUint32();
 	for (i = 1; i <= entryCount; i++) {
-		var box = BoxParser.parseOneBox(stream);
-		this.entries.push(box);
+		ret = BoxParser.parseOneBox(stream);
+		this.entries.push(ret.box);
 	}
 }
 

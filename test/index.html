@@ -10,9 +10,9 @@
         <script src="../src/isofile.js"></script>
         <script src="../src/mp4box.js"></script>
 		<script>
-		Log.setLogLevel(Log.e);
+		Log.setLogLevel(Log.i);
 		var mp4box;
-		var downloader = {};
+		var downloader = { stop: true };
 		
 		window.onload = function () {
 			downloader.chunkStart = 0;
@@ -23,6 +23,7 @@
 			stop();
 			resetMediaSource();
 			resetDisplay();
+			document.getElementById("loadButton").disabled = false;
 		}
 		
 		function resetMediaSource() {
@@ -46,14 +47,14 @@
 		
 		function onSourceClose(e) {
 			var ms = e.target;
-			console.log("Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
+			Log.i("MSE", "Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
 			console.log(ms);
 		}
 
 		function onSourceOpen(e) {
 			var ms = e.target;
-			console.log("Source opened");
-			console.log(ms);
+			Log.i("MSE", "Source opened");
+			Log.d("MSE", ms);
 			var selector = document.getElementById('s');
 			selector.disabled = false;
 		}
@@ -74,8 +75,9 @@
 
 		function onInitAppended(e) {
 			var sb = e.target;
-			console.log("[SourceBuffer #"+sb.id+"] Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
-			console.log(sb);
+			Log.i("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
+			Log.d("MSE", sb);
+			sb.sampleNum = 0;
 			sb.removeEventListener('updateend', onInitAppended);
 			sb.addEventListener('updateend', onUpdateEnd.bind(sb));
 			/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
@@ -84,11 +86,14 @@
 
 		function onUpdateEnd(e) {
 			if (e != null) {
-				console.log("[SourceBuffer #"+this.id+"] Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered), " pending: "+this.pendingAppends.length);
+				Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered), " pending: "+this.pendingAppends.length);
 			}
+			//mp4box.releaseUsedSamples(this.id, this.sampleNum);				
 			if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
-				console.log("[SourceBuffer #"+this.id+"] Appending new buffer");
-				this.appendBuffer(this.pendingAppends.shift());
+				Log.i("MSE - SourceBuffer #"+this.id, "Appending new buffer");
+				var obj = this.pendingAppends.shift();
+				this.sampleNum = obj.sampleNum;
+				this.appendBuffer(obj.buffer);
 			}
 		}
 		
@@ -284,7 +289,7 @@
 						if (check.checked) { 
 							var mime = 'video/mp4; codecs=\"'+codec+'\"';
 							if (MediaSource.isTypeSupported(mime)) {
-								console.log("[SourceBuffer #"+track_id+"] Creation with type '"+mime+"'");
+								Log.i("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
 								var sb = ms.addSourceBuffer(mime);
 								sb.ms = ms;
 								sb.id = track_id;
@@ -292,13 +297,13 @@
 								sb.pendingAppends = new Array();
 								document.getElementById("initButton").disabled = false;
 							} else {
-								console.log("MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
+								Log.e("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 								var textrack = v.addTextTrack("subtitles", "Text track for track "+track_id);
 								mp4box.setExtractionOptions(track_id, textrack);
 								//check.checked = false;
 							}
 						} else {
-							console.log("[SourceBuffer #"+track_id+"] Removing buffer");
+							Log.i("MSE - SourceBuffer #"+track_id,"Removing buffer");
 							mp4box.unsetSegmentOptions(track_id);
 							for (var i = 0; i < ms.sourceBuffers.length; i++) {
 								var sb = ms.sourceBuffers[i];
@@ -315,6 +320,7 @@
 		}
 
 		function load() {
+			document.getElementById("loadButton").disabled = true;
 			var v = document.getElementById('v');
 			var ms = v.ms;
 			var url = document.getElementById('url').value;
@@ -325,7 +331,7 @@
 
 			mp4box = new MP4Box();
 			mp4box.onReady = function (info) {
-				console.log("Movie information received");
+				Log.i("Application", "Movie information received");
 				stop();
 				if (info.isFragmented) {
 					ms.duration = info.fragment_duration/info.timescale;
@@ -341,7 +347,7 @@
 
 			document.getElementById("startButton").disabled = true;
 			document.getElementById("stopButton").disabled = false;
-			console.log("Resuming file download");
+			Log.i("Downloader", "Resuming file download");
 			downloader.stop = false;
 			downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
 			if (downloader.chunkSize == 0) {
@@ -357,7 +363,6 @@
 										mp4box.flush();
 									}
 								}
-			console.log("Starting file download");			
 			getfile(downloader);
 		}
 		
@@ -370,18 +375,18 @@
 		}
 		
 		function initializeSourceBuffers() {
-			mp4box.onSegment = function (id, user, buffer) {	
+			mp4box.onSegment = function (id, user, buffer, sampleNum) {	
 				var sb = user;
 				saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
 				sb.segmentIndex++;
-				sb.pendingAppends.push(buffer);
-				console.log("[SourceBuffer #"+user.id+"] Received new segment, pending: "+sb.pendingAppends.length);
-				onUpdateEnd.call(sb, null);
+				sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
+				Log.i("MSE - SourceBuffer #"+user.id,"Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
+				onUpdateEnd.call(sb, null);				
 			}
 
 			mp4box.onSamples = function (id, user, samples) {	
 				var texttrack = user;
-				console.log("[TextTrack #"+id+"] Received "+samples.length+" new sample(s)");
+				Log.i("TextTrack #"+id,"Received "+samples.length+" new sample(s)");
 				for (var j = 0; j < samples.length; j++) {
 					var sample = samples[j];
 					if (sample.description.type == "wvtt") {
@@ -403,7 +408,7 @@
 			for (var i = 0; i < initSegs.length; i++) {
 				var sb = initSegs[i].user;
 				sb.addEventListener("updateend", onInitAppended);
-				console.log("[SourceBuffer #"+sb.id+"] Appending initialization data");
+				Log.i("MSE - SourceBuffer #"+sb.id,"Appending initialization data");
 				sb.appendBuffer(initSegs[i].buffer);
 				saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
 				sb.segmentIndex = 0;
@@ -416,7 +421,7 @@
 		function start() {
 			document.getElementById("startButton").disabled = true;
 			document.getElementById("stopButton").disabled = false;
-			console.log("Resuming file download");
+			Log.i("Downloader", "Resuming file download");
 			downloader.stop = false;
 			downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
 			if (downloader.chunkSize == 0) {
@@ -428,13 +433,15 @@
 		function stop() {
 			document.getElementById("startButton").disabled = false;
 			document.getElementById("stopButton").disabled = true;
-			console.log("Stopping file download");
-			downloader.stop = true;
+			if (!downloader.stop) {
+				Log.i("Downloader", "Stopping file download");
+				downloader.stop = true;
+			}
 		}		
 
 		function getfile(dl) {
 			if (dl.chunkStart == Infinity) {
-				console.log("File download done.");
+				Log.i("Downloader", "File download done.");
 				dl.callback(null, true);
 				return;
 			}
@@ -449,7 +456,7 @@
 			}
 			xhr.onreadystatechange = function (e) { 
 				if ((xhr.status == 200 || xhr.status == 206) && xhr.readyState == this.DONE) {
-					console.log("Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
+					Log.d("Downloader", "Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
 					var eof = !(xhr.response.byteLength == dl.chunkSize);
 					dl.callback(xhr.response, eof); 
 					dl.chunkStart+=dl.chunkSize;
@@ -461,7 +468,7 @@
 				}
 			};
 			if (range) {
-				console.log("Fetching data range: "+range);
+				Log.d("Downloader", "Fetching data range: "+range);
 			}
 			xhr.send();
 		}	
@@ -479,6 +486,7 @@
 			<div>
 			<label>Select or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
+				<option value="./mp4-torrents/g.mp4">Gravity 2013 Video only (3.28 GB)</option>
 				<option value="./mp4-torrents/Gravity%202013.mp4">Gravity 2013.mp4 (3.48 GB)</option>
 				<option value="./mp4-torrents/Gravity.mp4">Gravity.mp4 (2.72 GB)</option>
 				<option value="./mp4-torrents/Iron%20Man%202008.720p.BrRip.x264.YIFY.mp4">Iron Man 2008.720p.BrRip.x264.YIFY.mp4 (749 MB)</option>
@@ -499,7 +507,7 @@
 			</select>
 			<label>URL:</label>
 			<input id="url" type="texte"></input>
-			<button onclick="load()">Load Media Info</button>
+			<button id="loadButton" onclick="load()">Load Media Info</button>
 			<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
 			<button id="startButton" onclick="start()" disabled>Load Media Data & Play</button>
 			<button id="stopButton" onclick="stop()" disabled>Stop Media Download</button>

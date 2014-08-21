@@ -148,21 +148,23 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	return stream;
 }
 
+/* helper functions to enable calling "open" with additional buffers */
+ArrayBuffer.concat = function(buffer1, buffer2) {
+  Log.d("ArrayBuffer", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
+  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+  tmp.set(new Uint8Array(buffer1), 0);
+  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+  return tmp.buffer;
+};
+
 MP4Box.prototype.open = function(ab) {
-	/* helper functions to enable calling "open" with additional buffers */
-	var concatenateBuffers = function(buffer1, buffer2) {
-	  Log.d("MP4Box", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
-	  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-	  tmp.set(new Uint8Array(buffer1), 0);
-	  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-	  return tmp.buffer;
-	};
 	
 	/* if we don't have a DataStream object yet, we create it, otherwise we concatenate the new one with the existing one. */
 	if (!this.inputStream) {
 		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
+		this.inputStream.nextBuffers = [];
 	} else {
-		this.inputStream.buffer = concatenateBuffers(this.inputStream.buffer, ab);
+		this.inputStream.nextBuffers.push(ab);
 	}
 	/* Initialize the ISOFile object if not yet created */
 	if (!this.inputIsoFile) {
@@ -220,8 +222,8 @@ MP4Box.prototype.processSamples = function() {
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
 				if (this.onSegment && 
 					(fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
-					Log.i("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for sample "+fragTrak.nextSample); 
-					this.onSegment(fragTrak.id, fragTrak.user, fragTrak.stream.buffer);
+					Log.i("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+(fragTrak.nextSample-fragTrak.nb_samples)+","+(fragTrak.nextSample-1)+"]"); 
+					this.onSegment(fragTrak.id, fragTrak.user, fragTrak.stream.buffer, fragTrak.nextSample);
 					/* force the creation of a new buffer */
 					fragTrak.stream = null;
 				}
@@ -372,8 +374,17 @@ MP4Box.prototype.initializeSegmentation = function() {
 }
 
 /* Called by the application to release the resources associated to samples already forwarded to the application */
-MP4Box.prototype.releaseSamples = function () {
-	
+MP4Box.prototype.releaseUsedSamples = function (id, sampleNum) {
+    var start = new Date;
+	var size = 0;
+	var trak = this.inputIsoFile.getTrackById(id);
+	if (!trak.lastValidSample) trak.lastValidSample = 0;
+	for (var i = trak.lastValidSample; i < sampleNum; i++) {
+		size+=this.inputIsoFile.releaseSample(trak, i);
+	}
+	Log.e("MP4Box", "Track #"+id+" released samples up to "+sampleNum+" (total size: "+size+"), new buffer size: "+this.inputIsoFile.stream.buffer.byteLength);
+	trak.lastValidSample = sampleNum;
+	console.log("duration: "+(new Date - start));
 }
 
 /* Called by the application to flush the remaining samples, once the download is finished */
