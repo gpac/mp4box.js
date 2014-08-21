@@ -218,7 +218,7 @@ MP4Box.prototype.processSamples = function() {
 					fragTrak.nextSample++;
 				} else {
 					/* The fragment could not be created because the media data is not there (not downloaded), wait for it */
-					return;
+					break;
 				}
 				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
