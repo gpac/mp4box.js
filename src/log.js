@@ -20,11 +20,6 @@ var Log = (function (){
 		var LOG_LEVEL_INFO 		= 2;
 		var LOG_LEVEL_DEBUG		= 1;
 		var log_level = LOG_LEVEL_DEBUG;
-		var log = function(level, module, msg) {
-			if (level >= log_level) {
-				console.log("["+module+"] "+msg);
-			}
-		};
 		var logObject = {
 			setLogLevel : function(level) {
 				if (level == this.d) log_level = LOG_LEVEL_DEBUG;
@@ -34,16 +29,24 @@ var Log = (function (){
 				else log_level = LOG_LEVEL_ERROR;
 			},
 			d : function(module, msg) {
-				log(LOG_LEVEL_DEBUG, module, msg);
+				if (LOG_LEVEL_DEBUG >= log_level) {
+					console.debug("["+module+"] "+msg);
+				}
 			},
 			i : function(module, msg) {
-				log(LOG_LEVEL_INFO, module, msg);
+				if (LOG_LEVEL_INFO >= log_level) {
+					console.info("["+module+"] "+msg);
+				}
 			},
 			w : function(module, msg) {
-				log(LOG_LEVEL_WARNING, module, msg);
+				if (LOG_LEVEL_WARNING >= log_level) {
+					console.warn("["+module+"] "+msg);
+				}
 			},
 			e : function(module, msg) {
-				log(LOG_LEVEL_ERROR, module, msg);
+				if (LOG_LEVEL_ERROR >= log_level) {
+					console.error("["+module+"] "+msg);
+				}
 			}
 		};
 		return logObject;

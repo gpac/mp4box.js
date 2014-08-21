@@ -162,7 +162,7 @@ var BoxParser = {
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
-		Log.w("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start);
+		Log.d("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start);
 		hdr_size = 8;
 		if (type == "uuid") {
 			uuid = stream.readString(16);
@@ -194,7 +194,7 @@ var BoxParser = {
 		box.hdr_size = hdr_size;
 		box.start = start;
 		box.parse(stream);
-		return { code: BoxParser.OK, box: box };
+		return { code: BoxParser.OK, box: box, size: size };
 	},
 }
 
@@ -916,7 +916,7 @@ BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 	if (this.size > MAX_SIZE) {
 		this.size += 8;
 	}
-	Log.d("BoxParser", "writing "+this.type+" size: "+this.size+" at position "+stream.position+(msg || ""));
+	Log.d("BoxWriter", "Writing box "+this.type+" of size: "+this.size+" at position "+stream.position+(msg || ""));
 	if (this.size > MAX_SIZE) {
 		stream.writeUint32(1);
 	} else {
@@ -954,7 +954,7 @@ BoxParser.ContainerBox.prototype.write = function(stream) {
 		}
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	Log.d("BoxParser", "Adjusting box "+this.type+" with new size "+this.size);
+	Log.d("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 
@@ -1058,7 +1058,7 @@ BoxParser.stsdBox.prototype.write = function(stream) {
 		this.size += this.entries[i].size;
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	Log.d("BoxParser", "Adjusting box "+this.type+" with new size "+this.size);
+	Log.d("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 

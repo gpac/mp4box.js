@@ -139,7 +139,7 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 
 	/* adjusting the data_offset now that the moof size is known*/
 	moof.trun.data_offset = moof.size+8; //8 is mdat header
-	Log.d("MP4Box", "Adjusting data_offset with new value "+moof.trun.data_offset);
+	Log.d("BoxWriter", "Adjusting data_offset with new value "+moof.trun.data_offset);
 	stream.adjustUint32(moof.trun.data_offset_position, moof.trun.data_offset);
 		
 	var mdat = new BoxParser.mdatBox();
@@ -162,9 +162,11 @@ MP4Box.prototype.open = function(ab) {
 	/* if we don't have a DataStream object yet, we create it, otherwise we concatenate the new one with the existing one. */
 	if (!this.inputStream) {
 		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
+		ab.usedBytes = 0;
 		this.inputStream.nextBuffers = [];
 	} else {
 		this.inputStream.nextBuffers.push(ab);
+		ab.usedBytes = 0;
 	}
 	/* Initialize the ISOFile object if not yet created */
 	if (!this.inputIsoFile) {
@@ -209,7 +211,7 @@ MP4Box.prototype.processSamples = function() {
 			while (fragTrak.nextSample < trak.samples.length) {				
 				/* The sample information is there (either because the file is not fragmented and this is not the last sample, 
 				or because the file is fragmented and the moof for that sample has been received */
-				Log.i("MP4Box", "Creating media fragment on track #"+fragTrak.id +" for sample "+fragTrak.nextSample); 
+				Log.d("MP4Box", "Creating media fragment on track #"+fragTrak.id +" for sample "+fragTrak.nextSample); 
 				var result = this.createFragment(this.inputIsoFile, fragTrak.id, fragTrak.nextSample, fragTrak.stream);
 				if (result) {
 					fragTrak.stream = result;

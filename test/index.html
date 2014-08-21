@@ -10,9 +10,11 @@
         <script src="../src/isofile.js"></script>
         <script src="../src/mp4box.js"></script>
 		<script>
-		Log.setLogLevel(Log.i);
+		Log.setLogLevel(Log.e);
 		var mp4box;
 		var downloader = { stop: true };
+		var startDate = new Date;
+		var video;
 		
 		window.onload = function () {
 			downloader.chunkStart = 0;
@@ -28,7 +30,6 @@
 		
 		function resetMediaSource() {
 			var mediaSource;
-			var video;
 			video = document.getElementById('v');
 			mediaSource = new MediaSource();
 			mediaSource.video = video;
@@ -75,7 +76,7 @@
 
 		function onInitAppended(e) {
 			var sb = e.target;
-			Log.i("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
+			Log.e("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
 			Log.d("MSE", sb);
 			sb.sampleNum = 0;
 			sb.removeEventListener('updateend', onInitAppended);
@@ -86,7 +87,7 @@
 
 		function onUpdateEnd(e) {
 			if (e != null) {
-				Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered), " pending: "+this.pendingAppends.length);
+				Log.e("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered)+" pending: "+this.pendingAppends.length+" time: "+ (new Date - startDate)+" media time: "+video.currentTime);
 			}
 			//mp4box.releaseUsedSamples(this.id, this.sampleNum);				
 			if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
@@ -380,7 +381,7 @@
 				saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
 				sb.segmentIndex++;
 				sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
-				Log.i("MSE - SourceBuffer #"+user.id,"Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
+				Log.i("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
 				onUpdateEnd.call(sb, null);				
 			}
 
@@ -456,12 +457,12 @@
 			}
 			xhr.onreadystatechange = function (e) { 
 				if ((xhr.status == 200 || xhr.status == 206) && xhr.readyState == this.DONE) {
-					Log.d("Downloader", "Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
+					Log.e("Downloader", "["+(new Date - startDate)+ "] Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
 					var eof = !(xhr.response.byteLength == dl.chunkSize);
 					dl.callback(xhr.response, eof); 
 					dl.chunkStart+=dl.chunkSize;
 					if (dl.stop == false && eof == false) {
-						window.setTimeout(getfile.call(this, dl, dl.callback), 1000);
+						window.setTimeout(getfile.bind(this, dl, dl.callback), 1000);
 					} else {
 						/* end of file */
 					}
@@ -481,8 +482,8 @@
 			<video id="v" width="640" height="480" autoplay controls> </video>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
-				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="0" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
-				<output id="chunk_size_range_out" for="chunk_size_range">0</output>
+				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="1000000" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
+				<output id="chunk_size_range_out" for="chunk_size_range">1000000</output>
 			<div>
 			<label>Select or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
