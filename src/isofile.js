@@ -27,8 +27,8 @@ var ISOFile = function (stream) {
 	this.lastPosition = 0;
 	/* indicator if the parsing is stuck in the middle of an mdat box */
 	this.parsingMdat = false;
-	/* list of discontinuity in the buffer */
-	this.offsetAdjusts = [];
+	/* size of the buffers allocated for samples */
+	this.samplesDataSize = 0;
 }
 
 ISOFile.prototype.findMdatEnd = function(box, size) {
@@ -476,71 +476,6 @@ ISOFile.prototype.getTrackById = function(id) {
 	return null;
 }
 
-ISOFile.prototype.getAdjustedPosition = function (pos) {
-	/* This assumes that the adjustements are cumulated and sorted by original positions */
-	for (var i = this.offsetAdjusts.length-1; i >= 0 ; i--) {
-		var adjust = this.offsetAdjusts[i];
-		if (pos > adjust.position) {
-			return pos - adjust.offset;
-		} 
-	}
-	return pos;
-}
-
-ISOFile.prototype.insertAdjust = function(adj) {
-	var entry;
-	var added = false;
-	var nextI;
-	/* The list of position adjustments is sorted by original positions, 
-	   so we start from the end assuming the new adjustment is (very likely to be) after the previous one */
-	for (var i = this.offsetAdjusts.length-1; i >= 0 ; i--) {
-		entry = this.offsetAdjusts[i];
-		if (entry.position < adj.position) {
-			/* The new adjustment is after this one */
-			if (entry.position+entry.size == adj.position) {
-				/* the new adjustment is contiguous with this one, so we merge them */
-				entry.size += adj.offset;
-				entry.offset += adj.offset;
-				if (this.offsetAdjusts.length > i+1) { 
-					/* if there is a entry after this one, we need to check it */
-					var nextEntry = this.offsetAdjusts[i+1];
-					if (entry.position+entry.size == nextEntry.position) { 
-						/* the extended entry is contiguous with the previous one, so we merge them */
-						entry.size += nextEntry.size;
-						this.offsetAdjusts.splice(i+1, 1);
-					} else {
-						/* the next entry is still not contiguous */
-					}
-				}
-				nextI = i+1;
-			} else {
-				/* the new adjustment cannot be merged with the previous one, we insert it */
-				this.offsetAdjusts.splice(i+1, 0, adj);
-				/* accumulate with the offset of the previous entry */
-				adj.size = adj.offset;
-				adj.offset += entry.offset;
-				nextI = i+2;
-			}		
-			/* add the new offset to all future adjustments */
-			for (var j = nextI; j < this.offsetAdjusts.length; j++) {
-				this.offsetAdjusts[j].offset += adj.offset;
-			}
-			added = true;
-			break;
-		} else {
-			/* The new adjustment is before this one, check the previous one */
-		}
-	}
-	if (!added) {
-		adj.size = adj.offset;
-		this.offsetAdjusts.push(adj);
-		if (this.offsetAdjusts.length > 1) {
-			adj.offset += this.offsetAdjusts[this.offsetAdjusts.length-2].offset;
-		}
-	}
-	Log.d("MP4Box", "Number of entries in the list of position adjustments: "+this.offsetAdjusts.length);
-}
-
 ISOFile.prototype.getSample = function(trak, sampleNum) {	
 	var mdat;
 	var buffer;
@@ -550,6 +485,8 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 	if (!sample.data) {
 		sample.data = new Uint8Array(sample.size);
 		sample.alreadyRead = 0;
+		this.samplesDataSize += sample.size;
+		Log.e("ISOFile", "Allocating sample #"+sampleNum+" on track #"+trak.tkhd.track_id+" of size "+sample.size+" (total: "+this.samplesDataSize+")");
 	} else if (sample.alreadyRead == sample.size) {
 		return sample;
 	}
@@ -594,43 +531,13 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 			i--;
 		}
 	}		
-	
-/*	var adjustedOffset = this.getAdjustedPosition(sample.offset);	
-	if (adjustedOffset+sample.size <= this.stream.byteLength) {
-		this.stream.seek(adjustedOffset);
-		sample.data = this.stream.readUint8Array(sample.size);
-		return sample;
-	}
-*/
-/*	
-	for (i = 0; i< this.mdats.length; i++) {
-		mdat = this.mdats[i];
-//		if (sample.offset >= mdat.start && sample.offset+sample.size <= mdat.start+mdat.size) {
-//		if (sample.offset >= mdat.filePos && sample.offset+sample.size <= mdat.filePos+mdat.size) {
-			this.stream.seek(mdat.start + (sample.offset - mdat.filePos));
-			sample.data = this.stream.readUint8Array(sample.size);
-			return sample;
-		}
-	}
-*/
-	return null;
-}
 
-ISOFile.prototype.releaseData = function(offset, size) {	
-	var adjustedOffset = this.getAdjustedPosition(offset);	
-	DataStream.memcpy(this.stream.buffer, adjustedOffset, 
-	                  this.stream.buffer, adjustedOffset+size, this.stream.buffer.byteLength-adjustedOffset-size);	
-	this.insertAdjust({position: offset, offset: size});	
-	if (this.stream._byteLength < size) {
-		throw "Size problem";
-	}
-	this.stream._byteLength -= size;
-	if (this.stream.position>adjustedOffset) this.stream.position -= size;
-	Log.d("MP4Box", "Released data of size "+size+" at position "+adjustedOffset+", new buffer size: "+this.stream.buffer.byteLength);
+	return null;
 }
 
 ISOFile.prototype.releaseSample = function(trak, sampleNum) {	
 	var sample = trak.samples[sampleNum];
 	sample.data = null;
+	this.samplesDataSize -= sample.size;
 	return sample.size;
 }
