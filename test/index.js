@@ -1,5 +1,5 @@
 /* Setting the level of logs (error, warning, info, debug) */
-Log.setLogLevel(Log.e);
+Log.setLogLevel(Log.d);
 
 /* for timing purposes */
 var startDate = new Date;
@@ -59,7 +59,7 @@ function onSourceOpen(e) {
 
 function onInitAppended(e) {
 	var sb = e.target;
-	Log.e("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
+	Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
 	Log.d("MSE", sb);
 	sb.sampleNum = 0;
 	sb.removeEventListener('updateend', onInitAppended);
@@ -70,7 +70,7 @@ function onInitAppended(e) {
 
 function onUpdateEnd(e) {
 	if (e != null) {
-		Log.e("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered)+" pending: "+this.pendingAppends.length+" time: "+ getDurationString(new Date - startDate, 1000)+" media time: "+getDurationString(video.currentTime));
+		Log.d("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered)+" pending: "+this.pendingAppends.length+" time: "+ getDurationString(new Date - startDate, 1000)+" media time: "+getDurationString(video.currentTime));
 	}
 	if (this.sampleNum) {
 		mp4box.releaseUsedSamples(this.id, this.sampleNum);
@@ -429,6 +429,7 @@ function start() {
 	Log.i("Downloader", "Resuming file download");
 	downloader.stop = false;
 	downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
+	downloader.chunkTimeout = parseInt(document.getElementById('chunk_speed_range').value);
 	if (downloader.chunkSize == 0) {
 		downloader.chunkSize = Infinity;
 	}
@@ -466,7 +467,7 @@ function getfile(dl) {
 			dl.callback(xhr.response, eof); 
 			dl.chunkStart+=dl.chunkSize;
 			if (dl.stop == false && eof == false) {
-				window.setTimeout(getfile.bind(this, dl, dl.callback), 1000);
+				window.setTimeout(getfile.bind(this, dl, dl.callback), dl.chunkTimeout);
 			} else {
 				/* end of file */
 			}

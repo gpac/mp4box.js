@@ -18,8 +18,13 @@
 			<video id="v" width="640" height="480" autoplay controls> </video>
 			<div>
 				<label for="chunk_size_range">Download Chunk Size (bytes)</label>
-				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="1000000" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
-				<output id="chunk_size_range_out" for="chunk_size_range">1000000</output>
+				<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="5000" oninput="document.querySelector('#chunk_size_range_out').value = value;"></input>
+				<output id="chunk_size_range_out" for="chunk_size_range">5000</output>
+			</div>
+			<div>
+				<label for="chunk_size_range">Download Speed (milliseconds)</label>
+				<input id="chunk_speed_range" name="chunk_speed_range" type="range" min="0" max="10000" step="100" value="1000" oninput="document.querySelector('#chunk_speed_range_out').value = value;"></input>
+				<output id="chunk_speed_range_out" for="chunk_speed_range">1000</output>
 			<div>
 			<label>Select or set URL:</label>
 			<select id="s" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
@@ -31,7 +36,9 @@
 				<option value="./mp4-torrents/Iron.Man.3.2013.720p.BluRay.x264.YIFY.mp4">Iron Man 3 (2h10, unfragmented, AVC+AAC, 925 MB)</option>
 				<option value="./mp4-torrents/the%20wolf%20of%20wall%20street%20esp%20castellano%20dvds%202013.MP4">The Wolf of Wall Street v1 (3h, unfragmented, AVC+AAC(esp),1.02 GB)</option>
 				<option value="./mp4-torrents/The%20Wolf%20of%20Wall%20Street.mp4">The Wolf of Wall Street v2 (3h, unfragmented, AVC+AAC+AC3, 7.08 GB)</option>
+				<option value="./mp4-torrents/WolfVideo.mp4">The Wolf of Wall Street v2 (3h, fragmented, AVC only, 6.14 GB)</option>
 				<option value="./h264bl.mp4">Video Counter (10min, unfragmented, AVC Baseline)</option>
+				<option value="./a.mp4">Video Counter (10min, fragmented, AVC Baseline)</option>
 				<option value="./aaclow.mp4">Audio Bips (10 min, unfragmented, AAC)</option>
 				<option value="./av.mp4">Multiplexed Audio/Video/Subtitle (unfragmented, AVC+AAC+WebVTT)</option>
 				<option value="./2v.mp4">2 videos (unfragmented, AVC+AVC)</option>

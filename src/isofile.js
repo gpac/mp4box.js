@@ -33,24 +33,32 @@ var ISOFile = function (stream) {
 
 ISOFile.prototype.findMdatEnd = function(box, size) {
 	/* check which existing buffers contain data for this mdat, if any */
-	var length = this.stream.buffer.byteLength - this.stream.position;
-	while (this.stream.nextBuffers.length > 0) {
-		this.bufferFilePosition += this.stream.buffer.byteLength;
-		/* using a new buffer */
-		this.stream.buffer = this.stream.nextBuffers.shift();
-		this.lastPosition = 0;
-		this.stream.position = 0;
-		length += this.stream.buffer.byteLength;
-		this.stream.buffer.fileStart = this.bufferFilePosition;
-		box.buffers.push(this.stream.buffer);
-		Log.i("ISOFile","Adding buffer for mdat ("+box.buffers.length+" buffers left)");
-
-		if (length > size) {
+	while (true) {
+		/* Check if the end of the mdat is in this buffer */
+		if (box.fileStart + size <= this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
 			/* we've found the end of the mdat */
 			this.parsingMdat = false;
-			this.lastPosition = this.stream.buffer.byteLength - (length - ret.size);
+			this.lastPosition = box.fileStart + size - this.stream.buffer.fileStart;
 			this.stream.position = this.lastPosition;
+			Log.d("ISOFile", "Using new buffer from position "+this.lastPosition);
 			return true;
+		} 
+		if (this.stream.nextBuffers.length > 0) {
+			/* We will forget the current buffer (referenced in the mdat anyway) 
+				we need to advance the position in the file to start with the new buffer */
+			Log.d("ISOFile", "Releasing buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
+			this.bufferFilePosition += this.stream.buffer.byteLength;
+			/* Get a new buffer */
+			this.stream.buffer = this.stream.nextBuffers.shift();
+			/*  indicate its file position 
+				NOTE: This should be done directly by the downloader, shouldn't be done here */
+			this.stream.buffer.fileStart = this.bufferFilePosition;
+			Log.d("ISOFile", "Using new buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
+			/* Mark the buffer as being useful for the current mdat */
+			box.buffers.push(this.stream.buffer);
+			Log.d("ISOFile","Adding buffer for mdat ("+box.buffers.length+" buffers left)");
+		} else {
+			break;
 		}
 	} 
 	return false; 
@@ -60,7 +68,7 @@ ISOFile.prototype.parse = function() {
 	var found;
 	var ret;
 	var box;
-	Log.i("ISOFile","Starting parsing");
+	Log.i("ISOFile","Starting parsing from position "+this.lastPosition+" in the current buffer and from "+(this.stream.buffer.fileStart+this.lastPosition)+" in the file");
 	this.stream.seek(this.lastPosition);
 	while (!this.stream.isEof()) {
 		/* check if we are in the parsing of an incomplete mdat box */
@@ -88,6 +96,7 @@ ISOFile.prototype.parse = function() {
 					box.hdr_size = ret.hdr_size;
 					box.buffers = [];
 					box.buffers[0] = this.stream.buffer;
+					box.fileStart = this.bufferFilePosition + this.stream.position;
 					this.stream.buffer.fileStart = this.bufferFilePosition;
 					this.stream.buffer.usedBytes += ret.hdr_size;
 					this.mdats.push(box);			
@@ -106,8 +115,10 @@ ISOFile.prototype.parse = function() {
 					if (this.stream.nextBuffers.length > 0) {
 						var oldLength = this.stream.buffer.byteLength;
 						var oldUsedBytes = this.stream.buffer.usedBytes;
+						var oldFileStart = this.stream.buffer.fileStart;
 						this.stream.buffer = ArrayBuffer.concat(this.stream.buffer, this.stream.nextBuffers.shift());
 						this.stream.buffer.usedBytes = oldUsedBytes;
+						this.stream.buffer.fileStart = oldFileStart;						
 						Log.d("ISOFile", "Concatenating buffer for box parsing length: "+oldLength+"->"+this.stream.buffer.byteLength);
 						continue;
 					} else {
@@ -124,6 +135,7 @@ ISOFile.prototype.parse = function() {
 				switch (box.type) {
 					case "mdat":
 						this.mdats.push(box);
+						box.fileStart = this.bufferFilePosition + box.start;
 						box.buffers = [ this.stream.buffer ];
 						this.stream.buffer.fileStart = this.bufferFilePosition;
 						this.stream.buffer.usedBytes += box.hdr_size;
@@ -346,8 +358,8 @@ ISOFile.prototype.updateSampleLists = function() {
 	var last_run_position;
 	var box, moof, traf, trak, trex;
 	
-	while (this.lastMoofIndex < this.boxes.length) {
-		box = this.boxes[this.lastMoofIndex];
+	while (this.lastMoofIndex < this.moofs.length) {
+		box = this.moofs[this.lastMoofIndex];
 		this.lastMoofIndex++;
 		if (box.type == "moof") {
 			moof = box;
@@ -420,15 +432,15 @@ ISOFile.prototype.updateSampleLists = function() {
 						if (!bdop) {
 							if (!dbim) {
 								if (j == 0) { // the first track in the movie fragment
-									bdo = moof.inputStart; // the position of the first byte of the enclosing Movie Fragment Box
+									bdo = moof.fileStart; // the position of the first byte of the enclosing Movie Fragment Box
 								} else {
 									bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
 								}
 							} else {
-								bdo = moof.inputStart;
+								bdo = moof.fileStart;
 							}
 						} else {
-							bdo = tfhd.base_data_offset;
+							bdo = traf.tfhd.base_data_offset;
 						}
 						if (j == 0 && k == 0) {
 							if (dop) {
@@ -486,7 +498,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 		sample.data = new Uint8Array(sample.size);
 		sample.alreadyRead = 0;
 		this.samplesDataSize += sample.size;
-		Log.e("ISOFile", "Allocating sample #"+sampleNum+" on track #"+trak.tkhd.track_id+" of size "+sample.size+" (total: "+this.samplesDataSize+")");
+		Log.d("ISOFile", "Allocating sample #"+sampleNum+" on track #"+trak.tkhd.track_id+" of size "+sample.size+" (total: "+this.samplesDataSize+")");
 	} else if (sample.alreadyRead == sample.size) {
 		return sample;
 	}
@@ -500,7 +512,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 				var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
 				if (sample.size - sample.alreadyRead <= lengthAfterStart) {
 					/* the sample is entirely contained in this buffer */
-					Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
+					Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
 					DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
 					                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
 					buffer.usedBytes += sample.size - sample.alreadyRead;
