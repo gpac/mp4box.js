@@ -1,5 +1,5 @@
 /* Setting the level of logs (error, warning, info, debug) */
-Log.setLogLevel(Log.d);
+Log.setLogLevel(Log.e);
 
 /* for timing purposes */
 var startDate = new Date;
@@ -15,14 +15,16 @@ var video;
 
 window.onload = function () {
 	downloader.chunkStart = 0;
+	document.getElementById("loadButton").disabled = true;
 	reset();
 }
 
 function reset() {
 	stop();
+	document.getElementById("startButton").disabled = true;	
 	resetMediaSource();
 	resetDisplay();
-	document.getElementById("loadButton").disabled = false;
+	setUrl('');
 }
 
 function resetMediaSource() {
@@ -59,8 +61,11 @@ function onSourceOpen(e) {
 
 function onInitAppended(e) {
 	var sb = e.target;
-	Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+printRanges(sb.buffered), " pending: "+sb.pendingAppends.length);
+	var rangeString = printRanges(sb.buffered);
+	Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
 	Log.d("MSE", sb);
+	sb.bufferTd = document.getElementById("buffer"+sb.id);
+	sb.bufferTd.textContent = rangeString;
 	sb.sampleNum = 0;
 	sb.removeEventListener('updateend', onInitAppended);
 	sb.addEventListener('updateend', onUpdateEnd.bind(sb));
@@ -70,7 +75,9 @@ function onInitAppended(e) {
 
 function onUpdateEnd(e) {
 	if (e != null) {
-		Log.d("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+printRanges(this.buffered)+" pending: "+this.pendingAppends.length+" time: "+ getDurationString(new Date - startDate, 1000)+" media time: "+getDurationString(video.currentTime));
+		var rangeString = printRanges(this.buffered);
+		Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+rangeString+" pending: "+this.pendingAppends.length+" time: "+ getDurationString(new Date - startDate, 1000)+" media time: "+getDurationString(video.currentTime));
+		this.bufferTd.textContent = rangeString;
 	}
 	if (this.sampleNum) {
 		mp4box.releaseUsedSamples(this.id, this.sampleNum);
@@ -88,6 +95,9 @@ function setUrl(url) {
 	var urlInput;
 	urlInput = document.getElementById('url');
 	urlInput.value = url;
+	if (url && url != "") {
+		document.getElementById("loadButton").disabled = false;
+	}
 }
 
 /* Helper function to stringify HTML5 TimeRanges objects */	
@@ -223,7 +233,7 @@ function getTrackListInfo(tracks, type) {
 			case "Hint":
 				break;				
 		}
-		html += "<th>Add Source Buffer</th>";
+		html += "<th>Source Buffer Status</th>";
 		html += "</tr>";
 		for (var i = 0; i < tracks.length; i++) {
 			html += "<tr>";
@@ -244,7 +254,7 @@ function getTrackListInfo(tracks, type) {
 			}					
 			var mime = 'video/mp4; codecs=\"'+tracks[i].codec+'\"';
 			if (MediaSource.isTypeSupported(mime)) {
-				html += "<td>"+"<input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\">"+"</td>";
+				html += "<td id=\"buffer"+tracks[i].id+"\">"+"<input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\">"+"</td>";
 			} else {
 				html += "<td>Not supported, adding as TextTrack <input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\"></td>";
 			}

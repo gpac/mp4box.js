@@ -62,6 +62,15 @@
 				<label>Save results:</label>
 				<input id="saveChecked" type="checkbox"></input>
 			</div>
+			<div>
+				<label>Set Log Level:</label>
+				<select id="logLevelSelect" onchange="Log.setLogLevel(Log[this.value]);" onfocus="this.selectedIndex = -1;">
+					<option value="e">Error</option>
+					<option value="w">Warning</option>
+					<option value="i">Info</option>
+					<option value="d">Debug (can be slow!)</option>
+				</select>
+			</div>
 			<div id="infoDiv">
 			</div>
 		</div>

@@ -68,7 +68,7 @@ ISOFile.prototype.parse = function() {
 	var found;
 	var ret;
 	var box;
-	Log.i("ISOFile","Starting parsing from position "+this.lastPosition+" in the current buffer and from "+(this.stream.buffer.fileStart+this.lastPosition)+" in the file");
+	Log.d("ISOFile","Starting parsing from position "+this.lastPosition+" in the current buffer and from "+(this.stream.buffer.fileStart+this.lastPosition)+" in the file");
 	this.stream.seek(this.lastPosition);
 	while (!this.stream.isEof()) {
 		/* check if we are in the parsing of an incomplete mdat box */
@@ -165,7 +165,7 @@ ISOFile.prototype.write = function(outstream) {
 }
 
 ISOFile.prototype.writeInitializationSegment = function(outstream) {
-	Log.i("ISOFile", "Generating initialization segment");
+	Log.d("ISOFile", "Generating initialization segment");
 	this.ftyp.write(outstream);
 	if (this.moov.mvex) {
 		var index;
@@ -519,7 +519,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 					sample.alreadyRead = sample.size;
 					if (buffer.usedBytes == buffer.byteLength) {
 						mdat.buffers.splice(j, 1);
-						Log.i("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
+						Log.d("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
 						j--;
 					}
 					return sample;
@@ -531,7 +531,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 					buffer.usedBytes += lengthAfterStart;
 					if (buffer.usedBytes == buffer.byteLength) {
 						mdat.buffers.splice(j, 1);
-						Log.i("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
+						Log.d("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
 						j--;
 					}
 					sample.alreadyRead += lengthAfterStart;
