@@ -1,0 +1,30 @@
+{
+  "name": "mp4box.js",
+  "version": "0.1.0",
+  "description": "JavaScript version of GPAC's MP4Box tool",
+  "keywords": [
+	"mp4",
+	"MSE",
+	"streaming"
+  ],
+  "homepage": "https://github.com/gpac/mp4box.js",
+  "main": "src/mp4box.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gpac/mp4box.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gpac/mp4box.js/issues"
+  },
+  "author": {
+    "name": "Cyril Concolato",
+    "email": "cyril.concolato@telecom-paristech.fr",
+    "url": "http://concolato.wp.mines-telecom.fr/"
+  },
+  "licenses": [
+    {
+      "type": "BSD-3",
+      "url": "https://github.com/gpac/mp4box.js/blob/master/LICENSE"
+    }
+  ]	
+}
