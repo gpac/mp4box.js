@@ -273,9 +273,11 @@ There is currently no build system. In order to use the `MP4Box.js` in a browser
 <head>
   <meta charset="utf-8">
   <title>MP4Box.js in the browser</title>
+  <script src="log.js"></script>
   <script src="DataStream.js"></script>
   <script src="descriptor.js"></script>
   <script src="box.js"></script>
+  <script src="text-mp4.js"></script>
   <script src="isofile.js"></script>
   <script src="mp4box.js"></script>
 </head>
