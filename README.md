@@ -28,11 +28,20 @@ mp4box.appendBuffer(data);
 mp4box.flush();
 ```
 
+####onMoovStart()####
+The `onMoovStart` callback is called when the the 'moov' box is starting to be parsed, i.e. when the metadata about the file is parsed. Depending on the download speed, it may take a while to download the whole 'moov' box. The end of parsing is signaled by the `onReady` callback.
+
+```javascript
+mp4box.onMoovStart = function (info) {
+	console.log("Starting to receive File Information");
+}
+```
+
 ####onReady(info)####
 The `onReady` callback is called when the the 'moov' box has been parsed, i.e. when the metadata about the file is parsed. 
 
 ```javascript
-mp4box.onError = function (info) {
+mp4box.onReady = function (info) {
 	console.log("Received File Information");
 }
 ```

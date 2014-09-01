@@ -27,6 +27,8 @@ var ISOFile = function (stream) {
 	this.lastPosition = 0;
 	/* indicator if the parsing is stuck in the middle of an mdat box */
 	this.parsingMdat = false;
+	/* to fire moov start event */
+	this.moovStartFound = false;
 	/* size of the buffers allocated for samples */
 	this.samplesDataSize = 0;
 }
@@ -112,6 +114,9 @@ ISOFile.prototype.parse = function() {
 						return;
 					}
 				} else {
+					if (ret.type === "moov") { 
+						this.moovStartFound = true;
+					}
 					/* either it's not an mdat box or we did not have enough data to parse the type and size of the box, 
 					   so we concatenate with the next buffer if possible to restart parsing */
 					if (this.stream.nextBuffers.length > 0) {

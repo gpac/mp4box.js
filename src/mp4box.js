@@ -17,6 +17,8 @@
 	this.sampleListBuilt = false;
 	this.inputStream = null;
 	this.inputIsoFile = null;
+	this.onMoovStart = null;
+	this.moovStartSent = false;
 	this.onReady = null;
 	this.readySent = false;	
 	this.onSegment = null;
@@ -177,6 +179,10 @@ MP4Box.prototype.open = function(ab) {
 	}
 	/* Parse whatever is already in the buffer */
 	this.inputIsoFile.parse();
+	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
+		this.moovStartSent = true;
+		if (this.onMoovStart) this.onMoovStart();
+	}
 	
 	if (!this.inputIsoFile.moov) {
 		/* The parsing has not yet found a moov, not much can be done */

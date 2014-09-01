@@ -358,6 +358,9 @@ function load() {
 	}
 
 	mp4box = new MP4Box();
+	mp4box.onMoovStart = function () {
+		Log.i("Application", "Starting to parse movie information");
+	}
 	mp4box.onReady = function (info) {
 		Log.i("Application", "Movie information received");
 		stop();
