@@ -108,6 +108,16 @@ function toggleDownloadMode(event) {
 	}
 }
 
+function setDownloadSpeed(value) {
+	document.querySelector('#chunk_speed_range_out').value = value;
+	downloader.chunkTimeout = parseInt(value);
+}
+
+function setDownloadChunkSize(value) {
+	document.querySelector('#chunk_size_range_out').value = value;
+	downloader.chunkSize = parseInt(value);
+}
+
 /* Helper function to stringify HTML5 TimeRanges objects */	
 function printRanges(ranges) {
 	var length = ranges.length;
