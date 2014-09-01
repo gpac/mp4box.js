@@ -166,8 +166,10 @@ MP4Box.prototype.open = function(ab) {
 		ab.usedBytes = 0;
 		this.inputStream.nextBuffers = [];
 	} else {
-		this.inputStream.nextBuffers.push(ab);
-		ab.usedBytes = 0;
+		if (ab.byteLength>0) {
+			this.inputStream.nextBuffers.push(ab);
+			ab.usedBytes = 0;
+		}
 	}
 	/* Initialize the ISOFile object if not yet created */
 	if (!this.inputIsoFile) {

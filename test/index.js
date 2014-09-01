@@ -494,7 +494,7 @@ function getfile(dl) {
 		xhr.setRequestHeader('Range', range);
 	}
 	xhr.onreadystatechange = function (e) { 
-		if ((xhr.status == 200 || xhr.status == 206) && xhr.readyState == this.DONE) {
+		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
 			Log.d("Downloader", "Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
 			var eof = !(xhr.response.byteLength == dl.chunkSize);
 			dl.callback(xhr.response, eof); 
