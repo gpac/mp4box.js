@@ -15,6 +15,7 @@
  * This notice must stay in all subsequent versions of this code.
  */
 var Log = (function (){
+		var start = new Date;
 		var LOG_LEVEL_ERROR 	= 4;
 		var LOG_LEVEL_WARNING 	= 3;
 		var LOG_LEVEL_INFO 		= 2;
@@ -30,24 +31,37 @@ var Log = (function (){
 			},
 			d : function(module, msg) {
 				if (LOG_LEVEL_DEBUG >= log_level) {
-					console.debug("["+module+"] "+msg);
+					console.debug("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
 				}
 			},
 			i : function(module, msg) {
 				if (LOG_LEVEL_INFO >= log_level) {
-					console.info("["+module+"] "+msg);
+					console.info("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
 				}
 			},
 			w : function(module, msg) {
 				if (LOG_LEVEL_WARNING >= log_level) {
-					console.warn("["+module+"] "+msg);
+					console.warn("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
 				}
 			},
 			e : function(module, msg) {
 				if (LOG_LEVEL_ERROR >= log_level) {
-					console.error("["+module+"] "+msg);
+					console.error("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
 				}
 			}
 		};
 		return logObject;
 	})();
+	
+/* Helper function to print a duration value in the form H:MM:SS.MS */
+Log.getDurationString = function(duration, timescale) {
+	var timescale = timescale || 1;
+	var duration_sec = duration/timescale;
+	var hours = Math.floor(duration_sec/3600);
+	duration_sec -= hours * 3600;
+	var minutes = Math.floor(duration_sec/60);
+	duration_sec -= minutes * 60;		
+	duration_sec = Math.floor(duration_sec*1000)/1000;
+	return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2);
+}
+	

@@ -1,14 +1,11 @@
 /* Setting the level of logs (error, warning, info, debug) */
 Log.setLogLevel(Log.e);
 
-/* for timing purposes */
-var startDate = new Date;
-
 /* The main object processing the mp4 files */
 var mp4box;
 
 /* object responsible for file downloading */
-var downloader = { stop: true };
+var downloader = { stop: true, realtime: false };
 
 /* the HTML5 video element */
 var video;
@@ -76,7 +73,7 @@ function onInitAppended(e) {
 function onUpdateEnd(e) {
 	if (e != null) {
 		var rangeString = printRanges(this.buffered);
-		Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+rangeString+" pending: "+this.pendingAppends.length+" time: "+ getDurationString(new Date - startDate, 1000)+" media time: "+getDurationString(video.currentTime));
+		Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+rangeString+" pending: "+this.pendingAppends.length+" media time: "+Log.getDurationString(video.currentTime));
 		this.bufferTd.textContent = rangeString;
 	}
 	if (this.sampleNum) {
@@ -100,6 +97,17 @@ function setUrl(url) {
 	}
 }
 
+function toggleDownloadMode(event) {
+	var checkedBox = event.target;
+	if (checkedBox.checked) {
+		document.getElementById('dlSpeed').style.display = "none";
+		downloader.realtime = true;
+	} else {
+		document.getElementById('dlSpeed').style.display = "inline";
+		downloader.realtime = false;
+	}
+}
+
 /* Helper function to stringify HTML5 TimeRanges objects */	
 function printRanges(ranges) {
 	var length = ranges.length;
@@ -107,7 +115,7 @@ function printRanges(ranges) {
 		var str = "";
 		for (var i = 0; i < length; i++) {
 		  if (i > 0) str += ",";
-		  str += "["+getDurationString(ranges.start(i))+ ","+getDurationString(ranges.end(i))+"]";
+		  str += "["+Log.getDurationString(ranges.start(i))+ ","+Log.getDurationString(ranges.end(i))+"]";
 		}
 		return str;
 	} else {
@@ -125,17 +133,6 @@ function pad(number, length) {
 	return a.join('.');
 }
 
-/* Helper function to print a duration value in the form H:MM:SS.MS */
-function getDurationString(duration, timescale) {
-	var timescale = timescale || 1;
-	var duration_sec = duration/timescale;
-	var hours = Math.floor(duration_sec/3600);
-	duration_sec -= hours * 3600;
-	var minutes = Math.floor(duration_sec/60);
-	duration_sec -= minutes * 60;			
-	return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2);
-}
-	
 /* Functions to generate the tables displaying file information */	
 function getBasicTrackHeader() {
 	var html = '';
@@ -172,7 +169,7 @@ function getBasicTrackInfo(track) {
 	html += "<td>"+track.created+"</td>";
 	html += "<td>"+track.modified+"</td>";
 	html += "<td>"+track.timescale+"</td>";
-	html += "<td>"+track.duration+" ("+getDurationString(track.duration,track.timescale)+") </td>";
+	html += "<td>"+track.duration+" ("+Log.getDurationString(track.duration,track.timescale)+") </td>";
 	html += "<td>"+track.nb_samples+"</td>";
 	html += "<td>"+track.codec+"</td>";
 	html += "<td>"+track.language+"</td>";
@@ -273,12 +270,12 @@ function displayMovieInfo(info) {
 	html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
 	html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
 	html += "<tr><th>Timescale</th><td>"+info.timescale+"</td></tr>";
-	html += "<tr><th>Duration</th><td>"+info.duration+" ("+getDurationString(info.duration,info.timescale)+")</td></tr>";
+	html += "<tr><th>Duration</th><td>"+info.duration+" ("+Log.getDurationString(info.duration,info.timescale)+")</td></tr>";
 	html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
 	html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
 	html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
 	if (info.isFragmented) {
-		html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+getDurationString(info.fragment_duration,info.timescale)+")</td></tr>";
+		html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+Log.getDurationString(info.fragment_duration,info.timescale)+")</td></tr>";
 	}
 	html += "</table>";
 	html += getTrackListInfo(info.videoTracks, "Video");
@@ -455,6 +452,32 @@ function stop() {
 	}
 }		
 
+function computeWaitingTimeFromBuffer(v) {
+	var ms = v.ms;
+	var sb;
+	var startRange, endRange;
+	var currentTime = v.currentTime;
+	var maxStartRange = 0;
+	var minEndRange = Infinity;
+	var duration;
+	for (var i = 0; i < ms.activeSourceBuffers.length; i++) {
+		sb = ms.activeSourceBuffers.item(i);
+		for (var j = 0; j < sb.buffered.length; j++) {
+			startRange = sb.buffered.start(j);
+			endRange = sb.buffered.end(j);
+			if (currentTime >= startRange && currentTime <= endRange) {
+				if (startRange >= maxStartRange) maxStartRange = startRange;
+				if (endRange <= minEndRange) minEndRange = endRange;
+				break;
+			}
+		}
+	}
+	duration = minEndRange - maxStartRange;
+	if (currentTime + duration/4 >= minEndRange) return 0;
+	else /*if (currentTime - duration/4 <= maxStartRange)*/ return 1000*(minEndRange-currentTime)/2;
+	//return 1000*(minEndRange - currentTime)/2;
+}
+
 function getfile(dl) {
 	if (dl.chunkStart == Infinity) {
 		Log.i("Downloader", "File download done.");
@@ -472,12 +495,19 @@ function getfile(dl) {
 	}
 	xhr.onreadystatechange = function (e) { 
 		if ((xhr.status == 200 || xhr.status == 206) && xhr.readyState == this.DONE) {
-			Log.d("Downloader", "["+(new Date - startDate)+ "] Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
+			Log.d("Downloader", "Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
 			var eof = !(xhr.response.byteLength == dl.chunkSize);
 			dl.callback(xhr.response, eof); 
 			dl.chunkStart+=dl.chunkSize;
 			if (dl.stop == false && eof == false) {
-				window.setTimeout(getfile.bind(this, dl, dl.callback), dl.chunkTimeout);
+				var timeoutDuration = 0;
+				if (!dl.realtime) {
+					timeoutDuration = dl.chunkTimeout;
+				} else {
+					timeoutDuration = computeWaitingTimeFromBuffer(video);
+				}
+				Log.i("Downloader", "Next download scheduled in "+timeoutDuration+ ' ms.');
+				window.setTimeout(getfile.bind(this, dl, dl.callback), timeoutDuration);
 			} else {
 				/* end of file */
 			}
