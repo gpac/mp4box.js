@@ -266,6 +266,7 @@ function displayMovieInfo(info) {
 	var html = "Movie Info";
 	html += "<div>";
 	html += "<table>";
+	html += "<tr><th>File Size</th><td>"+downloader.totalLength+" bytes</td></tr>";
 	html += "<tr><th>Brands</th><td>"+info.brands+"</td></tr>";
 	html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
 	html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
@@ -495,7 +496,15 @@ function getfile(dl) {
 	}
 	xhr.onreadystatechange = function (e) { 
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
-			Log.d("Downloader", "Received data range: bytes="+dl.chunkStart+ '-'+(dl.chunkStart+xhr.response.byteLength-1));
+			var rangeReceived = xhr.getResponseHeader("Content-Range");
+			Log.d("Downloader", "Received data range: "+rangeReceived);
+			if (!dl.totalLength) {
+				var sizeIndex;
+				sizeIndex = rangeReceived.indexOf("/");
+				if (sizeIndex > -1) {
+					dl.totalLength = +rangeReceived.slice(sizeIndex+1);
+				}
+			}
 			var eof = !(xhr.response.byteLength == dl.chunkSize);
 			dl.callback(xhr.response, eof); 
 			dl.chunkStart+=dl.chunkSize;
