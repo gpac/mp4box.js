@@ -44,6 +44,8 @@ ISOFile.prototype.findMdatEnd = function(box, size) {
 			return true;
 		} 
 		if (this.stream.nextBuffers.length > 0) {
+			this.lastPosition = 0;
+			this.stream.position = this.lastPosition;
 			/* We will forget the current buffer (referenced in the mdat anyway) 
 				we need to advance the position in the file to start with the new buffer */
 			Log.d("ISOFile", "Releasing buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");

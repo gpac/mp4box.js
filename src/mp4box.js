@@ -225,10 +225,11 @@ MP4Box.prototype.processSamples = function() {
 				}
 				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
-				if (this.onSegment && 
-					(fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length)) {
+				if (fragTrak.nextSample % fragTrak.nb_samples == 0 || fragTrak.nextSample >= trak.samples.length) {
 					Log.i("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+(fragTrak.nextSample-fragTrak.nb_samples)+","+(fragTrak.nextSample-1)+"]"); 
-					this.onSegment(fragTrak.id, fragTrak.user, fragTrak.stream.buffer, fragTrak.nextSample);
+					if (this.onSegment) {
+						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.stream.buffer, fragTrak.nextSample);
+					}
 					/* force the creation of a new buffer */
 					fragTrak.stream = null;
 				}
@@ -250,9 +251,11 @@ MP4Box.prototype.processSamples = function() {
 			} else {
 				return;
 			}
-			if (this.onSamples && (extractTrak.nextSample % extractTrak.nb_samples == 0 || extractTrak.nextSample >= trak.samples.length)) {
+			if (extractTrak.nextSample % extractTrak.nb_samples == 0 || extractTrak.nextSample >= trak.samples.length) {
 				Log.i("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+extractTrak.nextSample); 
-				this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
+				if (this.onSamples) {
+					this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
+				}
 				extractTrak.samples = [];
 			}
 		}
