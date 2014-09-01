@@ -11,13 +11,18 @@ var downloader = { stop: true, realtime: false };
 var video;
 
 window.onload = function () {
-	downloader.chunkStart = 0;
 	document.getElementById("loadButton").disabled = true;
 	reset();
 }
 
+function resetDownloader() {
+	downloader.chunkStart = 0;
+	downloader.totalLength = 0;
+}
+
 function reset() {
 	stop();
+	resetDownloader();
 	document.getElementById("startButton").disabled = true;	
 	resetMediaSource();
 	resetDisplay();
