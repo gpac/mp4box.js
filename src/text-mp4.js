@@ -23,8 +23,8 @@ VTTin4Parser.prototype.parseSample = function(data) {
 	cues = [];
 	while (!stream.isEof()) {
 		cue = BoxParser.parseOneBox(stream);
-		if (cue && cue.type == "vttc") {
-			cues.push(cue);
+		if (cue.code === BoxParser.OK && cue.box.type === "vttc") {
+			cues.push(cue.box);
 		}		
 	}
 	return cues;
