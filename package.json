@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "description": "JavaScript version of GPAC's MP4Box tool",
   "keywords": [
-	"mp4",
-	"MSE",
-	"streaming"
+    "mp4",
+    "MSE",
+    "streaming"
   ],
   "homepage": "https://github.com/gpac/mp4box.js",
   "main": "src/mp4box.js",
@@ -26,5 +26,8 @@
       "type": "BSD-3",
       "url": "https://github.com/gpac/mp4box.js/blob/master/LICENSE"
     }
-  ]	
+  ],
+  "devDependencies": {
+    "grunt-contrib-qunit": "^0.5.2"
+  }
 }
