@@ -153,7 +153,6 @@ MP4Box.prototype.open = function(ab) {
 	/* if we don't have a DataStream object yet, we create it, otherwise we concatenate the new one with the existing one. */
 	if (!this.inputStream) {
 		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
-		//this.inputStream.buffer.fileStart = 0;
 		ab.usedBytes = 0;
 		this.inputStream.nextBuffers = [];
 	} else {
@@ -172,9 +171,10 @@ MP4Box.prototype.open = function(ab) {
 		this.moovStartSent = true;
 		if (this.onMoovStart) this.onMoovStart();
 	}
-	
+
 	if (!this.inputIsoFile.moov) {
 		/* The parsing has not yet found a moov, not much can be done */
+		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+this.inputIsoFile.nextParsePosition);
 		return false;	
 	} else {
 		/* A moov box has been found */
@@ -195,6 +195,7 @@ MP4Box.prototype.open = function(ab) {
 			this.onReady(info);
 		}	
 		
+		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+this.inputIsoFile.nextParsePosition);
 		return true;
 	}
 }
@@ -395,4 +396,14 @@ MP4Box.prototype.flush = function() {
 	Log.i("MP4Box", "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();
 	this.processSamples();
+}
+
+MP4Box.prototype.getPositionFromTime = function(time, rap) {
+}
+
+MP4Box.prototype.setCurrentTime = function(time) {
+}
+
+MP4Box.prototype.getNextPosition = function() {
+	return this.inputIsoFile.nextParsePosition;
 }

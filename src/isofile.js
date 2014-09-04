@@ -10,8 +10,6 @@ var ISOFile = function (stream) {
 	this.isProgressive = false;
 	/* Index of the last moof box received */
 	this.lastMoofIndex = 0;
-	/* position of the beginning of the current buffer in the (virtual) file */
-	this.bufferFilePosition = 0;
 	/* position in the current buffer of the beginning of the last box parsed */
 	this.lastPosition = 0;
 	/* indicator if the parsing is stuck in the middle of an mdat box */
@@ -20,6 +18,8 @@ var ISOFile = function (stream) {
 	this.moovStartFound = false;
 	/* size of the buffers allocated for samples */
 	this.samplesDataSize = 0;
+	/* next file position that the parser needs */
+	this.nextParsePosition = 0;
 }
 
 ISOFile.prototype.findMdatEnd = function(box, size) {
@@ -40,17 +40,14 @@ ISOFile.prototype.findMdatEnd = function(box, size) {
 			/* We will forget the current buffer (referenced in the mdat anyway) 
 				we need to advance the position in the file to start with the new buffer */
 			Log.d("ISOFile", "Releasing buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
-			this.bufferFilePosition += this.stream.buffer.byteLength;
 			/* Get a new buffer */
 			this.stream.buffer = this.stream.nextBuffers.shift();
-			/*  indicate its file position 
-				NOTE: This should be done directly by the downloader, shouldn't be done here */
-			//this.stream.buffer.fileStart = this.bufferFilePosition;
 			Log.d("ISOFile", "Using new buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
 			/* Mark the buffer as being useful for the current mdat */
 			box.buffers.push(this.stream.buffer);
 			Log.d("ISOFile","Adding buffer for mdat ("+box.buffers.length+" buffers left)");
 		} else {
+			this.nextParsePosition = this.stream.buffer.fileStart+this.stream.buffer.byteLength;
 			break;
 		}
 	} 
@@ -89,8 +86,7 @@ ISOFile.prototype.parse = function() {
 					box.hdr_size = ret.hdr_size;
 					box.buffers = [];
 					box.buffers[0] = this.stream.buffer;
-					box.fileStart = this.bufferFilePosition + this.stream.position;
-					//this.stream.buffer.fileStart = this.bufferFilePosition;
+					box.fileStart = this.stream.buffer.fileStart + this.stream.position;
 					this.stream.buffer.usedBytes += ret.hdr_size;
 					this.mdats.push(box);			
 					
@@ -115,10 +111,25 @@ ISOFile.prototype.parse = function() {
 						this.stream.buffer = ArrayBuffer.concat(this.stream.buffer, this.stream.nextBuffers.shift());
 						this.stream.buffer.usedBytes = oldUsedBytes;
 						this.stream.buffer.fileStart = oldFileStart;						
+						this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
 						Log.d("ISOFile", "Concatenating buffer for box parsing length: "+oldLength+"->"+this.stream.buffer.byteLength);
 						continue;
 					} else {
 						/* not enough buffers received, wait */
+						if (!ret.type) {
+							/* There were not enough bytes in the buffer to parse the box type and length,
+							   the next fetch should retrieve those missing bytes, i.e. the next bytes after this buffer */
+							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+						} else {
+							/* we had enough bytes to parse size and type of the incomplete box
+							   if we haven't found yet the moov box, skip this one and try the next one 
+							   if we have found the moov box, let's continue linear parsing */
+							if (this.moovStartFound) {
+								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							} else {
+								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.position + ret.size;
+							}
+						}
 						return;
 					}
 				}
@@ -131,9 +142,8 @@ ISOFile.prototype.parse = function() {
 				switch (box.type) {
 					case "mdat":
 						this.mdats.push(box);
-						box.fileStart = this.bufferFilePosition + box.start;
+						box.fileStart = this.stream.buffer.fileStart + box.start;
 						box.buffers = [ this.stream.buffer ];
-						this.stream.buffer.fileStart = this.bufferFilePosition;
 						this.stream.buffer.usedBytes += box.hdr_size;
 						break;
 					case "moof":
