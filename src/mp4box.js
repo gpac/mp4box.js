@@ -153,7 +153,7 @@ MP4Box.prototype.open = function(ab) {
 	/* if we don't have a DataStream object yet, we create it, otherwise we concatenate the new one with the existing one. */
 	if (!this.inputStream) {
 		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
-		this.inputStream.buffer.fileStart = 0;
+		//this.inputStream.buffer.fileStart = 0;
 		ab.usedBytes = 0;
 		this.inputStream.nextBuffers = [];
 	} else {
@@ -201,7 +201,8 @@ MP4Box.prototype.open = function(ab) {
 
 MP4Box.prototype.processSamples = function() {
 	/* For each track marked for fragmentation, 
-	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) and create a fragment with it */
+	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) 
+	   and create a fragment with it */
 	if (this.isFragmentationStarted) {
 		for (var i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];

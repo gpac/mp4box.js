@@ -507,6 +507,7 @@ function getfile(dl) {
 	xhr.open("GET", dl.url, true);
 	xhr.responseType = "arraybuffer";
 	var range = null;
+	xhr.start = dl.chunkStart;
 	if (dl.chunkStart+dl.chunkSize < Infinity) {
 		range = 'bytes=' + dl.chunkStart + '-';
 		range += (dl.chunkStart+dl.chunkSize-1);
@@ -524,6 +525,7 @@ function getfile(dl) {
 				}
 			}
 			var eof = !(xhr.response.byteLength == dl.chunkSize);
+			xhr.response.fileStart = xhr.start;
 			dl.callback(xhr.response, eof); 
 			dl.chunkStart+=dl.chunkSize;
 			if (dl.stop == false && eof == false) {

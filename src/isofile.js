@@ -45,7 +45,7 @@ ISOFile.prototype.findMdatEnd = function(box, size) {
 			this.stream.buffer = this.stream.nextBuffers.shift();
 			/*  indicate its file position 
 				NOTE: This should be done directly by the downloader, shouldn't be done here */
-			this.stream.buffer.fileStart = this.bufferFilePosition;
+			//this.stream.buffer.fileStart = this.bufferFilePosition;
 			Log.d("ISOFile", "Using new buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
 			/* Mark the buffer as being useful for the current mdat */
 			box.buffers.push(this.stream.buffer);
@@ -90,7 +90,7 @@ ISOFile.prototype.parse = function() {
 					box.buffers = [];
 					box.buffers[0] = this.stream.buffer;
 					box.fileStart = this.bufferFilePosition + this.stream.position;
-					this.stream.buffer.fileStart = this.bufferFilePosition;
+					//this.stream.buffer.fileStart = this.bufferFilePosition;
 					this.stream.buffer.usedBytes += ret.hdr_size;
 					this.mdats.push(box);			
 					

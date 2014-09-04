@@ -145,6 +145,14 @@ mp4box.onError = function (e) {
 }
 ```
 
+####appendBuffer(data)####
+Provides an ArrayBuffer to parse from. The ArrayBuffer must has a fileStart (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file.
+```javascript
+var ab = getArrayBuffer();
+ab.fileStart = 0;
+mp4box.appendBuffer(ab);
+```
+
 ####flush()####
 Indicates that no more data will be received and that all remaining samples should be flushed in the segmentation or extraction process.
 
