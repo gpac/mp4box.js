@@ -35,17 +35,23 @@ ISOFile.prototype.findMdatEnd = function(box, size) {
 			return true;
 		} 
 		if (this.stream.nextBuffers.length > 0) {
-			this.lastPosition = 0;
-			this.stream.position = this.lastPosition;
-			/* We will forget the current buffer (referenced in the mdat anyway) 
-				we need to advance the position in the file to start with the new buffer */
-			Log.d("ISOFile", "Releasing buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
-			/* Get a new buffer */
-			this.stream.buffer = this.stream.nextBuffers.shift();
-			Log.d("ISOFile", "Using new buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
-			/* Mark the buffer as being useful for the current mdat */
-			box.buffers.push(this.stream.buffer);
-			Log.d("ISOFile","Adding buffer for mdat ("+box.buffers.length+" buffers left)");
+			var next_buffer = this.stream.nextBuffers[0];
+			if (next_buffer.fileStart == this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
+				this.lastPosition = 0;
+				this.stream.position = this.lastPosition;
+				/* We will forget the current buffer (referenced in the mdat anyway) 
+					we need to advance the position in the file to start with the new buffer */
+				Log.d("ISOFile", "Releasing buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
+				/* Get a new buffer */
+				this.stream.buffer = this.stream.nextBuffers.shift();
+				Log.d("ISOFile", "Using new buffer (file start:"+ this.stream.buffer.fileStart+", size "+this.stream.buffer.byteLength+")");
+				/* Mark the buffer as being useful for the current mdat */
+				box.buffers.push(this.stream.buffer);
+				Log.d("ISOFile","Adding buffer for mdat ("+box.buffers.length+" buffers left)");
+			} else {
+				this.nextParsePosition = this.stream.buffer.fileStart+this.stream.buffer.byteLength;
+				break;
+			}
 		} else {
 			this.nextParsePosition = this.stream.buffer.fileStart+this.stream.buffer.byteLength;
 			break;
@@ -103,17 +109,24 @@ ISOFile.prototype.parse = function() {
 						this.moovStartFound = true;
 					}
 					/* either it's not an mdat box or we did not have enough data to parse the type and size of the box, 
-					   so we concatenate with the next buffer if possible to restart parsing */
+					   so we try to concatenate with the next buffer if possible to restart parsing */
 					if (this.stream.nextBuffers.length > 0) {
-						var oldLength = this.stream.buffer.byteLength;
-						var oldUsedBytes = this.stream.buffer.usedBytes;
-						var oldFileStart = this.stream.buffer.fileStart;
-						this.stream.buffer = ArrayBuffer.concat(this.stream.buffer, this.stream.nextBuffers.shift());
-						this.stream.buffer.usedBytes = oldUsedBytes;
-						this.stream.buffer.fileStart = oldFileStart;						
-						this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
-						Log.d("ISOFile", "Concatenating buffer for box parsing length: "+oldLength+"->"+this.stream.buffer.byteLength);
-						continue;
+						var next_buffer = this.stream.nextBuffers[0];
+						if (next_buffer.fileStart == this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
+							var oldLength = this.stream.buffer.byteLength;
+							var oldUsedBytes = this.stream.buffer.usedBytes;
+							var oldFileStart = this.stream.buffer.fileStart;
+							this.stream.buffer = ArrayBuffer.concat(this.stream.buffer, this.stream.nextBuffers.shift());
+							this.stream.buffer.usedBytes = oldUsedBytes;
+							this.stream.buffer.fileStart = oldFileStart;						
+							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							Log.d("ISOFile", "Concatenating buffer for box parsing length: "+oldLength+"->"+this.stream.buffer.byteLength);
+							continue;
+						} else {
+							/* we cannot concatenate because the buffers are not contiguous */
+							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							return;
+						}
 					} else {
 						/* not enough buffers received, wait */
 						if (!ret.type) {

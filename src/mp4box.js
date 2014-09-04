@@ -157,7 +157,18 @@ MP4Box.prototype.open = function(ab) {
 		this.inputStream.nextBuffers = [];
 	} else {
 		if (ab.byteLength>0) {
-			this.inputStream.nextBuffers.push(ab);
+			var added = false;
+			for (var i = 0; i < this.inputStream.nextBuffers.length; i++) {
+				var b = this.inputStream.nextBuffers[i];
+				if (ab.fileStart < b.fileStart) {
+					this.inputStream.nextBuffers.splice(i, 0, ab);
+					added = true;
+					break;
+				}
+			}			
+			if (!added) {
+				this.inputStream.nextBuffers.push(ab);
+			}
 			ab.usedBytes = 0;
 		}
 	}
