@@ -11,8 +11,10 @@ var downloader = { stop: true, realtime: false };
 var video;
 
 window.onload = function () {
+	video = document.getElementById('v');
+	video.addEventListener("seeking", onSeeking);
 	document.getElementById("loadButton").disabled = true;
-	reset();
+	reset();	
 }
 
 function resetDownloader() {
@@ -31,7 +33,6 @@ function reset() {
 
 function resetMediaSource() {
 	var mediaSource;
-	video = document.getElementById('v');
 	mediaSource = new MediaSource();
 	mediaSource.video = video;
 	video.ms = mediaSource;
@@ -450,6 +451,12 @@ function stop() {
 	}
 }		
 
+function onSeeking(e) {
+	console.log(e);
+	Log.i("Downloader", "Stopping file download");
+	downloader.stop = true;
+}
+
 function computeWaitingTimeFromBuffer(v) {
 	var ms = v.ms;
 	var sb;
@@ -523,4 +530,4 @@ function getfile(dl) {
 	};
 	Log.d("Downloader", "Fetching "+dl.url+(range ? (" with range: "+range): ""));
 	xhr.send();
-}	
+}
