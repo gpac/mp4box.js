@@ -43,13 +43,27 @@ var Log = (function (){
 	
 /* Helper function to print a duration value in the form H:MM:SS.MS */
 Log.getDurationString = function(duration, timescale) {
+
+	/* Helper function to print a number on a fixed number of digits */
+	function pad(number, length) {
+		var str = '' + number;
+		var a = str.split('.');		
+		while (a[0].length < length) {
+			a[0] = '0' + a[0];
+		}
+		return a.join('.');
+	}
+
 	var timescale = timescale || 1;
 	var duration_sec = duration/timescale;
 	var hours = Math.floor(duration_sec/3600);
 	duration_sec -= hours * 3600;
 	var minutes = Math.floor(duration_sec/60);
 	duration_sec -= minutes * 60;		
-	duration_sec = Math.floor(duration_sec*1000)/1000;
-	return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2);
+	var msec = duration_sec*1000;
+	duration_sec = Math.floor(duration_sec);
+	msec -= duration_sec*1000;
+	msec = Math.floor(msec);
+	return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2)+"."+pad(msec,3);
 }
 	

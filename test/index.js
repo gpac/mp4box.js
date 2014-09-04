@@ -138,16 +138,6 @@ function printRanges(ranges) {
 	}
 }
 
-/* Helper function to print a number on a fixed number of digits */
-function pad(number, length) {
-	var str = '' + number;
-	var a = str.split('.');		
-	while (a[0].length < length) {
-		a[0] = '0' + a[0];
-	}
-	return a.join('.');
-}
-
 /* Functions to generate the tables displaying file information */	
 function getBasicTrackHeader() {
 	var html = '';
@@ -325,7 +315,7 @@ function addSourceBufferListener(info) {
 						sb.pendingAppends = new Array();
 						document.getElementById("initButton").disabled = false;
 					} else {
-						Log.e("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
+						Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 						var textrack = v.addTextTrack("subtitles", "Text track for track "+track_id);
 						mp4box.setExtractionOptions(track_id, textrack);
 						//check.checked = false;
