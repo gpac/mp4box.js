@@ -370,6 +370,7 @@ function load() {
 	document.getElementById("stopButton").disabled = false;
 	Log.i("Downloader", "Resuming file download");
 	downloader.stop = false;
+	downloader.chunkTimeout = parseInt(document.getElementById('chunk_speed_range').value);
 	downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
 	if (downloader.chunkSize == 0) {
 		downloader.chunkSize = Infinity;
