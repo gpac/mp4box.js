@@ -67,3 +67,18 @@ Log.getDurationString = function(duration, timescale) {
 	return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2)+"."+pad(msec,3);
 }
 	
+/* Helper function to stringify HTML5 TimeRanges objects */	
+Log.printRanges = function(ranges) {
+	var length = ranges.length;
+	if (length > 0) {
+		var str = "";
+		for (var i = 0; i < length; i++) {
+		  if (i > 0) str += ",";
+		  str += "["+Log.getDurationString(ranges.start(i))+ ","+Log.getDurationString(ranges.end(i))+"]";
+		}
+		return str;
+	} else {
+		return "(empty)";
+	}
+}
+

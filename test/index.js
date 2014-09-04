@@ -63,9 +63,8 @@ function onSourceOpen(e) {
 
 function onInitAppended(e) {
 	var sb = e.target;
-	var rangeString = printRanges(sb.buffered);
+	var rangeString = Log.printRanges(sb.buffered);
 	Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
-	Log.d("MSE", sb);
 	sb.bufferTd = document.getElementById("buffer"+sb.id);
 	sb.bufferTd.textContent = rangeString;
 	sb.sampleNum = 0;
@@ -77,7 +76,7 @@ function onInitAppended(e) {
 
 function onUpdateEnd(e) {
 	if (e != null) {
-		var rangeString = printRanges(this.buffered);
+		var rangeString = Log.printRanges(this.buffered);
 		Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+rangeString+" pending: "+this.pendingAppends.length+" media time: "+Log.getDurationString(video.currentTime));
 		this.bufferTd.textContent = rangeString;
 	}
@@ -121,21 +120,6 @@ function setDownloadSpeed(value) {
 function setDownloadChunkSize(value) {
 	document.querySelector('#chunk_size_range_out').value = value;
 	downloader.chunkSize = parseInt(value);
-}
-
-/* Helper function to stringify HTML5 TimeRanges objects */	
-function printRanges(ranges) {
-	var length = ranges.length;
-	if (length > 0) {
-		var str = "";
-		for (var i = 0; i < length; i++) {
-		  if (i > 0) str += ",";
-		  str += "["+Log.getDurationString(ranges.start(i))+ ","+Log.getDurationString(ranges.end(i))+"]";
-		}
-		return str;
-	} else {
-		return "(empty)";
-	}
 }
 
 /* Functions to generate the tables displaying file information */	
@@ -379,7 +363,7 @@ function load() {
 	downloader.url = url;		
 	downloader.callback = function (response, end) { 
 							if (response) {
-								mp4box.appendBuffer(response); 
+								downloader.chunkStart = mp4box.appendBuffer(response); 
 							}
 							if (end) {
 								mp4box.flush();
@@ -518,7 +502,7 @@ function getfile(dl) {
 			var eof = !(xhr.response.byteLength == dl.chunkSize);
 			xhr.response.fileStart = xhr.start;
 			dl.callback(xhr.response, eof); 
-			dl.chunkStart+=dl.chunkSize;
+			//dl.chunkStart+=dl.chunkSize;
 			if (dl.stop == false && eof == false) {
 				var timeoutDuration = 0;
 				if (!dl.realtime) {
@@ -533,8 +517,6 @@ function getfile(dl) {
 			}
 		}
 	};
-	if (range) {
-		Log.d("Downloader", "Fetching data range: "+range);
-	}
+	Log.d("Downloader", "Fetching "+dl.url+(range ? (" with range: "+range): ""));
 	xhr.send();
 }	

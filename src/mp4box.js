@@ -262,8 +262,10 @@ MP4Box.prototype.processSamples = function() {
 MP4Box.prototype.appendBuffer = function(ab) {
 	var stream;
 	var is_open = this.open(ab);
-	if (!is_open) return;
-	this.processSamples();
+	if (is_open) {
+		this.processSamples();
+	}
+	return this.inputIsoFile.nextParsePosition;
 }
 
 MP4Box.prototype.getInfo = function() {
@@ -396,14 +398,4 @@ MP4Box.prototype.flush = function() {
 	Log.i("MP4Box", "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();
 	this.processSamples();
-}
-
-MP4Box.prototype.getPositionFromTime = function(time, rap) {
-}
-
-MP4Box.prototype.setCurrentTime = function(time) {
-}
-
-MP4Box.prototype.getNextPosition = function() {
-	return this.inputIsoFile.nextParsePosition;
 }
