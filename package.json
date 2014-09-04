@@ -28,6 +28,7 @@
     }
   ],
   "devDependencies": {
-    "grunt-contrib-qunit": "^0.5.2"
+    "grunt-contrib-qunit": "^0.5.2",
+    "qunitjs": "^1.15.0"
   }
 }
