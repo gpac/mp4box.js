@@ -452,7 +452,7 @@ function stop() {
 }		
 
 function onSeeking(e) {
-	if (!video.lastSeekTime) {
+	if (video.lastSeekTime != video.currentTime) {
 		/* Chrome fires twice the seeking event with the same value */
 		Log.i("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
 		var seek_info = mp4box.seek(video.currentTime, true);
