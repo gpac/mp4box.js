@@ -8,7 +8,7 @@ var Log = (function (){
 		var LOG_LEVEL_WARNING 	= 3;
 		var LOG_LEVEL_INFO 		= 2;
 		var LOG_LEVEL_DEBUG		= 1;
-		var log_level = LOG_LEVEL_DEBUG;
+		var log_level = LOG_LEVEL_ERROR;
 		var logObject = {
 			setLogLevel : function(level) {
 				if (level == this.d) log_level = LOG_LEVEL_DEBUG;
