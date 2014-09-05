@@ -122,6 +122,10 @@ function setDownloadChunkSize(value) {
 	downloader.chunkSize = parseInt(value);
 }
 
+function setSegmentSize(value) {
+	document.querySelector('#segment_size_range_out').value = value;
+}
+
 /* Functions to generate the tables displaying file information */	
 function getBasicTrackHeader() {
 	var html = '';
@@ -295,7 +299,7 @@ function addSourceBufferListener(info) {
 						var sb = ms.addSourceBuffer(mime);
 						sb.ms = ms;
 						sb.id = track_id;
-						mp4box.setSegmentOptions(track_id, sb);
+						mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(document.getElementById("segment_size_range").value) } );
 						sb.pendingAppends = new Array();
 						document.getElementById("initButton").disabled = false;
 					} else {

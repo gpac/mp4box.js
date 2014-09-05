@@ -32,8 +32,8 @@ MP4Box.prototype.setSegmentOptions = function(id, user, options) {
 		fragTrack.nb_samples = 1000;
 		fragTrack.rapAlignement = true;
 		if (options) {
-			if (options.nb_samples != undefined) fragTrack.nb_samples = options.nbSamples;
-			if (options.rapAlignement != undefined) fragTrack.rapAlignement = options.rapAlignement;
+			if (options.nbSamples) fragTrack.nb_samples = options.nbSamples;
+			if (options.rapAlignement) fragTrack.rapAlignement = options.rapAlignement;
 		}
 	}
 }
