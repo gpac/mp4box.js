@@ -170,6 +170,9 @@ MP4Box.prototype.open = function(ab) {
 				this.inputStream.nextBuffers.push(ab);
 			}
 			ab.usedBytes = 0;
+			if (ab.fileStart === this.inputIsoFile.nextSeekPosition) {
+				delete this.inputIsoFile.nextSeekPosition;
+			}
 		}
 	}
 	/* Initialize the ISOFile object if not yet created */
@@ -271,12 +274,16 @@ MP4Box.prototype.processSamples = function() {
 }
 
 MP4Box.prototype.appendBuffer = function(ab) {
-	var stream;
-	var is_open = this.open(ab);
+	var is_open;
+	is_open = this.open(ab);
 	if (is_open) {
 		this.processSamples();
 	}
-	return this.inputIsoFile.nextParsePosition;
+	if (this.inputIsoFile.nextSeekPosition) {
+		return this.inputIsoFile.nextSeekPosition;
+	} else {
+		return this.inputIsoFile.nextParsePosition;
+	}
 }
 
 MP4Box.prototype.getInfo = function() {
@@ -409,4 +416,80 @@ MP4Box.prototype.flush = function() {
 	Log.i("MP4Box", "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();
 	this.processSamples();
+}
+
+MP4Box.prototype.seekTrack = function(time, useRap, trak) {
+	var j;
+	var trak;
+	var sample;
+	var rap_offset = Infinity;
+	var rap_time = 0;
+	var seek_offset = Infinity;
+	var rap_seek_sample_num = 0;
+	var seek_sample_num = 0;
+	var timescale;
+	for (j = 0; j < trak.samples.length; j++) {
+		sample = trak.samples[j];
+		if (useRap && sample.is_rap) {
+			rap_offset = sample.offset;
+			rap_time = sample.cts;
+			rap_seek_sample_num = j;
+		}
+		if (j === 0) {
+			seek_offset = sample.offset;
+			seek_sample_num = 0;
+			timescale = sample.timescale;
+		} else if (sample.cts > time * sample.timescale) {
+			seek_offset = trak.samples[j-1].offset;
+			seek_sample_num = j-1;
+			break;
+		}
+	}
+	if (useRap) {
+		trak.nextSample = rap_seek_sample_num;
+		Log.i("MP4Box", "Seeking to RAP sample "+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(rap_time, timescale) +" and offset: "+rap_offset);
+		return { offset: rap_offset, time: rap_time };
+	} else {
+		trak.nextSample = seek_sample_num;
+		Log.i("MP4Box", "Seeking to sample "+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(time)+" and offset: "+rap_offset);
+		return { offset: seek_offset, time: time };
+	}
+}
+
+MP4Box.prototype.seek = function(time, useRap, trackId) {
+	var moov = this.inputIsoFile.moov;
+	var trak;
+	var trak_seek_info;
+	var i;
+	var seek_info = { offset: Infinity, time: Infinity };
+	if (!this.inputIsoFile.moov) {
+		throw "Cannot seek: moov not received!";
+	} else {
+		if (!!trackId) {
+			trak = this.inputIsoFile.getTrackById(trackId);
+			if (trak) {
+				seek_info = this.seekTrack(time, useRap, trak);
+			} else {
+				throw "Cannot seek: track with id "+trackId+" does not exist!";				
+			}
+		} else {
+			for (i = 0; i<moov.traks.length; i++) {
+				trak = moov.traks[i];			
+				trak_seek_info = this.seekTrack(time, useRap, trak);
+				if (trak_seek_info.offset < seek_info.offset) {
+					seek_info.offset = trak_seek_info.offset;
+				}
+				if (trak_seek_info.time < seek_info.time) {
+					seek_info.time = trak_seek_info.time;
+				}
+			}
+		}
+		if (seek_info.offset === Infinity) {
+			/* No sample info, in all tracks, cannot seek */
+			return { offset: this.inputIsoFile.nextParsePosition, time: 0 };
+		} else {
+			this.inputIsoFile.nextSeekPosition = seek_info.offset;
+			return seek_info;
+		}
+	}
 }

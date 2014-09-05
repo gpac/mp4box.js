@@ -452,9 +452,14 @@ function stop() {
 }		
 
 function onSeeking(e) {
-	console.log(e);
-	Log.i("Downloader", "Stopping file download");
-	downloader.stop = true;
+	if (!video.lastSeekTime) {
+		/* Chrome fires twice the seeking event with the same value */
+		Log.i("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
+		var seek_info = mp4box.seek(video.currentTime, true);
+		downloader.chunkStart = seek_info.offset;
+		//video.currentTime = seek_info.time;
+		video.lastSeekTime = video.currentTime;
+	}
 }
 
 function computeWaitingTimeFromBuffer(v) {
@@ -502,7 +507,7 @@ function getfile(dl) {
 	xhr.onreadystatechange = function (e) { 
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
 			var rangeReceived = xhr.getResponseHeader("Content-Range");
-			Log.d("Downloader", "Received data range: "+rangeReceived);
+			Log.i("Downloader", "Received data range: "+rangeReceived);
 			if (!dl.totalLength) {
 				var sizeIndex;
 				sizeIndex = rangeReceived.indexOf("/");
