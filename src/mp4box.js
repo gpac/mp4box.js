@@ -162,11 +162,30 @@ MP4Box.prototype.open = function(ab) {
 			var added = false;
 			for (var i = 0; i < this.inputStream.nextBuffers.length; i++) {
 				var b = this.inputStream.nextBuffers[i];
-				if (ab.fileStart < b.fileStart) {
-					this.inputStream.nextBuffers.splice(i, 0, ab);
+				if (ab.fileStart <= b.fileStart) {
+					if (ab.fileStart === b.fileStart) {
+						if (ab.byteLength >  b.fileStart) {
+							/* remove the next buffer and try again to insert the new one */
+							this.inputStream.nextBuffers.splice(i, 1);
+							i--; 
+							continue;
+						} else {
+							/* just drop the new buffer */
+						}
+					} else {
+						if (ab.fileStart + ab.byteLength <= b.fileStart) {
+							this.inputStream.nextBuffers.splice(i, 0, ab);
+						} else {
+							/* Make sure we don't have overlap in buffers */
+							var smallB = new Uint8Array(b.fileStart - ab.fileStart);
+							smallB.set(ab, 0, b.fileStart - ab.fileStart);
+							smallB.fileStart = ab.fileStart;
+							this.inputStream.nextBuffers.splice(i, 0, smallB);
+						}
+					}
 					added = true;
 					break;
-				}
+				} 
 			}			
 			if (!added) {
 				this.inputStream.nextBuffers.push(ab);
