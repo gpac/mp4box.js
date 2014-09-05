@@ -36,7 +36,7 @@ ISOFile.prototype.findMdatEnd = function(box, size) {
 		} 
 		if (this.stream.nextBuffers.length > 0) {
 			var next_buffer = this.stream.nextBuffers[0];
-			if (next_buffer.fileStart == this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
+			if (next_buffer.fileStart == this.nextParsePosition || next_buffer.fileStart == this.nextSeekPosition) {
 				this.lastPosition = 0;
 				this.stream.position = this.lastPosition;
 				/* We will forget the current buffer (referenced in the mdat anyway) 
