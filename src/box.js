@@ -275,14 +275,9 @@ BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	var ret;
 	var box;
-	/* TODO: Fix reading of footer when not in the first buffer */
 	while (stream.position < this.start+this.size) {
 		ret = BoxParser.parseOneBox(stream);
 		box = ret.box;
-		if (box == BoxParser.ERR_NOT_ENOUGH_DATA) {
-			stream.seek(this.start+this.size);
-			return;
-		}
 		this.boxes.push(box);
 		this[box.type] = box;
 	}	
