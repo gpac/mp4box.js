@@ -152,6 +152,10 @@ ArrayBuffer.concat = function(buffer1, buffer2) {
 
 MP4Box.prototype.open = function(ab) {
 	
+	if (ab.fileStart === undefined) {
+		throw("Buffer must have a fileStart property");
+	}
+	
 	/* if we don't have a DataStream object yet, we create it, otherwise we concatenate the new one with the existing one. */
 	if (!this.inputStream) {
 		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
