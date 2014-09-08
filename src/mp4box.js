@@ -3,16 +3,28 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
  var MP4Box = function () {
-	this.sampleListBuilt = false;
+	/* DataStream object used to parse the boxes */
 	this.inputStream = null;
+	/* List of ArrayBuffers, with a fileStart property, sorted in order and non overlapping */
+	this.nextBuffers = [];	
+	/* ISOFile object containing the parsed boxes */
 	this.inputIsoFile = null;
+	/* Callback called when the moov parsing starts */
 	this.onMoovStart = null;
+	/* Boolean keeping track of the call to onMoovStart, to avoid double calls */
 	this.moovStartSent = false;
+	/* Callback called when the moov is entirely parsed */
 	this.onReady = null;
+	/* Boolean keeping track of the call to onReady, to avoid double calls */
 	this.readySent = false;	
+	/* Callback to call when segments are ready */
 	this.onSegment = null;
+	/* Callback to call when samples are ready */
 	this.onSamples = null;
+	/* Callback to call when there is an error in the parsing or processing of samples */	
 	this.onError = null;
+	/* Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
+	this.sampleListBuilt = false;
 
 	this.fragmentedTracks = new Array();
 	this.extractedTracks = new Array();
@@ -64,7 +76,7 @@ MP4Box.prototype.setExtractionOptions = function(id, user, options) {
 		extractTrack.nb_samples = 1000;
 		extractTrack.samples = [];
 		if (options) {
-			if (options.nb_samples) extractTrack.nb_samples = options.nbSamples;
+			if (options.nbSamples) extractTrack.nb_samples = options.nbSamples;
 		}
 	}
 }
@@ -150,53 +162,88 @@ ArrayBuffer.concat = function(buffer1, buffer2) {
   return tmp.buffer;
 };
 
-MP4Box.prototype.open = function(ab) {
-	
-	if (ab.fileStart === undefined) {
-		throw("Buffer must have a fileStart property");
-	}
-	
-	/* if we don't have a DataStream object yet, we create it, otherwise we concatenate the new one with the existing one. */
-	if (!this.inputStream) {
-		this.inputStream = new DataStream(ab, 0, DataStream.BIG_ENDIAN);	
-		ab.usedBytes = 0;
-		this.inputStream.nextBuffers = [];
-	} else {
-		if (ab.byteLength>0) {
-			var added = false;
-			for (var i = 0; i < this.inputStream.nextBuffers.length; i++) {
-				var b = this.inputStream.nextBuffers[i];
-				if (ab.fileStart <= b.fileStart) {
-					if (ab.fileStart === b.fileStart) {
-						if (ab.byteLength >  b.fileStart) {
-							/* remove the next buffer and try again to insert the new one */
-							this.inputStream.nextBuffers.splice(i, 1);
-							i--; 
-							continue;
-						} else {
-							/* just drop the new buffer */
-						}
-					} else {
-						if (ab.fileStart + ab.byteLength <= b.fileStart) {
-							this.inputStream.nextBuffers.splice(i, 0, ab);
-						} else {
-							/* Make sure we don't have overlap in buffers */
-							var smallB = new Uint8Array(b.fileStart - ab.fileStart);
-							smallB.set(ab, 0, b.fileStart - ab.fileStart);
-							smallB.fileStart = ab.fileStart;
-							this.inputStream.nextBuffers.splice(i, 0, smallB);
-						}
+MP4Box.prototype.insertBuffer = function(ab) {	
+	var to_add = true;
+	/* insert the new buffer in the sorted list of buffers, making sure, it is not overlapping with existing ones */
+	for (var i = 0; i < this.nextBuffers.length; i++) {
+		var b = this.nextBuffers[i];
+		if (ab.fileStart <= b.fileStart) {
+			/* the insertion position is found */
+			if (ab.fileStart === b.fileStart) {
+				/* The new buffer overlaps with an existing buffer */
+				if (ab.byteLength >  b.byteLength) {
+					/* the new buffer is bigger than the existing one
+					   remove the existing buffer and try again to insert 
+					   the new buffer to check overlap with the next ones */
+					this.nextBuffers.splice(i, 1);
+					i--; 
+					continue;
+				} else {
+					/* the new buffer is smaller than the existing one, just drop it */
+				}
+			} else {
+				/* The beginning of the new buffer is not overlapping with an existing buffer
+				   let's check the end of it */
+				if (ab.fileStart + ab.byteLength <= b.fileStart) {
+					/* no overlap, we can add it as is */
+					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
+					this.nextBuffers.splice(i, 0, ab);
+					if (i == 0 && this.inputStream != null) {
+						this.inputStream.buffer = ab;
 					}
-					added = true;
-					break;
-				} 
-			}			
-			if (!added) {
-				this.inputStream.nextBuffers.push(ab);
+				} else {
+					/* There is some overlap, cut the new buffer short, and add it*/
+					var smallB = new Uint8Array(b.fileStart - ab.fileStart);
+					smallB.set(new Uint8Array(ab, 0, b.fileStart - ab.fileStart));
+					smallB.fileStart = ab.fileStart;
+					ab = smallB;
+					ab.usedBytes = 0;
+					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
+					this.nextBuffers.splice(i, 0, ab);
+					if (i == 0 && this.inputStream != null) {
+						this.inputStream.buffer = ab;
+					}
+				}
 			}
+			to_add = false;
+			break;
+		} else if (ab.fileStart < b.fileStart + b.byteLength) {
+			/* the new buffer overlaps its end with the current buffer */
+			var offset = b.fileStart + b.byteLength - ab.fileStart;
+			var newLength = ab.byteLength - offset;
+			var smallB = new Uint8Array(newLength);
+			smallB.set(new Uint8Array(ab, offset, newLength));
+			smallB.buffer.fileStart = ab.fileStart+offset;
+			ab = smallB.buffer;
 			ab.usedBytes = 0;
 		}
+	}			
+	if (to_add) {
+		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
+		this.nextBuffers.push(ab);
+		if (i == 0 && this.inputStream != null) {
+			this.inputStream.buffer = ab;
+		}
 	}
+}
+
+MP4Box.prototype.open = function() {
+	if (!this.inputStream) { /* We create the DataStream object only when we have the first bytes of the file */
+		if (this.nextBuffers.length > 0) {
+			var firstBuffer = this.nextBuffers[0];
+			if (firstBuffer.fileStart == 0) {
+				this.inputStream = new DataStream(firstBuffer, 0, DataStream.BIG_ENDIAN);	
+				this.inputStream.nextBuffers = this.nextBuffers;
+				this.inputStream.bufferIndex = 0;
+			} else {
+				Log.w("MP4Box", "The first buffer should have a fileStart of 0");
+				return false;
+			}
+		} else {
+			Log.w("MP4Box", "No buffer to start parsing from");
+			return false;
+		}		
+	} 
 	/* Initialize the ISOFile object if not yet created */
 	if (!this.inputIsoFile) {
 		this.inputIsoFile = new ISOFile(this.inputStream);
@@ -210,7 +257,6 @@ MP4Box.prototype.open = function(ab) {
 
 	if (!this.inputIsoFile.moov) {
 		/* The parsing has not yet found a moov, not much can be done */
-		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+this.inputIsoFile.nextParsePosition);
 		return false;	
 	} else {
 		/* A moov box has been found */
@@ -229,9 +275,7 @@ MP4Box.prototype.open = function(ab) {
 			var info = this.getInfo();
 			this.readySent = true;
 			this.onReady(info);
-		}	
-		
-		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+this.inputIsoFile.nextParsePosition);
+		}			
 		return true;
 	}
 }
@@ -240,7 +284,7 @@ MP4Box.prototype.processSamples = function() {
 	/* For each track marked for fragmentation, 
 	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) 
 	   and create a fragment with it */
-	if (this.isFragmentationStarted) {
+	if (this.isFragmentationStarted && this.onSegment !== null) {
 		for (var i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
 			var trak = fragTrak.trak;
@@ -265,31 +309,41 @@ MP4Box.prototype.processSamples = function() {
 					}
 					/* force the creation of a new buffer */
 					fragTrak.segmentStream = null;
+					if (fragTrak !== this.fragmentedTracks[i]) {
+						/* make sure we can stop fragmentation if needed */
+						break;
+					}
 				}
 			}
 		}
 	}
 
-	/* For each track marked for data export, 
-	   check if the next sample is there (i.e. has been downloaded) and send it */
-	for (var i = 0; i < this.extractedTracks.length; i++) {
-		var extractTrak = this.extractedTracks[i];
-		var trak = extractTrak.trak;
-		while (trak.nextSample < trak.samples.length) {				
-			Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+trak.nextSample); 			
-			var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
-			if (sample) {
-				trak.nextSample++;
-				extractTrak.samples.push(sample);
-			} else {
-				return;
-			}
-			if (trak.nextSample % extractTrak.nb_samples == 0 || trak.nextSample >= trak.samples.length) {
-				Log.i("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
-				if (this.onSamples) {
-					this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
+	if (this.onSamples !== null) {
+		/* For each track marked for data export, 
+		   check if the next sample is there (i.e. has been downloaded) and send it */
+		for (var i = 0; i < this.extractedTracks.length; i++) {
+			var extractTrak = this.extractedTracks[i];
+			var trak = extractTrak.trak;
+			while (trak.nextSample < trak.samples.length) {				
+				Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+trak.nextSample); 			
+				var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
+				if (sample) {
+					trak.nextSample++;
+					extractTrak.samples.push(sample);
+				} else {
+					return;
 				}
-				extractTrak.samples = [];
+				if (trak.nextSample % extractTrak.nb_samples == 0 || trak.nextSample >= trak.samples.length) {
+					Log.i("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
+					if (this.onSamples) {
+						this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
+					}
+					extractTrak.samples = [];
+					if (extractTrak !== this.extractedTracks[i]) {
+						/* check if the extraction needs to be stopped */
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -297,18 +351,40 @@ MP4Box.prototype.processSamples = function() {
 
 MP4Box.prototype.appendBuffer = function(ab) {
 	var is_open;
-	is_open = this.open(ab);
+	if (ab === null || ab === undefined) {
+		throw("Buffer must be defined and non empty");
+	}	
+	if (ab.fileStart === undefined) {
+		throw("Buffer must have a fileStart property");
+	}	
+	if (ab.byteLength == 0) {
+		Log.w("MP4Box", "Ignoring empty buffer");
+		return;
+	}
+	/* mark the bytes in the buffer as not being used yet */
+	ab.usedBytes = 0;
+	this.insertBuffer(ab);
+	is_open = this.open();
 	if (is_open) {
 		this.processSamples();
-	}
-	if (this.inputIsoFile.stream.buffer.fileStart === this.inputIsoFile.nextSeekPosition) {
-		delete this.inputIsoFile.nextSeekPosition;		
-	}
-	if (this.inputIsoFile.nextSeekPosition) {
-		return this.inputIsoFile.nextSeekPosition;
+		
+		/* Inform about the best range to fetch next */
+		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+this.inputIsoFile.nextParsePosition);	
+		if (this.inputIsoFile.stream.buffer.fileStart === this.inputIsoFile.nextSeekPosition) {
+			delete this.inputIsoFile.nextSeekPosition;		
+		}
+		if (this.inputIsoFile.nextSeekPosition) {
+			return this.inputIsoFile.nextSeekPosition;
+		} else {
+			return this.inputIsoFile.nextParsePosition;
+		}
 	} else {
-		return this.inputIsoFile.nextParsePosition;
-	}
+		if (this.inputIsoFile !== null) {
+			return this.inputIsoFile.nextParsePosition;
+		} else {
+			return 0;
+		}
+	}	
 }
 
 MP4Box.prototype.getInfo = function() {
@@ -391,7 +467,17 @@ MP4Box.prototype.getInitializationSegment = function() {
 	return stream.buffer;
 }
 
+MP4Box.prototype.writeFile = function() {
+	var stream = new DataStream();
+	stream.endianness = DataStream.BIG_ENDIAN;
+	this.inputIsoFile.write(stream);
+	return stream.buffer;
+}
+
 MP4Box.prototype.initializeSegmentation = function() {
+	if (this.onSegment === null) {
+		Log.w("MP4Box", "No segmentation callback set!");
+	}
 	if (!this.isFragmentationStarted) {
 		this.isFragmentationStarted = true;		
 		this.nextMoofNumber = 0;

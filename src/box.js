@@ -166,6 +166,7 @@ var BoxParser = {
 			hdr_size += 8;
 		} else if (size == 0) {
 			/* box extends till the end of file */
+			throw "Unlimited box size not supported";
 		}
 		
 		if (start + size > stream.byteLength ) {
@@ -929,9 +930,12 @@ BoxParser.FullBox.prototype.writeHeader = function(stream) {
 }
 
 BoxParser.Box.prototype.write = function(stream) {
-	this.size = this.data.length;
-	this.writeHeader(stream);
-	if (this.data) {
+	if (this.type === "mdat") {
+		this.writeHeader(stream);
+		/* TODO: fix this */
+	} else {
+		this.size = this.data.length;
+		this.writeHeader(stream);
 		stream.writeUint8Array(this.data);
 	}
 }
