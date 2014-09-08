@@ -23,7 +23,7 @@
   },
   "licenses": [
     {
-      "type": "BSD-3",
+      "type": "BSD-3-Clause",
       "url": "https://github.com/gpac/mp4box.js/blob/master/LICENSE"
     }
   ],
