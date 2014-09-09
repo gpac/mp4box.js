@@ -719,6 +719,7 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 });
 
 /* Not yet tested:
+ - onMoovStart event (partial parsing & entire parsing)
  - seek
  - flush
  - track ref
@@ -726,11 +727,15 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
  - release samples
  - release buffers
  - extract VTT samples
+ - mp4 features
+   - edit list
  - boxes:
    - uuid
    - large box
    - version 1: mvhd, tkhd, mdhd, hdlr, ctts, stss, stsh, co64, stsc, stsz, mehd, subs
    - cslg, stsh, co64
  - descriptors:
-  - 
+  - large desc
+  - unknown desc
+  - depends, url, ocr
  */
