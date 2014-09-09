@@ -49,6 +49,22 @@ ISOFile.prototype.repositionAtMdatEnd = function(box, size) {
 	return false; 
 }
 
+ISOFile.prototype.findEndContiguousBuf = function() {
+	var i;
+	var currentBuf = this.stream.nextBuffers[this.stream.bufferIndex];
+	if (this.stream.nextBuffers.length > this.stream.bufferIndex) {
+		for (i = this.stream.bufferIndex+1; i < this.stream.nextBuffers.length; i++) {
+			var nextBuf = this.stream.nextBuffers[i];
+			if (nextBuf.fileStart === currentBuf.fileStart + currentBuf.byteLength) {
+				currentBuf = nextBuf;
+			} else {
+				break;
+			}
+		}
+	}
+	return currentBuf.fileStart + currentBuf.byteLength;
+}
+
 ISOFile.prototype.parse = function() {
 	var found;
 	var ret;
@@ -69,6 +85,7 @@ ISOFile.prototype.parse = function() {
 				continue;
 			} else {
 				/* let's wait for more buffer to come */
+				this.nextParsePosition = this.findEndContiguousBuf();
 				return;
 			}
 		} else {		
@@ -95,10 +112,12 @@ ISOFile.prototype.parse = function() {
 						/* let's see if we can parse more in this buffer */
 						continue;
 					} else {
-						/* let's wait for more buffer to come */
+						/* determine the next position */
 						if (this.moovStartFound) {
-							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							/* let's wait for more buffer to come */
+							this.nextParsePosition = this.findEndContiguousBuf();
 						} else {
+							/* moov not find yet, skip this box */
 							this.nextParsePosition = box.fileStart + box.size+box.hdr_size;
 						}
 						return;
@@ -112,7 +131,7 @@ ISOFile.prototype.parse = function() {
 					   we try to concatenate the current buffer with the next buffer to restart parsing */
 					if (this.stream.bufferIndex < this.stream.nextBuffers.length - 1) {
 						var next_buffer = this.stream.nextBuffers[this.stream.bufferIndex+1];
-						if (next_buffer.fileStart == this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
+						if (next_buffer.fileStart === this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
 							var oldLength = this.stream.buffer.byteLength;
 							var oldUsedBytes = this.stream.buffer.usedBytes;
 							var oldFileStart = this.stream.buffer.fileStart;
@@ -168,6 +187,7 @@ ISOFile.prototype.parse = function() {
 						this.stream.buffer.usedBytes += ret.size;
 						break;
 					case "moov":
+						this.moovStartFound = true;
 						if (this.mdats.length == 0) {
 							this.isProgressive = true;
 						}

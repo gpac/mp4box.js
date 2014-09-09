@@ -380,8 +380,11 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		}
 	} else {
 		if (this.inputIsoFile !== null) {
+			/* The file is not open (i.e. no movie has been parsed) but the first buffer was received, 
+			   the next fetch should probably be the next box start */
 			return this.inputIsoFile.nextParsePosition;
 		} else {
+			/* No valid buffer has been parsed yet, we cannot know what to parse next */
 			return 0;
 		}
 	}	
