@@ -926,8 +926,12 @@ BoxParser.FullBox.prototype.writeHeader = function(stream) {
 
 BoxParser.Box.prototype.write = function(stream) {
 	if (this.type === "mdat") {
-		this.writeHeader(stream);
 		/* TODO: fix this */
+		if (this.data) {
+			this.size = this.data.length;
+			this.writeHeader(stream);
+			stream.writeUint8Array(this.data);
+		}
 	} else {
 		this.size = this.data.length;
 		this.writeHeader(stream);
