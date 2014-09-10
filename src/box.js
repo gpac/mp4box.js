@@ -140,7 +140,7 @@ var BoxParser = {
 		BoxParser.FullBox.call(this, "stsd", size);
 		this.entries = new Array();
 	},
-	parseOneBox: function(stream) {
+	parseOneBox: function(stream, isSampleEntry) {
 		var box;
 		var start = stream.position;
 		var hdr_size = 0;
@@ -177,7 +177,11 @@ var BoxParser = {
 		if (BoxParser[type+"Box"]) {
 			box = new BoxParser[type+"Box"](size - hdr_size);		
 		} else {
-			box = new BoxParser.Box(type, size - hdr_size);
+			if (isSampleEntry) {
+				box = new BoxParser.SampleEntry(type, size - hdr_size);
+			} else {
+				box = new BoxParser.Box(type, size - hdr_size);
+			}
 		}
 		/* recording the position of the box in the input stream */
 		box.hdr_size = hdr_size;
@@ -276,7 +280,7 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	var ret;
 	var box;
 	while (stream.position < this.start+this.size) {
-		ret = BoxParser.parseOneBox(stream);
+		ret = BoxParser.parseOneBox(stream, true);
 		box = ret.box;
 		this.boxes.push(box);
 		this[box.type] = box;
@@ -285,7 +289,7 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 
 BoxParser.SampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
-	this.parseFooter(stream);
+	stream.seek(this.start+this.size);
 }
 
 BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
@@ -457,7 +461,7 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	entryCount = stream.readUint32();
 	for (i = 1; i <= entryCount; i++) {
-		ret = BoxParser.parseOneBox(stream);
+		ret = BoxParser.parseOneBox(stream, true);
 		this.entries.push(ret.box);
 	}
 }
