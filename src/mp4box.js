@@ -374,7 +374,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		return this.inputIsoFile.nextParsePosition;
 	} else {
 		if (this.inputIsoFile !== null) {
-			/* The file is not open (i.e. no movie has been parsed) but the first buffer was received, 
+			/* moov has not been parsed but the first buffer was received, 
 			   the next fetch should probably be the next box start */
 			return this.inputIsoFile.nextParsePosition;
 		} else {

@@ -740,7 +740,7 @@ QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
 			assert.equal(samples[0].size, 176, "Sample size matches");
 		}
 		mp4box.unsetExtractionOptions(track_id);
-		if (!useRap) {
+		if (seekStep === 1) {
 			window.clearTimeout(timeout);
 			QUnit.start();	
 		}
