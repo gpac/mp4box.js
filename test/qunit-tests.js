@@ -31,8 +31,12 @@ var testFiles = [
 		url: './subtitle-srt-tx3g.mp4'
 	},
 	{
+		desc: "non-fragmented MP4 file with 1 text:stse stream",
+		url: './anim-svg.mp4'
+	},
+	{
 		desc: "non-fragmented MP4 file with 1 subt:stpp stream",
-		url: './subtitle-ttml-stpp.mp4'
+		url: './ttml.mp4'
 	},
 	{
 		desc: "non-fragmented MP4 file with single AVC stream, moov is last box",
@@ -784,21 +788,21 @@ QUnit.asyncTest( "Seek without moov", function( assert ) {
 });
 
 QUnit.module("Write tests");
-QUnit.asyncTest( "Write entire file back", function( assert ) {
+QUnit.asyncTest( "Generate initialization segment", function( assert ) {
 	var index = 0;
 	var track_id;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
 	var mp4box = new MP4Box();
-	QUnit.stop();	
 	mp4box.onReady = function(info) { 
+		window.clearTimeout(timeout);
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;		
 		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: false } );
-		mp4box.getInitializationSegment();
+		assert.ok(mp4box.getInitializationSegment(), "Init segments generated");;
 		QUnit.start();	
 	}
 	getFile(testFiles[index].url, function (buffer) {
-			mp4box.appendBuffer(buffer);
+		mp4box.appendBuffer(buffer);
 	});
 });
 
