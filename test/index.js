@@ -38,74 +38,7 @@ window.onload = function () {
 	reset();	
 }
 
-function reset() {
-	stop();
-	downloader.reset();
-	startButton.disabled = true;	
-	resetMediaSource();
-	resetDisplay();
-	setUrl('');
-}
-
-function resetMediaSource() {
-	var mediaSource;
-	mediaSource = new MediaSource();
-	mediaSource.video = video;
-	video.ms = mediaSource;
-	mediaSource.addEventListener("sourceopen", onSourceOpen);
-	mediaSource.addEventListener("sourceclose", onSourceClose);
-	video.src = window.URL.createObjectURL(mediaSource);
-	/* TODO: remove Text tracks */
-}
-
-function resetDisplay() {
-	infoDiv.innerHTML = '';
-}
-
-function onSourceClose(e) {
-	var ms = e.target;
-	Log.i("MSE", "Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
-	Log.d("MSE", ms);
-}
-
-function onSourceOpen(e) {
-	var ms = e.target;
-	Log.i("MSE", "Source opened");
-	Log.d("MSE", ms);
-	urlSelector.disabled = false;
-}
-
-function onInitAppended(e) {
-	var sb = e.target;
-	var rangeString = Log.printRanges(sb.buffered);
-	Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
-	sb.bufferTd = document.getElementById("buffer"+sb.id);
-	sb.bufferTd.textContent = rangeString;
-	sb.sampleNum = 0;
-	sb.removeEventListener('updateend', onInitAppended);
-	sb.addEventListener('updateend', onUpdateEnd.bind(sb));
-	/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
-	onUpdateEnd.call(sb, null);
-}
-
-function onUpdateEnd(e) {
-	if (e != null) {
-		var rangeString = Log.printRanges(this.buffered);
-		Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+rangeString+" pending: "+this.pendingAppends.length+" media time: "+Log.getDurationString(video.currentTime));
-		this.bufferTd.textContent = rangeString;
-	}
-	if (this.sampleNum) {
-		mp4box.releaseUsedSamples(this.id, this.sampleNum);
-		delete this.sampleNum;
-	}
-	if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
-		Log.i("MSE - SourceBuffer #"+this.id, "Appending new buffer");
-		var obj = this.pendingAppends.shift();
-		this.sampleNum = obj.sampleNum;
-		this.appendBuffer(obj.buffer);
-	}
-}
-
+/* GUI-related callback functions */
 function setUrl(url) {
 	urlInput.value = url;
 	if (url && url != "") {
@@ -140,6 +73,10 @@ function setSegmentSize(value) {
 }
 
 /* Functions to generate the tables displaying file information */	
+function resetDisplay() {
+	infoDiv.innerHTML = '';
+}
+
 function getBasicTrackHeader() {
 	var html = '';
 	html += "<th>Track ID</th>";
@@ -298,6 +235,62 @@ function displayMovieInfo(info) {
 	infoDiv.innerHTML = html;
 }
 
+/* main functions, MSE-related */
+function resetMediaSource() {
+	var mediaSource;
+	mediaSource = new MediaSource();
+	mediaSource.video = video;
+	video.ms = mediaSource;
+	mediaSource.addEventListener("sourceopen", onSourceOpen);
+	mediaSource.addEventListener("sourceclose", onSourceClose);
+	video.src = window.URL.createObjectURL(mediaSource);
+	/* TODO: remove Text tracks */
+}
+
+function onSourceClose(e) {
+	var ms = e.target;
+	Log.i("MSE", "Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
+	Log.d("MSE", ms);
+}
+
+function onSourceOpen(e) {
+	var ms = e.target;
+	Log.i("MSE", "Source opened");
+	Log.d("MSE", ms);
+	urlSelector.disabled = false;
+}
+
+function onInitAppended(e) {
+	var sb = e.target;
+	var rangeString = Log.printRanges(sb.buffered);
+	Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
+	sb.bufferTd = document.getElementById("buffer"+sb.id);
+	sb.bufferTd.textContent = rangeString;
+	sb.sampleNum = 0;
+	sb.removeEventListener('updateend', onInitAppended);
+	sb.addEventListener('updateend', onUpdateEnd.bind(sb));
+	/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
+	onUpdateEnd.call(sb, null);
+}
+
+function onUpdateEnd(e) {
+	if (e != null) {
+		var rangeString = Log.printRanges(this.buffered);
+		Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+rangeString+" pending: "+this.pendingAppends.length+" media time: "+Log.getDurationString(video.currentTime));
+		this.bufferTd.textContent = rangeString;
+	}
+	if (this.sampleNum) {
+		mp4box.releaseUsedSamples(this.id, this.sampleNum);
+		delete this.sampleNum;
+	}
+	if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
+		Log.i("MSE - SourceBuffer #"+this.id, "Appending new buffer");
+		var obj = this.pendingAppends.shift();
+		this.sampleNum = obj.sampleNum;
+		this.appendBuffer(obj.buffer);
+	}
+}
+
 function addSourceBufferListener(info) {
 	var ms = video.ms;
 	for (var i = 0; i < info.tracks.length; i++) {
@@ -339,56 +332,6 @@ function addSourceBufferListener(info) {
 				}
 			};
 		})(track.id, track.codec));
-	}
-}
-
-function load() {
-	var ms = video.ms;
-	if (ms.readyState != "open") {
-		return;
-	}
-
-	mp4box = new MP4Box();
-	mp4box.onMoovStart = function () {
-		Log.i("Application", "Starting to parse movie information");
-	}
-	mp4box.onReady = function (info) {
-		Log.i("Application", "Movie information received");
-		stop();
-		if (info.isFragmented) {
-			ms.duration = info.fragment_duration/info.timescale;
-		} else {
-			ms.duration = info.duration/info.timescale;
-		}
-		displayMovieInfo(info);
-		addSourceBufferListener(info);
-	}
-				
-	loadButton.disabled = true;
-	startButton.disabled = true;
-	stopButton.disabled = false;
-
-	downloader.setCallback(
-		function (response, end) { 
-			if (response) {
-				var nextStart = mp4box.appendBuffer(response);
-				downloader.setChunkStart(nextStart); 
-			}
-			if (end) {
-				mp4box.flush();
-			}
-		}
-	);
-	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
-	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
-	downloader.setUrl(urlInput.value);
-	downloader.start();
-}
-
-function saveBuffer(buffer, name) {		
-	if (saveChecked.checked) {
-		var d = new DataStream(buffer);
-		d.save(name);
 	}
 }
 
@@ -434,6 +377,59 @@ function initializeSourceBuffers() {
 	
 	initButton.disabled = true;
 	startButton.disabled = false;
+}
+
+/* main player functions */
+function reset() {
+	stop();
+	downloader.reset();
+	startButton.disabled = true;	
+	resetMediaSource();
+	resetDisplay();
+	setUrl('');
+}
+
+function load() {
+	var ms = video.ms;
+	if (ms.readyState != "open") {
+		return;
+	}
+
+	mp4box = new MP4Box();
+	mp4box.onMoovStart = function () {
+		Log.i("Application", "Starting to parse movie information");
+	}
+	mp4box.onReady = function (info) {
+		Log.i("Application", "Movie information received");
+		stop();
+		if (info.isFragmented) {
+			ms.duration = info.fragment_duration/info.timescale;
+		} else {
+			ms.duration = info.duration/info.timescale;
+		}
+		displayMovieInfo(info);
+		addSourceBufferListener(info);
+	}
+				
+	loadButton.disabled = true;
+	startButton.disabled = true;
+	stopButton.disabled = false;
+
+	downloader.setCallback(
+		function (response, end) { 
+			if (response) {
+				var nextStart = mp4box.appendBuffer(response);
+				downloader.setChunkStart(nextStart); 
+			}
+			if (end) {
+				mp4box.flush();
+			}
+		}
+	);
+	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
+	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
+	downloader.setUrl(urlInput.value);
+	downloader.start();
 }
 
 function start() {
@@ -491,3 +487,11 @@ function computeWaitingTimeFromBuffer(v) {
 		return 1000*(minEndRange-currentTime)/2;
 	}
 }
+
+function saveBuffer(buffer, name) {		
+	if (saveChecked.checked) {
+		var d = new DataStream(buffer);
+		d.save(name);
+	}
+}
+
