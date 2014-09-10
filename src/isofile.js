@@ -51,16 +51,38 @@ ISOFile.prototype.repositionAtMdatEnd = function(box, size) {
 
 ISOFile.prototype.findEndContiguousBuf = function() {
 	var i;
-	var currentBuf = this.stream.nextBuffers[this.stream.bufferIndex];
-	if (this.stream.nextBuffers.length > this.stream.bufferIndex) {
-		for (i = this.stream.bufferIndex+1; i < this.stream.nextBuffers.length; i++) {
-			var nextBuf = this.stream.nextBuffers[i];
-			if (nextBuf.fileStart === currentBuf.fileStart + currentBuf.byteLength) {
-				currentBuf = nextBuf;
+	var currentBuf;
+	var nextBuf;
+	if (this.nextSeekPosition) {
+		/* find the buffer with the largest position smaller than the seek position 
+		   the seek can be in the past, we need to check from the beginning */
+		for (i = 0; i < this.stream.nextBuffers.length; i++) {
+			nextBuf = this.stream.nextBuffers[i];
+			if (nextBuf.fileStart <= this.nextSeekPosition) {
+				currentBuf = this.stream.nextBuffers[i];
+				this.stream.bufferIndex = i;
 			} else {
 				break;
 			}
 		}
+	} else {
+		currentBuf = this.stream.nextBuffers[this.stream.bufferIndex];
+	}
+	/* find the end of the contiguous range of data */
+	if (this.stream.nextBuffers.length > this.stream.bufferIndex) {
+		for (i = this.stream.bufferIndex+1; i < this.stream.nextBuffers.length; i++) {
+			nextBuf = this.stream.nextBuffers[i];
+			if (nextBuf.fileStart === currentBuf.fileStart + currentBuf.byteLength) {
+				currentBuf = nextBuf;
+				this.stream.bufferIndex = i;
+			} else {
+				break;
+			}
+		}
+	}
+	if (currentBuf.fileStart + currentBuf.byteLength >= this.nextSeekPosition) {
+		/* no need to seek anymore, the seek position is in the buffer */
+		delete this.nextSeekPosition;
 	}
 	return currentBuf.fileStart + currentBuf.byteLength;
 }
@@ -69,8 +91,6 @@ ISOFile.prototype.parse = function() {
 	var found;
 	var ret;
 	var box;
-	
-	/* finding the buffer corresponding to the next parsing position */
 	
 	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" from position "+this.lastPosition+" ("+(this.stream.buffer.fileStart+this.lastPosition)+" in the file)");
 	this.stream.seek(this.lastPosition);

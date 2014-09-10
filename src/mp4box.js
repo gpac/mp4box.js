@@ -180,6 +180,7 @@ MP4Box.prototype.insertBuffer = function(ab) {
 					continue;
 				} else {
 					/* the new buffer is smaller than the existing one, just drop it */
+					Log.w("MP4Box", "Buffer already appended, ignoring");
 				}
 			} else {
 				/* The beginning of the new buffer is not overlapping with an existing buffer
@@ -370,14 +371,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		
 		/* Inform about the best range to fetch next */
 		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+this.inputIsoFile.nextParsePosition);	
-		if (this.inputIsoFile.stream.buffer.fileStart === this.inputIsoFile.nextSeekPosition) {
-			delete this.inputIsoFile.nextSeekPosition;		
-		}
-		if (this.inputIsoFile.nextSeekPosition) {
-			return this.inputIsoFile.nextSeekPosition;
-		} else {
-			return this.inputIsoFile.nextParsePosition;
-		}
+		return this.inputIsoFile.nextParsePosition;
 	} else {
 		if (this.inputIsoFile !== null) {
 			/* The file is not open (i.e. no movie has been parsed) but the first buffer was received, 
