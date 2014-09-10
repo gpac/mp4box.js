@@ -514,7 +514,6 @@ MP4Box.prototype.initializeSegmentation = function() {
 
 /* Called by the application to release the resources associated to samples already forwarded to the application */
 MP4Box.prototype.releaseUsedSamples = function (id, sampleNum) {
-    var start = new Date;
 	var size = 0;
 	var trak = this.inputIsoFile.getTrackById(id);
 	if (!trak.lastValidSample) trak.lastValidSample = 0;
@@ -570,7 +569,7 @@ MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	}
 }
 
-MP4Box.prototype.seek = function(time, useRap, trackId) {
+MP4Box.prototype.seek = function(time, useRap) {
 	var moov = this.inputIsoFile.moov;
 	var trak;
 	var trak_seek_info;
@@ -579,23 +578,14 @@ MP4Box.prototype.seek = function(time, useRap, trackId) {
 	if (!this.inputIsoFile.moov) {
 		throw "Cannot seek: moov not received!";
 	} else {
-		if (!!trackId) {
-			trak = this.inputIsoFile.getTrackById(trackId);
-			if (trak) {
-				seek_info = this.seekTrack(time, useRap, trak);
-			} else {
-				throw "Cannot seek: track with id "+trackId+" does not exist!";				
+		for (i = 0; i<moov.traks.length; i++) {
+			trak = moov.traks[i];			
+			trak_seek_info = this.seekTrack(time, useRap, trak);
+			if (trak_seek_info.offset < seek_info.offset) {
+				seek_info.offset = trak_seek_info.offset;
 			}
-		} else {
-			for (i = 0; i<moov.traks.length; i++) {
-				trak = moov.traks[i];			
-				trak_seek_info = this.seekTrack(time, useRap, trak);
-				if (trak_seek_info.offset < seek_info.offset) {
-					seek_info.offset = trak_seek_info.offset;
-				}
-				if (trak_seek_info.time < seek_info.time) {
-					seek_info.time = trak_seek_info.time;
-				}
+			if (trak_seek_info.time < seek_info.time) {
+				seek_info.time = trak_seek_info.time;
 			}
 		}
 		if (seek_info.offset === Infinity) {

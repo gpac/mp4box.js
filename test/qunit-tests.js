@@ -84,7 +84,7 @@ for (var i = 0; i < testFiles.length; i++) {
 }
 
 QUnit.module("Advanced chunk parsing");
-QUnit.test( "appending wrong buffer", function( assert ) {
+QUnit.test( "appending invalid buffer", function( assert ) {
 	var mp4box = new MP4Box();
 	assert.throws(function() { mp4box.appendBuffer(null) }, "Exception thrown because of null buffer");
 	assert.throws(function() { mp4box.appendBuffer(new ArrayBuffer()) }, "Exception thrown because of missing fileStart property");
@@ -550,25 +550,6 @@ QUnit.asyncTest( "appending only one buffer with fileStart different from zero",
 	});
 });
 
-QUnit.module("Parsing-driven download");
-QUnit.asyncTest( "Moov-last", function( assert ) {
-	var mp4box = new MP4Box();
-
-	getFileRange('./moov_last.mp4', 0, 19, function (buffer) {
-		var next_pos = mp4box.appendBuffer(buffer);
-		assert.equal(next_pos, 32, "Next position after first append corresponds to next box start");
-		getFileRange('./moov_last.mp4', 20, 39, function (buffer) {
-			var next_pos = mp4box.appendBuffer(buffer);
-			assert.equal(next_pos, 40, "Next position after second append corresponds to next box start");
-			getFileRange('./moov_last.mp4', 40, 100, function (buffer) {
-				var next_pos = mp4box.appendBuffer(buffer);
-				assert.equal(next_pos, 1309934+40, "Next position after third append corresponds to moov position");
-				QUnit.start();
-			});
-		});			
-	});
-});
-
 QUnit.module("Segmentation/Extraction tests");
 QUnit.asyncTest( "Basic Segmentation", function( assert ) {
 	var index = 0;
@@ -592,7 +573,7 @@ QUnit.asyncTest( "Basic Segmentation", function( assert ) {
 		mp4box.initializeSegmentation();
 	}
 	getFile(testFiles[index].url, function (buffer) {
-			mp4box.appendBuffer(buffer);
+		mp4box.appendBuffer(buffer);
 	});
 });
 
@@ -612,7 +593,26 @@ QUnit.asyncTest( "Segmentation when no sample is ready", function( assert ) {
 		mp4box.initializeSegmentation();
 	}
 	getFileRange(testFiles[index].url, 0, 68500, function (buffer) {
-			mp4box.appendBuffer(buffer);
+		mp4box.appendBuffer(buffer);
+	});
+});
+
+QUnit.asyncTest( "Segmentation without callback", function( assert ) {
+	var index = 0;
+	var track_id;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	mp4box.onReady = function(info) { 
+		assert.ok(true, "moov found!" );	
+		track_id = info.tracks[0].id;
+		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
+		mp4box.initializeSegmentation();
+	}
+	getFile(testFiles[index].url, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		window.clearTimeout(timeout);
+		assert.ok(true, "append ended before timeout!" );	
+		QUnit.start();
 	});
 });
 
@@ -656,6 +656,122 @@ QUnit.asyncTest( "Extraction when no sample is ready", function( assert ) {
 	}
 	getFileRange(testFiles[index].url, 0, 68500, function (buffer) {
 			mp4box.appendBuffer(buffer);
+	});
+});
+
+QUnit.asyncTest( "Extraction without callback", function( assert ) {
+	var index = 0;
+	var track_id;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	mp4box.onReady = function(info) { 
+		assert.ok(true, "moov found!" );	
+		track_id = info.tracks[0].id;
+		mp4box.setExtractionOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
+	}
+	getFile(testFiles[index].url, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		window.clearTimeout(timeout);
+		assert.ok(true, "append ended before timeout!" );	
+		QUnit.start();
+	});
+});
+
+QUnit.module("Parsing-driven download");
+QUnit.asyncTest( "Moov-last", function( assert ) {
+	var mp4box = new MP4Box();
+
+	getFileRange('./moov_last.mp4', 0, 19, function (buffer) {
+		var next_pos = mp4box.appendBuffer(buffer);
+		assert.equal(next_pos, 32, "Next position after first append corresponds to next box start");
+		getFileRange('./moov_last.mp4', 20, 39, function (buffer) {
+			var next_pos = mp4box.appendBuffer(buffer);
+			assert.equal(next_pos, 40, "Next position after second append corresponds to next box start");
+			getFileRange('./moov_last.mp4', 40, 100, function (buffer) {
+				var next_pos = mp4box.appendBuffer(buffer);
+				assert.equal(next_pos, 1309934+40, "Next position after third append corresponds to moov position");
+				QUnit.start();
+			});
+		});			
+	});
+});
+
+QUnit.asyncTest( "mdat progressive download", function( assert ) {
+	var index = 0;
+	var mp4box = new MP4Box();
+
+	getFileRange(testFiles[index].url, 0, 79999, function (buffer) {
+		var next_pos = mp4box.appendBuffer(buffer);
+		assert.equal(next_pos, 80000, "Next position after first append corresponds to end of previous buffer (moov entirely parsed)");
+		getFileRange(testFiles[index].url, 80000, 119999, function (buffer) {
+			var next_pos = mp4box.appendBuffer(buffer);
+			assert.equal(next_pos, 120000, "Next position after second append corresponds to end of previous buffer (contiguous append)");
+			getFileRange(testFiles[index].url, 200000, 259999, function (buffer) {
+				var next_pos = mp4box.appendBuffer(buffer);
+				assert.equal(next_pos, 120000, "Next position after third append corresponds to end of second buffer (non-contiguous append)");
+				getFileRange(testFiles[index].url, 120000, 199999, function (buffer) {
+					var next_pos = mp4box.appendBuffer(buffer);
+					assert.equal(next_pos, 260000, "Next position after fourth append corresponds to end of all buffer (all-contiguous)");
+					QUnit.start();
+				});
+			});
+		});			
+	});
+});
+
+QUnit.module("Seek tests");
+QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	var useRap = true;
+	var seekTime = 1.1;
+	mp4box.onSamples = function(id, user, samples) {		
+		assert.equal(samples.length, 1, "One sample received");
+		if (useRap) {
+			assert.equal(samples[0].is_rap, true, "Sample RAP status matches");
+			assert.equal(samples[0].dts, 25000, "Sample DTS matches");
+			assert.equal(samples[0].cts, 25000, "Sample CTS matches");
+			assert.equal(samples[0].size, 3158, "Sample size matches");
+		} else {
+			assert.equal(samples[0].is_rap, false, "Sample RAP status matches");
+			assert.equal(samples[0].dts, 27000, "Sample DTS matches");
+			assert.equal(samples[0].cts, 27000, "Sample CTS matches");
+			assert.equal(samples[0].size, 176, "Sample size matches");
+		}
+		mp4box.unsetExtractionOptions(track_id);
+		if (!useRap) {
+			window.clearTimeout(timeout);
+			QUnit.start();	
+		}
+	}
+	mp4box.onReady = function(info) { 
+		assert.ok(true, "moov found!" );	
+		track_id = info.tracks[0].id;
+	}
+	getFile(testFiles[index].url, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
+		mp4box.seek(seekTime, useRap);
+		mp4box.flush();
+		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
+		useRap = false;
+		mp4box.seek(seekTime, useRap);
+		mp4box.flush();
+		mp4box.seek(10000, false);
+	});
+});
+
+QUnit.asyncTest( "Seek without moov", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	getFileRange(testFiles[index].url, 0, 10, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		assert.throws(function() { mp4box.seek(10, true); }, "Exception thrown because moov not found");
+		window.clearTimeout(timeout);
+		QUnit.start();
+		mp4box.flush();
 	});
 });
 
@@ -719,6 +835,7 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 });
 
 /* Not yet tested:
+ - error on extraction/segmentation settings before onReady
  - onMoovStart event (partial parsing & entire parsing)
  - seek
  - flush
