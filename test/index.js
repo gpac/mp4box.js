@@ -223,6 +223,8 @@ function getTrackListInfo(tracks, type) {
 				break;				
 			case "Hint":
 				break;				
+			default:
+				break;				
 		}
 		html += "<th>Source Buffer Status</th>";
 		html += "</tr>";
@@ -241,7 +243,9 @@ function getTrackListInfo(tracks, type) {
 				case "Metadata":
 					break;				
 				case "Hint":
-					break;				
+					break;	
+				default:
+					break;
 			}					
 			var mime = 'video/mp4; codecs=\"'+tracks[i].codec+'\"';
 			if (MediaSource.isTypeSupported(mime)) {
@@ -277,6 +281,7 @@ function displayMovieInfo(info) {
 	html += getTrackListInfo(info.audioTracks, "Audio");
 	html += getTrackListInfo(info.subtitleTracks, "Subtitle");
 	html += getTrackListInfo(info.metadataTracks, "Metadata");
+	html += getTrackListInfo(info.otherTracks, "Other");
 	html += "</div>";
 	var infoDiv;
 	infoDiv = document.getElementById('infoDiv');

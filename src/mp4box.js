@@ -406,6 +406,7 @@ MP4Box.prototype.getInfo = function() {
 	movie.subtitleTracks = new Array();
 	movie.metadataTracks = new Array();
 	movie.hintTracks = new Array();
+	movie.otherTracks = new Array();
 	for (i = 0; i < this.inputIsoFile.moov.traks.length; i++) {
 		var trak = this.inputIsoFile.moov.traks[i];
 		var sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
@@ -452,6 +453,8 @@ MP4Box.prototype.getInfo = function() {
 			movie.hintTracks.push(track);
 		} else if (sample_desc.isMetadata()) {
 			movie.metadataTracks.push(track);
+		} else {
+			movie.otherTracks.push(track);
 		}
 	}
 	return movie;
