@@ -5,27 +5,43 @@ Log.setLogLevel(Log.e);
 var mp4box;
 
 /* object responsible for file downloading */
-var downloader = { stop: true, realtime: false };
+var downloader = new Downloader();
 
 /* the HTML5 video element */
 var video;
 
+var startButton, loadButton, initButton;
+var urlInput, chunkTimeoutInput, chunkSizeInput;
+var infoDiv, dlSpeedDiv;
+var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel;
+var urlSelector;
+var saveChecked;
+
 window.onload = function () {
 	video = document.getElementById('v');
+	startButton = document.getElementById("startButton");
+	loadButton = document.getElementById("loadButton");
+	initButton = document.getElementById("initButton");
+	urlInput = document.getElementById('url');
+	chunkTimeoutInput = document.getElementById('chunk_speed_range');
+	chunkSizeInput = document.getElementById("segment_size_range");
+	infoDiv = document.getElementById('infoDiv');
+	dlSpeedDiv = document.getElementById('dlSpeed');
+	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');
+	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
+	segmentSizeLabel = document.querySelector('#segment_size_range_out');
+	urlSelector = document.getElementById('urlSelector');
+	saveChecked = document.getElementById("saveChecked");
+	
 	video.addEventListener("seeking", onSeeking);
-	document.getElementById("loadButton").disabled = true;
+	loadButton.disabled = true;
 	reset();	
-}
-
-function resetDownloader() {
-	downloader.chunkStart = 0;
-	downloader.totalLength = 0;
 }
 
 function reset() {
 	stop();
-	resetDownloader();
-	document.getElementById("startButton").disabled = true;	
+	downloader.reset();
+	startButton.disabled = true;	
 	resetMediaSource();
 	resetDisplay();
 	setUrl('');
@@ -43,8 +59,6 @@ function resetMediaSource() {
 }
 
 function resetDisplay() {
-	var infoDiv;
-	infoDiv = document.getElementById('infoDiv');
 	infoDiv.innerHTML = '';
 }
 
@@ -58,8 +72,7 @@ function onSourceOpen(e) {
 	var ms = e.target;
 	Log.i("MSE", "Source opened");
 	Log.d("MSE", ms);
-	var selector = document.getElementById('s');
-	selector.disabled = false;
+	urlSelector.disabled = false;
 }
 
 function onInitAppended(e) {
@@ -94,37 +107,36 @@ function onUpdateEnd(e) {
 }
 
 function setUrl(url) {
-	var urlInput;
-	urlInput = document.getElementById('url');
 	urlInput.value = url;
 	if (url && url != "") {
-		document.getElementById("loadButton").disabled = false;
+		loadButton.disabled = false;
 	}
 }
 
 function toggleDownloadMode(event) {
 	var checkedBox = event.target;
 	if (checkedBox.checked) {
-		document.getElementById('dlSpeed').style.display = "none";
-		downloader.realtime = true;
+		dlSpeedDiv.style.display = "none";
+		downloader.setRealTime(true);
 	} else {
-		document.getElementById('dlSpeed').style.display = "inline";
-		downloader.realtime = false;
+		dlSpeedDiv.style.display = "inline";
+		downloader.setRealTime(false);
 	}
 }
 
 function setDownloadSpeed(value) {
-	document.querySelector('#chunk_speed_range_out').value = value;
-	downloader.chunkTimeout = parseInt(value);
+	chunkTimeoutLabel.value = value;
+	chunkTimeoutInput.value = value;
+	downloader.setInterval(parseInt(value));
 }
 
 function setDownloadChunkSize(value) {
-	document.querySelector('#chunk_size_range_out').value = value;
-	downloader.chunkSize = parseInt(value);
+	chunkSizeLabel.value = value;
+	downloader.setChunkSize(parseInt(value));
 }
 
 function setSegmentSize(value) {
-	document.querySelector('#segment_size_range_out').value = value;
+	segmentSizeLabel.value = value;
 }
 
 /* Functions to generate the tables displaying file information */	
@@ -264,7 +276,7 @@ function displayMovieInfo(info) {
 	var html = "Movie Info";
 	html += "<div>";
 	html += "<table>";
-	html += "<tr><th>File Size</th><td>"+downloader.totalLength+" bytes</td></tr>";
+	html += "<tr><th>File Size</th><td>"+downloader.getFileLength()+" bytes</td></tr>";
 	html += "<tr><th>Brands</th><td>"+info.brands+"</td></tr>";
 	html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
 	html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
@@ -283,14 +295,11 @@ function displayMovieInfo(info) {
 	html += getTrackListInfo(info.metadataTracks, "Metadata");
 	html += getTrackListInfo(info.otherTracks, "Other");
 	html += "</div>";
-	var infoDiv;
-	infoDiv = document.getElementById('infoDiv');
 	infoDiv.innerHTML = html;
 }
 
 function addSourceBufferListener(info) {
-	var v = document.getElementById('v');
-	var ms = v.ms;
+	var ms = video.ms;
 	for (var i = 0; i < info.tracks.length; i++) {
 		var track = info.tracks[i];
 		var checkBox = document.getElementById("addTrack"+track.id);
@@ -305,9 +314,9 @@ function addSourceBufferListener(info) {
 						var sb = ms.addSourceBuffer(mime);
 						sb.ms = ms;
 						sb.id = track_id;
-						mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(document.getElementById("segment_size_range").value) } );
+						mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
 						sb.pendingAppends = new Array();
-						document.getElementById("initButton").disabled = false;
+						initButton.disabled = false;
 					} else {
 						Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 						var textrack = v.addTextTrack("subtitles", "Text track for track "+track_id);
@@ -324,7 +333,9 @@ function addSourceBufferListener(info) {
 							break;
 						}
 					}
-					if (ms.sourceBuffers.length==0) document.getElementById("initButton").disabled = true;
+					if (ms.sourceBuffers.length === 0) {
+						initButton.disabled = true;
+					}
 				}
 			};
 		})(track.id, track.codec));
@@ -332,11 +343,7 @@ function addSourceBufferListener(info) {
 }
 
 function load() {
-	document.getElementById("loadButton").disabled = true;
-	var v = document.getElementById('v');
-	var ms = v.ms;
-	var url = document.getElementById('url').value;
-	
+	var ms = video.ms;
 	if (ms.readyState != "open") {
 		return;
 	}
@@ -357,34 +364,29 @@ function load() {
 		addSourceBufferListener(info);
 	}
 				
-	mp4box.onError = function (d) {
-	}
+	loadButton.disabled = true;
+	startButton.disabled = true;
+	stopButton.disabled = false;
 
-	document.getElementById("startButton").disabled = true;
-	document.getElementById("stopButton").disabled = false;
-	Log.i("Downloader", "Resuming file download");
-	downloader.stop = false;
-	downloader.chunkTimeout = parseInt(document.getElementById('chunk_speed_range').value);
-	downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
-	if (downloader.chunkSize == 0) {
-		downloader.chunkSize = Infinity;
-	}
-	downloader.chunkStart = 0;
-	downloader.url = url;		
-	downloader.callback = function (response, end) { 
-							if (response) {
-								downloader.chunkStart = mp4box.appendBuffer(response); 
-							}
-							if (end) {
-								mp4box.flush();
-							}
-						}
-	getfile(downloader);
+	downloader.setCallback(
+		function (response, end) { 
+			if (response) {
+				var nextStart = mp4box.appendBuffer(response);
+				downloader.setChunkStart(nextStart); 
+			}
+			if (end) {
+				mp4box.flush();
+			}
+		}
+	);
+	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
+	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
+	downloader.setUrl(urlInput.value);
+	downloader.start();
 }
 
 function saveBuffer(buffer, name) {		
-	var saveChecked = document.getElementById("saveChecked").checked;
-	if (saveChecked) {
+	if (saveChecked.checked) {
 		var d = new DataStream(buffer);
 		d.save(name);
 	}
@@ -430,29 +432,23 @@ function initializeSourceBuffers() {
 		sb.segmentIndex = 0;
 	}
 	
-	document.getElementById("initButton").disabled = true;
-	document.getElementById("startButton").disabled = false;
+	initButton.disabled = true;
+	startButton.disabled = false;
 }
 
 function start() {
-	document.getElementById("startButton").disabled = true;
-	document.getElementById("stopButton").disabled = false;
-	Log.i("Downloader", "Resuming file download");
-	downloader.stop = false;
-	downloader.chunkSize = parseInt(document.getElementById('chunk_size_range').value);
-	downloader.chunkTimeout = parseInt(document.getElementById('chunk_speed_range').value);
-	if (downloader.chunkSize == 0) {
-		downloader.chunkSize = Infinity;
-	}
-	getfile(downloader);
+	startButton.disabled = true;
+	stopButton.disabled = false;
+	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
+	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
+	downloader.resume();
 }		
 
 function stop() {
-	if (!downloader.stop) {
-		document.getElementById("stopButton").disabled = true;
-		document.getElementById("startButton").disabled = false;
-		Log.i("Downloader", "Stopping file download");
-		downloader.stop = true;
+	if (!downloader.isStopped()) {
+		stopButton.disabled = true;
+		startButton.disabled = false;
+		downloader.stop();
 	}
 }		
 
@@ -461,8 +457,9 @@ function onSeeking(e) {
 		/* Chrome fires twice the seeking event with the same value */
 		Log.i("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
 		var seek_info = mp4box.seek(video.currentTime, true);
-		downloader.chunkStart = seek_info.offset;
-		//video.currentTime = seek_info.time;
+		downloader.stop();
+		downloader.setChunkStart(seek_info.offset);
+		downloader.resume();
 		video.lastSeekTime = video.currentTime;
 	}
 }
@@ -488,56 +485,9 @@ function computeWaitingTimeFromBuffer(v) {
 		}
 	}
 	duration = minEndRange - maxStartRange;
-	if (currentTime + duration/4 >= minEndRange) return 0;
-	else /*if (currentTime - duration/4 <= maxStartRange)*/ return 1000*(minEndRange-currentTime)/2;
-	//return 1000*(minEndRange - currentTime)/2;
-}
-
-function getfile(dl) {
-	if (dl.chunkStart == Infinity) {
-		Log.i("Downloader", "File download done.");
-		dl.callback(null, true);
-		return;
+	if (currentTime + duration/4 >= minEndRange) {
+		return 0;
+	} else {
+		return 1000*(minEndRange-currentTime)/2;
 	}
-	var xhr = new XMLHttpRequest;
-	xhr.open("GET", dl.url, true);
-	xhr.responseType = "arraybuffer";
-	var range = null;
-	xhr.start = dl.chunkStart;
-	if (dl.chunkStart+dl.chunkSize < Infinity) {
-		range = 'bytes=' + dl.chunkStart + '-';
-		range += (dl.chunkStart+dl.chunkSize-1);
-		xhr.setRequestHeader('Range', range);
-	}
-	xhr.onreadystatechange = function (e) { 
-		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
-			var rangeReceived = xhr.getResponseHeader("Content-Range");
-			Log.i("Downloader", "Received data range: "+rangeReceived);
-			if (!dl.totalLength) {
-				var sizeIndex;
-				sizeIndex = rangeReceived.indexOf("/");
-				if (sizeIndex > -1) {
-					dl.totalLength = +rangeReceived.slice(sizeIndex+1);
-				}
-			}
-			var eof = !(xhr.response.byteLength == dl.chunkSize);
-			xhr.response.fileStart = xhr.start;
-			dl.callback(xhr.response, eof); 
-			//dl.chunkStart+=dl.chunkSize;
-			if (dl.stop == false && eof == false) {
-				var timeoutDuration = 0;
-				if (!dl.realtime) {
-					timeoutDuration = dl.chunkTimeout;
-				} else {
-					timeoutDuration = computeWaitingTimeFromBuffer(video);
-				}
-				Log.i("Downloader", "Next download scheduled in "+timeoutDuration+ ' ms.');
-				window.setTimeout(getfile.bind(this, dl, dl.callback), timeoutDuration);
-			} else {
-				/* end of file */
-			}
-		}
-	};
-	Log.d("Downloader", "Fetching "+dl.url+(range ? (" with range: "+range): ""));
-	xhr.send();
 }
