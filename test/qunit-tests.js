@@ -784,7 +784,7 @@ QUnit.asyncTest( "Seek without moov", function( assert ) {
 });
 
 QUnit.module("Write tests");
-QUnit.asyncTest( "Basic", function( assert ) {
+QUnit.asyncTest( "Write entire file back", function( assert ) {
 	var index = 0;
 	var track_id;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
