@@ -18,22 +18,25 @@ VTTin4Parser.prototype.parseSample = function(data) {
 	return cues;
 }
 
-var TTMLin4Parser = function() {	
+var XMLSubtitlein4Parser = function() {	
 }
 
-TTMLin4Parser.prototype.parseSample = function(sample) {
+XMLSubtitlein4Parser.prototype.parseSample = function(sample) {
 	var res = {};
+	var documentString;
 	res.resources = [];
 	var stream = new DataStream(sample.data, 0, DataStream.BIG_ENDIAN);
 	if (sample.subsamples.length==0) {
-		res.document = stream.readString(sample.data.length);
+		documentString = stream.readString(sample.data.length);
 	} else {
-		res.document = stream.readString(sample.subsamples[0].size);
+		documentString = stream.readString(sample.subsamples[0].size);
 		if (sample.subsamples.length > 1) {
-			for (i = 0; i < sample.subsamples.length; i++) {
+			for (i = 1; i < sample.subsamples.length; i++) {
 				res.resources[i] = stream.readUint8Array(sample.subsamples[i].size);
 			}
 		}
 	}
+	res.document = (new DOMParser()).parseFromString(documentString, "application/xml");
+	return res;
 }
 

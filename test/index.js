@@ -359,8 +359,9 @@ function initializeSourceBuffers() {
 					texttrack.addCue(cue);
 				}
 			} else {
-				var ttml4Parser = new TTMLin4Parser();
-				var ttmlSample = ttml4Parser.parseSample(sample); 
+				var xmlSub4Parser = new XMLSubtitlein4Parser();
+				var xmlSubSample = xmlSub4Parser.parseSample(sample); 
+				console.log(xmlSubSample.document);
 			}
 		}
 	}
