@@ -361,7 +361,9 @@ function initializeSourceBuffers() {
 			} else {
 				var xmlSub4Parser = new XMLSubtitlein4Parser();
 				var xmlSubSample = xmlSub4Parser.parseSample(sample); 
-				console.log(xmlSubSample.document);
+				var xmlParser = new DOMParser();
+				xmlParser.parseFromString = xmlSubSample.documentString;
+				console.log(xmlSubSample.documentString);
 			}
 		}
 	}
@@ -457,6 +459,8 @@ function onSeeking(e) {
 		downloader.stop();
 		downloader.setChunkStart(seek_info.offset);
 		downloader.resume();
+		startButton.disabled = true;
+		stopButton.disabled = false;
 		video.lastSeekTime = video.currentTime;
 	}
 }
