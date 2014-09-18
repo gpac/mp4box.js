@@ -8,7 +8,7 @@ var MPEG4DescriptorParser = function () {
 	var DecSpecificInfoTag 		= 0x05;
 	var SLConfigDescrTag 		= 0x06;
 
-	var descTagToName = new Array();
+	var descTagToName = [];
 	descTagToName[ES_DescrTag] 				= "ES_Descriptor";
 	descTagToName[DecoderConfigDescrTag] 	= "DecoderConfigDescriptor";
 	descTagToName[DecSpecificInfoTag] 		= "DecoderSpecificInfo";
@@ -46,7 +46,7 @@ var MPEG4DescriptorParser = function () {
 	classes.Descriptor = function(_tag, _size) {
 		this.tag = _tag;
 		this.size = _size;
-		this.descs = new Array();
+		this.descs = [];
 	}
 
 	classes.Descriptor.prototype.parse = function (stream) {

@@ -5,11 +5,11 @@
 var ISOFile = function (stream) {
 	this.stream = stream;
 	/* Array of all boxes (in order) found in the file */
-	this.boxes = new Array();
+	this.boxes = [];
 	/* Array of all mdats */
-	this.mdats = new Array();
+	this.mdats = [];
 	/* Array of all moofs */
-	this.moofs = new Array();
+	this.moofs = [];
 	/* Boolean indicating if the file is compatible with progressive parsing (moov first) */
 	this.isProgressive = false;
 	/* Index of the last moof box received */
@@ -208,9 +208,12 @@ ISOFile.prototype.parse = function() {
 						break;
 					case "moov":
 						this.moovStartFound = true;
-						if (this.mdats.length == 0) {
+						if (this.mdats.length === 0) {
 							this.isProgressive = true;
 						}
+						this[box.type] = box;
+						this.stream.buffer.usedBytes += ret.size;
+						break;
 					default:
 						this[box.type] = box;
 						this.stream.buffer.usedBytes += ret.size;
@@ -228,12 +231,13 @@ ISOFile.prototype.write = function(outstream) {
 }
 
 ISOFile.prototype.writeInitializationSegment = function(outstream) {
+	var i;
 	Log.d("ISOFile", "Generating initialization segment");
 	this.ftyp.write(outstream);
 	if (this.moov.mvex) {
 		var index;
 		this.initial_duration = this.moov.mvex.fragment_duration;
-		for (var i = 0; i < this.moov.boxes.length; i++) {
+		for (i = 0; i < this.moov.boxes.length; i++) {
 			var box = this.moov.boxes[i];
 			if (box == this.moov.mvex) {
 				index = i;
@@ -249,7 +253,7 @@ ISOFile.prototype.writeInitializationSegment = function(outstream) {
 	var mehd = new BoxParser.mehdBox();
 	mvex.boxes.push(mehd);
 	mehd.fragment_duration = this.initial_duration;
-	for (var i = 0; i < this.moov.traks.length; i++) {
+	for (i = 0; i < this.moov.traks.length; i++) {
 		var trex = new BoxParser.trexBox();
 		mvex.boxes.push(trex);
 		trex.track_id = this.moov.traks[i].tkhd.track_id;
@@ -271,20 +275,20 @@ ISOFile.prototype.resetTables = function () {
 		trak.tkhd.duration = 0;
 		trak.mdia.mdhd.duration = 0;
 		stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
-		stco.chunk_offsets = new Array();
+		stco.chunk_offsets = [];
 		stsc = trak.mdia.minf.stbl.stsc;
-		stsc.first_chunk = new Array();
-		stsc.samples_per_chunk = new Array();
-		stsc.sample_description_index = new Array();
+		stsc.first_chunk = [];
+		stsc.samples_per_chunk = [];
+		stsc.sample_description_index = [];
 		stsz = trak.mdia.minf.stbl.stsz;
-		stsz.sample_sizes = new Array();
+		stsz.sample_sizes = [];
 		stts = trak.mdia.minf.stbl.stts;
-		stts.sample_counts = new Array();
-		stts.sample_deltas = new Array();
+		stts.sample_counts = [];
+		stts.sample_deltas = [];
 		ctts = trak.mdia.minf.stbl.ctts;
 		if (ctts) {
-			ctts.sample_counts = new Array();
-			ctts.sample_offsets = new Array();
+			ctts.sample_counts = [];
+			ctts.sample_offsets = [];
 		}
 		stss = trak.mdia.minf.stbl.stss;
 		var k = trak.mdia.minf.stbl.boxes.indexOf(stss);
@@ -299,7 +303,7 @@ ISOFile.prototype.buildSampleLists = function() {
 	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index;
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
-		trak.samples = new Array();
+		trak.samples = [];
 		stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
 		stsc = trak.mdia.minf.stbl.stsc;
 		stsz = trak.mdia.minf.stbl.stsz;
@@ -420,6 +424,7 @@ ISOFile.prototype.updateSampleLists = function() {
 	var default_sample_description_index, default_sample_duration, default_sample_size, default_sample_flags;
 	var last_run_position;
 	var box, moof, traf, trak, trex;
+	var sample;
 	
 	while (this.lastMoofIndex < this.moofs.length) {
 		box = this.moofs[this.lastMoofIndex];
@@ -453,7 +458,7 @@ ISOFile.prototype.updateSampleLists = function() {
 				for (j = 0; j < traf.truns.length; j++) {
 					var trun = traf.truns[j];
 					for (k = 0; k < trun.sample_count; k++) {
-						var sample = {};
+						sample = {};
 						traf.first_sample_index = trak.samples.length;
 						trak.samples.push(sample);
 						sample.track_id = trak.tkhd.track_id;
@@ -484,7 +489,7 @@ ISOFile.prototype.updateSampleLists = function() {
 						sample_flags = default_sample_flags;
 						if (trun.flags & BoxParser.TRUN_FLAGS_FLAGS) {
 							sample_flags = trun.sample_flags[k];
-						} else if (k == 0 && (trun.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG)) {
+						} else if (k === 0 && (trun.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG)) {
 							sample_flags = trun.first_sample_flags;
 						}
 						sample.is_rap = ((sample_flags >> 16 & 0x1) ? false : true);
@@ -494,7 +499,7 @@ ISOFile.prototype.updateSampleLists = function() {
 						var bdo = 0;
 						if (!bdop) {
 							if (!dbim) {
-								if (j == 0) { // the first track in the movie fragment
+								if (j === 0) { // the first track in the movie fragment
 									bdo = moof.fileStart; // the position of the first byte of the enclosing Movie Fragment Box
 								} else {
 									bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
@@ -505,7 +510,7 @@ ISOFile.prototype.updateSampleLists = function() {
 						} else {
 							bdo = traf.tfhd.base_data_offset;
 						}
-						if (j == 0 && k == 0) {
+						if (j === 0 && k === 0) {
 							if (dop) {
 								sample.offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
 							} else {
@@ -521,7 +526,7 @@ ISOFile.prototype.updateSampleLists = function() {
 					var sample_index = traf.first_sample_index;
 					for (j = 0; j < traf.subs.samples.length; j++) {
 						sample_index += traf.subs.samples[j].sample_delta;
-						var sample = trak.samples[sample_index-1];
+						sample = trak.samples[sample_index-1];
 						sample.subsamples = traf.subs.samples[j].subsamples;
 					}					
 				}
@@ -601,7 +606,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 				}
 			}
 		}
-		if (mdat.buffers.length == 0 && this.mdats.length > 1) {
+		if (mdat.buffers.length === 0 && this.mdats.length > 1) {
 			this.mdats.splice(i, 1);
 			i--;
 		}

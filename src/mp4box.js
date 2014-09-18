@@ -26,8 +26,8 @@
 	/* Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
 	this.sampleListBuilt = false;
 
-	this.fragmentedTracks = new Array();
-	this.extractedTracks = new Array();
+	this.fragmentedTracks = [];
+	this.extractedTracks = [];
 	this.isFragmentationStarted = false;
 	this.nextMoofNumber = 0;
 }
@@ -118,13 +118,13 @@ MP4Box.prototype.createSingleSampleMoof = function(sample) {
 	trun.data_offset = 0;
 	trun.first_sample_flags = 0;
 	trun.sample_count = 1;
-	trun.sample_duration = new Array();
+	trun.sample_duration = [];
 	trun.sample_duration[0] = sample.duration;
-	trun.sample_size = new Array();
+	trun.sample_size = [];
 	trun.sample_size[0] = sample.size;
-	trun.sample_flags = new Array();
+	trun.sample_flags = [];
 	trun.sample_flags[0] = 0;
-	trun.sample_composition_time_offset = new Array();
+	trun.sample_composition_time_offset = [];
 	trun.sample_composition_time_offset[0] = sample.cts - sample.dts;
 	return moof;
 }
@@ -163,6 +163,7 @@ ArrayBuffer.concat = function(buffer1, buffer2) {
 };
 
 MP4Box.prototype.insertBuffer = function(ab) {	
+	var smallB;
 	var to_add = true;
 	/* insert the new buffer in the sorted list of buffers, making sure, it is not overlapping with existing ones */
 	for (var i = 0; i < this.nextBuffers.length; i++) {
@@ -189,19 +190,19 @@ MP4Box.prototype.insertBuffer = function(ab) {
 					/* no overlap, we can add it as is */
 					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
 					this.nextBuffers.splice(i, 0, ab);
-					if (i == 0 && this.inputStream != null) {
+					if (i === 0 && this.inputStream != null) {
 						this.inputStream.buffer = ab;
 					}
 				} else {
 					/* There is some overlap, cut the new buffer short, and add it*/
-					var smallB = new Uint8Array(b.fileStart - ab.fileStart);
+					smallB = new Uint8Array(b.fileStart - ab.fileStart);
 					smallB.set(new Uint8Array(ab, 0, b.fileStart - ab.fileStart));
 					smallB.fileStart = ab.fileStart;
 					ab = smallB;
 					ab.usedBytes = 0;
 					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
 					this.nextBuffers.splice(i, 0, ab);
-					if (i == 0 && this.inputStream != null) {
+					if (i === 0 && this.inputStream != null) {
 						this.inputStream.buffer = ab;
 					}
 				}
@@ -212,7 +213,7 @@ MP4Box.prototype.insertBuffer = function(ab) {
 			/* the new buffer overlaps its end with the current buffer */
 			var offset = b.fileStart + b.byteLength - ab.fileStart;
 			var newLength = ab.byteLength - offset;
-			var smallB = new Uint8Array(newLength);
+			smallB = new Uint8Array(newLength);
 			smallB.set(new Uint8Array(ab, offset, newLength));
 			smallB.buffer.fileStart = ab.fileStart+offset;
 			ab = smallB.buffer;
@@ -222,7 +223,7 @@ MP4Box.prototype.insertBuffer = function(ab) {
 	if (to_add) {
 		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
 		this.nextBuffers.push(ab);
-		if (i == 0 && this.inputStream != null) {
+		if (i === 0 && this.inputStream != null) {
 			this.inputStream.buffer = ab;
 		}
 	}
@@ -232,7 +233,7 @@ MP4Box.prototype.open = function() {
 	if (!this.inputStream) { /* We create the DataStream object only when we have the first bytes of the file */
 		if (this.nextBuffers.length > 0) {
 			var firstBuffer = this.nextBuffers[0];
-			if (firstBuffer.fileStart == 0) {
+			if (firstBuffer.fileStart === 0) {
 				this.inputStream = new DataStream(firstBuffer, 0, DataStream.BIG_ENDIAN);	
 				this.inputStream.nextBuffers = this.nextBuffers;
 				this.inputStream.bufferIndex = 0;
@@ -282,13 +283,15 @@ MP4Box.prototype.open = function() {
 }
 
 MP4Box.prototype.processSamples = function() {
+	var i;
+	var trak;
 	/* For each track marked for fragmentation, 
 	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) 
 	   and create a fragment with it */
 	if (this.isFragmentationStarted && this.onSegment !== null) {
-		for (var i = 0; i < this.fragmentedTracks.length; i++) {
+		for (i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
-			var trak = fragTrak.trak;
+			trak = fragTrak.trak;
 			while (trak.nextSample < trak.samples.length) {				
 				/* The sample information is there (either because the file is not fragmented and this is not the last sample, 
 				or because the file is fragmented and the moof for that sample has been received */
@@ -303,7 +306,7 @@ MP4Box.prototype.processSamples = function() {
 				}
 				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
-				if (trak.nextSample % fragTrak.nb_samples == 0 || trak.nextSample >= trak.samples.length) {
+				if (trak.nextSample % fragTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
 					Log.i("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+(trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]"); 
 					if (this.onSegment) {
 						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample);
@@ -322,9 +325,9 @@ MP4Box.prototype.processSamples = function() {
 	if (this.onSamples !== null) {
 		/* For each track marked for data export, 
 		   check if the next sample is there (i.e. has been downloaded) and send it */
-		for (var i = 0; i < this.extractedTracks.length; i++) {
+		for (i = 0; i < this.extractedTracks.length; i++) {
 			var extractTrak = this.extractedTracks[i];
-			var trak = extractTrak.trak;
+			trak = extractTrak.trak;
 			while (trak.nextSample < trak.samples.length) {				
 				Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+trak.nextSample); 			
 				var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
@@ -334,7 +337,7 @@ MP4Box.prototype.processSamples = function() {
 				} else {
 					return;
 				}
-				if (trak.nextSample % extractTrak.nb_samples == 0 || trak.nextSample >= trak.samples.length) {
+				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
 					Log.i("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
 					if (this.onSamples) {
 						this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
@@ -358,7 +361,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	if (ab.fileStart === undefined) {
 		throw("Buffer must have a fileStart property");
 	}	
-	if (ab.byteLength == 0) {
+	if (ab.byteLength === 0) {
 		Log.w("MP4Box", "Ignoring empty buffer");
 		return;
 	}
@@ -400,13 +403,13 @@ MP4Box.prototype.getInfo = function() {
 	var _1904 = (new Date(4, 0, 1, 0, 0, 0, 0).getTime());
 	movie.created = new Date(_1904+this.inputIsoFile.moov.mvhd.creation_time*1000);
 	movie.modified = new Date(_1904+this.inputIsoFile.moov.mvhd.modification_time*1000);
-	movie.tracks = new Array();
-	movie.audioTracks = new Array();
-	movie.videoTracks = new Array();
-	movie.subtitleTracks = new Array();
-	movie.metadataTracks = new Array();
-	movie.hintTracks = new Array();
-	movie.otherTracks = new Array();
+	movie.tracks = [];
+	movie.audioTracks = [];
+	movie.videoTracks = [];
+	movie.subtitleTracks = [];
+	movie.metadataTracks = [];
+	movie.hintTracks = [];
+	movie.otherTracks = [];
 	for (i = 0; i < this.inputIsoFile.moov.traks.length; i++) {
 		var trak = this.inputIsoFile.moov.traks[i];
 		var sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
@@ -475,6 +478,8 @@ MP4Box.prototype.writeFile = function() {
 }
 
 MP4Box.prototype.initializeSegmentation = function() {
+	var j;
+	var box;
 	if (this.onSegment === null) {
 		Log.w("MP4Box", "No segmentation callback set!");
 	}
@@ -483,19 +488,19 @@ MP4Box.prototype.initializeSegmentation = function() {
 		this.nextMoofNumber = 0;
 		this.inputIsoFile.resetTables();
 	}	
-	var initSegs = new Array();
+	var initSegs = [];
 	for (var i = 0; i < this.fragmentedTracks.length; i++) {
 		/* removing all tracks to create initialization segments with only one track */
-		for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
-			var box = this.inputIsoFile.moov.boxes[j];
+		for (j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
+			box = this.inputIsoFile.moov.boxes[j];
 			if (box.type == "trak") {
 				this.inputIsoFile.moov.boxes[j] = null;
 			}
 		}
 		/* adding only the needed track */
 		var trak = this.inputIsoFile.getTrackById(this.fragmentedTracks[i].id);
-		for (var j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
-			var box = this.inputIsoFile.moov.boxes[j];
+		for (j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
+			box = this.inputIsoFile.moov.boxes[j];
 			if (box == null) {
 				this.inputIsoFile.moov.boxes[j] = trak;
 			}
@@ -530,7 +535,6 @@ MP4Box.prototype.flush = function() {
 
 MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	var j;
-	var trak;
 	var sample;
 	var rap_offset = Infinity;
 	var rap_time = 0;

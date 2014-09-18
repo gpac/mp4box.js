@@ -25,9 +25,13 @@ module.exports = function(grunt) {
       files: ['test/**/qunit.html']
     },
     jshint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js'],
+      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js', '!test/lib/**/*.js'],
       options: {
         // options here to override JSHint defaults
+    	eqeqeq: false,
+    	asi: true,
+    	loopfunc: true,
+    	eqnull: true,
         globals: {
         }
       }
@@ -46,6 +50,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('test', ['jshint', 'qunit']);
 
-  grunt.registerTask('default', ['qunit', 'concat', 'uglify']);
+  grunt.registerTask('default', [ 'jshint', 'qunit', 'concat', 'uglify']);
 
 };

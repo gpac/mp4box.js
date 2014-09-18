@@ -530,7 +530,7 @@ DataStream.prototype.readFloat32Array = function(length, e) {
 DataStream.prototype.writeInt32Array = function(arr, e) {
   this._realloc(arr.length * 4);
   if (arr instanceof Int32Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -551,7 +551,7 @@ DataStream.prototype.writeInt32Array = function(arr, e) {
 DataStream.prototype.writeInt16Array = function(arr, e) {
   this._realloc(arr.length * 2);
   if (arr instanceof Int16Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -571,7 +571,7 @@ DataStream.prototype.writeInt16Array = function(arr, e) {
 DataStream.prototype.writeInt8Array = function(arr) {
   this._realloc(arr.length * 1);
   if (arr instanceof Int8Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -592,7 +592,7 @@ DataStream.prototype.writeInt8Array = function(arr) {
 DataStream.prototype.writeUint32Array = function(arr, e) {
   this._realloc(arr.length * 4);
   if (arr instanceof Uint32Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -613,7 +613,7 @@ DataStream.prototype.writeUint32Array = function(arr, e) {
 DataStream.prototype.writeUint16Array = function(arr, e) {
   this._realloc(arr.length * 2);
   if (arr instanceof Uint16Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -633,7 +633,7 @@ DataStream.prototype.writeUint16Array = function(arr, e) {
 DataStream.prototype.writeUint8Array = function(arr) {
   this._realloc(arr.length * 1);
   if (arr instanceof Uint8Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -654,7 +654,7 @@ DataStream.prototype.writeUint8Array = function(arr) {
 DataStream.prototype.writeFloat64Array = function(arr, e) {
   this._realloc(arr.length * 8);
   if (arr instanceof Float64Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -675,7 +675,7 @@ DataStream.prototype.writeFloat64Array = function(arr, e) {
 DataStream.prototype.writeFloat32Array = function(arr, e) {
   this._realloc(arr.length * 4);
   if (arr instanceof Float32Array &&
-      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT == 0) {
+      this.byteOffset+this.position % arr.BYTES_PER_ELEMENT === 0) {
     DataStream.memcpy(this._buffer, this.byteOffset+this.position,
                       arr.buffer, 0,
                       arr.byteLength);
@@ -1020,7 +1020,7 @@ DataStream.prototype.readStruct = function(structDefinition) {
     t = structDefinition[i+1];
     v = this.readType(t, struct);
     if (v == null) {
-      if (this.failurePosition == 0) {
+      if (this.failurePosition === 0) {
         this.failurePosition = this.position;
       }
       this.position = p;
@@ -1089,9 +1089,9 @@ DataStream.prototype.readString = function(length, encoding) {
   @param {?number} length The number of characters to write.
  */
 DataStream.prototype.writeString = function(s, encoding, length) {
+  var i = 0;
   if (encoding == null || encoding == "ASCII") {
     if (length != null) {
-      var i = 0;
       var len = Math.min(s.length, length);
       for (i=0; i<len; i++) {
         this.writeUint8(s.charCodeAt(i));
@@ -1100,7 +1100,7 @@ DataStream.prototype.writeString = function(s, encoding, length) {
         this.writeUint8(0);
       }
     } else {
-      for (var i=0; i<s.length; i++) {
+      for (i=0; i<s.length; i++) {
         this.writeUint8(s.charCodeAt(i));
       }
     }
@@ -1124,7 +1124,7 @@ DataStream.prototype.readCString = function(length) {
   if (length != null) {
     len = Math.min(length, blen);
   }
-  for (var i = 0; i < len && u8[i] != 0; i++); // find first zero byte
+  for (var i = 0; i < len && u8[i] !== 0; i++); // find first zero byte
   var s = String.fromCharCode.apply(null, this.mapUint8Array(i));
   if (length != null) {
     this.position += len-i;
@@ -1144,8 +1144,8 @@ DataStream.prototype.readCString = function(length) {
   @param {?number} length The number of characters to write.
  */
 DataStream.prototype.writeCString = function(s, length) {
+  var i = 0;
   if (length != null) {
-    var i = 0;
     var len = Math.min(s.length, length);
     for (i=0; i<len; i++) {
       this.writeUint8(s.charCodeAt(i));
@@ -1154,7 +1154,7 @@ DataStream.prototype.writeCString = function(s, length) {
       this.writeUint8(0);
     }
   } else {
-    for (var i=0; i<s.length; i++) {
+    for (i=0; i<s.length; i++) {
       this.writeUint8(s.charCodeAt(i));
     }
     this.writeUint8(0);
@@ -1183,13 +1183,16 @@ DataStream.prototype.readType = function(t, struct) {
   var lengthOverride = null;
   var charset = "ASCII";
   var pos = this.position;
+  var tp;
+  var i;
+  var u;
   if (typeof t == 'string' && /:/.test(t)) {
-    var tp = t.split(":");
+    tp = t.split(":");
     t = tp[0];
     lengthOverride = parseInt(tp[1]);
   }
   if (typeof t == 'string' && /,/.test(t)) {
-    var tp = t.split(",");
+    tp = t.split(",");
     t = tp[0];
     charset = parseInt(tp[1]);
   }
@@ -1300,13 +1303,13 @@ DataStream.prototype.readType = function(t, struct) {
               if (length == null) {
                 v = [];
                 while (!this.isEof()) {
-                  var u = this.readType(ta, struct);
+                  u = this.readType(ta, struct);
                   if (u == null) break;
                   v.push(u);
                 }
               } else {
                 v = new Array(length);
-                for (var i=0; i<length; i++) {
+                for (i=0; i<length; i++) {
                   v[i] = this.readType(ta, struct);
                 }
               }
@@ -1315,7 +1318,7 @@ DataStream.prototype.readType = function(t, struct) {
         } else {
           if (len == '*') {
             v = [];
-            this.buffer;
+            var tmp_buffer = this.buffer;
             while (true) {
               var p = this.position;
               try {
@@ -1332,8 +1335,8 @@ DataStream.prototype.readType = function(t, struct) {
             }
           } else {
             v = new Array(length);
-            for (var i=0; i<length; i++) {
-              var u = this.readType(ta, struct);
+            for (i=0; i<length; i++) {
+              u = this.readType(ta, struct);
               if (u == null) return null;
               v[i] = u;
             }
@@ -1371,6 +1374,7 @@ DataStream.prototype.writeStruct = function(structDefinition, struct) {
   @param {Object} struct Struct to pass to write callback functions.
   */
 DataStream.prototype.writeType = function(t, v, struct) {
+  var tp;
   if (typeof t == "function") {
     return t(this, v);
   } else if (typeof t == "object" && !(t instanceof Array)) {
@@ -1380,12 +1384,12 @@ DataStream.prototype.writeType = function(t, v, struct) {
   var charset = "ASCII";
   var pos = this.position;
   if (typeof(t) == 'string' && /:/.test(t)) {
-    var tp = t.split(":");
+    tp = t.split(":");
     t = tp[0];
     lengthOverride = parseInt(tp[1]);
   }
   if (typeof t == 'string' && /,/.test(t)) {
-    var tp = t.split(",");
+    tp = t.split(",");
     t = tp[0];
     charset = parseInt(tp[1]);
   }

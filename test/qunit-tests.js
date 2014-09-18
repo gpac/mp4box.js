@@ -45,7 +45,7 @@ var testFiles = [
 ];
 
 function getFileRange(url, start, end, callback) {
-	var xhr = new XMLHttpRequest;
+	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, true);
 	xhr.responseType = "arraybuffer";
 	if (start !== 0 || end !== Infinity) {
@@ -798,7 +798,7 @@ QUnit.asyncTest( "Generate initialization segment", function( assert ) {
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;		
 		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: false } );
-		assert.ok(mp4box.getInitializationSegment(), "Init segments generated");;
+		assert.ok(mp4box.getInitializationSegment(), "Init segments generated");
 		QUnit.start();	
 	}
 	getFile(testFiles[index].url, function (buffer) {

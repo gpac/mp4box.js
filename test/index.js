@@ -41,7 +41,7 @@ window.onload = function () {
 /* GUI-related callback functions */
 function setUrl(url) {
 	urlInput.value = url;
-	if (url && url != "") {
+	if (url && url !== "") {
 		loadButton.disabled = false;
 	}
 }
@@ -99,7 +99,7 @@ function getBasicTrackInfo(track) {
 	var html = '';
 	html += "<td>"+track.id+"</td>";
 	html += "<td>";
-	if (track.references.length == 0) {
+	if (track.references.length === 0) {
 		html += "none";
 	} else {
 		for (var i = 0; i < track.references.length; i++) {
@@ -293,6 +293,7 @@ function onUpdateEnd(e) {
 
 function addSourceBufferListener(info) {
 	var ms = video.ms;
+	var sb;
 	for (var i = 0; i < info.tracks.length; i++) {
 		var track = info.tracks[i];
 		var checkBox = document.getElementById("addTrack"+track.id);
@@ -304,11 +305,11 @@ function addSourceBufferListener(info) {
 					var mime = 'video/mp4; codecs=\"'+codec+'\"';
 					if (MediaSource.isTypeSupported(mime)) {
 						Log.i("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
-						var sb = ms.addSourceBuffer(mime);
+						sb = ms.addSourceBuffer(mime);
 						sb.ms = ms;
 						sb.id = track_id;
 						mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
-						sb.pendingAppends = new Array();
+						sb.pendingAppends = [];
 						initButton.disabled = false;
 					} else {
 						Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
@@ -320,7 +321,7 @@ function addSourceBufferListener(info) {
 					Log.i("MSE - SourceBuffer #"+track_id,"Removing buffer");
 					mp4box.unsetSegmentOptions(track_id);
 					for (var i = 0; i < ms.sourceBuffers.length; i++) {
-						var sb = ms.sourceBuffers[i];
+						sb = ms.sourceBuffers[i];
 						if (sb.id == track_id) {
 							ms.removeSourceBuffer(sb);
 							break;
@@ -355,7 +356,7 @@ function initializeSourceBuffers() {
 				var cues = vtt4Parser.parseSample(sample.data);
 				for (var i = 0; i < cues.length; i++) {
 					var cueIn4 = cues[i];
-					var cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4["payl"].text);
+					var cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4.payl.text);
 					texttrack.addCue(cue);
 				}
 			} else {

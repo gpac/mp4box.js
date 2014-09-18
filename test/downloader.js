@@ -53,7 +53,7 @@ Downloader.prototype.getFile = function() {
 		this.callback(null, true);
 		return;
 	}
-	var xhr = new XMLHttpRequest;
+	var xhr = new XMLHttpRequest();
 	xhr.open("GET", this.url, true);
 	xhr.responseType = "arraybuffer";
 	var range = null;
@@ -74,7 +74,7 @@ Downloader.prototype.getFile = function() {
 					dl.totalLength = +rangeReceived.slice(sizeIndex+1);
 				}
 			}
-			var eof = !(xhr.response.byteLength == dl.chunkSize);
+			var eof = (xhr.response.byteLength !== dl.chunkSize);
 			xhr.response.fileStart = xhr.start;
 			dl.callback(xhr.response, eof); 
 			//dl.chunkStart+=dl.chunkSize;

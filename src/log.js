@@ -3,7 +3,7 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 var Log = (function (){
-		var start = new Date;
+		var start = new Date();
 		var LOG_LEVEL_ERROR 	= 4;
 		var LOG_LEVEL_WARNING 	= 3;
 		var LOG_LEVEL_INFO 		= 2;
@@ -19,22 +19,22 @@ var Log = (function (){
 			},
 			d : function(module, msg) {
 				if (LOG_LEVEL_DEBUG >= log_level) {
-					console.debug("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
+					console.debug("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			},
 			i : function(module, msg) {
 				if (LOG_LEVEL_INFO >= log_level) {
-					console.info("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
+					console.info("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			},
 			w : function(module, msg) {
 				if (LOG_LEVEL_WARNING >= log_level) {
-					console.warn("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
+					console.warn("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			},
 			e : function(module, msg) {
 				if (LOG_LEVEL_ERROR >= log_level) {
-					console.error("["+Log.getDurationString(new Date-start,1000)+"]","["+module+"]",msg);
+					console.error("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			}
 		};
@@ -42,7 +42,7 @@ var Log = (function (){
 	})();
 	
 /* Helper function to print a duration value in the form H:MM:SS.MS */
-Log.getDurationString = function(duration, timescale) {
+Log.getDurationString = function(duration, _timescale) {
 
 	/* Helper function to print a number on a fixed number of digits */
 	function pad(number, length) {
@@ -54,7 +54,7 @@ Log.getDurationString = function(duration, timescale) {
 		return a.join('.');
 	}
 
-	var timescale = timescale || 1;
+	var timescale = _timescale || 1;
 	var duration_sec = duration/timescale;
 	var hours = Math.floor(duration_sec/3600);
 	duration_sec -= hours * 3600;

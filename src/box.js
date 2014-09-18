@@ -80,7 +80,7 @@ var BoxParser = {
 						this.subBoxNames = subBoxNames;
 						var nbSubBoxes = subBoxNames.length;
 						for (var k = 0; k<nbSubBoxes; k++) {
-							this[subBoxNames[k]+"s"] = new Array();
+							this[subBoxNames[k]+"s"] = [];
 						}
 					}
 				}
@@ -126,11 +126,11 @@ var BoxParser = {
 	},
 	ContainerBox: function(type, size) {
 		BoxParser.Box.call(this, type, size);
-		this.boxes = new Array();
+		this.boxes = [];
 	},
 	SampleEntry: function(type, size) {
 		BoxParser.Box.call(this, type, size);	
-		this.boxes = new Array();
+		this.boxes = [];
 	},
 	TrackReferenceTypeBox: function(type, size) {
 		BoxParser.Box.call(this, type, size);	
@@ -138,7 +138,7 @@ var BoxParser = {
 	},
 	stsdBox: function(size) {
 		BoxParser.FullBox.call(this, "stsd", size);
-		this.entries = new Array();
+		this.entries = [];
 	},
 	parseOneBox: function(stream, isSampleEntry) {
 		var box;
@@ -164,7 +164,7 @@ var BoxParser = {
 			}
 			size = stream.readUint64();
 			hdr_size += 8;
-		} else if (size == 0) {
+		} else if (size === 0) {
 			/* box extends till the end of file */
 			throw "Unlimited box size not supported";
 		}
@@ -360,7 +360,7 @@ BoxParser.ftypBox.prototype.parse = function(stream) {
 	this.major_brand = stream.readString(4);
 	this.minor_version = stream.readUint32();
 	this.size -= 8;
-	this.compatible_brands = new Array();
+	this.compatible_brands = [];
 	var i = 0;
 	while (this.size>=4) {
 		this.compatible_brands[i] = stream.readString(4);
@@ -445,7 +445,7 @@ BoxParser.mdhdBox.prototype.parse = function(stream) {
 
 BoxParser.hdlrBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
-	if (this.version == 0) {
+	if (this.version === 0) {
 		stream.readUint32();
 		this.handler = stream.readString(4);
 		stream.readUint32Array(3);
@@ -540,9 +540,9 @@ BoxParser.cttsBox.prototype.parse = function(stream) {
 	var i;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	this.sample_counts = new Array();
-	this.sample_offsets = new Array();
-	if (this.version == 0) {
+	this.sample_counts = [];
+	this.sample_offsets = [];
+	if (this.version === 0) {
 		for(i=0; i<entry_count; i++) {
 			this.sample_counts.push(stream.readUint32());
 			this.sample_offsets.push(stream.readUint32());
@@ -571,7 +571,7 @@ BoxParser.cttsBox.prototype.unpack = function(samples) {
 BoxParser.cslgBox.prototype.parse = function(stream) {
 	var entry_count;
 	this.parseFullHeader(stream);
-	if (this.version == 0) {
+	if (this.version === 0) {
 		this.compositionToDTSShift = stream.readInt32(); /* signed */
 		this.leastDecodeToDisplayDelta = stream.readInt32(); /* signed */
 		this.greatestDecodeToDisplayDelta = stream.readInt32(); /* signed */
@@ -587,9 +587,9 @@ BoxParser.sttsBox.prototype.parse = function(stream) {
 	var i;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	this.sample_counts = new Array();
-	this.sample_deltas = new Array();
-	if (this.version == 0) {
+	this.sample_counts = [];
+	this.sample_deltas = [];
+	if (this.version === 0) {
 		for(i=0; i<entry_count; i++) {
 			this.sample_counts.push(stream.readUint32());
 			this.sample_deltas.push(stream.readUint32());
@@ -604,7 +604,7 @@ BoxParser.sttsBox.prototype.unpack = function(samples) {
 	k = 0;
 	for (i = 0; i < this.sample_counts.length; i++) {
 		for (j = 0; j < this.sample_counts[i]; j++) {
-			if (k == 0) {
+			if (k === 0) {
 				samples[k].dts = 0;
 			} else {
 				samples[k].dts = samples[k-1].dts + this.sample_deltas[i];
@@ -618,7 +618,7 @@ BoxParser.stssBox.prototype.parse = function(stream) {
 	var entry_count;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	if (this.version == 0) {
+	if (this.version === 0) {
 		this.sample_numbers = stream.readUint32Array(entry_count);
 	} else {
 		this.data = stream.readUint8Array(this.size-4);
@@ -630,9 +630,9 @@ BoxParser.stshBox.prototype.parse = function(stream) {
 	var i;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	this.shadowed_sample_numbers = new Array();
-	this.sync_sample_numbers = new Array();
-	if (this.version == 0) {
+	this.shadowed_sample_numbers = [];
+	this.sync_sample_numbers = [];
+	if (this.version === 0) {
 		for(i=0; i<entry_count; i++) {
 			this.shadowed_sample_numbers.push(stream.readUint32());
 			this.sync_sample_numbers.push(stream.readUint32());
@@ -646,7 +646,7 @@ BoxParser.stcoBox.prototype.parse = function(stream) {
 	var entry_count;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	if (this.version == 0) {
+	if (this.version === 0) {
 		this.chunk_offsets = stream.readUint32Array(entry_count);
 	} else {
 		this.data = stream.readUint8Array(this.size-4);
@@ -665,8 +665,8 @@ BoxParser.co64Box.prototype.parse = function(stream) {
 	var i;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	this.chunk_offsets = new Array();
-	if (this.version == 0) {
+	this.chunk_offsets = [];
+	if (this.version === 0) {
 		for(i=0; i<entry_count; i++) {
 			this.chunk_offsets.push(stream.readUint64());
 		}
@@ -680,10 +680,10 @@ BoxParser.stscBox.prototype.parse = function(stream) {
 	var i;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	this.first_chunk = new Array();
-	this.samples_per_chunk = new Array();
-	this.sample_description_index = new Array();
-	if (this.version == 0) {
+	this.first_chunk = [];
+	this.samples_per_chunk = [];
+	this.sample_description_index = [];
+	if (this.version === 0) {
 		for(i=0; i<entry_count; i++) {
 			this.first_chunk.push(stream.readUint32());
 			this.samples_per_chunk.push(stream.readUint32());
@@ -719,14 +719,14 @@ BoxParser.stszBox.prototype.parse = function(stream) {
 	var sample_size;
 	var sample_count;
 	this.parseFullHeader(stream);
-	this.sample_sizes = new Array();
-	if (this.version == 0) {
+	this.sample_sizes = [];
+	if (this.version === 0) {
 		sample_size = stream.readUint32();
 		sample_count = stream.readUint32();
-		if (sample_size == 0) {
+		if (sample_size === 0) {
 			this.sample_sizes = stream.readUint32Array(sample_count);
 		} else {
-			this.sample_sizes = new Array();
+			this.sample_sizes = [];
 			for (i = 0; i < sample_count; i++) {
 				this.sample_sizes[i] = sample_size;
 			}		
@@ -834,10 +834,10 @@ BoxParser.trunBox.prototype.parse = function(stream) {
 	} else {
 		this.first_sample_flags = 0;
 	}
-	this.sample_duration = new Array();
-	this.sample_size = new Array();
-	this.sample_flags = new Array();
-	this.sample_composition_time_offset = new Array();
+	this.sample_duration = [];
+	this.sample_size = [];
+	this.sample_flags = [];
+	this.sample_composition_time_offset = [];
 	if (this.size > readBytes) {
 		for (var i = 0; i < this.sample_count; i++) {
 			if (this.flags & BoxParser.TRUN_FLAGS_DURATION) {
@@ -850,7 +850,7 @@ BoxParser.trunBox.prototype.parse = function(stream) {
 				this.sample_flags[i] = stream.readUint32();
 			}
 			if (this.flags & BoxParser.TRUN_FLAGS_CTS_OFFSET) {
-				if (this.version == 0) {
+				if (this.version === 0) {
 					this.sample_composition_time_offset[i] = stream.readUint32();
 				} else {
 					this.sample_composition_time_offset[i] = stream.readInt32(); //signed
@@ -1366,7 +1366,7 @@ BoxParser.trunBox.prototype.write = function(stream) {
 			stream.writeUint32(this.sample_flags[i]);
 		}
 		if (this.flags & BoxParser.TRUN_FLAGS_CTS_OFFSET) {
-			if (this.version == 0) {
+			if (this.version === 0) {
 				stream.writeUint32(this.sample_composition_time_offset[i]);
 			} else {
 				stream.writeInt32(this.sample_composition_time_offset[i]); //signed

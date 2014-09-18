@@ -26,7 +26,7 @@ XMLSubtitlein4Parser.prototype.parseSample = function(sample) {
 	var documentString;
 	res.resources = [];
 	var stream = new DataStream(sample.data, 0, DataStream.BIG_ENDIAN);
-	if (sample.subsamples.length==0) {
+	if (sample.subsamples.length === 0) {
 		documentString = stream.readString(sample.data.length);
 	} else {
 		documentString = stream.readString(sample.subsamples[0].size);
