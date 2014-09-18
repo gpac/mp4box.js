@@ -22,9 +22,23 @@ module.exports = function(grunt) {
       }
     },
     qunit: {
-      files: ['test/**/qunit.html']
+		all: {
+		  options: {
+		    urls: [
+		      'http://localhost:9000/test/qunit.html'
+		    ]
+		  }
+		}
     },
-    jshint: {
+    connect: {
+	    server: {
+	      options: {
+	        port: 9000,
+	        base: '.'
+	      }
+	    }
+  	},
+  	jshint: {
       files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js', '!test/lib/**/*.js'],
       options: {
         // options here to override JSHint defaults
@@ -38,7 +52,7 @@ module.exports = function(grunt) {
     },
     watch: {
       files: ['<%= jshint.files %>'],
-      tasks: ['jshint', 'qunit']
+      tasks: ['jshint', 'connect', 'qunit']
     }
   });
 
@@ -47,9 +61,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-connect');
 
-  grunt.registerTask('test', ['jshint', 'qunit']);
+  grunt.registerTask('test', ['jshint', 'connect', 'qunit']);
 
-  grunt.registerTask('default', [ 'jshint', 'qunit', 'concat', 'uglify']);
+  grunt.registerTask('default', [ 'jshint', 'connect', 'qunit', 'concat', 'uglify']);
 
 };
