@@ -16,7 +16,7 @@ var testFiles = [
 	},
 	{
 		desc: "non-fragmented MP4 file with two AVC video streams",
-		url: './aaclow.mp4'
+		url: './2v.mp4'
 	},
 	{
 		desc: "non-fragmented MP4 file with AVC, AAC and WebVTT",
@@ -36,7 +36,7 @@ var testFiles = [
 	},
 	{
 		desc: "non-fragmented MP4 file with 1 subt:stpp stream",
-		url: './ttml.mp4'
+		url: './subtitle-ttml-stpp.mp4'
 	},
 	{
 		desc: "non-fragmented MP4 file with single AVC stream, moov is last box",
