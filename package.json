@@ -34,5 +34,8 @@
     "grunt-contrib-uglify": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",
     "qunitjs": "^1.15.0"
+  },
+   "scripts": {
+    "test": "grunt --verbose"
   }
 }
