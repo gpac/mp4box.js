@@ -389,7 +389,7 @@ MP4Box.prototype.getInfo = function() {
 	movie.duration = this.inputIsoFile.moov.mvhd.duration;
 	movie.timescale = this.inputIsoFile.moov.mvhd.timescale;
 	movie.isFragmented = (this.inputIsoFile.moov.mvex != null);
-	if (movie.isFragmented) {
+	if (movie.isFragmented && this.inputIsoFile.moov.mvex.mehd) {
 		movie.fragment_duration = this.inputIsoFile.moov.mvex.mehd.fragment_duration;
 	}
 	movie.isProgressive = this.inputIsoFile.isProgressive;
