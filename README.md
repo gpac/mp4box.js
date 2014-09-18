@@ -1,6 +1,8 @@
 MP4Box.js
 ======
 
+[![Build Status](https://travis-ci.org/gpac/mp4box.js.svg?branch=master)](https://travis-ci.org/gpac/mp4box.js)
+
 JavaScript library to process MP4 files in the browser, with support for progressive parsing. 
 Inspired by the [MP4Box](http://gpac.wp.mines-telecom.fr/mp4box/) tool from the [GPAC](http://gpac.wp.mines-telecom.fr) project. 
 It can be used to:
