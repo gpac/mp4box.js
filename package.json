@@ -1,5 +1,5 @@
 {
-  "name": "mp4box.js",
+  "name": "mp4box",
   "version": "0.1.0",
   "description": "JavaScript version of GPAC's MP4Box tool",
   "keywords": [
@@ -28,7 +28,11 @@
     }
   ],
   "devDependencies": {
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-jshint": "^0.10.0",
     "grunt-contrib-qunit": "^0.5.2",
+    "grunt-contrib-uglify": "^0.6.0",
+    "grunt-contrib-watch": "^0.6.1",
     "qunitjs": "^1.15.0"
   }
 }
