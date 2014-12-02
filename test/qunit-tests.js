@@ -46,6 +46,10 @@ var testFiles = [
 		desc: "long movie",
 		url: './mp4/Bad.Influence.se4ep13.mp4'
 		//url: './mp4-torrents/g.mp4'
+	},
+	{ // 11
+		desc: "Incomplete file from torrent",
+		url: './mp4-torrents/as2-incomplete.mp4'
 	}
 ];
 
@@ -1232,6 +1236,22 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 	};
 	getFileRange(testFiles[index].url, 0, Infinity, xhr_callback);
 });*/
+
+QUnit.asyncTest( "issue #16 (Peersm)", function( assert ) {
+	var index = 11;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	QUnit.expect(0);
+	getFileRange(testFiles[index].url, 0, 996599, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		mp4box = new MP4Box();
+		getFileRange(testFiles[index].url, 0, 62249, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			window.clearTimeout(timeout);
+			QUnit.start();
+		});
+	});
+});
 
 /* Not yet tested:
  - error on extraction/segmentation settings before onReady
