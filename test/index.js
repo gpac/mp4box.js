@@ -31,6 +31,7 @@ window.onload = function () {
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
 	segmentSizeLabel = document.querySelector('#segment_size_range_out');
 	urlSelector = document.getElementById('urlSelector');
+	urlSelector.selectedIndex = -1;
 	saveChecked = document.getElementById("saveChecked");
 	
 	video.addEventListener("seeking", onSeeking);
@@ -43,6 +44,8 @@ function setUrl(url) {
 	urlInput.value = url;
 	if (url && url !== "") {
 		loadButton.disabled = false;
+	} else {
+		loadButton.disabled = true;
 	}
 }
 

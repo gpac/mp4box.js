@@ -39,7 +39,7 @@
 				</div>
 			</div>
 			<label>Select or set URL:</label>
-			<select id="urlSelector" onchange="setUrl(this.value);" disabled onfocus="this.selectedIndex = -1;">
+			<select id="urlSelector" onchange="setUrl(this.value);" onfocus="this.selectedIndex = -1;">
 				<option value="./mp4-torrents/g.mp4">Gravity v1 (1h30, unfragmented, AVC video only, 3.28 GB)</option>
 				<option value="./mp4-torrents/Gravity%202013.mp4">Gravity v1 (1h30, unfragmented, AVC+AAC, 3.48 GB)</option>
 				<option value="./mp4-torrents/Gravity.mp4">Gravity v2 (1h30, unfragmented, AVC+AAC+AC3, 2.72 GB)</option>
@@ -62,7 +62,7 @@
 				<option value="http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-h264bl_low.mp4">DASH onDemand video (fragmented, H.264/AVC Baseline Low Resolution)</option>
 			</select>
 			<label>URL:</label>
-			<input id="url" type="texte"></input>
+			<input id="url" type="text" oninput="document.getElementById('urlSelector').selectedIndex = -1; setUrl(this.value);"></input>
 			</div>
 			<div>
 			<button id="loadButton" onclick="load()">Load Media Info</button>
