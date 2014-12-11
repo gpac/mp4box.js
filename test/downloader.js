@@ -63,6 +63,9 @@ Downloader.prototype.getFile = function() {
 		range += (this.chunkStart+this.chunkSize-1);
 		xhr.setRequestHeader('Range', range);
 	}
+	xhr.onerror = function(e) {
+		dl.callback(null, false, true);
+	}
 	xhr.onreadystatechange = function (e) { 
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
 			var rangeReceived = xhr.getResponseHeader("Content-Range");
