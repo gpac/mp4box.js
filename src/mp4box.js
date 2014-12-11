@@ -2,7 +2,7 @@
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
- var MP4Box = function () {
+var MP4Box = function () {
 	/* DataStream object used to parse the boxes */
 	this.inputStream = null;
 	/* List of ArrayBuffers, with a fileStart property, sorted in order and non overlapping */

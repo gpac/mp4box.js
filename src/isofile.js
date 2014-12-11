@@ -3,6 +3,7 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 var ISOFile = function (stream) {
+	/* DataStream object (extended with multiple underlying buffers) used to parse boxes */
 	this.stream = stream;
 	/* Array of all boxes (in order) found in the file */
 	this.boxes = [];
@@ -34,11 +35,11 @@ ISOFile.prototype.repositionAtMdatEnd = function(box, size) {
 		if (box.fileStart + size >= buf.fileStart) {
 			if (box.fileStart + size <= buf.fileStart + buf.byteLength) {
 				/* we've found the end of the mdat */
-				this.parsingMdat = false;
 				this.stream.buffer = buf;
 				this.stream.bufferIndex = i;
 				this.stream.position = box.fileStart + size - buf.fileStart;
 				Log.d("ISOFile", "Found 'mdat' end in buffer #"+this.stream.bufferIndex+" at position "+this.lastPosition);
+				box.buffers.push(buf);
 				return true;
 			} else {
 				/* this mdat box extends after that buffer, record that the mdat will need it */
@@ -92,7 +93,8 @@ ISOFile.prototype.parse = function() {
 	var ret;
 	var box;
 	
-	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" from position "+this.lastPosition+" ("+(this.stream.buffer.fileStart+this.lastPosition)+" in the file)");
+	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" from position "+this.lastPosition+
+		" ("+(this.stream.buffer.fileStart+this.lastPosition)+" in the file)");
 	this.stream.seek(this.lastPosition);
 	while (true) {
 		/* check if we are in the parsing of an incomplete mdat box */
@@ -102,6 +104,7 @@ ISOFile.prototype.parse = function() {
 			found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
 			if (found) {
 				/* the end of the mdat has been found, let's see if we can parse more in this buffer */
+				this.parsingMdat = false;
 				continue;
 			} else {
 				/* let's wait for more buffer to come */
@@ -116,19 +119,20 @@ ISOFile.prototype.parse = function() {
 				/* we did not have enough bytes in the current buffer to parse the entire box */
 				if (ret.type === "mdat") { 
 					/* we had enough bytes to get its type and size */
+					
 					/* special handling for mdat boxes, since we don't actually need to parse it linearly */					
 					this.parsingMdat = true;
 					box = new BoxParser[ret.type+"Box"](ret.size-ret.hdr_size);	
 					this.mdats.push(box);			
 					box.fileStart = this.stream.buffer.fileStart + this.stream.position;
 					box.hdr_size = ret.hdr_size;
-					box.buffers = [];
-					box.buffers[0] = this.stream.buffer;
+					box.buffers = [this.stream.buffer];
 					this.stream.buffer.usedBytes += ret.hdr_size;
 					
 					/* let's see if we have the end of the box in the other buffers */
 					found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
 					if (found) {
+						this.parsingMdat = false;
 						/* let's see if we can parse more in this buffer */
 						continue;
 					} else {
@@ -138,7 +142,7 @@ ISOFile.prototype.parse = function() {
 							this.nextParsePosition = this.findEndContiguousBuf();
 						} else {
 							/* moov not find yet, skip this box */
-							this.nextParsePosition = box.fileStart + box.size+box.hdr_size;
+							this.nextParsePosition = box.fileStart + box.size + box.hdr_size;
 						}
 						return;
 					}
@@ -192,32 +196,41 @@ ISOFile.prototype.parse = function() {
 			} else {
 				/* the box is entirely parsed */
 				box = ret.box;
-				/* store the box in the 'boxes' array to preserve box order (for offset) 
-				   but also store box in a property for more direct access */
+				/* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
 				this.boxes.push(box);
+				/* but also store box in a property for more direct access */
 				switch (box.type) {
 					case "mdat":
+						/* there may be many mdats in an ISOBMFF file */
 						this.mdats.push(box);
+						/* remember the position in the file of this box for comparison with sample offsets */
 						box.fileStart = this.stream.buffer.fileStart + box.start;
+						/* initialize the list of buffers in which this mdat box is stored */
 						box.buffers = [ this.stream.buffer ];
-						this.stream.buffer.usedBytes += box.hdr_size;
 						break;
 					case "moof":
+						/* there may be many moofs in an ISOBMFF file */
 						this.moofs.push(box);
-						this.stream.buffer.usedBytes += ret.size;
 						break;
-					case "moov":
+					case "moov":					
 						this.moovStartFound = true;
 						if (this.mdats.length === 0) {
 							this.isProgressive = true;
 						}
-						this[box.type] = box;
-						this.stream.buffer.usedBytes += ret.size;
-						break;
+						/* no break */
 					default:
+						if (this[box.type] !== undefined) {
+							Log.w("ISOFile", "Duplicate Box of type: "+box.type+", ignoring previous occurrences");
+						}
 						this[box.type] = box;
-						this.stream.buffer.usedBytes += ret.size;
 						break;
+				}
+				if (box.type === "mdat") {
+					/* for an mdat box, only its header is considered used, other bytes will be used when sample are requested */
+					this.stream.buffer.usedBytes += box.hdr_size;
+				} else {
+					/* for all other boxes, the entire box data is considered used */
+					this.stream.buffer.usedBytes += ret.size;
 				}
 			}
 		}
@@ -426,6 +439,7 @@ ISOFile.prototype.updateSampleLists = function() {
 	var box, moof, traf, trak, trex;
 	var sample;
 	
+	/* if the input file is fragmented and fetched in multiple downloads, we need to update the list of samples */
 	while (this.lastMoofIndex < this.moofs.length) {
 		box = this.moofs[this.lastMoofIndex];
 		this.lastMoofIndex++;
@@ -562,14 +576,20 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 	var i, j;
 	var sample = trak.samples[sampleNum];
 	
+	/* The sample has either already been fetched partially, entirely or not at all */
 	if (!sample.data) {
+		/* Not yet fetched */
 		sample.data = new Uint8Array(sample.size);
 		sample.alreadyRead = 0;
 		this.samplesDataSize += sample.size;
 		Log.d("ISOFile", "Allocating sample #"+sampleNum+" on track #"+trak.tkhd.track_id+" of size "+sample.size+" (total: "+this.samplesDataSize+")");
 	} else if (sample.alreadyRead == sample.size) {
+		/* Already fetched entirely */
 		return sample;
 	}
+
+	/* The sample has only been partially fetched, we need to check in all mdat boxes (e.g. if the input file is fragmented) 
+	   and in all mdat buffers (if the input file was not fetched in a single download) */
 	for (i = 0; i < this.mdats.length; i++) {
 		mdat = this.mdats[i];
 		for (j = 0; j < mdat.buffers.length; j++) {
@@ -577,35 +597,48 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 			if (sample.offset + sample.alreadyRead >= buffer.fileStart &&
 			    sample.offset + sample.alreadyRead <  buffer.fileStart + buffer.byteLength) {
 				/* The sample starts in this buffer */
+				
 				var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
 				if (sample.size - sample.alreadyRead <= lengthAfterStart) {
 					/* the sample is entirely contained in this buffer */
-					Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
+
+					Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
+						(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
+
 					DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
 					                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
 					buffer.usedBytes += sample.size - sample.alreadyRead;
 					sample.alreadyRead = sample.size;
+
+					/* once the mdat buffer has been used, we get rid of it */
 					if (buffer.usedBytes == buffer.byteLength) {
 						mdat.buffers.splice(j, 1);
 						Log.d("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
 						j--;
 					}
+
 					return sample;
 				} else {
 					/* the sample does not end in this buffer */				
-					Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
+					
+					Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+
+						(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
+					
 					DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
 					                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);
 					buffer.usedBytes += lengthAfterStart;
+					sample.alreadyRead += lengthAfterStart;
+
+					/* once the mdat buffer has been used, we get rid of it */
 					if (buffer.usedBytes == buffer.byteLength) {
 						mdat.buffers.splice(j, 1);
 						Log.d("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
 						j--;
-					}
-					sample.alreadyRead += lengthAfterStart;
+					}					
 				}
 			}
 		}
+		/* once an mdat has no more buffers, unless it is the last one, we get rid of it */
 		if (mdat.buffers.length === 0 && this.mdats.length > 1) {
 			this.mdats.splice(i, 1);
 			i--;
