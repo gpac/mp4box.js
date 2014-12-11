@@ -42,11 +42,6 @@ window.onload = function () {
 /* GUI-related callback functions */
 function setUrl(url) {
 	urlInput.value = url;
-	if (url && url !== "") {
-		loadButton.disabled = false;
-	} else {
-		loadButton.disabled = true;
-	}
 }
 
 function toggleDownloadMode(event) {
@@ -252,7 +247,7 @@ function resetMediaSource() {
 
 function onSourceClose(e) {
 	var ms = e.target;
-	Log.i("MSE", "Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
+	Log.e("MSE", "Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
 	Log.d("MSE", ms);
 }
 
@@ -265,15 +260,18 @@ function onSourceOpen(e) {
 
 function onInitAppended(e) {
 	var sb = e.target;
-	var rangeString = Log.printRanges(sb.buffered);
-	Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
-	sb.bufferTd = document.getElementById("buffer"+sb.id);
-	sb.bufferTd.textContent = rangeString;
-	sb.sampleNum = 0;
-	sb.removeEventListener('updateend', onInitAppended);
-	sb.addEventListener('updateend', onUpdateEnd.bind(sb));
-	/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
-	onUpdateEnd.call(sb, null);
+	var rangeString;
+	if (sb.ms.readyState === "opened") {
+		rangeString = Log.printRanges(sb.buffered);
+		Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
+		sb.bufferTd = document.getElementById("buffer"+sb.id);
+		sb.bufferTd.textContent = rangeString;
+		sb.sampleNum = 0;
+		sb.removeEventListener('updateend', onInitAppended);
+		sb.addEventListener('updateend', onUpdateEnd.bind(sb));
+		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
+		onUpdateEnd.call(sb, null);
+	}
 }
 
 function onUpdateEnd(e) {
@@ -393,7 +391,7 @@ function reset() {
 	startButton.disabled = true;	
 	resetMediaSource();
 	resetDisplay();
-	setUrl('');
+	loadButton.disabled = false;
 }
 
 function load() {
@@ -423,7 +421,7 @@ function load() {
 	stopButton.disabled = false;
 
 	downloader.setCallback(
-		function (response, end) { 
+		function (response, end, error) { 
 			if (response) {
 				var nextStart = mp4box.appendBuffer(response);
 				downloader.setChunkStart(nextStart); 
@@ -431,11 +429,15 @@ function load() {
 			if (end) {
 				mp4box.flush();
 			}
+			if (error) {
+				reset();
+			}
 		}
 	);
 	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
 	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
 	downloader.setUrl(urlInput.value);
+	loadButton.disabled = true;
 	downloader.start();
 }
 
