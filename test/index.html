@@ -91,7 +91,7 @@
 			<ul>
 			  <li>To run this demo (in Chrome), you should:
 				<ol>
-				  <li>Select an existing file or enter a URL. <br>Be careful to select a video hosted on a server which allows this page to fetch those videos using XHR (i.e. using CORS)</li>
+				  <li>Select an existing file or enter a URL. <br>Be careful to select a video hosted on a server which allows this page to fetch those videos using XHR (i.e. using CORS) or run Chrome in command line with the --test-type and --disable-web-security switches.</li>
 				  <li>Select a chunk size for the download of the media file, the download speed will be one chunk per second. <br>The default is 0, meaning fetching the whole file in one XHR.</li>
 				  <li>Hit the "Load Media Info" button. <br>Chunks will be downloaded until there is enough data to display the file information.</li>
 				  <li>Once the file information is displayed, (un)select the tracks you want to play. <br>For each track a SourceBuffer or a TextTrack is created. You cannot (for now) mix tracks from different files.</li>
