@@ -730,18 +730,22 @@ QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
 	var mp4box = new MP4Box();
 	var seekStep = 0;
 	var seekTime = 1.1;
+	var doExtraction = false;
+	var track_id;
 	mp4box.onSamples = function(id, user, samples) {		
+		assert.equal(doExtraction, true, "Callback called only when samples are extracted");
+		assert.notEqual(seekStep, 2, "Callback should never be reached on step 2");
 		assert.equal(samples.length, 1, "One sample received");
 		if (seekStep === 0) {
-			assert.equal(samples[0].is_rap, true, "Sample RAP status matches");
-			assert.equal(samples[0].dts, 25000, "Sample DTS matches");
-			assert.equal(samples[0].cts, 25000, "Sample CTS matches");
-			assert.equal(samples[0].size, 3158, "Sample size matches");
+			assert.equal(samples[0].is_rap, true, "Step 0 Sample RAP status matches");
+			assert.equal(samples[0].dts, 25000, "Step 0 Sample DTS matches");
+			assert.equal(samples[0].cts, 25000, "Step 0 Sample CTS matches");
+			assert.equal(samples[0].size, 3158, "Step 0 Sample size matches");
 		} else if (seekStep === 1) {
-			assert.equal(samples[0].is_rap, false, "Sample RAP status matches");
-			assert.equal(samples[0].dts, 27000, "Sample DTS matches");
-			assert.equal(samples[0].cts, 27000, "Sample CTS matches");
-			assert.equal(samples[0].size, 176, "Sample size matches");
+			assert.equal(samples[0].is_rap, false, "Step 1 Sample RAP status matches");
+			assert.equal(samples[0].dts, 27000, "Step 1 Sample DTS matches");
+			assert.equal(samples[0].cts, 27000, "Step 1 Sample CTS matches");
+			assert.equal(samples[0].size, 176, "Step 1 Sample size matches");
 		}
 		mp4box.unsetExtractionOptions(track_id);
 		if (seekStep === 1) {
@@ -760,13 +764,14 @@ QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
 		/* setting extraction option and then seeking and calling sample processing */
 		seekStep = 0;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
-		mp4box.seek(seekTime, true);
+		doExtraction = true;
+		mp4box.seek(seekTime, true); // find preceeding rap
 		mp4box.flush();
 
 		/* setting extraction option and then seeking and calling sample processing */
 		seekStep = 1;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
-		mp4box.seek(seekTime, false);
+		mp4box.seek(seekTime, false); // don't seek on rap
 		mp4box.flush();
 		
 		seekStep = 2;
@@ -783,6 +788,54 @@ QUnit.asyncTest( "Seek without moov", function( assert ) {
 		assert.throws(function() { mp4box.seek(10, true); }, "Exception thrown because moov not found");
 		window.clearTimeout(timeout);
 		QUnit.start();
+	});
+});
+
+QUnit.asyncTest( "Seek in the past", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	var seekStep = 0;
+	var seekTime0 = 1.1;
+	var seekTime1 = 0.1;
+	var track_id;
+	mp4box.onSamples = function(id, user, samples) {		
+		if (seekStep === 0) {
+			assert.equal(samples[0].is_rap, true, "Step 0 Sample RAP status matches");
+			assert.equal(samples[0].dts, 25000, "Step 0 Sample DTS matches");
+			assert.equal(samples[0].cts, 25000, "Step 0 Sample CTS matches");
+			assert.equal(samples[0].size, 3158, "Step 0 Sample size matches");
+		} else if (seekStep === 1) {
+			assert.equal(samples[0].is_rap, true, "Step 1 Sample RAP status matches");
+			assert.equal(samples[0].dts, 0, "Step 1 Previous Sample DTS matches");
+			assert.equal(samples[0].cts, 0, "Step 1 Sample CTS matches");
+			assert.equal(samples[0].size, 3291, "Step 1 Sample size matches");
+		}
+		mp4box.unsetExtractionOptions(track_id);
+		if (seekStep === 1) {
+			window.clearTimeout(timeout);
+			QUnit.start();	
+		}
+	}
+	mp4box.onReady = function(info) { 
+		assert.ok(true, "moov found!" );	
+		track_id = info.tracks[0].id;
+	}
+	getFile(testFiles[index].url, function (buffer) {
+		/* appending the whole buffer without setting any extraction option, no sample will be processed */
+		mp4box.appendBuffer(buffer);
+		
+		/* setting extraction option and then seeking and calling sample processing */
+		seekStep = 0;
+		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
+		doExtraction = true;
+		mp4box.seek(seekTime0, true); // find preceeding rap
+		mp4box.flush();
+
+		/* setting extraction option and then seeking and calling sample processing */
+		seekStep = 1;
+		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
+		mp4box.seek(seekTime1, true); // find preceeding rap
 		mp4box.flush();
 	});
 });
@@ -821,10 +874,10 @@ QUnit.asyncTest( "Write-back the entire file", function( assert ) {
 	});
 });
 
-QUnit.module("misc");
+/*QUnit.module("misc");
 QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 	var index = 0;
-	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 5000);
 	var mp4box = new MP4Box();
 	mp4box.onReady = function(info) { 
 		window.clearTimeout(timeout);
@@ -835,7 +888,7 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 		QUnit.start();
 	}
 	var xhr_callback = function (buffer) {
-		for (var i = 0; i < 100; i++) {
+		for (var i = 0; i < buffer.byteLength; i++) {
 			var b1 = new Uint8Array(1);
 			var bf = new Uint8Array(buffer);
 			b1[0] = bf[i];
@@ -844,7 +897,7 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 		}
 	};
 	getFileRange(testFiles[index].url, 0, Infinity, xhr_callback);
-});
+});*/
 
 /* Not yet tested:
  - error on extraction/segmentation settings before onReady
