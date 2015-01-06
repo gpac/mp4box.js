@@ -258,33 +258,39 @@ function onSourceOpen(e) {
 	urlSelector.disabled = false;
 }
 
-function onInitAppended(e) {
-	var sb = e.target;
+function updateBufferedString(sb, string) {
 	var rangeString;
-	if (sb.ms.readyState === "opened") {
+	if (sb.ms.readyState === "open") {
 		rangeString = Log.printRanges(sb.buffered);
-		Log.d("MSE - SourceBuffer #"+sb.id, "Init segment append ended ("+sb.updating+"), buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
-		sb.bufferTd = document.getElementById("buffer"+sb.id);
+		Log.i("MSE - SourceBuffer #"+sb.id, string+", updating: "+sb.updating+", buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
+		if (sb.bufferTd === undefined) {
+			sb.bufferTd = document.getElementById("buffer"+sb.id);
+		}
 		sb.bufferTd.textContent = rangeString;
-		sb.sampleNum = 0;
-		sb.removeEventListener('updateend', onInitAppended);
-		sb.addEventListener('updateend', onUpdateEnd.bind(sb));
-		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
-		onUpdateEnd.call(sb, null);
 	}
 }
 
-function onUpdateEnd(e) {
-	if (e != null) {
-		var rangeString = Log.printRanges(this.buffered);
-		Log.i("MSE - SourceBuffer #"+this.id,"Update ended ("+this.updating+"), buffered: "+rangeString+" pending: "+this.pendingAppends.length+" media time: "+Log.getDurationString(video.currentTime));
-		this.bufferTd.textContent = rangeString;
+function onInitAppended(e) {
+	var sb = e.target;
+	if (sb.ms.readyState === "open") {
+		updateBufferedString(sb, "Init segment append ended");
+		sb.sampleNum = 0;
+		sb.removeEventListener('updateend', onInitAppended);
+		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true));
+		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
+		onUpdateEnd.call(sb, false);
+	}
+}
+
+function onUpdateEnd(isNotInit) {
+	if (isNotInit === true) {
+		updateBufferedString(this, "Update ended");
 	}
 	if (this.sampleNum) {
 		mp4box.releaseUsedSamples(this.id, this.sampleNum);
 		delete this.sampleNum;
 	}
-	if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
+	if (this.ms.readyState === "open" && this.updating === false && this.pendingAppends.length > 0) {
 		var obj = this.pendingAppends.shift();
 		Log.i("MSE - SourceBuffer #"+this.id, "Appending new buffer, pending: "+this.pendingAppends.length);
 		this.sampleNum = obj.sampleNum;
@@ -344,7 +350,7 @@ function initializeSourceBuffers() {
 		sb.segmentIndex++;
 		sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
 		Log.i("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
-		onUpdateEnd.call(sb, null);				
+		onUpdateEnd.call(sb, true);
 	}
 
 	mp4box.onSamples = function (id, user, samples) {	
@@ -396,7 +402,7 @@ function reset() {
 
 function load() {
 	var ms = video.ms;
-	if (ms.readyState != "open") {
+	if (ms.readyState !== "open") {
 		return;
 	}
 
