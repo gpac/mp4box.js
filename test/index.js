@@ -1,5 +1,5 @@
 /* Setting the level of logs (error, warning, info, debug) */
-Log.setLogLevel(Log.e);
+Log.setLogLevel(Log.i);
 
 /* The main object processing the mp4 files */
 var mp4box;
@@ -285,8 +285,8 @@ function onUpdateEnd(e) {
 		delete this.sampleNum;
 	}
 	if (this.ms.readyState == "open" && this.pendingAppends.length > 0 && !this.updating) {
-		Log.i("MSE - SourceBuffer #"+this.id, "Appending new buffer");
 		var obj = this.pendingAppends.shift();
+		Log.i("MSE - SourceBuffer #"+this.id, "Appending new buffer, pending: "+this.pendingAppends.length);
 		this.sampleNum = obj.sampleNum;
 		this.appendBuffer(obj.buffer);
 	}

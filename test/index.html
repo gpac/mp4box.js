@@ -20,8 +20,8 @@
 			<div class="downloadControls">
 				<div>
 					<label for="chunk_size_range">Download Chunk Size (bytes)</label>
-					<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="5000" oninput="setDownloadChunkSize(value);"></input>
-					<output id="chunk_size_range_out" for="chunk_size_range">5000</output>
+					<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="1000000" oninput="setDownloadChunkSize(value);"></input>
+					<output id="chunk_size_range_out" for="chunk_size_range">1000000</output>
 				</div>
 				<div>
 					<label for="dl_realtime">Real-time Download</label>
@@ -79,7 +79,7 @@
 				<select id="logLevelSelect" onchange="Log.setLogLevel(Log[this.value]);" onfocus="this.selectedIndex = -1;">
 					<option value="e">Error</option>
 					<option value="w">Warning</option>
-					<option value="i">Info</option>
+					<option value="i" selected>Info</option>
 					<option value="d">Debug (can be slow!)</option>
 				</select>
 			</div>
