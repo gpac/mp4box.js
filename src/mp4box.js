@@ -478,8 +478,11 @@ MP4Box.prototype.writeFile = function() {
 }
 
 MP4Box.prototype.initializeSegmentation = function() {
+	var i;
 	var j;
 	var box;
+	var initSegs;
+	var trak;
 	if (this.onSegment === null) {
 		Log.w("MP4Box", "No segmentation callback set!");
 	}
@@ -488,21 +491,24 @@ MP4Box.prototype.initializeSegmentation = function() {
 		this.nextMoofNumber = 0;
 		this.inputIsoFile.resetTables();
 	}	
-	var initSegs = [];
-	for (var i = 0; i < this.fragmentedTracks.length; i++) {
+	initSegs = [];
+	for (i = 0; i < this.fragmentedTracks.length; i++) {
 		/* removing all tracks to create initialization segments with only one track */
 		for (j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
 			box = this.inputIsoFile.moov.boxes[j];
-			if (box.type == "trak") {
+			if (box && box.type === "trak") {
+				this.inputIsoFile.moov.boxes[j].ignore = true;
 				this.inputIsoFile.moov.boxes[j] = null;
 			}
 		}
 		/* adding only the needed track */
-		var trak = this.inputIsoFile.getTrackById(this.fragmentedTracks[i].id);
+		trak = this.inputIsoFile.getTrackById(this.fragmentedTracks[i].id);
+		delete trak.ignore;
 		for (j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
 			box = this.inputIsoFile.moov.boxes[j];
 			if (box == null) {
 				this.inputIsoFile.moov.boxes[j] = trak;
+				break;
 			}
 		}
 		seg = {};
