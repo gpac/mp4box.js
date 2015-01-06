@@ -218,6 +218,7 @@ ISOFile.prototype.parse = function() {
 							this.isProgressive = true;
 						}
 						/* no break */
+						/* falls through */
 					default:
 						if (this[box.type] !== undefined) {
 							Log.w("ISOFile", "Duplicate Box of type: "+box.type+", ignoring previous occurrences");
