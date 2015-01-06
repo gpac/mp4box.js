@@ -58,9 +58,15 @@ Downloader.prototype.getFile = function() {
 	xhr.responseType = "arraybuffer";
 	var range = null;
 	xhr.start = this.chunkStart;
+	var maxRange;
 	if (this.chunkStart+this.chunkSize < Infinity) {
 		range = 'bytes=' + this.chunkStart + '-';
-		range += (this.chunkStart+this.chunkSize-1);
+		maxRange = this.chunkStart+this.chunkSize-1;
+		/* if the file length is known we limit the max range to that length */
+		/*if (dl.totalLength !== 0) {
+			maxRange = Math.min(maxRange, dl.totalLength);
+		}*/
+		range += maxRange;
 		xhr.setRequestHeader('Range', range);
 	}
 	xhr.onerror = function(e) {
@@ -70,6 +76,7 @@ Downloader.prototype.getFile = function() {
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
 			var rangeReceived = xhr.getResponseHeader("Content-Range");
 			Log.i("Downloader", "Received data range: "+rangeReceived);
+			/* if the length of the file is not known, we get it from the response header */
 			if (!dl.totalLength) {
 				var sizeIndex;
 				sizeIndex = rangeReceived.indexOf("/");
