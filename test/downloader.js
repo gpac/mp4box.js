@@ -7,6 +7,7 @@ function Downloader() {
 	this.chunkTimeout = 1000;
 	this.url = null;
 	this.callback = null;
+	this.eof = false;
 }
 
 Downloader.prototype.reset = function() {
@@ -48,7 +49,7 @@ Downloader.prototype.getFileLength = function () {
 
 Downloader.prototype.getFile = function() {
 	var dl = this;
-	if (this.chunkStart === Infinity) {
+	if (dl.eof === true) {
 		Log.i("Downloader", "File download done.");
 		this.callback(null, true);
 		return;
@@ -84,11 +85,11 @@ Downloader.prototype.getFile = function() {
 					dl.totalLength = +rangeReceived.slice(sizeIndex+1);
 				}
 			}
-			var eof = (xhr.response.byteLength !== dl.chunkSize);
+			dl.eof = (xhr.response.byteLength !== dl.chunkSize) || (xhr.response.byteLength === dl.totalLength);
 			xhr.response.fileStart = xhr.start;
-			dl.callback(xhr.response, eof); 
+			dl.callback(xhr.response, dl.eof); 
 			//dl.chunkStart+=dl.chunkSize;
-			if (dl.isActive === true && eof === false) {
+			if (dl.isActive === true && dl.eof === false) {
 				var timeoutDuration = 0;
 				if (!dl.realtime) {
 					timeoutDuration = dl.chunkTimeout;
