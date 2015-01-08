@@ -13,6 +13,7 @@ function Downloader() {
 Downloader.prototype.reset = function() {
 	this.chunkStart = 0;
 	this.totalLength = 0;
+	this.eof = false;
 }
 
 Downloader.prototype.setRealTime = function(_realtime) {
