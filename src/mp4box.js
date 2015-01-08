@@ -389,6 +389,11 @@ MP4Box.prototype.appendBuffer = function(ab) {
 
 MP4Box.prototype.getInfo = function() {
 	var movie = {};
+	var trak;
+	var track;
+	var sample_desc;
+	var _1904 = (new Date(4, 0, 1, 0, 0, 0, 0).getTime());
+
 	movie.duration = this.inputIsoFile.moov.mvhd.duration;
 	movie.timescale = this.inputIsoFile.moov.mvhd.timescale;
 	movie.isFragmented = (this.inputIsoFile.moov.mvex != null);
@@ -399,8 +404,7 @@ MP4Box.prototype.getInfo = function() {
 	movie.hasIOD = (this.inputIsoFile.moov.iods != null);
 	movie.brands = []; 
 	movie.brands.push(this.inputIsoFile.ftyp.major_brand);
-	movie.brands = movie.brands.concat(this.inputIsoFile.ftyp.compatible_brands);
-	var _1904 = (new Date(4, 0, 1, 0, 0, 0, 0).getTime());
+	movie.brands = movie.brands.concat(this.inputIsoFile.ftyp.compatible_brands);	
 	movie.created = new Date(_1904+this.inputIsoFile.moov.mvhd.creation_time*1000);
 	movie.modified = new Date(_1904+this.inputIsoFile.moov.mvhd.modification_time*1000);
 	movie.tracks = [];
@@ -411,15 +415,15 @@ MP4Box.prototype.getInfo = function() {
 	movie.hintTracks = [];
 	movie.otherTracks = [];
 	for (i = 0; i < this.inputIsoFile.moov.traks.length; i++) {
-		var trak = this.inputIsoFile.moov.traks[i];
-		var sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
-		var track = {};
+		trak = this.inputIsoFile.moov.traks[i];
+		sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
+		track = {};
 		movie.tracks.push(track);
 		track.id = trak.tkhd.track_id;
 		track.references = [];
 		if (trak.tref) {
 			for (j = 0; j < trak.tref.boxes.length; j++) {
-				var ref = {};
+				ref = {};
 				track.references.push(ref);
 				ref.type = trak.tref.boxes[j].type;
 				ref.track_ids = trak.tref.boxes[j].track_ids;
@@ -439,6 +443,11 @@ MP4Box.prototype.getInfo = function() {
 		track.codec = sample_desc.getCodec();	
 		track.language = trak.mdia.mdhd.languageString;
 		track.nb_samples = trak.samples.length;
+		track.size = 0;
+		for (j = 0; j < track.nb_samples; j++) {
+			track.size += trak.samples[j].size;
+		}
+		track.bitrate = (track.size*8*track.timescale)/track.duration;
 		if (sample_desc.isAudio()) {
 			movie.audioTracks.push(track);
 			track.audio = {};

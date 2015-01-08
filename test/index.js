@@ -85,6 +85,7 @@ function getBasicTrackHeader() {
 	html += "<th>Timescale</th>";
 	html += "<th>Media Duration</th>";
 	html += "<th>Number of Samples</th>";
+	html += "<th>Bitrate (kbps)</th>";
 	html += "<th>Codec</th>";
 	html += "<th>Language</th>";
 	html += "<th>Track Width</th>";
@@ -112,6 +113,7 @@ function getBasicTrackInfo(track) {
 	html += "<td>"+track.timescale+"</td>";
 	html += "<td>"+track.duration+" ("+Log.getDurationString(track.duration,track.timescale)+") </td>";
 	html += "<td>"+track.nb_samples+"</td>";
+	html += "<td>"+Math.floor(track.bitrate/1024)+"</td>";
 	html += "<td>"+track.codec+"</td>";
 	html += "<td>"+track.language+"</td>";
 	html += "<td>"+track.track_width+"</td>";
