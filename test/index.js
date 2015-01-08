@@ -464,10 +464,19 @@ function stop() {
 }		
 
 function onSeeking(e) {
-	if (video.lastSeekTime != video.currentTime) {
+	var i, start, end;
+	var seek_info;
+	if (video.lastSeekTime !== video.currentTime) {
+		for (i = 0; i < video.buffered.length; i++) {
+			start = video.buffered.start(i);
+			end = video.buffered.end(i);
+			if (video.currentTime >= start && video.currentTime <= end) {
+				return;
+			}
+		}
 		/* Chrome fires twice the seeking event with the same value */
 		Log.i("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
-		var seek_info = mp4box.seek(video.currentTime, true);
+		seek_info = mp4box.seek(video.currentTime, true);
 		downloader.stop();
 		downloader.setChunkStart(seek_info.offset);
 		downloader.resume();
