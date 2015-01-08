@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
 		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
@@ -20,21 +21,21 @@
 			<div class="downloadControls">
 				<div>
 					<label for="chunk_size_range">Download Chunk Size (bytes)</label>
-					<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="1000000" oninput="setDownloadChunkSize(value);"></input>
+					<input id="chunk_size_range" name="chunk_size_range" type="range" min="0" max="10000000" step="1000" value="1000000" oninput="setDownloadChunkSize(value);">
 					<output id="chunk_size_range_out" for="chunk_size_range">1000000</output>
 				</div>
 				<div>
 					<label for="dl_realtime">Real-time Download</label>
-					<input id="dl_realtime" name="dl_realtime" type="checkbox" onchange="toggleDownloadMode(event);"></input>
+					<input id="dl_realtime" name="dl_realtime" type="checkbox" onchange="toggleDownloadMode(event);">
 				</div>
 				<div id="dlSpeed">
 					<label for="chunk_size_range">Download Speed (milliseconds)</label>
-					<input id="chunk_speed_range" name="chunk_speed_range" type="range" min="0" max="10000" step="100" value="1000" oninput="setDownloadSpeed(this.value);"></input>
+					<input id="chunk_speed_range" name="chunk_speed_range" type="range" min="0" max="10000" step="100" value="1000" oninput="setDownloadSpeed(this.value);">
 					<output id="chunk_speed_range_out" for="chunk_speed_range">1000</output>
 				</div>
 				<div>
 					<label for="segment_size_range">Segment Duration (number of frames)</label>
-					<input id="segment_size_range" name="segment_size_range" type="range" min="1" max="5000" step="1" value="1000" oninput="setSegmentSize(this.value);"></input>
+					<input id="segment_size_range" name="segment_size_range" type="range" min="1" max="5000" step="1" value="1000" oninput="setSegmentSize(this.value);">
 					<output id="segment_size_range_out" for="segment_size_range">1000</output>
 				</div>
 			</div>
@@ -66,7 +67,7 @@
 				<option value="./mp4-torrents/WolfVideo.mp4">The Wolf of Wall Street v2 (3h, fragmented, AVC only, 6.14 GB)</option>
 			</select>
 			<label>URL:</label>
-			<input id="url" type="text" oninput="document.getElementById('urlSelector').selectedIndex = -1; setUrl(this.value);"></input>
+			<input id="url" type="text" oninput="document.getElementById('urlSelector').selectedIndex = -1; setUrl(this.value);">
 			</div>
 			<div>
 			<button id="loadButton" onclick="load()">Load Media Info</button>
@@ -76,7 +77,7 @@
 			<button onclick="reset()">Reset</button>
 			<div>
 				<label>Save results:</label>
-				<input id="saveChecked" type="checkbox"></input>
+				<input id="saveChecked" type="checkbox">
 			</div>
 			<div>
 				<label>Set Log Level:</label>
