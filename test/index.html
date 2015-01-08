@@ -30,9 +30,10 @@
 					<input id="dl_realtime" name="dl_realtime" type="checkbox" onchange="toggleDownloadMode(event);">
 				</div>
 				<div id="dlSpeed">
-					<label for="chunk_size_range">Download Speed (milliseconds)</label>
+					<label for="chunk_size_range">Download Timeout (milliseconds)</label>
 					<input id="chunk_speed_range" name="chunk_speed_range" type="range" min="0" max="10000" step="100" value="1000" oninput="setDownloadSpeed(this.value);">
 					<output id="chunk_speed_range_out" for="chunk_speed_range">1000</output>
+					<label for="chunk_size_range">(Download Rate <span id="chunk_dl_rate">8000</span> kbps)</label>
 				</div>
 				<div>
 					<label for="segment_size_range">Segment Duration (number of frames)</label>

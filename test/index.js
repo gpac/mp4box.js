@@ -27,9 +27,10 @@ window.onload = function () {
 	chunkSizeInput = document.getElementById("segment_size_range");
 	infoDiv = document.getElementById('infoDiv');
 	dlSpeedDiv = document.getElementById('dlSpeed');
-	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');
+	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');	
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
 	segmentSizeLabel = document.querySelector('#segment_size_range_out');
+	chunkDownloadBitRate = document.querySelector('#chunk_dl_rate');
 	urlSelector = document.getElementById('urlSelector');
 	urlSelector.selectedIndex = -1;
 	saveChecked = document.getElementById("saveChecked");
@@ -59,11 +60,13 @@ function setDownloadSpeed(value) {
 	chunkTimeoutLabel.value = value;
 	chunkTimeoutInput.value = value;
 	downloader.setInterval(parseInt(value));
+	chunkDownloadBitRate.innerHTML = Math.floor(parseInt(chunkSizeLabel.value)*8/parseInt(chunkTimeoutInput.value));
 }
 
 function setDownloadChunkSize(value) {
 	chunkSizeLabel.value = value;
 	downloader.setChunkSize(parseInt(value));
+	chunkDownloadBitRate.innerHTML = Math.floor(parseInt(chunkSizeLabel.value)*8/parseInt(chunkTimeoutInput.value));
 }
 
 function setSegmentSize(value) {
@@ -211,14 +214,16 @@ function getTrackListInfo(tracks, type) {
 
 function displayMovieInfo(info) {
 	var html = "Movie Info";
+	var fileLength = downloader.getFileLength();
 	html += "<div>";
 	html += "<table>";
-	html += "<tr><th>File Size</th><td>"+downloader.getFileLength()+" bytes</td></tr>";
+	html += "<tr><th>File Size</th><td>"+fileLength+" bytes</td></tr>";
 	html += "<tr><th>Brands</th><td>"+info.brands+"</td></tr>";
 	html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
 	html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
 	html += "<tr><th>Timescale</th><td>"+info.timescale+"</td></tr>";
 	html += "<tr><th>Duration</th><td>"+info.duration+" ("+Log.getDurationString(info.duration,info.timescale)+")</td></tr>";
+	html += "<tr><th>Bitrate</th><td>"+Math.floor((fileLength*8*info.timescale)/(info.duration*1000))+" kbps</td></tr>";
 	html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
 	html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
 	html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
