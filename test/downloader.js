@@ -79,7 +79,7 @@ Downloader.prototype.getFile = function() {
 			var rangeReceived = xhr.getResponseHeader("Content-Range");
 			Log.i("Downloader", "Received data range: "+rangeReceived);
 			/* if the length of the file is not known, we get it from the response header */
-			if (!dl.totalLength) {
+			if (!dl.totalLength && rangeReceived) {
 				var sizeIndex;
 				sizeIndex = rangeReceived.indexOf("/");
 				if (sizeIndex > -1) {
