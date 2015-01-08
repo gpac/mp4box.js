@@ -336,11 +336,7 @@ ISOFile.prototype.buildSampleLists = function() {
 		stss = trak.mdia.minf.stbl.stss;
 		stsd = trak.mdia.minf.stbl.stsd;
 		subs = trak.mdia.minf.stbl.subs;
-		chunk_index = -1;
-		chunk_run_index = -1;
-		last_chunk_in_run = -1;
-		offset_in_chunk = 0;
-		last_sample_in_chunk = 0;
+		
 		last_sample_in_stts_run = -1;
 		stts_run_index = -1;
 		last_sample_in_ctts_run = -1;
@@ -356,36 +352,59 @@ ISOFile.prototype.buildSampleLists = function() {
 			trak.samples[j] = sample;
 			/* size can be known directly */
 			sample.size = stsz.sample_sizes[j];
+
 			/* computing chunk-based properties (offset, sample description index)*/
-			if (j < last_sample_in_chunk) {
-				/* the new sample is in the same chunk, the indexes did not change */
+			if (j === 0) {				
+				chunk_index = 1; /* the first sample is in the first chunk (chunk indexes are 1-based) */
+				chunk_run_index = 0; /* the first chunk is the first entry in the first_chunk table */
 				sample.chunk_index = chunk_index;
 				sample.chunk_run_index = chunk_run_index;
-			} else {
-				/* the new sample is not in this chunk */
+				last_sample_in_chunk = stsc.samples_per_chunk[chunk_run_index];
 				offset_in_chunk = 0;
-				chunk_index++;
-				sample.chunk_index = chunk_index;
-				if (chunk_index < last_chunk_in_run) {
-					/* this new chunk in the same run of chunks */					
+
+				/* Is there another entry in the first_chunk table ? */
+				if (chunk_run_index + 1 < stsc.first_chunk.length) {
+					/* The last chunk in the run is the chunk before the next first chunk */
+					last_chunk_in_run = stsc.first_chunk[chunk_run_index+1]-1; 	
+				} else {
+					/* There is only one entry in the table, it is valid for all future chunks*/
+					last_chunk_in_run = Infinity;
+				}
+			} else {
+				if (j < last_sample_in_chunk) {
+					/* the sample is still in the current chunk */
+					sample.chunk_index = chunk_index;
 					sample.chunk_run_index = chunk_run_index;
 				} else {
-					/* this chunk starts a new run */
-					if (chunk_run_index < stsc.first_chunk.length - 2) {
-						/* the last chunk in this new run is the beginning of the next one */
-						chunk_run_index++;
-						last_chunk_in_run = stsc.first_chunk[chunk_run_index+1]-1; // chunk number are 1-based
+					/* the sample is in the next chunk */
+					chunk_index++;
+					sample.chunk_index = chunk_index;
+					/* reset the accumulated offset in the chunk */
+					offset_in_chunk = 0;
+					if (chunk_index <= last_chunk_in_run) {
+						/* stay in the same entry of the first_chunk table */
+						/* chunk_run_index unmodified */
 					} else {
-						/* the last chunk run in indefinitely long */
-						last_chunk_in_run = Infinity; 
+						chunk_run_index++;
+						/* Is there another entry in the first_chunk table ? */
+						if (chunk_run_index + 1 < stsc.first_chunk.length) {
+							/* The last chunk in the run is the chunk before the next first chunk */
+							last_chunk_in_run = stsc.first_chunk[chunk_run_index+1]-1; 	
+						} else {
+							/* There is only one entry in the table, it is valid for all future chunks*/
+							last_chunk_in_run = Infinity;
+						}
+						
 					}
+					sample.chunk_run_index = chunk_run_index;
+					last_sample_in_chunk += stsc.samples_per_chunk[chunk_run_index];
 				}
-				last_sample_in_chunk += stsc.samples_per_chunk[chunk_run_index];
-				sample.chunk_run_index = chunk_run_index;
-			}	
+			}
+
 			sample.description = stsd.entries[stsc.sample_description_index[sample.chunk_run_index]-1];
-			sample.offset = stco.chunk_offsets[sample.chunk_index] + offset_in_chunk;
+			sample.offset = stco.chunk_offsets[sample.chunk_index-1] + offset_in_chunk; /* chunk indexes are 1-based */
 			offset_in_chunk += sample.size;
+
 			/* setting dts, cts, duration and rap flags */
 			if (j >= last_sample_in_stts_run) {
 				stts_run_index++;
