@@ -72,6 +72,7 @@ The `info` argument is an object with the following structure.
 	  "track_height":180,
 	  "timescale":25000,
 	  "duration":15000000,
+	  "bitrate":120000,
 	  "codec":"avc1.42c00d",
 	  "video":{
 	    "width":320,"height":180
@@ -91,6 +92,7 @@ The `info` argument is an object with the following structure.
 	  "track_height":0,
 	  "timescale":44100,
 	  "duration":26460160,
+	  "bitrate":60000,
 	  "codec":"mp4a.40.2",
 	  "audio":{
 	    "sample_rate":44100,
@@ -121,6 +123,7 @@ Track information object:
 - **alternate_group**: Number, identifier of the alternate group the track belongs to,
 - **timescale**: Number, indicating the track timescale, as given in the track header,
 - **duration**: Number, providing the duration of the (unfragmented part of) track, in timescale units,
+- **bitrate**: Number, providing the bitrate of the track in bits per second,
 - **nb_samples**: Number, giving the number of track samples (ie. frames),
 - **codec**: String, giving the MIME codecs parameter for this track (e.g. "avc1.42c00d" or "mp4a.40.2"), to be used to create SourceBuffer objects with [Media Source Extensions](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - **language**: String, giving the 3-letter language code,
