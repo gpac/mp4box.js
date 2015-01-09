@@ -12,7 +12,7 @@ var video;
 
 var startButton, loadButton, initButton;
 var urlInput, chunkTimeoutInput, chunkSizeInput;
-var infoDiv, dlSpeedDiv;
+var infoDiv, dlTimeoutDiv;
 var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel;
 var urlSelector;
 var saveChecked;
@@ -26,7 +26,7 @@ window.onload = function () {
 	chunkTimeoutInput = document.getElementById('chunk_speed_range');
 	chunkSizeInput = document.getElementById("segment_size_range");
 	infoDiv = document.getElementById('infoDiv');
-	dlSpeedDiv = document.getElementById('dlSpeed');
+	dlTimeoutDiv = document.getElementById('dlTimeout');
 	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');	
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
 	segmentSizeLabel = document.querySelector('#segment_size_range_out');
@@ -43,24 +43,31 @@ window.onload = function () {
 /* GUI-related callback functions */
 function setUrl(url) {
 	urlInput.value = url;
+	if (urlInput.value !== "") {
+		loadButton.disabled = false;
+	} else {
+		loadButton.disabled = true;
+	}
 }
 
 function toggleDownloadMode(event) {
 	var checkedBox = event.target;
 	if (checkedBox.checked) {
-		dlSpeedDiv.style.display = "none";
+		dlTimeoutDiv.style.display = "none";
 		downloader.setRealTime(true);
 	} else {
-		dlSpeedDiv.style.display = "inline";
+		dlTimeoutDiv.style.display = "inline";
 		downloader.setRealTime(false);
 	}
 }
 
-function setDownloadSpeed(value) {
+function setDownloadTimeout(value) {
+	var b;
 	chunkTimeoutLabel.value = value;
 	chunkTimeoutInput.value = value;
 	downloader.setInterval(parseInt(value));
-	chunkDownloadBitRate.innerHTML = Math.floor(parseInt(chunkSizeLabel.value)*8/parseInt(chunkTimeoutInput.value));
+	b = Math.floor(parseInt(chunkSizeLabel.value)*8/parseInt(value));
+	chunkDownloadBitRate.innerHTML = b;
 }
 
 function setDownloadChunkSize(value) {
@@ -404,7 +411,6 @@ function reset() {
 	startButton.disabled = true;	
 	resetMediaSource();
 	resetDisplay();
-	loadButton.disabled = false;
 }
 
 function load() {
@@ -515,7 +521,7 @@ function computeWaitingTimeFromBuffer(v) {
 	}
 	duration = minEndRange - maxStartRange;
 	if (currentTime + duration/4 >= minEndRange) {
-		return 0;
+		return 1; /* return 1 ms to be able to compute a non-infinite bitrate value */
 	} else {
 		return 1000*(minEndRange-currentTime)/2;
 	}

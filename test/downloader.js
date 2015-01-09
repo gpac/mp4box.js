@@ -97,6 +97,7 @@ Downloader.prototype.getFile = function() {
 				} else {
 					timeoutDuration = computeWaitingTimeFromBuffer(video);
 				}
+				setDownloadTimeout(timeoutDuration);
 				Log.i("Downloader", "Next download scheduled in "+timeoutDuration+ ' ms.');
 				window.setTimeout(dl.getFile.bind(dl), timeoutDuration);
 			} else {
