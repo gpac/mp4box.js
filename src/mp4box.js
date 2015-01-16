@@ -198,8 +198,8 @@ MP4Box.prototype.insertBuffer = function(ab) {
 					/* There is some overlap, cut the new buffer short, and add it*/
 					smallB = new Uint8Array(b.fileStart - ab.fileStart);
 					smallB.set(new Uint8Array(ab, 0, b.fileStart - ab.fileStart));
-					smallB.fileStart = ab.fileStart;
-					ab = smallB;
+					smallB.buffer.fileStart = ab.fileStart;
+					ab = smallB.buffer;
 					ab.usedBytes = 0;
 					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
 					this.nextBuffers.splice(i, 0, ab);
