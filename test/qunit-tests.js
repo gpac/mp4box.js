@@ -738,13 +738,13 @@ QUnit.module("Parsing-driven download");
 QUnit.asyncTest( "Moov-last", function( assert ) {
 	var mp4box = new MP4Box();
 
-	getFileRange('./moov_last.mp4', 0, 19, function (buffer) {
+	getFileRange('./mp4/moov_last.mp4', 0, 19, function (buffer) {
 		var next_pos = mp4box.appendBuffer(buffer);
 		assert.equal(next_pos, 32, "Next position after first append corresponds to next box start");
-		getFileRange('./moov_last.mp4', 20, 39, function (buffer) {
+		getFileRange('./mp4/moov_last.mp4', 20, 39, function (buffer) {
 			var next_pos = mp4box.appendBuffer(buffer);
 			assert.equal(next_pos, 40, "Next position after second append corresponds to next box start");
-			getFileRange('./moov_last.mp4', 40, 100, function (buffer) {
+			getFileRange('./mp4/moov_last.mp4', 40, 100, function (buffer) {
 				var next_pos = mp4box.appendBuffer(buffer);
 				assert.equal(next_pos, 1309934+40, "Next position after third append corresponds to moov position");
 				QUnit.start();
