@@ -166,6 +166,7 @@ MP4Box.prototype.insertBuffer = function(ab) {
 	var smallB;
 	var to_add = true;
 	/* insert the new buffer in the sorted list of buffers, making sure, it is not overlapping with existing ones */
+	/* nextBuffers is sorted by fileStart and there is no overlap */
 	for (var i = 0; i < this.nextBuffers.length; i++) {
 		var b = this.nextBuffers[i];
 		if (ab.fileStart <= b.fileStart) {
@@ -210,14 +211,21 @@ MP4Box.prototype.insertBuffer = function(ab) {
 			to_add = false;
 			break;
 		} else if (ab.fileStart < b.fileStart + b.byteLength) {
-			/* the new buffer overlaps its end with the current buffer */
+			/* the new buffer overlaps its beginning with the end of the current buffer */
 			var offset = b.fileStart + b.byteLength - ab.fileStart;
 			var newLength = ab.byteLength - offset;
-			smallB = new Uint8Array(newLength);
-			smallB.set(new Uint8Array(ab, offset, newLength));
-			smallB.buffer.fileStart = ab.fileStart+offset;
-			ab = smallB.buffer;
-			ab.usedBytes = 0;
+			if (newLength > 0) {
+				/* the new buffer is bigger than the current overlap, drop the overlapping part and try again inserting the remaining buffer */
+				smallB = new Uint8Array(newLength);
+				smallB.set(new Uint8Array(ab, offset, newLength));
+				smallB.buffer.fileStart = ab.fileStart+offset;
+				ab = smallB.buffer;
+				ab.usedBytes = 0;
+			} else {
+				/* the content of the new buffer is entirely contained in the existing buffer, drop it entirely */
+				to_add = false;
+				break;
+			}
 		}
 	}			
 	if (to_add) {
