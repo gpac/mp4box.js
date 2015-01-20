@@ -367,28 +367,7 @@ function initializeSourceBuffers() {
 		onUpdateEnd.call(sb, true);
 	}
 
-	mp4box.onSamples = function (id, user, samples) {	
-		var texttrack = user;
-		Log.i("TextTrack #"+id,"Received "+samples.length+" new sample(s)");
-		for (var j = 0; j < samples.length; j++) {
-			var sample = samples[j];
-			if (sample.description.type == "wvtt") {
-				var vtt4Parser = new VTTin4Parser();
-				var cues = vtt4Parser.parseSample(sample.data);
-				for (var i = 0; i < cues.length; i++) {
-					var cueIn4 = cues[i];
-					var cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4.payl.text);
-					texttrack.addCue(cue);
-				}
-			} else {
-				var xmlSub4Parser = new XMLSubtitlein4Parser();
-				var xmlSubSample = xmlSub4Parser.parseSample(sample); 
-				var xmlParser = new DOMParser();
-				xmlParser.parseFromString = xmlSubSample.documentString;
-				console.log(xmlSubSample.documentString);
-			}
-		}
-	}
+
 
 	var initSegs = mp4box.initializeSegmentation();
 	for (var i = 0; i < initSegs.length; i++) {
@@ -434,6 +413,30 @@ function load() {
 		displayMovieInfo(info);
 		addSourceBufferListener(info);
 	}
+	mp4box.onSamples = function (id, user, samples) {	
+		var texttrack = user;
+		Log.i("TextTrack #"+id,"Received "+samples.length+" new sample(s)");
+		for (var j = 0; j < samples.length; j++) {
+			var sample = samples[j];
+			if (sample.description.type === "wvtt") {
+				var vtt4Parser = new VTTin4Parser();
+				var cues = vtt4Parser.parseSample(sample.data);
+				for (var i = 0; i < cues.length; i++) {
+					var cueIn4 = cues[i];
+					var cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4.payl.text);
+					texttrack.addCue(cue);
+				}
+			} else if (sample.description.type === "metx" || sample.description.type === "stpp") {
+				var xmlSub4Parser = new XMLSubtitlein4Parser();
+				var xmlSubSample = xmlSub4Parser.parseSample(sample); 
+				console.log("Parsed XML sample:", xmlSubSample.document);
+			} else if (sample.description.type === "mett" || sample.description.type === "sbtt" || sample.description.type === "stxt") {
+				var textSampleParser = new Textin4Parser();
+				var textSample = textSampleParser.parseSample(sample); 
+				console.log("Parsed text sample:" + textSample);
+			}
+		}
+	}	
 				
 	loadButton.disabled = true;
 	startButton.disabled = true;

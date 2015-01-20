@@ -37,7 +37,7 @@ var BoxParser = {
 		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos" ] },
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
-		{ prefix: "Subtitle", types: [ "stpp", "wvtt" ] }
+		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] }
 	],
 	trackReferenceTypes: [
 		"scal"
@@ -349,6 +349,10 @@ BoxParser.AudioSampleEntry.prototype.getSampleSize = function() {
 }
 
 BoxParser.SubtitleSampleEntry.prototype.isSubtitle = function() {
+	return true;
+}
+
+BoxParser.MetadataSampleEntry.prototype.isMetadata = function() {
 	return true;
 }
 
