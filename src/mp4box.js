@@ -162,11 +162,20 @@ ArrayBuffer.concat = function(buffer1, buffer2) {
   return tmp.buffer;
 };
 
-MP4Box.prototype.insertBuffer = function(ab) {	
+MP4Box.prototype.reduceBuffer = function(buffer, offset, newLength) {
 	var smallB;
+	smallB = new Uint8Array(newLength);
+	smallB.set(new Uint8Array(buffer, offset, newLength));
+	smallB.buffer.fileStart = buffer.fileStart+offset;
+	smallB.buffer.usedBytes = 0;
+	return smallB.buffer;	
+}
+
+/* insert the new buffer in the sorted list of buffers (nextBuffers), making sure, it is not overlapping with existing ones */
+/* nextBuffers is sorted by fileStart and there is no overlap, no duplicate */
+MP4Box.prototype.insertBuffer = function(ab) {	
 	var to_add = true;
-	/* insert the new buffer in the sorted list of buffers, making sure, it is not overlapping with existing ones */
-	/* nextBuffers is sorted by fileStart and there is no overlap */
+	/* TODO: improve insertion if many buffers */
 	for (var i = 0; i < this.nextBuffers.length; i++) {
 		var b = this.nextBuffers[i];
 		if (ab.fileStart <= b.fileStart) {
@@ -189,24 +198,12 @@ MP4Box.prototype.insertBuffer = function(ab) {
 				   let's check the end of it */
 				if (ab.fileStart + ab.byteLength <= b.fileStart) {
 					/* no overlap, we can add it as is */
-					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
-					this.nextBuffers.splice(i, 0, ab);
-					if (i === 0 && this.inputStream != null) {
-						this.inputStream.buffer = ab;
-					}
 				} else {
 					/* There is some overlap, cut the new buffer short, and add it*/
-					smallB = new Uint8Array(b.fileStart - ab.fileStart);
-					smallB.set(new Uint8Array(ab, 0, b.fileStart - ab.fileStart));
-					smallB.buffer.fileStart = ab.fileStart;
-					ab = smallB.buffer;
-					ab.usedBytes = 0;
-					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
-					this.nextBuffers.splice(i, 0, ab);
-					if (i === 0 && this.inputStream != null) {
-						this.inputStream.buffer = ab;
-					}
+					ab = this.reduceBuffer(ab, 0, b.fileStart - ab.fileStart);
 				}
+				Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
+				this.nextBuffers.splice(i, 0, ab);
 			}
 			to_add = false;
 			break;
@@ -216,24 +213,22 @@ MP4Box.prototype.insertBuffer = function(ab) {
 			var newLength = ab.byteLength - offset;
 			if (newLength > 0) {
 				/* the new buffer is bigger than the current overlap, drop the overlapping part and try again inserting the remaining buffer */
-				smallB = new Uint8Array(newLength);
-				smallB.set(new Uint8Array(ab, offset, newLength));
-				smallB.buffer.fileStart = ab.fileStart+offset;
-				ab = smallB.buffer;
-				ab.usedBytes = 0;
+				ab = this.reduceBuffer(ab, offset, newLength);
 			} else {
 				/* the content of the new buffer is entirely contained in the existing buffer, drop it entirely */
 				to_add = false;
 				break;
 			}
 		}
-	}			
+	}
+	/* if the buffer has not been added, we can add it at the end */
 	if (to_add) {
 		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
 		this.nextBuffers.push(ab);
-		if (i === 0 && this.inputStream != null) {
-			this.inputStream.buffer = ab;
-		}
+	}
+	/* if this new buffer is inserted in the first place in the list of the buffer, and the DataStream is initialize, make it the buffer used for parsing */
+	if (i === 0 && this.inputStream != null) {
+		this.inputStream.buffer = ab;
 	}
 }
 

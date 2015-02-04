@@ -893,6 +893,44 @@ QUnit.asyncTest( "Seek in the past", function( assert ) {
 	});
 });
 
+QUnit.asyncTest( "Seek and fetch out of order", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	var track_id;
+	mp4box.onSamples = function(id, user, samples) {
+		console.log("Getting sample for time:"+samples[0].dts/samples[0].timescale);
+		if (samples[0].dts === 10000000) {
+			window.clearTimeout(timeout);
+			QUnit.start();	
+		}
+	}
+	mp4box.onReady = function(info) { 
+		assert.ok(true, "moov found!" );	
+		track_id = info.tracks[0].id;
+		/* setting extraction option and then seeking and calling sample processing */
+		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1000, rapAlignement: true } );
+		/* getting the first 1000 samples */
+		getFileRange(testFiles[index].url, 68190, 371814, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			mp4box.seek(560, true);
+			// fetching the last group of 1000 samples in the file
+			getFileRange(testFiles[index].url, 3513891, Infinity, function(buffer) {
+				mp4box.appendBuffer(buffer);
+				mp4box.seek(400, true);
+				getFileRange(testFiles[index].url, 2558231, 2797139, function(buffer) {
+					mp4box.appendBuffer(buffer);
+				});
+			});
+		});
+	
+	}
+	getFileRange(testFiles[index].url, 0, 68190, function (buffer) {
+		/* appending the ftyp/moov */
+		mp4box.appendBuffer(buffer);
+	});
+});
+
 QUnit.module("Write tests");
 QUnit.asyncTest( "Generate initialization segment", function( assert ) {
 	var index = 0;
