@@ -210,7 +210,7 @@ function getTrackListInfo(tracks, type) {
 			if (MediaSource.isTypeSupported(mime)) {
 				html += "<td id=\"buffer"+tracks[i].id+"\">"+"<input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\">"+"</td>";
 			} else {
-				html += "<td>Not supported, adding as TextTrack <input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\"></td>";
+				html += "<td>Not supported by your browser, exposing track content using HTML TextTrack <input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\"></td>";
 			}
 			html += "</tr>";
 		}
@@ -335,7 +335,7 @@ function addSourceBufferListener(info) {
 					} else {
 						Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 						var textrack = v.addTextTrack("subtitles", "Text track for track "+track_id);
-						mp4box.setExtractionOptions(track_id, textrack);
+						mp4box.setExtractionOptions(track_id, textrack, { nbSamples: 1 });
 						//check.checked = false;
 					}
 				} else {
@@ -429,11 +429,12 @@ function load() {
 			} else if (sample.description.type === "metx" || sample.description.type === "stpp") {
 				var xmlSub4Parser = new XMLSubtitlein4Parser();
 				var xmlSubSample = xmlSub4Parser.parseSample(sample); 
-				console.log("Parsed XML sample:", xmlSubSample.document);
+				console.log("Parsed XML sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :", xmlSubSample.document);
 			} else if (sample.description.type === "mett" || sample.description.type === "sbtt" || sample.description.type === "stxt") {
 				var textSampleParser = new Textin4Parser();
 				var textSample = textSampleParser.parseSample(sample); 
-				console.log("Parsed text sample:" + textSample);
+				console.log("Parsed text sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :");
+				console.log(textSample);
 			}
 		}
 	}	
