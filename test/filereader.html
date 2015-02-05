@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<meta charset="UTF-8">
+		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
+		<link rel="stylesheet" href="style.css" />
+        <script src="../src/Log.js"></script>
+        <script src="../src/DataStream.js"></script>
+        <script src="../src/descriptor.js"></script>
+        <script src="../src/box.js"></script>
+        <script src="../src/text-mp4.js"></script>
+        <script src="../src/isofile.js"></script>
+        <script src="../src/mp4box.js"></script>
+		<script src="filereader.js"></script>
+		<style type="text/css">
+		.box{
+			background-color:gray;
+			height:200px;
+			width:250px;
+			margin-top:120px;
+			margin-left:500px;
+			border:1px ridge #aaa;
+			-moz-box-shadow: 10px 10px 10px #212121;
+			-webkit-box-shadow: 10px 10px 10px #212121;
+			box-shadow: 10px 10px 10px #212121;
+		}
+		</style>
+    </head>
+	<body>
+		<div>
+			<h2>Demonstration of MP4Box.js</h2>
+			<h3>File testing</h3>
+			<video id="v" width="640" height="480" autoplay controls> </video>
+			<div class='box' ondragenter="this.textContent = ''; dragenter(event)" 
+			     ondragover="dragenter(event)" 
+			     ondrop="dragenter(event); drop(event);">Drag and drop your MP4 file here.</div>
+			<br>
+			<input type='file' id='fileinput' multiple='multiple' onchange='drop()'>
+	</body>
+</html>
