@@ -612,6 +612,40 @@ QUnit.asyncTest( "appending an overlapping smaller buffer", function( assert ) {
 	});
 });
 
+QUnit.asyncTest( "appending many overlapping buffers", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	mp4box.onReady = function(info) { 
+		window.clearTimeout(timeout);
+		assert.ok(true, "moov found!" );
+		assert.equal(mp4box.nextBuffers.length, 1, "1 buffer stored" );
+		if (testFiles[index].info) {
+			assert.deepEqual(info, testFiles[index].info, "Movie information is correct");
+		}
+		QUnit.start();
+	}
+
+	getFileRange(testFiles[index].url, 1000, 5000, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		getFileRange(testFiles[index].url, 550, 650, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			getFileRange(testFiles[index].url, 650, 750, function (buffer) {
+				mp4box.appendBuffer(buffer);
+				getFileRange(testFiles[index].url, 750, 850, function (buffer) {
+					mp4box.appendBuffer(buffer);
+					getFileRange(testFiles[index].url, 850, 950, function (buffer) {
+						mp4box.appendBuffer(buffer);
+						getFileRange(testFiles[index].url, 950, 1050, function (buffer) {
+							mp4box.appendBuffer(buffer);
+						});
+					});
+				});
+			});
+		});
+	});
+});
+
 QUnit.module("Segmentation/Extraction tests");
 QUnit.asyncTest( "Basic Segmentation", function( assert ) {
 	var index = 0;
