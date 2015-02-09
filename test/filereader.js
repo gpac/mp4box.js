@@ -1,4 +1,4 @@
-Log.setLogLevel(Log.w);
+Log.setLogLevel(Log.i);
 
 function dragenter(e) {
 	e.stopPropagation();
@@ -31,12 +31,13 @@ function readFile(file) {
 
   var append_data_to_mp4box = function(event) {
     var arraybuffer = event.target.result;
-    console.log("Received file reading progress event", event);
+    console.log("Received file reading progress event", event, "loaded: "+ event.loaded, "position: "+filePos);
     if (arraybuffer !== null) {
+      console.log("ArrayBuffer length: "+arraybuffer.byteLength)
 	    arraybuffer.fileStart = filePos;
 	    var readNext = mp4box.appendBuffer(arraybuffer);
 	    console.log("Appended data to MP4Box, next offset should be ", readNext);
-	    filePos = event.loaded;   // adding fileStart property
+	    filePos += event.loaded;   // adding fileStart property
     }
   }
 
