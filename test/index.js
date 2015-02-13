@@ -432,6 +432,9 @@ function load() {
 				console.log("Parsed XML sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :", xmlSubSample.document);
 			} else if (sample.description.type === "mett" || sample.description.type === "sbtt" || sample.description.type === "stxt") {
 				var textSampleParser = new Textin4Parser();
+				if (sample.description.txtC && j===0) {
+					console.log("Parser Configuration: ", sample.description.txtC.config);
+				}
 				var textSample = textSampleParser.parseSample(sample); 
 				console.log("Parsed text sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :");
 				console.log(textSample);
