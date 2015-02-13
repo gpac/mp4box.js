@@ -14,7 +14,8 @@ var BoxParser = {
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
-				  "esds", "subs"
+				  "esds", "subs",
+				  "txtC"
 				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -276,6 +277,11 @@ BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	this.data_reference_index = stream.readUint16();
 }
 
+BoxParser.SampleEntry.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	stream.seek(this.start+this.size);
+}
+
 BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	var ret;
 	var box;
@@ -285,11 +291,6 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 		this.boxes.push(box);
 		this[box.type] = box;
 	}	
-}
-
-BoxParser.SampleEntry.prototype.parse = function(stream) {
-	this.parseHeader(stream);
-	stream.seek(this.start+this.size);
 }
 
 BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
@@ -348,8 +349,18 @@ BoxParser.AudioSampleEntry.prototype.getSampleSize = function() {
 	return this.samplesize;
 }
 
+BoxParser.SubtitleSampleEntry.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.parseFooter(stream);
+}
+
 BoxParser.SubtitleSampleEntry.prototype.isSubtitle = function() {
 	return true;
+}
+
+BoxParser.MetadataSampleEntry.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.parseFooter(stream);
 }
 
 BoxParser.MetadataSampleEntry.prototype.isMetadata = function() {
@@ -358,6 +369,43 @@ BoxParser.MetadataSampleEntry.prototype.isMetadata = function() {
 
 BoxParser.TrackReferenceTypeBox.prototype.parse = function(stream) {
 	this.track_ids = stream.readUint8Array(this.size);
+}
+
+BoxParser.metxBox.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.content_encoding = stream.readCString();
+	this.namespace = stream.readCString();
+	this.schema_location = stream.readCString();
+	this.parseFooter(stream);
+}
+
+BoxParser.mettBox.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.content_encoding = stream.readCString();
+	this.mime_format = stream.readCString();
+	this.parseFooter(stream);
+}
+
+BoxParser.sbttBox.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.content_encoding = stream.readCString();
+	this.mime_format = stream.readCString();
+	this.parseFooter(stream);
+}
+
+BoxParser.stxtBox.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.content_encoding = stream.readCString();
+	this.mime_format = stream.readCString();
+	this.parseFooter(stream);
+}
+
+BoxParser.stppBox.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.namespace = stream.readCString();
+	this.schema_location = stream.readCString();
+	this.auxiliary_mime_types = stream.readCString();
+	this.parseFooter(stream);
 }
 
 BoxParser.ftypBox.prototype.parse = function(stream) {
@@ -537,6 +585,11 @@ BoxParser.esdsBox.prototype.parse = function(stream) {
 	this.size = 0;
 	var esd_parser = new MPEG4DescriptorParser();
 	this.esd = esd_parser.parseOneDescriptor(new DataStream(this.data.buffer, 0, DataStream.BIG_ENDIAN));
+}
+
+BoxParser.txtCBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.config = stream.readCString();
 }
 
 BoxParser.cttsBox.prototype.parse = function(stream) {
