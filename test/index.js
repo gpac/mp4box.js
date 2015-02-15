@@ -510,6 +510,9 @@ function computeWaitingTimeFromBuffer(v) {
 	var maxStartRange = 0;
 	var minEndRange = Infinity;
 	var duration;
+
+	/* computing the intersection of the buffered values of all active sourcebuffers around the current time, 
+	   may already be done by the browser when calling video.buffered (to be checked: TODO) */
 	for (var i = 0; i < ms.activeSourceBuffers.length; i++) {
 		sb = ms.activeSourceBuffers.item(i);
 		for (var j = 0; j < sb.buffered.length; j++) {
@@ -522,10 +525,13 @@ function computeWaitingTimeFromBuffer(v) {
 			}
 		}
 	}
+	
 	duration = minEndRange - maxStartRange;
 	if (currentTime + duration/4 >= minEndRange) {
-		return 1; /* return 1 ms to be able to compute a non-infinite bitrate value */
+		/* when the currentTime of the video is at more than 3/4 of the buffered range, immediately fetch a new buffer */
+		return 1; /* return 1 ms (instead of 0) to be able to compute a non-infinite bitrate value */
 	} else {
+		/* if not, wait for half of the remaining time in the buffer */
 		return 1000*(minEndRange-currentTime)/2;
 	}
 }
