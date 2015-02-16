@@ -26,6 +26,7 @@ Downloader.prototype.setChunkSize = function(_size) {
 
 Downloader.prototype.setChunkStart = function(_start) {
 	this.chunkStart = _start;
+	this.eof = false;
 }
 
 Downloader.prototype.setInterval = function(_timeout) {

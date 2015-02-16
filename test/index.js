@@ -470,6 +470,7 @@ function load() {
 function start() {
 	startButton.disabled = true;
 	stopButton.disabled = false;
+	downloader.setChunkStart(mp4box.seek(0, true).offset);
 	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
 	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
 	downloader.resume();
