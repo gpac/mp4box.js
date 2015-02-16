@@ -5,7 +5,7 @@
 var MP4Box = function () {
 	/* DataStream object used to parse the boxes */
 	this.inputStream = null;
-	/* List of ArrayBuffers, with a fileStart property, sorted in order and non overlapping */
+	/* List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non overlapping */
 	this.nextBuffers = [];	
 	/* ISOFile object containing the parsed boxes */
 	this.inputIsoFile = null;
@@ -25,10 +25,13 @@ var MP4Box = function () {
 	this.onError = null;
 	/* Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
 	this.sampleListBuilt = false;
-
+	/* Array of Track objects for which fragmentation of samples is requested */
 	this.fragmentedTracks = [];
+	/* Array of Track objects for which extraction of samples is requested */
 	this.extractedTracks = [];
+	/* Boolean indicating that fragmented has started */
 	this.isFragmentationStarted = false;
+	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
 }
 
@@ -162,6 +165,7 @@ ArrayBuffer.concat = function(buffer1, buffer2) {
   return tmp.buffer;
 };
 
+/* Reduces the size of a given buffer */
 MP4Box.prototype.reduceBuffer = function(buffer, offset, newLength) {
 	var smallB;
 	smallB = new Uint8Array(newLength);
@@ -171,8 +175,10 @@ MP4Box.prototype.reduceBuffer = function(buffer, offset, newLength) {
 	return smallB.buffer;	
 }
 
-/* insert the new buffer in the sorted list of buffers (nextBuffers), making sure, it is not overlapping with existing ones */
-/* nextBuffers is sorted by fileStart and there is no overlap, no duplicate */
+/* insert the new buffer in the sorted list of buffers (nextBuffers), 
+   making sure, it is not overlapping with existing ones (possibly reducing its size).
+   if the new buffer overrides/replaces the 0-th buffer (for instance because it is bigger), 
+   updates the DataStream buffer for parsing */
 MP4Box.prototype.insertBuffer = function(ab) {	
 	var to_add = true;
 	/* TODO: improve insertion if many buffers */
@@ -557,6 +563,8 @@ MP4Box.prototype.flush = function() {
 	this.processSamples();
 }
 
+/* Finds the byte offset for a given time on a given track
+   also returns the time of the previous rap */
 MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	var j;
 	var sample;
@@ -594,6 +602,7 @@ MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	}
 }
 
+/* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
 MP4Box.prototype.seek = function(time, useRap) {
 	var moov = this.inputIsoFile.moov;
 	var trak;

@@ -672,8 +672,15 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 
 				DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
 				                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
-                      				buffer.usedBytes += sample.size - sample.alreadyRead;
 				sample.alreadyRead = sample.size;
+
+				/* update the number of bytes used in this buffer and check if it needs to be removed */
+				buffer.usedBytes += sample.size - sample.alreadyRead;
+				if (buffer.usedBytes === buffer.byteLength) {
+					this.stream.nextBuffers.splice(i, 1);
+					i--;
+					/* TODO: check if the DataStream buffer needs to be updated */
+				}
 
 				return sample;
 			} else {
@@ -684,12 +691,18 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 				
 				DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
 				                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);
-				buffer.usedBytes += lengthAfterStart;
 				sample.alreadyRead += lengthAfterStart;
+
+				/* update the number of bytes used in this buffer and check if it needs to be removed */
+				buffer.usedBytes += lengthAfterStart;
+				if (buffer.usedBytes === buffer.byteLength) {
+					this.stream.nextBuffers.splice(i, 1);
+					i--;
+					/* TODO: check if the DataStream buffer needs to be updated */
+				}
 			}
 		}
 	}
-	/* TODO: Remove entirely used buffers */
 	return null;
 }
 
