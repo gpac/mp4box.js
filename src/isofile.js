@@ -36,7 +36,7 @@ ISOFile.prototype.parse = function() {
 	var ret;
 	var box;
 	
-	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" from position "+this.lastBoxStartPosition+
+	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
 		" ("+(this.stream.buffer.fileStart+this.lastBoxStartPosition)+" in the file)");
 
 	/* Reposition at the start position of the previous box not entirely parsed */

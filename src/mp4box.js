@@ -191,7 +191,7 @@ MP4Box.prototype.insertBuffer = function(ab) {
 					continue;
 				} else {
 					/* the new buffer is smaller than the existing one, just drop it */
-					Log.w("MP4Box", "Buffer already appended, ignoring");
+					Log.w("MP4Box", "Buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+") already appended, ignoring");
 				}
 			} else {
 				/* The beginning of the new buffer is not overlapping with an existing buffer
@@ -202,8 +202,13 @@ MP4Box.prototype.insertBuffer = function(ab) {
 					/* There is some overlap, cut the new buffer short, and add it*/
 					ab = this.reduceBuffer(ab, 0, b.fileStart - ab.fileStart);
 				}
-				Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
+				Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
 				this.nextBuffers.splice(i, 0, ab);
+				/* if this new buffer is inserted in the first place in the list of the buffer, 
+				   and the DataStream is initialized, make it the buffer used for parsing */
+				if (i === 0 && this.inputStream !== null) {
+					this.inputStream.buffer = ab;
+				}
 			}
 			to_add = false;
 			break;
@@ -223,12 +228,13 @@ MP4Box.prototype.insertBuffer = function(ab) {
 	}
 	/* if the buffer has not been added, we can add it at the end */
 	if (to_add) {
-		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
+		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
 		this.nextBuffers.push(ab);
-	}
-	/* if this new buffer is inserted in the first place in the list of the buffer, and the DataStream is initialize, make it the buffer used for parsing */
-	if (i === 0 && this.inputStream != null) {
-		this.inputStream.buffer = ab;
+		/* if this new buffer is inserted in the first place in the list of the buffer, 
+		   and the DataStream is initialized, make it the buffer used for parsing */
+		if (i === 0 && this.inputStream !== null) {
+			this.inputStream.buffer = ab;
+		}
 	}
 }
 
@@ -365,7 +371,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		throw("Buffer must have a fileStart property");
 	}	
 	if (ab.byteLength === 0) {
-		Log.w("MP4Box", "Ignoring empty buffer");
+		Log.w("MP4Box", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
 		return;
 	}
 	/* mark the bytes in the buffer as not being used yet */
