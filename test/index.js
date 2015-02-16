@@ -276,7 +276,7 @@ function updateBufferedString(sb, string) {
 	var rangeString;
 	if (sb.ms.readyState === "open") {
 		rangeString = Log.printRanges(sb.buffered);
-		Log.i("MSE - SourceBuffer #"+sb.id, string+", updating: "+sb.updating+", buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
+		Log.i("MSE - SourceBuffer #"+sb.id, string+", updating: "+sb.updating+", currentTime: "+Log.getDurationString(video.currentTime, 1)+", buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
 		if (sb.bufferTd === undefined) {
 			sb.bufferTd = document.getElementById("buffer"+sb.id);
 		}
@@ -507,10 +507,12 @@ function computeWaitingTimeFromBuffer(v) {
 	var sb;
 	var startRange, endRange;
 	var currentTime = v.currentTime;
+	var playbackRate = v.playbackRate;
 	var maxStartRange = 0;
 	var minEndRange = Infinity;
+	var ratio;
+	var wait;
 	var duration;
-
 	/* computing the intersection of the buffered values of all active sourcebuffers around the current time, 
 	   may already be done by the browser when calling video.buffered (to be checked: TODO) */
 	for (var i = 0; i < ms.activeSourceBuffers.length; i++) {
@@ -527,12 +529,18 @@ function computeWaitingTimeFromBuffer(v) {
 	}
 	
 	duration = minEndRange - maxStartRange;
-	if (currentTime + duration/4 >= minEndRange) {
-		/* when the currentTime of the video is at more than 3/4 of the buffered range, immediately fetch a new buffer */
+	ratio = (currentTime - maxStartRange)/duration;
+	Log.i("Demo", "Playback position ("+Log.getDurationString(currentTime)+") in current buffer ["+Log.getDurationString(maxStartRange)+","+Log.getDurationString(minEndRange)+"]: "+Math.floor(ratio*100)+"%");
+	if (ratio >= 3/(playbackRate+3)) {
+		Log.i("Demo", "Downloading immediately new data!");
+		/* when the currentTime of the video is at more than 3/4 of the buffered range (for a playback rate of 1), 
+		   immediately fetch a new buffer */
 		return 1; /* return 1 ms (instead of 0) to be able to compute a non-infinite bitrate value */
 	} else {
-		/* if not, wait for half of the remaining time in the buffer */
-		return 1000*(minEndRange-currentTime)/2;
+		/* if not, wait for half (at playback rate of 1) of the remaining time in the buffer */
+		wait = 1000*(minEndRange - currentTime)/(2*playbackRate);
+		Log.i("Demo", "Waiting for "+Log.getDurationString(wait,1000)+" s for the next download");
+		return wait;
 	}
 }
 
