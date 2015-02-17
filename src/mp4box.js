@@ -5,7 +5,7 @@
 var MP4Box = function () {
 	/* DataStream object used to parse the boxes */
 	this.inputStream = null;
-	/* List of ArrayBuffers, with a fileStart property, sorted in order and non overlapping */
+	/* List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non overlapping */
 	this.nextBuffers = [];	
 	/* ISOFile object containing the parsed boxes */
 	this.inputIsoFile = null;
@@ -25,10 +25,13 @@ var MP4Box = function () {
 	this.onError = null;
 	/* Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
 	this.sampleListBuilt = false;
-
+	/* Array of Track objects for which fragmentation of samples is requested */
 	this.fragmentedTracks = [];
+	/* Array of Track objects for which extraction of samples is requested */
 	this.extractedTracks = [];
+	/* Boolean indicating that fragmented has started */
 	this.isFragmentationStarted = false;
+	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
 }
 
@@ -162,11 +165,23 @@ ArrayBuffer.concat = function(buffer1, buffer2) {
   return tmp.buffer;
 };
 
-MP4Box.prototype.insertBuffer = function(ab) {	
+/* Reduces the size of a given buffer */
+MP4Box.prototype.reduceBuffer = function(buffer, offset, newLength) {
 	var smallB;
+	smallB = new Uint8Array(newLength);
+	smallB.set(new Uint8Array(buffer, offset, newLength));
+	smallB.buffer.fileStart = buffer.fileStart+offset;
+	smallB.buffer.usedBytes = 0;
+	return smallB.buffer;	
+}
+
+/* insert the new buffer in the sorted list of buffers (nextBuffers), 
+   making sure, it is not overlapping with existing ones (possibly reducing its size).
+   if the new buffer overrides/replaces the 0-th buffer (for instance because it is bigger), 
+   updates the DataStream buffer for parsing */
+MP4Box.prototype.insertBuffer = function(ab) {	
 	var to_add = true;
-	/* insert the new buffer in the sorted list of buffers, making sure, it is not overlapping with existing ones */
-	/* nextBuffers is sorted by fileStart and there is no overlap */
+	/* TODO: improve insertion if many buffers */
 	for (var i = 0; i < this.nextBuffers.length; i++) {
 		var b = this.nextBuffers[i];
 		if (ab.fileStart <= b.fileStart) {
@@ -182,30 +197,23 @@ MP4Box.prototype.insertBuffer = function(ab) {
 					continue;
 				} else {
 					/* the new buffer is smaller than the existing one, just drop it */
-					Log.w("MP4Box", "Buffer already appended, ignoring");
+					Log.w("MP4Box", "Buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+") already appended, ignoring");
 				}
 			} else {
 				/* The beginning of the new buffer is not overlapping with an existing buffer
 				   let's check the end of it */
 				if (ab.fileStart + ab.byteLength <= b.fileStart) {
 					/* no overlap, we can add it as is */
-					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
-					this.nextBuffers.splice(i, 0, ab);
-					if (i === 0 && this.inputStream != null) {
-						this.inputStream.buffer = ab;
-					}
 				} else {
 					/* There is some overlap, cut the new buffer short, and add it*/
-					smallB = new Uint8Array(b.fileStart - ab.fileStart);
-					smallB.set(new Uint8Array(ab, 0, b.fileStart - ab.fileStart));
-					smallB.buffer.fileStart = ab.fileStart;
-					ab = smallB.buffer;
-					ab.usedBytes = 0;
-					Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
-					this.nextBuffers.splice(i, 0, ab);
-					if (i === 0 && this.inputStream != null) {
-						this.inputStream.buffer = ab;
-					}
+					ab = this.reduceBuffer(ab, 0, b.fileStart - ab.fileStart);
+				}
+				Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
+				this.nextBuffers.splice(i, 0, ab);
+				/* if this new buffer is inserted in the first place in the list of the buffer, 
+				   and the DataStream is initialized, make it the buffer used for parsing */
+				if (i === 0 && this.inputStream !== null) {
+					this.inputStream.buffer = ab;
 				}
 			}
 			to_add = false;
@@ -216,22 +224,21 @@ MP4Box.prototype.insertBuffer = function(ab) {
 			var newLength = ab.byteLength - offset;
 			if (newLength > 0) {
 				/* the new buffer is bigger than the current overlap, drop the overlapping part and try again inserting the remaining buffer */
-				smallB = new Uint8Array(newLength);
-				smallB.set(new Uint8Array(ab, offset, newLength));
-				smallB.buffer.fileStart = ab.fileStart+offset;
-				ab = smallB.buffer;
-				ab.usedBytes = 0;
+				ab = this.reduceBuffer(ab, offset, newLength);
 			} else {
 				/* the content of the new buffer is entirely contained in the existing buffer, drop it entirely */
 				to_add = false;
 				break;
 			}
 		}
-	}			
+	}
+	/* if the buffer has not been added, we can add it at the end */
 	if (to_add) {
-		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" length:"+ab.byteLength+")");
+		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
 		this.nextBuffers.push(ab);
-		if (i === 0 && this.inputStream != null) {
+		/* if this new buffer is inserted in the first place in the list of the buffer, 
+		   and the DataStream is initialized, make it the buffer used for parsing */
+		if (i === 0 && this.inputStream !== null) {
 			this.inputStream.buffer = ab;
 		}
 	}
@@ -337,7 +344,7 @@ MP4Box.prototype.processSamples = function() {
 			var extractTrak = this.extractedTracks[i];
 			trak = extractTrak.trak;
 			while (trak.nextSample < trak.samples.length) {				
-				Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+trak.nextSample); 			
+				Log.d("MP4Box", "Exporting on track #"+extractTrak.id +" sample #"+trak.nextSample);
 				var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
 				if (sample) {
 					trak.nextSample++;
@@ -346,7 +353,7 @@ MP4Box.prototype.processSamples = function() {
 					return;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
-					Log.i("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
+					Log.d("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
 					if (this.onSamples) {
 						this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
 					}
@@ -370,7 +377,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		throw("Buffer must have a fileStart property");
 	}	
 	if (ab.byteLength === 0) {
-		Log.w("MP4Box", "Ignoring empty buffer");
+		Log.w("MP4Box", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
 		return;
 	}
 	/* mark the bytes in the buffer as not being used yet */
@@ -556,6 +563,8 @@ MP4Box.prototype.flush = function() {
 	this.processSamples();
 }
 
+/* Finds the byte offset for a given time on a given track
+   also returns the time of the previous rap */
 MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	var j;
 	var sample;
@@ -593,6 +602,7 @@ MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	}
 }
 
+/* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
 MP4Box.prototype.seek = function(time, useRap) {
 	var moov = this.inputIsoFile.moov;
 	var trak;

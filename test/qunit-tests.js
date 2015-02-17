@@ -1,47 +1,52 @@
 Log.setLogLevel(Log.d);
 
 var testFiles = [
-	{
+	{ // 0
 		desc: "non-fragmented MP4 file with single MPEG-AVC stream",
 		url: './mp4/h264bl.mp4',
 		info_: {"duration":360000,"timescale":600,"isFragmented":false,"isProgressive":true,"hasIOD":true,"brands":["isom","isom"],"created":new Date("2014-04-10T18:23:58.000Z"),"modified":new Date("2014-04-10T18:23:58.000Z"),"tracks":[{"id":1,"references":[],"created":new Date("2012-02-13T23:07:31.000Z"),"modified":new Date("2014-04-10T18:23:59.000Z"),"movie_duration":360000,"layer":0,"alternate_group":0,"volume":0,"matrix":{"0":65536,"1":0,"2":0,"3":0,"4":65536,"5":0,"6":0,"7":0,"8":1073741824},"track_width":320,"track_height":180,"timescale":25000,"duration":15000000,"codec":"avc1.42c00d","language":"und","nb_samples":15000,"video":{"width":320,"height":180}}],"audioTracks":[],"videoTracks":[{"id":1,"references":[],"created":new Date("2012-02-13T23:07:31.000Z"),"modified":new Date("2014-04-10T18:23:59.000Z"),"movie_duration":360000,"layer":0,"alternate_group":0,"volume":0,"matrix":{"0":65536,"1":0,"2":0,"3":0,"4":65536,"5":0,"6":0,"7":0,"8":1073741824},"track_width":320,"track_height":180,"timescale":25000,"duration":15000000,"codec":"avc1.42c00d","language":"und","nb_samples":15000,"video":{"width":320,"height":180}}],"subtitleTracks":[],"metadataTracks":[],"hintTracks":[]},
 	},
-	{
+	{ // 1
 		desc: "fragmented  MP4 file with single MPEG-AVC stream",
 		url: './mp4/a.mp4'
 	},
-	{
+	{ // 2
 		desc: "non-fragmented MP4 file with MPEG-4 AAC stream",
 		url: './mp4/aaclow.mp4'
 	},
-	{
+	{ // 3
 		desc: "non-fragmented MP4 file with two AVC video streams",
 		url: './mp4/2v.mp4'
 	},
-	{
+	{ // 4
 		desc: "non-fragmented MP4 file with AVC, AAC and WebVTT",
 		url: './mp4/avw.mp4'
 	},
-	{
+	{ // 5
 		desc: "non-fragmented MP4 file with 1 WebVTT stream",
 		url: './mp4/subtitle-srt-wvtt.mp4'
 	},
-	{
+	{ // 6
 		desc: "non-fragmented MP4 file with 1 text:tx3g stream",
 		url: './mp4/subtitle-srt-tx3g.mp4'
 	},
-	{
+	{ // 7
 		desc: "non-fragmented MP4 file with 1 text:stse stream",
 		url: './mp4/anim-svg.mp4'
 	},
-	{
+	{ // 8
 		desc: "non-fragmented MP4 file with 1 subt:stpp stream",
 		url: './mp4/subtitle-ttml-stpp.mp4'
 	},
-	{
+	{ // 9
 		desc: "non-fragmented MP4 file with single AVC stream, moov is last box",
 		url: './mp4/moov_last.mp4'
 	},
+	{ // 10
+		desc: "long movie",
+		url: './mp4/Bad.Influence.se4ep13.mp4'
+		//url: './mp4-torrents/g.mp4'
+	}
 ];
 
 function getFileRange(url, start, end, callback) {
@@ -893,6 +898,44 @@ QUnit.asyncTest( "Seek in the past", function( assert ) {
 	});
 });
 
+QUnit.asyncTest( "Seek and fetch out of order", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+	var mp4box = new MP4Box();
+	var track_id;
+	mp4box.onSamples = function(id, user, samples) {
+		console.log("Getting sample for time:"+samples[0].dts/samples[0].timescale);
+		if (samples[0].dts === 10000000) {
+			window.clearTimeout(timeout);
+			QUnit.start();	
+		}
+	}
+	mp4box.onReady = function(info) { 
+		assert.ok(true, "moov found!" );	
+		track_id = info.tracks[0].id;
+		/* setting extraction option and then seeking and calling sample processing */
+		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1000, rapAlignement: true } );
+		/* getting the first 1000 samples */
+		getFileRange(testFiles[index].url, 68190, 371814, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			mp4box.seek(560, true);
+			// fetching the last group of 1000 samples in the file
+			getFileRange(testFiles[index].url, 3513891, Infinity, function(buffer) {
+				mp4box.appendBuffer(buffer);
+				mp4box.seek(400, true);
+				getFileRange(testFiles[index].url, 2558231, 2797139, function(buffer) {
+					mp4box.appendBuffer(buffer);
+				});
+			});
+		});
+	
+	}
+	getFileRange(testFiles[index].url, 0, 68190, function (buffer) {
+		/* appending the ftyp/moov */
+		mp4box.appendBuffer(buffer);
+	});
+});
+
 QUnit.module("Write tests");
 QUnit.asyncTest( "Generate initialization segment", function( assert ) {
 	var index = 0;
@@ -924,6 +967,57 @@ QUnit.asyncTest( "Write-back the entire file", function( assert ) {
 	}
 	getFile(testFiles[index].url, function (buffer) {
 			mp4box.appendBuffer(buffer);
+	});
+});
+
+QUnit.module("Playback test");
+QUnit.asyncTest( "Long Segmentation", function( assert ) {
+	var index = 10;
+	var mp4box = new MP4Box();
+	var start = 0;
+	var size = 5000000; //1MB
+	var nbFragSamples = 10000;
+	var lastSample;
+	Log.setLogLevel(Log.i);
+	function getNext() {
+		getFileRange(testFiles[index].url, start, start+size-1, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			if (buffer.byteLength === size) {
+				start += size;
+				getNext();
+			}
+		});
+	}
+	mp4box.onSegment = function(id, user, buffer, sampleNum) {	
+		assert.ok(true, "Segment received!" );
+		if (sampleNum === lastSample) {
+			mp4box.unsetSegmentOptions(track_id);
+			QUnit.start();
+		}
+	}
+	mp4box.onSamples = function(id, user, samples) {	
+		assert.ok(true, "Samples received!" );
+		console.log("Memory usage: used/total/limit "+console.memory.usedJSHeapSize+"/"+console.memory.totalJSHeapSize+"/"+console.memory.jsHeapSizeLimit);
+		if (samples === lastSample) {
+			mp4box.unsetSegmentOptions(track_id);
+			QUnit.start();
+		}
+	}
+	mp4box.onReady = function(info) { 
+		assert.ok(true, "moov found!" );	
+		track_id = info.tracks[0].id;
+		mp4box.setSegmentOptions(track_id, null, { nbSamples: nbFragSamples, rapAlignement: true } );
+		if (info.tracks[0].nb_samples % nbFragSamples === 0) {
+			lastSample = info.tracks[0].nb_samples - nbFragSamples;	
+		} else {
+			lastSample = info.tracks[0].nb_samples - info.tracks[0].nb_samples % nbFragSamples;	
+		}		
+		mp4box.initializeSegmentation();
+		getNext();
+	}
+	getFileRange(testFiles[index].url, start, start+size-1, function (buffer) {
+		start += size;
+		mp4box.appendBuffer(buffer);
 	});
 });
 

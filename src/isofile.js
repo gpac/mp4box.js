@@ -16,34 +16,204 @@ var ISOFile = function (stream) {
 	/* Index of the last moof box received */
 	this.lastMoofIndex = 0;
 	/* position in the current buffer of the beginning of the last box parsed */
-	this.lastPosition = 0;
+	this.lastBoxStartPosition = 0;
 	/* indicator if the parsing is stuck in the middle of an mdat box */
 	this.parsingMdat = false;
-	/* to fire moov start event */
+	/* Boolean used to fire moov start event only once */
 	this.moovStartFound = false;
 	/* size of the buffers allocated for samples */
 	this.samplesDataSize = 0;
-	/* next file position that the parser needs */
+	/* next file position that the parser needs:
+	    - 0 until the first buffer (i.e. fileStart ===0) has been received 
+	    - otherwise, the next box start until the moov box has been parsed
+	    - otherwise, the position of the next sample to fetch
+	 */
 	this.nextParsePosition = 0;
+}
+
+ISOFile.prototype.parse = function() {
+	var found;
+	var ret;
+	var box;
+	
+	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
+		" ("+(this.stream.buffer.fileStart+this.lastBoxStartPosition)+" in the file)");
+
+	/* Reposition at the start position of the previous box not entirely parsed */
+	this.stream.seek(this.lastBoxStartPosition);
+
+	while (true) {
+		/* check if we are in the parsing of an incomplete mdat box */
+		if (this.parsingMdat) {
+			/* the mdat being parsed is the latest one having been added */
+			box = this.mdats[this.mdats.length - 1];
+
+			found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
+			if (found) {
+				/* the end of the mdat has been found */ 
+				this.parsingMdat = false;
+				/* we can parse more in this buffer */
+				continue;
+			} else {
+				/* parsing an 'mdat' box, but we don't have the end of it, 
+				   indicate that the next byte to fetch is the end of the buffers we have so far, 
+				   return and wait for more buffer to come */
+				this.nextParsePosition = this.findEndContiguousBuf();
+				return;
+			}
+		} else {
+			/* not parsing an 'mdat' box
+			/* remember the position of the box start in case we need to roll back (if the box is incomplete) */
+			this.lastBoxStartPosition = this.stream.position;
+			ret = BoxParser.parseOneBox(this.stream);
+			if (ret.code == BoxParser.ERR_NOT_ENOUGH_DATA) {		
+				/* we did not have enough bytes in the current buffer to parse the entire box */
+				if (ret.type === "mdat") { 
+					/* we had enough bytes to get its type and size and it's an 'mdat' */
+					this.parsingMdat = true;
+					
+					/* special handling for mdat boxes, since we don't actually need to parse it linearly 
+					   we create the box */
+					box = new BoxParser[ret.type+"Box"](ret.size-ret.hdr_size);	
+					this.mdats.push(box);			
+					box.fileStart = this.stream.buffer.fileStart + this.stream.position;
+					box.hdr_size = ret.hdr_size;
+					this.stream.buffer.usedBytes += ret.hdr_size;
+					
+					/* let's see if we have the end of the box in the other buffers */
+					found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
+					if (found) {
+						/* found the end of the box */
+						this.parsingMdat = false;
+						/* let's see if we can parse more in this buffer */
+						continue;
+					} else {
+						/* 'mdat' end not found in the existing buffers */
+						/* determine the next position in the file to start parsing from */
+						if (!this.moovStartFound) {
+							/* moov not find yet, 
+							   the file probably has 'mdat' at the beginning, and 'moov' at the end, 
+							   indicate that the downloader should not try to download those bytes now */
+							this.nextParsePosition = box.fileStart + box.size + box.hdr_size;
+						} else {
+							/* we have the start of the moov box, 
+							   the next bytes should try to complete the current 'mdat' */
+							this.nextParsePosition = this.findEndContiguousBuf();
+						}
+						/* not much we can do, wait for more buffers to arrive */
+						return;
+					}
+				} else {
+					/* box is incomplete, we may not even know its type */
+					if (ret.type === "moov") { 
+						/* the incomplete box is a 'moov' box */
+						this.moovStartFound = true;
+						if (this.mdats.length === 0) {
+							this.isProgressive = true;
+						}
+					}
+					/* either it's not an mdat box (and we need to parse it, we cannot skip it)
+					   (TODO: we could skip 'free' boxes ...)
+  					   or we did not have enough data to parse the type and size of the box, 
+					   we try to concatenate the current buffer with the next buffer to restart parsing */
+					if (this.stream.bufferIndex < this.stream.nextBuffers.length - 1) {
+						var next_buffer = this.stream.nextBuffers[this.stream.bufferIndex+1];
+						if (next_buffer.fileStart === this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
+							var oldLength = this.stream.buffer.byteLength;
+							var oldUsedBytes = this.stream.buffer.usedBytes;
+							var oldFileStart = this.stream.buffer.fileStart;
+							this.stream.nextBuffers[this.stream.bufferIndex] = ArrayBuffer.concat(this.stream.buffer, next_buffer);
+							this.stream.buffer = this.stream.nextBuffers[this.stream.bufferIndex];
+							this.stream.nextBuffers.splice(this.stream.bufferIndex+1, 1);
+							this.stream.buffer.usedBytes = oldUsedBytes; /* TODO: should it be += ? */
+							this.stream.buffer.fileStart = oldFileStart;
+							Log.d("ISOFile", "Concatenating buffer for box parsing (length: "+oldLength+"->"+this.stream.buffer.byteLength+")");
+							/* We can now continue parsing, 
+							   the next best position to parse is at the end of this new buffer */
+							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							continue;
+						} else {
+							/* we cannot concatenate existing buffers because they are not contiguous */
+							/* The next best position to parse is still at the end of this old buffer */
+							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							return;
+						}
+					} else {
+						/* not enough buffers received, we need to wait */
+						if (!ret.type) {
+							/* There were not enough bytes in the buffer to parse the box type and length,
+							   the next fetch should retrieve those missing bytes, i.e. the next bytes after this buffer */
+							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+						} else {
+							/* we had enough bytes to parse size and type of the incomplete box
+							   if we haven't found yet the moov box, skip this one and try the next one 
+							   if we have found the moov box, let's continue linear parsing */
+							if (this.moovStartFound) {
+								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							} else {
+								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.position + ret.size;
+							}
+						}
+						return;
+					}
+				}
+			} else {
+				/* the box is entirely parsed */
+				box = ret.box;
+				/* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
+				this.boxes.push(box);
+				/* but also store box in a property for more direct access */
+				switch (box.type) {
+					case "mdat":
+						this.mdats.push(box);
+						/* remember the position in the file of this box for comparison with sample offsets */
+						box.fileStart = this.stream.buffer.fileStart + box.start;
+						break;
+					case "moof":
+						this.moofs.push(box);
+						break;
+					case "moov":					
+						this.moovStartFound = true;
+						if (this.mdats.length === 0) {
+							this.isProgressive = true;
+						}
+						/* no break */
+						/* falls through */
+					default:
+						if (this[box.type] !== undefined) {
+							Log.w("ISOFile", "Duplicate Box of type: "+box.type+", overriding previous occurrence");
+						}
+						this[box.type] = box;
+						break;
+				}
+				if (box.type === "mdat") {
+					/* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */
+					this.stream.buffer.usedBytes += box.hdr_size;
+				} else {
+					/* for all other boxes, the entire box data is considered used */
+					this.stream.buffer.usedBytes += ret.size;
+				}
+			}
+		}
+	}
 }
 
 ISOFile.prototype.repositionAtMdatEnd = function(box, size) {
 	var i;
-	/* check which existing buffers contain data for this mdat, if any */
+	/* check which existing buffers, only starting from the last buffer used for parsing, contain data for this mdat, if any */
 	for (i = this.stream.bufferIndex; i < this.stream.nextBuffers.length; i++) {
 		var buf = this.stream.nextBuffers[i];
-		if (box.fileStart + size >= buf.fileStart) {
+		if (box.fileStart + size >= buf.fileStart) { 
 			if (box.fileStart + size <= buf.fileStart + buf.byteLength) {
 				/* we've found the end of the mdat */
+				Log.d("ISOFile", "Found 'mdat' end in buffer #"+this.stream.bufferIndex);
 				this.stream.buffer = buf;
 				this.stream.bufferIndex = i;
 				this.stream.position = box.fileStart + size - buf.fileStart;
-				Log.d("ISOFile", "Found 'mdat' end in buffer #"+this.stream.bufferIndex+" at position "+this.lastPosition);
-				box.buffers.push(buf);
+				Log.d("ISOFile", "Repositioning parser after 'mdat' end"+this.stream.position);
 				return true;
 			} else {
 				/* this mdat box extends after that buffer, record that the mdat will need it */
-				box.buffers.push(buf);
 			}
 		}
 	}
@@ -82,168 +252,22 @@ ISOFile.prototype.findEndContiguousBuf = function() {
 		}
 	}
 	if (currentBuf.fileStart + currentBuf.byteLength >= this.nextSeekPosition) {
+		Log.d("ISOFile", "Found seeked position in existing buffer #"+this.stream.bufferIndex);
 		/* no need to seek anymore, the seek position is in the buffer */
 		delete this.nextSeekPosition;
 	}
+	/* return the position of last byte in the file that we have */
 	return currentBuf.fileStart + currentBuf.byteLength;
 }
 
-ISOFile.prototype.parse = function() {
-	var found;
-	var ret;
-	var box;
-	
-	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" from position "+this.lastPosition+
-		" ("+(this.stream.buffer.fileStart+this.lastPosition)+" in the file)");
-	this.stream.seek(this.lastPosition);
-	while (true) {
-		/* check if we are in the parsing of an incomplete mdat box */
-		if (this.parsingMdat) {
-			/* the current mdat is the latest one having been parsed */
-			box = this.mdats[this.mdats.length - 1];
-			found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
-			if (found) {
-				/* the end of the mdat has been found, let's see if we can parse more in this buffer */
-				this.parsingMdat = false;
-				continue;
-			} else {
-				/* let's wait for more buffer to come */
-				this.nextParsePosition = this.findEndContiguousBuf();
-				return;
-			}
-		} else {		
-			/* remember the position of the box start in case we need to roll back */
-			this.lastPosition = this.stream.position;
-			ret = BoxParser.parseOneBox(this.stream);
-			if (ret.code == BoxParser.ERR_NOT_ENOUGH_DATA) {		
-				/* we did not have enough bytes in the current buffer to parse the entire box */
-				if (ret.type === "mdat") { 
-					/* we had enough bytes to get its type and size */
-					
-					/* special handling for mdat boxes, since we don't actually need to parse it linearly */					
-					this.parsingMdat = true;
-					box = new BoxParser[ret.type+"Box"](ret.size-ret.hdr_size);	
-					this.mdats.push(box);			
-					box.fileStart = this.stream.buffer.fileStart + this.stream.position;
-					box.hdr_size = ret.hdr_size;
-					box.buffers = [this.stream.buffer];
-					this.stream.buffer.usedBytes += ret.hdr_size;
-					
-					/* let's see if we have the end of the box in the other buffers */
-					found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
-					if (found) {
-						this.parsingMdat = false;
-						/* let's see if we can parse more in this buffer */
-						continue;
-					} else {
-						/* determine the next position */
-						if (this.moovStartFound) {
-							/* let's wait for more buffer to come */
-							this.nextParsePosition = this.findEndContiguousBuf();
-						} else {
-							/* moov not find yet, skip this box */
-							this.nextParsePosition = box.fileStart + box.size + box.hdr_size;
-						}
-						return;
-					}
-				} else {
-					if (ret.type === "moov") { 
-						this.moovStartFound = true;
-					}
-					/* either it's not an mdat box (and we need to parse it, we cannot skip it)
-  					   or we did not have enough data to parse the type and size of the box, 
-					   we try to concatenate the current buffer with the next buffer to restart parsing */
-					if (this.stream.bufferIndex < this.stream.nextBuffers.length - 1) {
-						var next_buffer = this.stream.nextBuffers[this.stream.bufferIndex+1];
-						if (next_buffer.fileStart === this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
-							var oldLength = this.stream.buffer.byteLength;
-							var oldUsedBytes = this.stream.buffer.usedBytes;
-							var oldFileStart = this.stream.buffer.fileStart;
-							this.stream.nextBuffers[this.stream.bufferIndex] = ArrayBuffer.concat(this.stream.buffer, next_buffer);
-							this.stream.buffer = this.stream.nextBuffers[this.stream.bufferIndex];
-							this.stream.nextBuffers.splice(this.stream.bufferIndex+1, 1);
-							this.stream.buffer.usedBytes = oldUsedBytes;
-							this.stream.buffer.fileStart = oldFileStart;
-							/* The next best position to parse is at the end of this new buffer */
-							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
-							Log.d("ISOFile", "Concatenating buffer for box parsing (length: "+oldLength+"->"+this.stream.buffer.byteLength+")");
-							continue;
-						} else {
-							/* we cannot concatenate because the buffers are not contiguous */
-							/* The next best position to parse is at the end of this old buffer */
-							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
-							return;
-						}
-					} else {
-						/* not enough buffers received, wait */
-						if (!ret.type) {
-							/* There were not enough bytes in the buffer to parse the box type and length,
-							   the next fetch should retrieve those missing bytes, i.e. the next bytes after this buffer */
-							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
-						} else {
-							/* we had enough bytes to parse size and type of the incomplete box
-							   if we haven't found yet the moov box, skip this one and try the next one 
-							   if we have found the moov box, let's continue linear parsing */
-							if (this.moovStartFound) {
-								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
-							} else {
-								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.position + ret.size;
-							}
-						}
-						return;
-					}
-				}
-			} else {
-				/* the box is entirely parsed */
-				box = ret.box;
-				/* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
-				this.boxes.push(box);
-				/* but also store box in a property for more direct access */
-				switch (box.type) {
-					case "mdat":
-						/* there may be many mdats in an ISOBMFF file */
-						this.mdats.push(box);
-						/* remember the position in the file of this box for comparison with sample offsets */
-						box.fileStart = this.stream.buffer.fileStart + box.start;
-						/* initialize the list of buffers in which this mdat box is stored */
-						box.buffers = [ this.stream.buffer ];
-						break;
-					case "moof":
-						/* there may be many moofs in an ISOBMFF file */
-						this.moofs.push(box);
-						break;
-					case "moov":					
-						this.moovStartFound = true;
-						if (this.mdats.length === 0) {
-							this.isProgressive = true;
-						}
-						/* no break */
-						/* falls through */
-					default:
-						if (this[box.type] !== undefined) {
-							Log.w("ISOFile", "Duplicate Box of type: "+box.type+", ignoring previous occurrences");
-						}
-						this[box.type] = box;
-						break;
-				}
-				if (box.type === "mdat") {
-					/* for an mdat box, only its header is considered used, other bytes will be used when sample are requested */
-					this.stream.buffer.usedBytes += box.hdr_size;
-				} else {
-					/* for all other boxes, the entire box data is considered used */
-					this.stream.buffer.usedBytes += ret.size;
-				}
-			}
-		}
-	}
-}
-
+/* Rewrite the entire file */
 ISOFile.prototype.write = function(outstream) {
 	for (var i=0; i<this.boxes.length; i++) {
 		this.boxes[i].write(outstream);
 	}
 }
 
+/* Modify the file and create the initialization segment */
 ISOFile.prototype.writeInitializationSegment = function(outstream) {
 	var i;
 	var index;
@@ -289,6 +313,7 @@ ISOFile.prototype.writeInitializationSegment = function(outstream) {
 	this.moov.write(outstream);
 }
 
+/* Resets all sample tables */
 ISOFile.prototype.resetTables = function () {
 	var i;
 	var trak, stco, stsc, stsz, stts, ctts, stss;
@@ -320,6 +345,7 @@ ISOFile.prototype.resetTables = function () {
 	}
 }
 
+/* Build initial sample list from  sample tables */
 ISOFile.prototype.buildSampleLists = function() {	
 	var i, j, k;
 	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs;
@@ -347,6 +373,7 @@ ISOFile.prototype.buildSampleLists = function() {
 		/* we build the samples one by one and compute their properties */
 		for (j = 0; j < stsz.sample_sizes.length; j++) {
 			var sample = {};
+			sample.number = j;
 			sample.track_id = trak.tkhd.track_id;
 			sample.timescale = trak.mdia.mdhd.timescale;
 			trak.samples[j] = sample;
@@ -452,16 +479,7 @@ ISOFile.prototype.buildSampleLists = function() {
 	}
 }
 
-ISOFile.prototype.getTrexById = function(id) {	
-	var i;
-	if (!this.moov || !this.moov.mvex) return null;
-	for (i = 0; i < this.moov.mvex.trexs.length; i++) {
-		var trex = this.moov.mvex.trexs[i];
-		if (trex.track_id == id) return trex;
-	}
-	return null;
-}
-
+/* Update sample list when new 'moof' boxes are received */
 ISOFile.prototype.updateSampleLists = function() {	
 	var i, j, k;
 	var default_sample_description_index, default_sample_duration, default_sample_size, default_sample_flags;
@@ -579,6 +597,7 @@ ISOFile.prototype.updateSampleLists = function() {
 	}	
 }
 
+/* Builds the MIME Type 'codecs' sub-parameters for the whole file */
 ISOFile.prototype.getCodecs = function() {	
 	var i;
 	var codecs = "";
@@ -592,6 +611,18 @@ ISOFile.prototype.getCodecs = function() {
 	return codecs;
 }
 
+/* Helper function */
+ISOFile.prototype.getTrexById = function(id) {	
+	var i;
+	if (!this.moov || !this.moov.mvex) return null;
+	for (i = 0; i < this.moov.mvex.trexs.length; i++) {
+		var trex = this.moov.mvex.trexs[i];
+		if (trex.track_id == id) return trex;
+	}
+	return null;
+}
+
+/* Helper function */
 ISOFile.prototype.getTrackById = function(id) {
 	for (var j = 0; j < this.moov.traks.length; j++) {
 		var trak = this.moov.traks[j];
@@ -600,13 +631,19 @@ ISOFile.prototype.getTrackById = function(id) {
 	return null;
 }
 
+/* Try to get sample data for a given sample:
+   returns null if not found
+   returns the same sample if already requested
+ */
 ISOFile.prototype.getSample = function(trak, sampleNum) {	
-	var mdat;
 	var buffer;
-	var i, j;
+	var i;
 	var sample = trak.samples[sampleNum];
 	
-	/* The sample has either already been fetched partially, entirely or not at all */
+	if (!this.moov) {
+		return null;
+	}
+
 	if (!sample.data) {
 		/* Not yet fetched */
 		sample.data = new Uint8Array(sample.size);
@@ -620,64 +657,57 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 
 	/* The sample has only been partially fetched, we need to check in all mdat boxes (e.g. if the input file is fragmented) 
 	   and in all mdat buffers (if the input file was not fetched in a single download) */
-	for (i = 0; i < this.mdats.length; i++) {
-		mdat = this.mdats[i];
-		for (j = 0; j < mdat.buffers.length; j++) {
-			buffer = mdat.buffers[j];
-			if (sample.offset + sample.alreadyRead >= buffer.fileStart &&
-			    sample.offset + sample.alreadyRead <  buffer.fileStart + buffer.byteLength) {
-				/* The sample starts in this buffer */
+	for (i = 0; i < this.stream.nextBuffers.length; i++) {
+		buffer = this.stream.nextBuffers[i];
+
+		if (sample.offset + sample.alreadyRead >= buffer.fileStart &&
+		    sample.offset + sample.alreadyRead <  buffer.fileStart + buffer.byteLength) {
+			/* The sample starts in this buffer */
+			
+			var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
+			if (sample.size - sample.alreadyRead <= lengthAfterStart) {
+				/* the (rest of the) sample is entirely contained in this buffer */
+
+				Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
+					(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
+
+				DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
+				                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
+				sample.alreadyRead = sample.size;
+
+				/* update the number of bytes used in this buffer and check if it needs to be removed */
+				buffer.usedBytes += sample.size - sample.alreadyRead;
+				if (buffer.usedBytes === buffer.byteLength) {
+					this.stream.nextBuffers.splice(i, 1);
+					i--;
+					/* TODO: check if the DataStream buffer needs to be updated */
+				}
+
+				return sample;
+			} else {
+				/* the sample does not end in this buffer */				
 				
-				var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
-				if (sample.size - sample.alreadyRead <= lengthAfterStart) {
-					/* the sample is entirely contained in this buffer */
+				Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+
+					(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
+				
+				DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
+				                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);
+				sample.alreadyRead += lengthAfterStart;
 
-					Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
-						(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
-
-					DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
-					                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
-					buffer.usedBytes += sample.size - sample.alreadyRead;
-					sample.alreadyRead = sample.size;
-
-					/* once the mdat buffer has been used, we get rid of it */
-					if (buffer.usedBytes == buffer.byteLength) {
-						mdat.buffers.splice(j, 1);
-						Log.d("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
-						j--;
-					}
-
-					return sample;
-				} else {
-					/* the sample does not end in this buffer */				
-					
-					Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+
-						(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
-					
-					DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
-					                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);
-					buffer.usedBytes += lengthAfterStart;
-					sample.alreadyRead += lengthAfterStart;
-
-					/* once the mdat buffer has been used, we get rid of it */
-					if (buffer.usedBytes == buffer.byteLength) {
-						mdat.buffers.splice(j, 1);
-						Log.d("ISOFile","Removing buffer for mdat ("+mdat.buffers.length+" buffers left)");
-						j--;
-					}					
+				/* update the number of bytes used in this buffer and check if it needs to be removed */
+				buffer.usedBytes += lengthAfterStart;
+				if (buffer.usedBytes === buffer.byteLength) {
+					this.stream.nextBuffers.splice(i, 1);
+					i--;
+					/* TODO: check if the DataStream buffer needs to be updated */
 				}
 			}
 		}
-		/* once an mdat has no more buffers, unless it is the last one, we get rid of it */
-		if (mdat.buffers.length === 0 && this.mdats.length > 1) {
-			this.mdats.splice(i, 1);
-			i--;
-		}
-	}		
-
+	}
 	return null;
 }
 
+/* Release the memory used to store the data of the sample */
 ISOFile.prototype.releaseSample = function(trak, sampleNum) {	
 	var sample = trak.samples[sampleNum];
 	sample.data = null;
