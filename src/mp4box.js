@@ -344,7 +344,7 @@ MP4Box.prototype.processSamples = function() {
 			var extractTrak = this.extractedTracks[i];
 			trak = extractTrak.trak;
 			while (trak.nextSample < trak.samples.length) {				
-				Log.i("MP4Box", "Exporting on track #"+extractTrak.id +" sample "+trak.nextSample); 			
+				Log.d("MP4Box", "Exporting on track #"+extractTrak.id +" sample #"+trak.nextSample);
 				var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
 				if (sample) {
 					trak.nextSample++;
@@ -353,7 +353,7 @@ MP4Box.prototype.processSamples = function() {
 					return;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
-					Log.i("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
+					Log.d("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
 					if (this.onSamples) {
 						this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
 					}

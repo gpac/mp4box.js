@@ -373,6 +373,7 @@ ISOFile.prototype.buildSampleLists = function() {
 		/* we build the samples one by one and compute their properties */
 		for (j = 0; j < stsz.sample_sizes.length; j++) {
 			var sample = {};
+			sample.number = j;
 			sample.track_id = trak.tkhd.track_id;
 			sample.timescale = trak.mdia.mdhd.timescale;
 			trak.samples[j] = sample;
