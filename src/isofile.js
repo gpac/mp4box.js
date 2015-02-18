@@ -47,8 +47,9 @@ ISOFile.prototype.parse = function() {
 		if (this.parsingMdat !== null) {
 			box = this.parsingMdat;
 
-			found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
+			found = this.reposition(false, box.fileStart + box.hdr_size + box.size);
 			if (found) {
+				Log.d("ISOFile", "Found 'mdat' end in buffer #"+this.stream.bufferIndex);
 				/* the end of the mdat has been found */ 
 				this.parsingMdat = null;
 				/* we can parse more in this buffer */
@@ -80,7 +81,7 @@ ISOFile.prototype.parse = function() {
 					this.stream.buffer.usedBytes += ret.hdr_size;
 					
 					/* let's see if we have the end of the box in the other buffers */
-					found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
+					found = this.reposition(false, box.fileStart + box.hdr_size + box.size);
 					if (found) {
 						/* found the end of the box */
 						this.parsingMdat = null;
@@ -197,27 +198,49 @@ ISOFile.prototype.parse = function() {
 	}
 }
 
-ISOFile.prototype.repositionAtMdatEnd = function(box, size) {
+/* Searches for the buffer containing the given position:
+  - if found, repositions the parsing from there and returns true 
+  - if not found, does not change anything and returns false */
+ISOFile.prototype.reposition = function(fromStart, filePosition) {
 	var i;
-	/* check which existing buffers, only starting from the last buffer used for parsing, contain data for this mdat, if any */
-	for (i = this.stream.bufferIndex; i < this.stream.nextBuffers.length; i++) {
-		var buf = this.stream.nextBuffers[i];
-		if (box.fileStart + size >= buf.fileStart) { 
-			if (box.fileStart + size <= buf.fileStart + buf.byteLength) {
-				/* we've found the end of the mdat */
-				Log.d("ISOFile", "Found 'mdat' end in buffer #"+this.stream.bufferIndex);
-				this.stream.buffer = buf;
-				this.stream.bufferIndex = i;
-				this.stream.position = box.fileStart + size - buf.fileStart;
-				Log.d("ISOFile", "Repositioning parser after 'mdat' end"+this.stream.position);
-				return true;
-			} else {
-				/* this mdat box extends after that buffer, record that the mdat will need it */
-			}
-		}
+	var buffer = null;
+	var index = -1;
+
+	/* find the buffer with the largest position smaller than the given position */
+	if (fromStart === true) {
+	   /* the reposition can be in the past, we need to check from the beginning of the list of buffers */
+		i = 0;
+	} else {
+		i = this.stream.bufferIndex;
 	}
-	return false; 
+
+	while (i < this.stream.nextBuffers.length) {
+		buffer = this.stream.nextBuffers[i];
+		if (buffer.fileStart <= filePosition) {
+			index = i;
+		} else {
+			break;
+		}
+		i++;
+	}
+
+	if (index !== -1) {
+		buffer = this.stream.nextBuffers[index];
+		if (buffer.fileStart + buffer.byteLength >= filePosition) {
+			Log.d("ISOFile", "Found position in existing buffer #"+index);
+			this.stream.buffer = this.stream.nextBuffers[index];
+			this.stream.bufferIndex = index;
+			this.stream.position = filePosition - this.stream.buffer.fileStart;
+			Log.d("ISOFile", "Repositioning parser at buffer position: "+this.stream.position);
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return false;
+	}
 }
+
 
 ISOFile.prototype.repositionForSeek = function() {
 	var i;
