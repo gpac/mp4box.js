@@ -244,59 +244,6 @@ MP4Box.prototype.insertBuffer = function(ab) {
 	}
 }
 
-MP4Box.prototype.open = function() {
-	if (!this.inputStream) { /* We create the DataStream object only when we have the first bytes of the file */
-		if (this.nextBuffers.length > 0) {
-			var firstBuffer = this.nextBuffers[0];
-			if (firstBuffer.fileStart === 0) {
-				this.inputStream = new DataStream(firstBuffer, 0, DataStream.BIG_ENDIAN);	
-				this.inputStream.nextBuffers = this.nextBuffers;
-				this.inputStream.bufferIndex = 0;
-			} else {
-				Log.w("MP4Box", "The first buffer should have a fileStart of 0");
-				return false;
-			}
-		} else {
-			Log.w("MP4Box", "No buffer to start parsing from");
-			return false;
-		}		
-	} 
-	/* Initialize the ISOFile object if not yet created */
-	if (!this.inputIsoFile) {
-		this.inputIsoFile = new ISOFile(this.inputStream);
-	}
-	/* Parse whatever is already in the buffer */
-	this.inputIsoFile.parse();
-	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
-		this.moovStartSent = true;
-		if (this.onMoovStart) this.onMoovStart();
-	}
-
-	if (!this.inputIsoFile.moov) {
-		/* The parsing has not yet found a moov, not much can be done */
-		return false;	
-	} else {
-		/* A moov box has been found */
-		
-		/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
-		if (!this.sampleListBuilt) {
-			this.inputIsoFile.buildSampleLists();
-			this.sampleListBuilt = true;
-		} 
-		/* We update the sample information if there are any new moof boxes */
-		this.inputIsoFile.updateSampleLists();
-		
-		/* If the application needs to be informed that the 'moov' has been found, 
-		   we create the information object and callback the application */
-		if (this.onReady && !this.readySent) {
-			var info = this.getInfo();
-			this.readySent = true;
-			this.onReady(info);
-		}			
-		return true;
-	}
-}
-
 MP4Box.prototype.processSamples = function() {
 	var i;
 	var trak;
@@ -368,8 +315,10 @@ MP4Box.prototype.processSamples = function() {
 	}
 }
 
+/* Processes a new ArrayBuffer (with a fileStart property)
+   Returns the next expected file position, or undefined if not ready to parse */
 MP4Box.prototype.appendBuffer = function(ab) {
-	var is_open;
+	var firstBuffer;
 	if (ab === null || ab === undefined) {
 		throw("Buffer must be defined and non empty");
 	}	
@@ -383,8 +332,60 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	/* mark the bytes in the buffer as not being used yet */
 	ab.usedBytes = 0;
 	this.insertBuffer(ab);
-	is_open = this.open();
-	if (is_open) {
+
+	/* We create the DataStream object only when we have the first bytes of the file */
+	if (!this.inputStream) { 
+		if (this.nextBuffers.length > 0) {
+			firstBuffer = this.nextBuffers[0];
+			if (firstBuffer.fileStart === 0) {
+				this.inputStream = new DataStream(firstBuffer, 0, DataStream.BIG_ENDIAN);	
+				this.inputStream.nextBuffers = this.nextBuffers;
+				this.inputStream.bufferIndex = 0;
+			} else {
+				Log.w("MP4Box", "The first buffer should have a fileStart of 0");
+				return;
+			}
+		} else {
+			Log.w("MP4Box", "No buffer to start parsing from");
+			return;
+		}		
+	} 
+
+	/* Initialize the ISOFile object if not yet created */
+	if (!this.inputIsoFile) {
+		this.inputIsoFile = new ISOFile(this.inputStream);
+	}
+
+	/* Parse whatever is already in the buffer */
+	this.inputIsoFile.parse();
+
+	/* Check if the moovStart callback needs to be called */
+	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
+		this.moovStartSent = true;
+		if (this.onMoovStart) this.onMoovStart();
+	}
+
+	if (this.inputIsoFile.moov) {
+		/* A moov box has been entirely parsed */
+		
+		/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
+		if (!this.sampleListBuilt) {
+			this.inputIsoFile.buildSampleLists();
+			this.sampleListBuilt = true;
+		} 
+
+		/* We update the sample information if there are any new moof boxes */
+		this.inputIsoFile.updateSampleLists();
+		
+		/* If the application needs to be informed that the 'moov' has been found, 
+		   we create the information object and callback the application */
+		if (this.onReady && !this.readySent) {
+			var info = this.getInfo();
+			this.readySent = true;
+			this.onReady(info);
+		}
+
+		/* See if any sample extraction or segment creation needs to be done with the available samples */
 		this.processSamples();
 		
 		/* Inform about the best range to fetch next */
