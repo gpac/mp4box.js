@@ -626,7 +626,7 @@ QUnit.asyncTest( "appending many overlapping buffers", function( assert ) {
 		QUnit.start();
 	}
 
-	getFileRange(testFiles[index].url, 1000, 5000, function (buffer) {
+	getFileRange(testFiles[index].url, 1000, 80000, function (buffer) {
 		mp4box.appendBuffer(buffer);
 		getFileRange(testFiles[index].url, 550, 650, function (buffer) {
 			mp4box.appendBuffer(buffer);
@@ -638,6 +638,9 @@ QUnit.asyncTest( "appending many overlapping buffers", function( assert ) {
 						mp4box.appendBuffer(buffer);
 						getFileRange(testFiles[index].url, 950, 1050, function (buffer) {
 							mp4box.appendBuffer(buffer);
+							getFileRange(testFiles[index].url, 0, 1050, function (buffer) {
+								mp4box.appendBuffer(buffer);
+							});
 						});
 					});
 				});
