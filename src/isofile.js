@@ -18,7 +18,7 @@ var ISOFile = function (stream) {
 	/* position in the current buffer of the beginning of the last box parsed */
 	this.lastBoxStartPosition = 0;
 	/* indicator if the parsing is stuck in the middle of an mdat box */
-	this.parsingMdat = false;
+	this.parsingMdat = null;
 	/* Boolean used to fire moov start event only once */
 	this.moovStartFound = false;
 	/* size of the buffers allocated for samples */
@@ -44,14 +44,13 @@ ISOFile.prototype.parse = function() {
 
 	while (true) {
 		/* check if we are in the parsing of an incomplete mdat box */
-		if (this.parsingMdat) {
-			/* the mdat being parsed is the latest one having been added */
-			box = this.mdats[this.mdats.length - 1];
+		if (this.parsingMdat !== null) {
+			box = this.parsingMdat;
 
 			found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
 			if (found) {
 				/* the end of the mdat has been found */ 
-				this.parsingMdat = false;
+				this.parsingMdat = null;
 				/* we can parse more in this buffer */
 				continue;
 			} else {
@@ -70,11 +69,11 @@ ISOFile.prototype.parse = function() {
 				/* we did not have enough bytes in the current buffer to parse the entire box */
 				if (ret.type === "mdat") { 
 					/* we had enough bytes to get its type and size and it's an 'mdat' */
-					this.parsingMdat = true;
 					
 					/* special handling for mdat boxes, since we don't actually need to parse it linearly 
 					   we create the box */
 					box = new BoxParser[ret.type+"Box"](ret.size-ret.hdr_size);	
+					this.parsingMdat = box;
 					this.mdats.push(box);			
 					box.fileStart = this.stream.buffer.fileStart + this.stream.position;
 					box.hdr_size = ret.hdr_size;
@@ -84,7 +83,7 @@ ISOFile.prototype.parse = function() {
 					found = this.repositionAtMdatEnd(box, box.size+box.hdr_size);
 					if (found) {
 						/* found the end of the box */
-						this.parsingMdat = false;
+						this.parsingMdat = null;
 						/* let's see if we can parse more in this buffer */
 						continue;
 					} else {
@@ -220,22 +219,35 @@ ISOFile.prototype.repositionAtMdatEnd = function(box, size) {
 	return false; 
 }
 
+ISOFile.prototype.repositionForSeek = function() {
+	var i;
+	var nextBuf;
+	var currentBuf;
+	/* find the buffer with the largest position smaller than the seek position 
+	   the seek can be in the past, we need to check from the beginning */
+	for (i = 0; i < this.stream.nextBuffers.length; i++) {
+		nextBuf = this.stream.nextBuffers[i];
+		if (nextBuf.fileStart <= this.nextSeekPosition) {
+			currentBuf = this.stream.nextBuffers[i];
+			this.stream.bufferIndex = i;
+		} else {
+			break;
+		}
+	}
+	if (currentBuf.fileStart + currentBuf.byteLength >= this.nextSeekPosition) {
+		Log.d("ISOFile", "Found seeked position in existing buffer #"+this.stream.bufferIndex);
+		/* no need to seek anymore, the seek position is in the buffer */
+		delete this.nextSeekPosition;
+	}
+	return currentBuf;
+}
+
 ISOFile.prototype.findEndContiguousBuf = function() {
 	var i;
 	var currentBuf;
 	var nextBuf;
 	if (this.nextSeekPosition) {
-		/* find the buffer with the largest position smaller than the seek position 
-		   the seek can be in the past, we need to check from the beginning */
-		for (i = 0; i < this.stream.nextBuffers.length; i++) {
-			nextBuf = this.stream.nextBuffers[i];
-			if (nextBuf.fileStart <= this.nextSeekPosition) {
-				currentBuf = this.stream.nextBuffers[i];
-				this.stream.bufferIndex = i;
-			} else {
-				break;
-			}
-		}
+		currentBuf = this.repositionForSeek();
 	} else {
 		currentBuf = this.stream.nextBuffers[this.stream.bufferIndex];
 	}
@@ -250,11 +262,6 @@ ISOFile.prototype.findEndContiguousBuf = function() {
 				break;
 			}
 		}
-	}
-	if (currentBuf.fileStart + currentBuf.byteLength >= this.nextSeekPosition) {
-		Log.d("ISOFile", "Found seeked position in existing buffer #"+this.stream.bufferIndex);
-		/* no need to seek anymore, the seek position is in the buffer */
-		delete this.nextSeekPosition;
 	}
 	/* return the position of last byte in the file that we have */
 	return currentBuf.fileStart + currentBuf.byteLength;
