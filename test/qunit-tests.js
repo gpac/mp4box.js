@@ -71,7 +71,7 @@ function getFile(url, callback) {
 
 function runBasicTest(index) {
 	QUnit.asyncTest(testFiles[index].desc, function( assert ) {
-		var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
+		var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 10000);
 		var mp4box = new MP4Box();
 		mp4box.onReady = function(info) { 
 			window.clearTimeout(timeout);
