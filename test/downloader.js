@@ -51,6 +51,9 @@ Downloader.prototype.getFileLength = function () {
 
 Downloader.prototype.getFile = function() {
 	var dl = this;
+	if (dl.totalLength && this.chunkStart>= dl.totalLength) {
+		dl.eof = true;
+	}
 	if (dl.eof === true) {
 		Log.i("Downloader", "File download done.");
 		this.callback(null, true);
