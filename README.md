@@ -151,7 +151,7 @@ mp4box.onError = function (e) {
 ```
 
 ####appendBuffer(data)####
-Provides an ArrayBuffer to parse from. The ArrayBuffer must has a `fileStart` (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file.
+Provides an ArrayBuffer to parse from. The ArrayBuffer must have a `fileStart` (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file. Returns the offset (in the original file) that is expected to be the `fileStart` value of the next buffer. 
 ```javascript
 var ab = getArrayBuffer();
 ab.fileStart = 0;
@@ -270,6 +270,12 @@ Each sample has the following structure:
 	"size":41,
 	"data": [ArrayBuffer]
 }
+```
+
+####seek(time, useRap)####
+Indicates that the next samples to process (for extraction or segmentation) start at the given time (Number, in seconds) or at the time of the previous Random Access Point (if useRap is true, default is false). Returns the offset in the file of the next bytes to be provided via [appendBuffer](#appendbufferdata) .
+```javascript
+mp4box.seek(10, true);
 ```
 
 Dependencies
