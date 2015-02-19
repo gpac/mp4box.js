@@ -3,6 +3,8 @@ Log.setLogLevel(Log.i);
 
 /* The main object processing the mp4 files */
 var mp4box;
+/* Metadata extracted from the mp4 file */
+var movieInfo;
 
 /* object responsible for file downloading */
 var downloader = new Downloader();
@@ -10,7 +12,7 @@ var downloader = new Downloader();
 /* the HTML5 video element */
 var video;
 
-var startButton, loadButton, initButton;
+var startButton, loadButton, initButton, initAllButton;
 var urlInput, chunkTimeoutInput, chunkSizeInput;
 var infoDiv, dlTimeoutDiv;
 var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel;
@@ -22,6 +24,7 @@ window.onload = function () {
 	startButton = document.getElementById("startButton");
 	loadButton = document.getElementById("loadButton");
 	initButton = document.getElementById("initButton");
+	initAllButton = document.getElementById("initAllButton");
 	urlInput = document.getElementById('url');
 	chunkTimeoutInput = document.getElementById('chunk_speed_range');
 	chunkSizeInput = document.getElementById("segment_size_range");
@@ -312,9 +315,44 @@ function onUpdateEnd(isNotInit) {
 	}
 }
 
-function addSourceBufferListener(info) {
-	var ms = video.ms;
+function addBuffer(video, track_id, codec) {
 	var sb;
+	var ms = video.ms;
+	var mime = 'video/mp4; codecs=\"'+codec+'\"';
+	if (MediaSource.isTypeSupported(mime)) {
+		Log.i("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
+		sb = ms.addSourceBuffer(mime);
+		sb.ms = ms;
+		sb.id = track_id;
+		mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
+		sb.pendingAppends = [];
+	} else {
+		Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
+		var textrack = video.addTextTrack("subtitles", "Text track for track "+track_id);
+		mp4box.setExtractionOptions(track_id, textrack, { nbSamples: 1 });
+	}
+}
+
+function removeBuffer(video, track_id) {
+	var sb;
+	var ms = video.ms;
+	Log.i("MSE - SourceBuffer #"+track_id,"Removing buffer");
+	mp4box.unsetSegmentOptions(track_id);
+	for (var i = 0; i < ms.sourceBuffers.length; i++) {
+		sb = ms.sourceBuffers[i];
+		if (sb.id == track_id) {
+			ms.removeSourceBuffer(sb);
+			break;
+		}
+	}
+	if (ms.sourceBuffers.length === 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function addSourceBufferListener(info) {
 	for (var i = 0; i < info.tracks.length; i++) {
 		var track = info.tracks[i];
 		var checkBox = document.getElementById("addTrack"+track.id);
@@ -323,52 +361,31 @@ function addSourceBufferListener(info) {
 			return function (e) {
 				var check = e.target;
 				if (check.checked) { 
-					var mime = 'video/mp4; codecs=\"'+codec+'\"';
-					if (MediaSource.isTypeSupported(mime)) {
-						Log.i("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
-						sb = ms.addSourceBuffer(mime);
-						sb.ms = ms;
-						sb.id = track_id;
-						mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
-						sb.pendingAppends = [];
-						initButton.disabled = false;
-					} else {
-						Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
-						var textrack = v.addTextTrack("subtitles", "Text track for track "+track_id);
-						mp4box.setExtractionOptions(track_id, textrack, { nbSamples: 1 });
-						//check.checked = false;
-					}
+					addBuffer(video, track_id, codec);
+					initButton.disabled = false;
 				} else {
-					Log.i("MSE - SourceBuffer #"+track_id,"Removing buffer");
-					mp4box.unsetSegmentOptions(track_id);
-					for (var i = 0; i < ms.sourceBuffers.length; i++) {
-						sb = ms.sourceBuffers[i];
-						if (sb.id == track_id) {
-							ms.removeSourceBuffer(sb);
-							break;
-						}
-					}
-					if (ms.sourceBuffers.length === 0) {
-						initButton.disabled = true;
-					}
+					initButton.disabled = removeBuffer(video, track_id);
 				}
 			};
 		})(track.id, track.codec));
 	}
 }
 
-function initializeSourceBuffers() {
-	mp4box.onSegment = function (id, user, buffer, sampleNum) {	
-		var sb = user;
-		saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
-		sb.segmentIndex++;
-		sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
-		Log.i("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
-		onUpdateEnd.call(sb, true);
+function initializeAllSourceBuffers() {
+	if (movieInfo) {
+		var info = movieInfo;
+		for (var i = 0; i < info.tracks.length; i++) {
+			var track = info.tracks[i];
+			addBuffer(video, track.id, track.codec);
+		}
+		initAllButton.disabled = true;
+		initButton.disabled = true;
+		startButton.disabled = false;
+		initializeSourceBuffers();
 	}
+}
 
-
-
+function initializeSourceBuffers() {
 	var initSegs = mp4box.initializeSegmentation();
 	for (var i = 0; i < initSegs.length; i++) {
 		var sb = initSegs[i].user;
@@ -378,7 +395,7 @@ function initializeSourceBuffers() {
 		saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
 		sb.segmentIndex = 0;
 	}
-	
+	initAllButton.disabled = true;	
 	initButton.disabled = true;
 	startButton.disabled = false;
 }
@@ -404,6 +421,7 @@ function load() {
 	}
 	mp4box.onReady = function (info) {
 		Log.i("Application", "Movie information received");
+		movieInfo = info;
 		stop();
 		if (info.isFragmented) {
 			ms.duration = info.fragment_duration/info.timescale;
@@ -412,6 +430,15 @@ function load() {
 		}
 		displayMovieInfo(info);
 		addSourceBufferListener(info);
+		initAllButton.disabled = false;
+	}
+	mp4box.onSegment = function (id, user, buffer, sampleNum) {	
+		var sb = user;
+		saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
+		sb.segmentIndex++;
+		sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
+		Log.i("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
+		onUpdateEnd.call(sb, true);
 	}
 	mp4box.onSamples = function (id, user, samples) {	
 		var texttrack = user;
