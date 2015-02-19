@@ -36,6 +36,7 @@ window.onload = function () {
 	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');	
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
 	segmentSizeLabel = document.querySelector('#segment_size_range_out');
+	playbackRateLabel = document.querySelector('#playback_rate_range_out');
 	chunkDownloadBitRate = document.querySelector('#chunk_dl_rate');
 	urlSelector = document.getElementById('urlSelector');
 	urlSelector.selectedIndex = -1;
@@ -85,6 +86,11 @@ function setDownloadChunkSize(value) {
 
 function setSegmentSize(value) {
 	segmentSizeLabel.value = value;
+}
+
+function setPlaybackRate(value) {
+	playbackRateLabel.value = value;
+	video.playbackRate = parseInt(value);
 }
 
 /* Functions to generate the tables displaying file information */	

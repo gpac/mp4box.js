@@ -102,7 +102,10 @@
 				<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
 				<button id="startButton" onclick="start()" disabled>Load Media Data &amp; Play</button>
 				<button id="stopButton" onclick="stop()" disabled>Stop Media Download</button>
-				<button onclick="reset()">Reset</button>
+				<button onclick="reset()">Reset</button><br>
+				<label for="playback_rate_range">Playback Rate</label>
+				<input id="playback_rate_range" name="playback_rate_range" type="range" min="1" max="20" step="1" value="1" oninput="setPlaybackRate(this.value);">
+				<output id="playback_rate_range_out" for="playback_rate_range">1</output>
 			</fieldset>
 			<div id="infoDiv">
 			</div>
