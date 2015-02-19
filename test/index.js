@@ -12,7 +12,9 @@ var downloader = new Downloader();
 /* the HTML5 video element */
 var video;
 
-var startButton, loadButton, initButton, initAllButton;
+var autoplay = false;
+
+var startButton, loadButton, initButton, initAllButton, playButton;
 var urlInput, chunkTimeoutInput, chunkSizeInput;
 var infoDiv, dlTimeoutDiv;
 var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel;
@@ -21,6 +23,7 @@ var saveChecked;
 
 window.onload = function () {
 	video = document.getElementById('v');
+	playButton = document.getElementById("playButton");
 	startButton = document.getElementById("startButton");
 	loadButton = document.getElementById("loadButton");
 	initButton = document.getElementById("initButton");
@@ -39,7 +42,6 @@ window.onload = function () {
 	saveChecked = document.getElementById("saveChecked");
 	
 	video.addEventListener("seeking", onSeeking);
-	loadButton.disabled = true;
 	reset();	
 }
 
@@ -48,8 +50,10 @@ function setUrl(url) {
 	urlInput.value = url;
 	if (urlInput.value !== "") {
 		loadButton.disabled = false;
+		playButton.disabled = false;
 	} else {
 		loadButton.disabled = true;
+		playButton.disabled = false;
 	}
 }
 
@@ -296,6 +300,9 @@ function onInitAppended(e) {
 		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true));
 		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
 		onUpdateEnd.call(sb, false);
+		if (autoplay) {
+			start();
+		}
 	}
 }
 
@@ -430,7 +437,11 @@ function load() {
 		}
 		displayMovieInfo(info);
 		addSourceBufferListener(info);
-		initAllButton.disabled = false;
+		if (autoplay) {
+			initializeAllSourceBuffers();
+		} else {
+			initAllButton.disabled = false;
+		}
 	}
 	mp4box.onSegment = function (id, user, buffer, sampleNum) {	
 		var sb = user;
@@ -510,6 +521,12 @@ function stop() {
 		downloader.stop();
 	}
 }		
+
+function play() {
+	playButton.disabled = true;
+	autoplay = true;
+	load();
+}
 
 function onSeeking(e) {
 	var i, start, end;
