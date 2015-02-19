@@ -12,7 +12,7 @@ table {
 	background: #FFFFFF;
 	border: 1px solid #333333;
 	border-collapse: collapse;
-	font-size: 60%;
+	font-size: 100%;
 }
  
 td, th {
@@ -25,4 +25,3 @@ th {
 	background: #EEEEEE;
 	text-align: center;
 }
- 

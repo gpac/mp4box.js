@@ -18,7 +18,15 @@
 		<div>
 			<h2>Demonstration of MP4Box.js</h2>
 			<h3>HTML5 video beyond the MSE API</h3>
-			<video id="v" width="640" height="480" autoplay controls> </video>
+			<table>
+			<td>
+				<video id="v" width="640" height="480" autoplay controls> </video>
+			</td>
+			<td>
+			<div id="infoDiv">
+			</div>
+			</td>
+			</table>
 			<fieldset>
 				<legend>Select or set URL:</legend>
 				<select id="urlSelector" onchange="setUrl(this.value);" onfocus="this.selectedIndex = -1;">
@@ -108,8 +116,6 @@
 					</select>
 				</div>
 			</fieldset>
-			<div id="infoDiv">
-			</div>
 		</div>
 		<div>
 			<h3>Instructions</h3>					
