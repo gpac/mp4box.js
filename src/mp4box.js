@@ -136,6 +136,11 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	var trak = this.inputIsoFile.getTrackById(track_id);
 	var sample = this.inputIsoFile.getSample(trak, sampleNumber);
 	if (sample == null) {
+		if (this.nextSeekPosition) {
+			this.nextSeekPosition = Math.min(trak.samples[sampleNumber].offset,this.nextSeekPosition);
+		} else {
+			this.nextSeekPosition = trak.samples[sampleNumber].offset;
+		}
 		return null;
 	}
 	
@@ -318,6 +323,7 @@ MP4Box.prototype.processSamples = function() {
 /* Processes a new ArrayBuffer (with a fileStart property)
    Returns the next expected file position, or undefined if not ready to parse */
 MP4Box.prototype.appendBuffer = function(ab) {
+	var nextFileStart;
 	var firstBuffer;
 	if (ab === null || ab === undefined) {
 		throw("Buffer must be defined and non empty");
@@ -356,7 +362,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		this.inputIsoFile = new ISOFile(this.inputStream);
 	}
 
-	/* Parse whatever is already in the buffer */
+	/* Parse whatever is in the existing buffers */
 	this.inputIsoFile.parse();
 
 	/* Check if the moovStart callback needs to be called */
@@ -387,10 +393,20 @@ MP4Box.prototype.appendBuffer = function(ab) {
 
 		/* See if any sample extraction or segment creation needs to be done with the available samples */
 		this.processSamples();
-		
+
 		/* Inform about the best range to fetch next */
-		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+this.inputIsoFile.nextParsePosition);	
-		return this.inputIsoFile.nextParsePosition;
+		if (this.nextSeekPosition) {
+			nextFileStart = this.nextSeekPosition;
+			this.nextSeekPosition = undefined;
+		} else {
+			nextFileStart = this.inputIsoFile.nextParsePosition;
+		}		
+		var index = this.inputIsoFile.findPosition(true, nextFileStart);
+		if (index !== -1) {
+			nextFileStart = this.inputIsoFile.findEndContiguousBuf(index);
+		}
+		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+nextFileStart);
+		return nextFileStart;
 	} else {
 		if (this.inputIsoFile !== null) {
 			/* moov has not been parsed but the first buffer was received, 
@@ -594,11 +610,11 @@ MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	}
 	if (useRap) {
 		trak.nextSample = rap_seek_sample_num;
-		Log.i("MP4Box", "Seeking to RAP sample "+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(rap_time, timescale) +" and offset: "+rap_offset);
-		return { offset: rap_offset, time: rap_time };
+		Log.i("MP4Box", "Seeking to RAP sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(rap_time, timescale) +" and offset: "+rap_offset);
+		return { offset: rap_offset, time: rap_time/timescale };
 	} else {
 		trak.nextSample = seek_sample_num;
-		Log.i("MP4Box", "Seeking to sample "+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(time)+" and offset: "+rap_offset);
+		Log.i("MP4Box", "Seeking to non-RAP sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(time)+" and offset: "+rap_offset);
 		return { offset: seek_offset, time: time };
 	}
 }
@@ -625,10 +641,14 @@ MP4Box.prototype.seek = function(time, useRap) {
 		}
 		if (seek_info.offset === Infinity) {
 			/* No sample info, in all tracks, cannot seek */
-			return { offset: this.inputIsoFile.nextParsePosition, time: 0 };
+			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
 		} else {
-			this.inputIsoFile.nextSeekPosition = seek_info.offset;
-			return seek_info;
+			var index = this.inputIsoFile.findPosition(true, seek_info.offset);
+			if (index !== -1) {
+				seek_info.offset = this.inputIsoFile.findEndContiguousBuf(index);
+			}
 		}
+		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
+		return seek_info;
 	}
 }
