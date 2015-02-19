@@ -90,7 +90,6 @@ Downloader.prototype.getFile = function() {
 			dl.eof = (xhr.response.byteLength !== dl.chunkSize) || (xhr.response.byteLength === dl.totalLength);
 			xhr.response.fileStart = xhr.start;
 			dl.callback(xhr.response, dl.eof); 
-			//dl.chunkStart+=dl.chunkSize;
 			if (dl.isActive === true && dl.eof === false) {
 				var timeoutDuration = 0;
 				if (!dl.realtime) {
@@ -99,15 +98,17 @@ Downloader.prototype.getFile = function() {
 					timeoutDuration = computeWaitingTimeFromBuffer(video);
 				}
 				setDownloadTimeout(timeoutDuration);
-				Log.i("Downloader", "Next download scheduled in "+timeoutDuration+ ' ms.');
+				Log.i("Downloader", "Next download scheduled in "+Math.floor(timeoutDuration)+ ' ms.');
 				window.setTimeout(dl.getFile.bind(dl), timeoutDuration);
 			} else {
 				/* end of file */
 			}
 		}
 	};
-	Log.i("Downloader", "Fetching "+this.url+(range ? (" with range: "+range): ""));
-	xhr.send();
+	if (dl.isActive) {
+		Log.i("Downloader", "Fetching "+this.url+(range ? (" with range: "+range): ""));
+		xhr.send();
+	}
 }
 
 Downloader.prototype.start = function() {
