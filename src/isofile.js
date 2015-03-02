@@ -456,7 +456,7 @@ ISOFile.prototype.buildSampleLists = function() {
 			offset_in_chunk += sample.size;
 
 			/* setting dts, cts, duration and rap flags */
-			if (j >= last_sample_in_stts_run) {
+			if (j > last_sample_in_stts_run) {
 				stts_run_index++;
 				if (last_sample_in_stts_run < 0) {
 					last_sample_in_stts_run = 0;
@@ -464,13 +464,13 @@ ISOFile.prototype.buildSampleLists = function() {
 				last_sample_in_stts_run += stts.sample_counts[stts_run_index];				
 			}
 			if (j > 0) {
-				sample.dts = trak.samples[j-1].dts + stts.sample_deltas[stts_run_index];
-				trak.samples[j-1].duration = sample.dts - trak.samples[j-1].dts;
+				trak.samples[j-1].duration = stts.sample_deltas[stts_run_index];
+				sample.dts = trak.samples[j-1].dts + trak.samples[j-1].duration;
 			} else {
 				sample.dts = 0;
 			}
 			if (ctts) {
-				if (j >= last_sample_in_ctts_run) {
+				if (j > last_sample_in_ctts_run) {
 					ctts_run_index++;
 					if (last_sample_in_ctts_run < 0) {
 						last_sample_in_ctts_run = 0;
