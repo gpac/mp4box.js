@@ -1,4 +1,6 @@
 var sampleUrls = [
+	{ url: "./mp4/meta/meta-file-single-item.mp4", desc: "Basic 'meta' test"},
+	{ url: "./mp4/meta/meta-file-single-primary.mp4", desc: "Basic 'meta' test w/ primary item"},
 	{ url: "./mp4/h264bl.mp4", desc: "Video Counter (10min, unfragmented, AVC Baseline)"},
 	{ url: "./mp4/a.mp4", desc: "Video Counter (10min, fragmented, AVC Baseline)"},
 	{ url: "./mp4/aaclow.mp4", desc: "Audio Bips (10 min, unfragmented, AAC)"},
