@@ -34,27 +34,3 @@ MP4Box.prototype.writeBPG = function(pixel_format, bit_depth_luma_minus8, bit_de
 	return stream.buffer;
 }
 
-function HEVCConfigRecord(stream) {
-	var nalu_type;
-	var numOfArrays;
-	var numNalus;
-	var length;
-	var nalus = [];
-	var i;
-	var j;
-	stream.readUint8Array(22);
-	numOfArrays = stream.readUint8();
-	for (i = 0; i < numOfArrays; i++) {
-		nalu_type = stream.readUint8();
-		numNalus = stream.readUint16();
-		for (j = 0; j < numNalus; j++) {
-			var nalu = {}
-			nalus.push(nalu);
-			nalu.type   = nalu_type;
-			nalu.length = stream.readUint16();
-			nalu.data   = stream.readUint8Array(length);
-		}
-	}
-}
-
-
