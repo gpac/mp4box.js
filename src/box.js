@@ -7,7 +7,7 @@ var BoxParser = {
 	OK : 1,
 	boxCodes : [ 
 				 "mdat", 
-				 "avcC", "ftyp", 
+				 "avcC", "hvcC", "ftyp", 
 				 "payl",
 				 "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
 			   ],
@@ -34,7 +34,7 @@ var BoxParser = {
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
-		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4", "avcp", "drac", "encv", "mjp2", "mvc1", "mvc2", "resv", "s263", "svc1", "vc-1"  ] },
+		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4", "avcp", "drac", "encv", "mjp2", "mvc1", "mvc2", "resv", "s263", "svc1", "vc-1", "hvc1", "hev1"  ] },
 		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos" ] },
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
@@ -559,6 +559,49 @@ BoxParser.avcCBox.prototype.parse = function(stream) {
 	}
 }
 
+BoxParser.hvcCBox.prototype.parse = function(stream) {
+	var i;
+	var nb_nalus;
+	var length;
+	var tmp_byte;
+	this.configurationVersion = stream.readUint8();
+	tmp_byte = stream.readUint8();
+	this.general_profile_space = tmp_byte >> 6;
+	this.general_tier_flag = (tmp_byte & 0x20) >> 5;
+	this.general_profile_idc = (tmp_byte & 0x1F);
+	this.general_profile_compatibility = stream.readUint32();
+	this.general_constraint_indicator = stream.readUint32() << 16 | stream.readUint16();
+	this.general_level_idc = stream.readUint8();
+	this.min_spatial_segmentation_idc = stream.readUint16() & 0xFFF;
+	this.parallelismType = (stream.readUint8() & 0x3);
+	this.chromaFormat = (stream.readUint8() & 0x3);
+	this.bitDepthLumaMinus8 = (stream.readUint8() & 0x7);
+	this.bitDepthChromaMinus8 = (stream.readUint8() & 0x7);
+	this.avgFrameRate = stream.readUint16();
+	tmp_byte = stream.readUint8();
+	this.constantFrameRate = (tmp_byte >> 6);
+	this.numTemporalLayers = (tmp_byte & 0XD) >> 3;
+	this.temporalIdNested = (tmp_byte & 0X4) >> 2;
+	this.lengthSizeMinusOne = (tmp_byte & 0X3);
+
+	this.nalu_arrays = [];
+	numOfArrays = stream.readUint8();
+	for (i = 0; i < numOfArrays; i++) {
+		var nalu_array = [];
+		this.nalu_arrays.push(nalu_array);
+		tmp_byte = stream.readUint8()
+		nalu_array.completeness = (tmp_byte & 0x80) >> 7;
+		nalu_array.nalu_type = tmp_byte & 0x3F;
+		numNalus = stream.readUint16();
+		for (j = 0; j < numNalus; j++) {
+			var nalu = {}
+			nalu_array.push(nalu);
+			length = stream.readUint16();
+			nalu.data   = stream.readUint8Array(length);
+		}
+	}
+}
+
 function decimalToHex(d, padding) {
 	var hex = Number(d).toString(16);
 	padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
@@ -577,6 +620,39 @@ BoxParser.avc1Box.prototype.getCodec = function() {
 	} else {
 		return baseCodec;
 	}
+}
+
+BoxParser.hvc1Box.prototype.getCodec = function() {
+	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+	if (this.hvcC) {
+		baseCodec += '.';
+		switch (this.hvcC.general_profile_space) {
+			case 0: 
+				baseCodec += '';
+				break;
+			case 1: 
+				baseCodec += 'A';
+				break;
+			case 2: 
+				baseCodec += 'B';
+				break;
+			case 3: 
+				baseCodec += 'C';
+				break;
+		
+		}
+		baseCodec += this.hvcC.general_profile_idc;
+		baseCodec += '.';
+		baseCodec += decimalToHex(this.hvcC.general_profile_compatibility, 0);
+		baseCodec += '.';
+		if (this.hvcC.general_tier_flag == 0) {
+			baseCodec += 'L';
+		} else {
+			baseCodec += 'H';
+		}
+		baseCodec += this.hvcC.general_level_idc;
+	} 
+	return baseCodec;
 }
 
 BoxParser.mp4aBox.prototype.getCodec = function() {
