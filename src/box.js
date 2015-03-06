@@ -570,7 +570,7 @@ BoxParser.hvcCBox.prototype.parse = function(stream) {
 	this.general_tier_flag = (tmp_byte & 0x20) >> 5;
 	this.general_profile_idc = (tmp_byte & 0x1F);
 	this.general_profile_compatibility = stream.readUint32();
-	this.general_constraint_indicator = stream.readUint32() << 16 | stream.readUint16();
+	this.general_constraint_indicator = stream.readUint8Array(6);
 	this.general_level_idc = stream.readUint8();
 	this.min_spatial_segmentation_idc = stream.readUint16() & 0xFFF;
 	this.parallelismType = (stream.readUint8() & 0x3);
@@ -623,6 +623,7 @@ BoxParser.avc1Box.prototype.getCodec = function() {
 }
 
 BoxParser.hvc1Box.prototype.getCodec = function() {
+	var i;
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.hvcC) {
 		baseCodec += '.';
@@ -643,14 +644,30 @@ BoxParser.hvc1Box.prototype.getCodec = function() {
 		}
 		baseCodec += this.hvcC.general_profile_idc;
 		baseCodec += '.';
-		baseCodec += decimalToHex(this.hvcC.general_profile_compatibility, 0);
+		var val = this.hvcC.general_profile_compatibility;
+		var reversed = 0;
+		for (i=0; i<32; i++) {
+			reversed |= val & 1;
+			if (i==31) break;
+			reversed <<= 1;
+			val >>=1;
+		}				
+		baseCodec += decimalToHex(reversed, 0);
 		baseCodec += '.';
-		if (this.hvcC.general_tier_flag == 0) {
+		if (this.hvcC.general_tier_flag === 0) {
 			baseCodec += 'L';
 		} else {
 			baseCodec += 'H';
 		}
 		baseCodec += this.hvcC.general_level_idc;
+		var hasByte = false;
+		var constraint_string = "";
+		for (i = 5; i >= 0; i--) {
+			if (this.hvcC.general_constraint_indicator[i]) {
+				constraint_string = "."+decimalToHex(this.hvcC.general_constraint_indicator[i], 0)+constraint_string;
+			}
+		}
+		baseCodec += constraint_string;
 	} 
 	return baseCodec;
 }
