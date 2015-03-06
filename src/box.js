@@ -663,8 +663,9 @@ BoxParser.hvc1Box.prototype.getCodec = function() {
 		var hasByte = false;
 		var constraint_string = "";
 		for (i = 5; i >= 0; i--) {
-			if (this.hvcC.general_constraint_indicator[i]) {
+			if (this.hvcC.general_constraint_indicator[i] || hasByte) {
 				constraint_string = "."+decimalToHex(this.hvcC.general_constraint_indicator[i], 0)+constraint_string;
+				hasByte = true;
 			}
 		}
 		baseCodec += constraint_string;
