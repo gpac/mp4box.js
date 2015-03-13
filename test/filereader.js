@@ -24,7 +24,7 @@ function readFile(file) {
 
   mp4box.onError = function(e) { console.log("mp4box failed to parse data."); };
   
-  mp4box.onMoovStart = function (info) {
+  mp4box.onReady = function (info) {
     console.log(info);
     reader.abort();
   }
@@ -34,14 +34,13 @@ function readFile(file) {
     console.log("Received file reading progress event", event, "loaded: "+ event.loaded, "position: "+filePos);
     if (arraybuffer !== null) {
       console.log("ArrayBuffer length: "+arraybuffer.byteLength)
-	    arraybuffer.fileStart = filePos;
+	    arraybuffer.fileStart = 0;
 	    var readNext = mp4box.appendBuffer(arraybuffer);
 	    console.log("Appended data to MP4Box, next offset should be ", readNext);
-	    filePos += event.loaded;   // adding fileStart property
     }
   }
 
-  reader.onprogress = append_data_to_mp4box;
+  //reader.onprogress = append_data_to_mp4box;
   reader.onloadend = append_data_to_mp4box;
 
   // Read in the mp4 video as ArrayBuffer
