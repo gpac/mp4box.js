@@ -17,7 +17,7 @@ var autoplay = false;
 var startButton, loadButton, initButton, initAllButton, playButton;
 var urlInput, chunkTimeoutInput, chunkSizeInput;
 var infoDiv, dlTimeoutDiv;
-var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel;
+var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel, extractionSizeLabel;
 var urlSelector;
 var saveChecked;
 
@@ -30,12 +30,13 @@ window.onload = function () {
 	initAllButton = document.getElementById("initAllButton");
 	urlInput = document.getElementById('url');
 	chunkTimeoutInput = document.getElementById('chunk_speed_range');
-	chunkSizeInput = document.getElementById("segment_size_range");
+	chunkSizeInput = document.getElementById("chunk_size_range");
 	infoDiv = document.getElementById('infoDiv');
 	dlTimeoutDiv = document.getElementById('dlTimeout');
 	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');	
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
 	segmentSizeLabel = document.querySelector('#segment_size_range_out');
+	extractionSizeLabel = document.querySelector('#extraction_size_range_out');
 	playbackRateLabel = document.querySelector('#playback_rate_range_out');
 	chunkDownloadBitRate = document.querySelector('#chunk_dl_rate');
 	urlSelector = document.getElementById('urlSelector');
@@ -86,6 +87,10 @@ function setDownloadChunkSize(value) {
 
 function setSegmentSize(value) {
 	segmentSizeLabel.value = value;
+}
+
+function setExtractionSize(value) {
+	extractionSizeLabel.value = value;
 }
 
 function setPlaybackRate(value) {
@@ -342,7 +347,7 @@ function addBuffer(video, track_id, codec) {
 	} else {
 		Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 		var textrack = video.addTextTrack("subtitles", "Text track for track "+track_id);
-		mp4box.setExtractionOptions(track_id, textrack, { nbSamples: 1 });
+		mp4box.setExtractionOptions(track_id, textrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 	}
 }
 
