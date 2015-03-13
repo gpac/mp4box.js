@@ -20,7 +20,7 @@ function drop(e) {
 function getBoxTable(box) {
 	var html = '<table>';
 	for (var prop in box) {
-		if (prop === "hdr_size" || prop === "start" || prop === "fileStart" || prop === "boxes" || prop === "subBoxNames" || prop === "entries") {
+		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples"].indexOf(prop) > -1) {
 			continue;
 		} else if (box[prop].constructor === Object) {
 			continue;
