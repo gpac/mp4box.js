@@ -20,7 +20,13 @@ function drop(e) {
 function getBoxTable(box) {
 	var html = '<table>';
 	for (var prop in box) {
-		if (typeof box[prop] !== "object") {
+		if (prop === "hdr_size" || prop === "start" || prop === "fileStart" || prop === "boxes" || prop === "subBoxNames" || prop === "entries") {
+			continue;
+		} else if (box[prop].constructor === Object) {
+			continue;
+		} else if (box.subBoxNames && box.subBoxNames.indexOf(prop.slice(0,4)) > -1) {
+			continue;
+		} else {
 			html += '<tr>';
 			html += '<td>';
 			html += prop;
@@ -47,6 +53,8 @@ function getJSTreeData(boxes) {
 		jstree_box.box = box;
 		if (box.boxes) {
 			jstree_box.children = getJSTreeData(box.boxes);
+		} else if (box.entries) {
+			jstree_box.children = getJSTreeData(box.entries);
 		}
 	}
 	return jstree_data;
@@ -57,6 +65,9 @@ function createJSTree(boxes) {
 	jstree_object.core = {};
 	jstree_object.core.data = getJSTreeData(boxes);
 	$('#boxtree').jstree(jstree_object);
+	$('#boxtree').on('loaded.jstree', function() {
+    	$('#boxtree').jstree('open_all');
+  	});
 	$('#boxtree').on("changed.jstree", function (e, data) {
 		if(data.selected.length) {
 			var node = data.instance.get_node(data.selected[0]);

@@ -28,19 +28,23 @@
 			box-shadow: 10px 10px 10px #212121;
 		}
 
-		table {
-			vertical-align: top;
+		table, td {
+			vertical-align: text-top;
 		}
+
+		td:first-child { width: 20%; }
+
 		</style>
     </head>
 	<body>
 		<div>
 			<h2>MP4Box.js</h2>
 			<h3>ISOBMFF Box Structure Viewer</h3>
+			<p>Warning: works only for very small files</p>
 			<input type='file' id='fileinput' onchange='drop()'><br>
 			<table>
 			<tr>
-			<td style="width: 50%">
+			<td style="width: 30%">
 			<div id="boxtree">
 			</div>
 			</td>
