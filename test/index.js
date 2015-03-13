@@ -306,7 +306,7 @@ function onInitAppended(e) {
 		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true));
 		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
 		onUpdateEnd.call(sb, false);
-		if (autoplay) {
+		if (autoplay && startButton.disabled) {
 			start();
 		}
 	}
@@ -422,6 +422,15 @@ function reset() {
 	resetDisplay();
 }
 
+function resetCues() {
+	for (var i = 0; i < video.textTracks.length; i++) {
+		var texttrack = video.textTracks[i];
+		while (texttrack.cues.length > 0) {
+			texttrack.removeCue(texttrack.cues[0]);
+		}
+	}
+} 
+
 function load() {
 	var ms = video.ms;
 	if (ms.readyState !== "open") {
@@ -435,7 +444,9 @@ function load() {
 	mp4box.onReady = function (info) {
 		Log.i("Application", "Movie information received");
 		movieInfo = info;
-		stop();
+		if (!autoplay) {
+			stop();
+		}
 		if (info.isFragmented) {
 			ms.duration = info.fragment_duration/info.timescale;
 		} else {
@@ -547,8 +558,9 @@ function onSeeking(e) {
 		}
 		/* Chrome fires twice the seeking event with the same value */
 		Log.i("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
-		seek_info = mp4box.seek(video.currentTime, true);
 		downloader.stop();
+		resetCues();
+		seek_info = mp4box.seek(video.currentTime, true);
 		downloader.setChunkStart(seek_info.offset);
 		downloader.resume();
 		startButton.disabled = true;
