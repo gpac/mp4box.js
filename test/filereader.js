@@ -17,6 +17,54 @@ function drop(e) {
 	readFile(file);
 }
 
+function getBoxTable(box) {
+	var html = '<table>';
+	for (var prop in box) {
+		if (typeof box[prop] !== "object") {
+			html += '<tr>';
+			html += '<td>';
+			html += prop;
+			html += '</td>';
+			html += '<td>';
+			html += box[prop];
+			html += '</td>';
+			html += '</tr>';
+		}
+	}
+	html += '</html>';
+	return html;
+}
+
+
+function getJSTreeData(boxes) {
+	var jstree_data;
+	jstree_data = [];
+	for (var i = 0; i < boxes.length; i++) {
+		var box = boxes[i];
+		var jstree_box = {};
+		jstree_data.push(jstree_box);
+		jstree_box.text = box.type;
+		jstree_box.box = box;
+		if (box.boxes) {
+			jstree_box.children = getJSTreeData(box.boxes);
+		}
+	}
+	return jstree_data;
+}
+
+function createJSTree(boxes) {
+	var jstree_object = {}
+	jstree_object.core = {};
+	jstree_object.core.data = getJSTreeData(boxes);
+	$('#boxtree').jstree(jstree_object);
+	$('#boxtree').on("changed.jstree", function (e, data) {
+		if(data.selected.length) {
+			var node = data.instance.get_node(data.selected[0]);
+			$('#boxtable').html(getBoxTable(node.original.box));
+		}
+	});	
+}
+
 function readFile(file) {
   var filePos = 0;
   var reader = new FileReader();
@@ -25,8 +73,8 @@ function readFile(file) {
   mp4box.onError = function(e) { console.log("mp4box failed to parse data."); };
   
   mp4box.onReady = function (info) {
-    console.log(info);
     reader.abort();
+    createJSTree(mp4box.inputIsoFile.boxes);
   }
 
   var append_data_to_mp4box = function(event) {

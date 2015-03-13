@@ -4,6 +4,9 @@
     	<meta charset="UTF-8">
 		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
 		<link rel="stylesheet" href="style.css" />
+		<link rel="stylesheet" href="lib/jstree/theme/style.css" />
+		<script src="lib/jquery/jquery.js"></script>		
+		<script src="lib/jstree/jstree.min.js"></script>
         <script src="../src/log.js"></script>
         <script src="../src/DataStream.js"></script>
         <script src="../src/descriptor.js"></script>
@@ -24,6 +27,10 @@
 			-webkit-box-shadow: 10px 10px 10px #212121;
 			box-shadow: 10px 10px 10px #212121;
 		}
+
+		table {
+			vertical-align: top;
+		}
 		</style>
     </head>
 	<body>
@@ -31,6 +38,17 @@
 			<h2>MP4Box.js</h2>
 			<h3>ISOBMFF Box Structure Viewer</h3>
 			<input type='file' id='fileinput' onchange='drop()'><br>
-			
+			<table>
+			<tr>
+			<td style="width: 50%">
+			<div id="boxtree">
+			</div>
+			</td>
+			<td>
+			<div id="boxtable">
+			</div>
+			</td>
+			</tr>
+			</table>
 	</body>
 </html>
