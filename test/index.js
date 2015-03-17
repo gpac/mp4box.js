@@ -388,7 +388,7 @@ function read_bpg (bitStream) {
     // *********** hevc_data()
     
     bpg.hevc_data_byte = [];
-    while (bitStream._offset <= bitStream.byteLength) {
+    while (bitStream._offset < bitStream.byteLength) {
 		bpg.hevc_data_byte[i] = bitStream.getUnsigned(8);
     }
 
