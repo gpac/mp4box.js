@@ -10,7 +10,6 @@ var mp4box;
 /* object responsible for file downloading */
 var downloader;
 
-
 window.onload = function () {
 	//load();
 	// var buffer = new ArrayBuffer(1000);
@@ -57,345 +56,18 @@ window.onload = function () {
 
 			fileReader.onload =
 				function(e) {
-					var arrayBuffer = fileReader.result;
-					var bitStream = new jDataView(arrayBuffer);
-				    var bpg = read_bpg(bitStream)
-				    write_bpg(bpg);
+					var arrayBufferRead = fileReader.result;
+					console.log("Start reading the BPG");
+                    var bitStreamRead = new BitStream(arrayBufferRead);
+				    var bpg = new BPG(bitStreamRead);
+				    console.log("Start saving the BPG");
+                    bpg.toFile("lena.bpg");
 				}
 			fileReader.readAsArrayBuffer(file);	
 		}
 	); 
 	
-}
-
-function write_bpg (bpg) {
-	
-
-/*	document.getElementById('bpg').innerHTML += bpg.file_magic.toString(16);
-
-	
-	bpg.pixel_format = bitStream.getUnsigned(3);
-	bpg.alpha1_flag = bitStream.getUnsigned(1);
-    bpg.bit_depth_minus_8 = bitStream.getUnsigned(4);
-
-    bpg.color_space = bitStream.getUnsigned(4);
-    bpg.extension_present_flag = bitStream.getUnsigned(1);
-    bpg.alpha2_flag = bitStream.getUnsigned(1);
-    bpg.limited_range_flag = bitStream.getUnsigned(1);
-    bpg.animation_flag = bitStream.getUnsigned(1);
-     
-    bpg.picture_width = bitstream_get_ue7(bitStream);
-    bpg.picture_height = bitstream_get_ue7(bitStream);
-    
-     
-    bpg.picture_data_length = bitstream_get_ue7(bitStream);
-     
-    if (bpg.extension_present_flag) {  
-        bpg.extension_data_length = bitstream_get_ue7(bitStream);
-
-        bpg.extension_tag = [];
-        bpg.extension_tag_length = [];
-        bpg.loop_count = [];
-        bpg.frame_period_num = [];
-        bpg.frame_period_den =[];
-        
-        // *********** extension_data()
-		
-		for (var i = 0; i < bpg.extension_data_length; i++) {
-			bpg.extension_tag[i] = bitstream_get_ue7(bitStream);
-			bpg.extension_tag_length[i] = bitstream_get_ue7(bitStream);
-			
-			if (bpg.extension_tag === 5) {
-	             
-	            // *********** animation_control_extension(extension_tag_length)
-
-	            bpg.loop_count[i] = bitstream_get_ue7(bitStream);
-	            bpg.frame_period_num[i] = bitstream_get_ue7(bitStream);
-	            bpg.frame_period_den[i] = bitstream_get_ue7(bitStream);
-	            bpg.dummy_byte = [];   
-	            for (var j = 0; j < bpg.extension_data_length; j++)
-	            	bpg.dummy_byte[j] = bitStream.getUnsigned(8);
-
-	             // *********** animation_control_extension(extension_tag_length)
-
-	        } else {
-	        	bpg.extension_tag_data_byte = [];
-	            for(var j = 0; j < bpg.extension_tag_length; j++)
-	                bpg.extension_tag_data_byte[j] = bitStream.getUnsigned(8);
-	        }
-        }
-
-        // *********** extension_data()
-    }
-
-    // *********** hevc_header_and_data()
-
-    if (bpg.alpha1_flag || bpg.alpha2_flag) {
-        // *********** hevc_header() : transparent
-
-		bpg.hevc_header_length_transp = bitstream_get_ue7(bitStream);
-		bpg.log2_min_luma_coding_block_size_minus3_transp = bitstream_get_ue(bitStream);
-		bpg.log2_diff_max_min_luma_coding_block_size_transp = bitstream_get_ue7(bitStream);
-		bpg.log2_min_transform_block_size_minus2_transp = bitstream_get_ue7(bitStream);
-		bpg.log2_diff_max_min_transform_block_size_transp = bitstream_get_ue7(bitStream);
-		bpg.max_transform_hierarchy_depth_intra_transp = bitstream_get_ue7(bitStream);
-		bpg.sample_adaptive_offset_enabled_flag_transp = bitStream.getUnsigned(1);
-		bpg.pcm_enabled_flag_transp = bitStream.getUnsigned(1);
-    
-    	if (bpg.pcm_enabled_flag_transp) {
-        	bpg.pcm_sample_bit_depth_luma_minus1_transp = bitStream.getUnsigned(4);
-         	bpg.pcm_sample_bit_depth_chroma_minus1_transp = bitStream.getUnsigned(4);
-         	bpglog2_min_pcm_luma_coding_block_size_minus3_transp = bitstream_get_ue(bitStream);
-         	bpg.log2_diff_max_min_pcm_luma_coding_block_size_transp = bitstream_get_ue(bitStream);
-         	bpg.pcm_loop_filter_disabled_flag_transp = bitStream.getUnsigned(1);
-     	}
-    	bpg.strong_intra_smoothing_enabled_flag_transp = bitStream.getUnsigned(1);
-     	bpg.sps_extension_present_flag_transp = bitStream.getUnsigned(1);
-     	if (bpg.sps_extension_present_flag_transp) {
-         	bpg.sps_range_extension_flag_transp = bitStream.getUnsigned(1);
-         	bpg.sps_extension_7bits_transp = bitStream.getUnsigned(7);
-     	}
-     	if (bpg.sps_range_extension_flag_transp) {
-         	bpg.transform_skip_rotation_enabled_flag_transp = bitStream.getUnsigned(1);
-         	bpg.transform_skip_context_enabled_flag_transp = bitStream.getUnsigned(1);
-         	bpg.implicit_rdpcm_enabled_flag_transp = bitStream.getUnsigned(1);
-        	bpg.explicit_rdpcm_enabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.extended_precision_processing_flag_transp = bitStream.getUnsigned(1);
-	        bpg.intra_smoothing_disabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.high_precision_offsets_enabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.persistent_rice_adaptation_enabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.cabac_bypass_alignment_enabled_flag_transp = bitStream.getUnsigned(1);
-     	}
-
-     	bpg.trailing_bits_transp = 0;
-     	while (bitStream._bitOffset < 0) {
-     		bpg.trailing_bits_transp++;
-     		bitStream.getUnsigned(1);
-     	}
-
-		// *********** hevc_header() : transparent        
-    }
-
-    // *********** hevc_header()
-
-    bpg.hevc_header_length = bitstream_get_ue7(bitStream);
-	bpg.log2_min_luma_coding_block_size_minus3 = bitstream_get_ue(bitStream);
-	bpg.log2_diff_max_min_luma_coding_block_size = bitstream_get_ue7(bitStream);
-	bpg.log2_min_transform_block_size_minus2 = bitstream_get_ue7(bitStream);
-	bpg.log2_diff_max_min_transform_block_size = bitstream_get_ue7(bitStream);
-	bpg.max_transform_hierarchy_depth_intra = bitstream_get_ue7(bitStream);
-	bpg.sample_adaptive_offset_enabled_flag = bitStream.getUnsigned(1);
-	bpg.pcm_enabled_flag = bitStream.getUnsigned(1);
-
-	if (bpg.pcm_enabled_flag) {
-    	bpg.pcm_sample_bit_depth_luma_minus1 = bitStream.getUnsigned(4);
-     	bpg.pcm_sample_bit_depth_chroma_minus1 = bitStream.getUnsigned(4);
-     	bpglog2_min_pcm_luma_coding_block_size_minus3 = bitstream_get_ue(bitStream);
-     	bpg.log2_diff_max_min_pcm_luma_coding_block_size = bitstream_get_ue(bitStream);
-     	bpg.pcm_loop_filter_disabled_flag = bitStream.getUnsigned(1);
- 	}
-	bpg.strong_intra_smoothing_enabled_flag = bitStream.getUnsigned(1);
- 	bpg.sps_extension_present_flag = bitStream.getUnsigned(1);
- 	if (bpg.sps_extension_present_flag) {
-     	bpg.sps_range_extension_flag = bitStream.getUnsigned(1);
-     	bpg.sps_extension_7bits = bitStream.getUnsigned(7);
- 	}
- 	if (bpg.sps_range_extension_flag) {
-     	bpg.transform_skip_rotation_enabled_flag = bitStream.getUnsigned(1);
-     	bpg.transform_skip_context_enabled_flag = bitStream.getUnsigned(1);
-     	bpg.implicit_rdpcm_enabled_flag = bitStream.getUnsigned(1);
-    	bpg.explicit_rdpcm_enabled_flag = bitStream.getUnsigned(1);
-        bpg.extended_precision_processing_flag = bitStream.getUnsigned(1);
-        bpg.intra_smoothing_disabled_flag = bitStream.getUnsigned(1);
-        bpg.high_precision_offsets_enabled_flag = bitStream.getUnsigned(1);
-        bpg.persistent_rice_adaptation_enabled_flag = bitStream.getUnsigned(1);
-        bpg.cabac_bypass_alignment_enabled_flag = bitStream.getUnsigned(1);
- 	}
-
- 	bpg.trailing_bits = 0;
- 	while (bitStream._bitOffset < 0) {
- 		bpg.trailing_bits++;
- 		bitStream.getUnsigned(1);
-    }
-
-    // *********** hevc_header()
-
-    
-    // *********** hevc_data()
-    
-    bpg.hevc_data_byte = [];
-    for (var i = 0; i < bpg.picture_data_length; i++)
-		bpg.hevc_data_byte[i] = bitStream.getUnsigned(8);
-
-    // *********** hevc_data()
-*/
-}
-
-// Function that reads each field of BPG format
-function read_bpg (bitStream) {
-	var bpg = {};
-
-	// *********** heic_file()
-
-	bpg.file_magic = bitStream.getUnsigned(32);
-	
-	bpg.pixel_format = bitStream.getUnsigned(3);
-	bpg.alpha1_flag = bitStream.getUnsigned(1);
-    bpg.bit_depth_minus_8 = bitStream.getUnsigned(4);
-
-    bpg.color_space = bitStream.getUnsigned(4);
-    bpg.extension_present_flag = bitStream.getUnsigned(1);
-    bpg.alpha2_flag = bitStream.getUnsigned(1);
-    bpg.limited_range_flag = bitStream.getUnsigned(1);
-    bpg.animation_flag = bitStream.getUnsigned(1);
-     
-    bpg.picture_width = bitstream_get_ue7(bitStream);
-    bpg.picture_height = bitstream_get_ue7(bitStream);
-     
-    bpg.picture_data_length = bitstream_get_ue7(bitStream);
-     
-    if (bpg.extension_present_flag) {  
-        bpg.extension_data_length = bitstream_get_ue7(bitStream);
-
-        bpg.extension_tag = [];
-        bpg.extension_tag_length = [];
-        bpg.loop_count = [];
-        bpg.frame_period_num = [];
-        bpg.frame_period_den =[];
-        
-        // *********** extension_data()
-		
-		for (var i = 0; i < bpg.extension_data_length; i++) {
-			bpg.extension_tag[i] = bitstream_get_ue7(bitStream);
-			bpg.extension_tag_length[i] = bitstream_get_ue7(bitStream);
-			
-			if (bpg.extension_tag === 5) {
-	             
-	            // *********** animation_control_extension(extension_tag_length)
-
-	            bpg.loop_count[i] = bitstream_get_ue7(bitStream);
-	            bpg.frame_period_num[i] = bitstream_get_ue7(bitStream);
-	            bpg.frame_period_den[i] = bitstream_get_ue7(bitStream);
-	            bpg.dummy_byte = [];   
-	            for (var j = 0; j < bpg.extension_data_length; j++)
-	            	bpg.dummy_byte[j] = bitStream.getUnsigned(8);
-
-	             // *********** animation_control_extension(extension_tag_length)
-
-	        } else {
-	        	bpg.extension_tag_data_byte = [];
-	            for(var j = 0; j < bpg.extension_tag_length; j++)
-	                bpg.extension_tag_data_byte[j] = bitStream.getUnsigned(8);
-	        }
-        }
-
-        // *********** extension_data()
-    }
-
-    // *********** hevc_header_and_data()
-
-    if (bpg.alpha1_flag || bpg.alpha2_flag) {
-        // *********** hevc_header() : transparent
-
-		bpg.hevc_header_length_transp = bitstream_get_ue7(bitStream);
-		bpg.log2_min_luma_coding_block_size_minus3_transp = bitstream_get_ue(bitStream);
-		bpg.log2_diff_max_min_luma_coding_block_size_transp = bitstream_get_ue7(bitStream);
-		bpg.log2_min_transform_block_size_minus2_transp = bitstream_get_ue7(bitStream);
-		bpg.log2_diff_max_min_transform_block_size_transp = bitstream_get_ue7(bitStream);
-		bpg.max_transform_hierarchy_depth_intra_transp = bitstream_get_ue7(bitStream);
-		bpg.sample_adaptive_offset_enabled_flag_transp = bitStream.getUnsigned(1);
-		bpg.pcm_enabled_flag_transp = bitStream.getUnsigned(1);
-    
-    	if (bpg.pcm_enabled_flag_transp) {
-        	bpg.pcm_sample_bit_depth_luma_minus1_transp = bitStream.getUnsigned(4);
-         	bpg.pcm_sample_bit_depth_chroma_minus1_transp = bitStream.getUnsigned(4);
-         	bpglog2_min_pcm_luma_coding_block_size_minus3_transp = bitstream_get_ue(bitStream);
-         	bpg.log2_diff_max_min_pcm_luma_coding_block_size_transp = bitstream_get_ue(bitStream);
-         	bpg.pcm_loop_filter_disabled_flag_transp = bitStream.getUnsigned(1);
-     	}
-    	bpg.strong_intra_smoothing_enabled_flag_transp = bitStream.getUnsigned(1);
-     	bpg.sps_extension_present_flag_transp = bitStream.getUnsigned(1);
-     	if (bpg.sps_extension_present_flag_transp) {
-         	bpg.sps_range_extension_flag_transp = bitStream.getUnsigned(1);
-         	bpg.sps_extension_7bits_transp = bitStream.getUnsigned(7);
-     	}
-     	if (bpg.sps_range_extension_flag_transp) {
-         	bpg.transform_skip_rotation_enabled_flag_transp = bitStream.getUnsigned(1);
-         	bpg.transform_skip_context_enabled_flag_transp = bitStream.getUnsigned(1);
-         	bpg.implicit_rdpcm_enabled_flag_transp = bitStream.getUnsigned(1);
-        	bpg.explicit_rdpcm_enabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.extended_precision_processing_flag_transp = bitStream.getUnsigned(1);
-	        bpg.intra_smoothing_disabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.high_precision_offsets_enabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.persistent_rice_adaptation_enabled_flag_transp = bitStream.getUnsigned(1);
-	        bpg.cabac_bypass_alignment_enabled_flag_transp = bitStream.getUnsigned(1);
-     	}
-
-     	bpg.trailing_bits_transp = 0;
-     	while (bitStream._bitOffset < 0) {
-     		bpg.trailing_bits_transp++;
-     		bitStream.getUnsigned(1);
-     	}
-
-		// *********** hevc_header() : transparent        
-    }
-
-    // *********** hevc_header()
-
-    bpg.hevc_header_length = bitstream_get_ue7(bitStream);
-	bpg.log2_min_luma_coding_block_size_minus3 = bitstream_get_ue(bitStream);
-	bpg.log2_diff_max_min_luma_coding_block_size = bitstream_get_ue7(bitStream);
-	bpg.log2_min_transform_block_size_minus2 = bitstream_get_ue7(bitStream);
-	bpg.log2_diff_max_min_transform_block_size = bitstream_get_ue7(bitStream);
-	bpg.max_transform_hierarchy_depth_intra = bitstream_get_ue7(bitStream);
-	bpg.sample_adaptive_offset_enabled_flag = bitStream.getUnsigned(1);
-	bpg.pcm_enabled_flag = bitStream.getUnsigned(1);
-
-	if (bpg.pcm_enabled_flag) {
-    	bpg.pcm_sample_bit_depth_luma_minus1 = bitStream.getUnsigned(4);
-     	bpg.pcm_sample_bit_depth_chroma_minus1 = bitStream.getUnsigned(4);
-     	bpglog2_min_pcm_luma_coding_block_size_minus3 = bitstream_get_ue(bitStream);
-     	bpg.log2_diff_max_min_pcm_luma_coding_block_size = bitstream_get_ue(bitStream);
-     	bpg.pcm_loop_filter_disabled_flag = bitStream.getUnsigned(1);
- 	}
-	bpg.strong_intra_smoothing_enabled_flag = bitStream.getUnsigned(1);
- 	bpg.sps_extension_present_flag = bitStream.getUnsigned(1);
- 	if (bpg.sps_extension_present_flag) {
-     	bpg.sps_range_extension_flag = bitStream.getUnsigned(1);
-     	bpg.sps_extension_7bits = bitStream.getUnsigned(7);
- 	}
- 	if (bpg.sps_range_extension_flag) {
-     	bpg.transform_skip_rotation_enabled_flag = bitStream.getUnsigned(1);
-     	bpg.transform_skip_context_enabled_flag = bitStream.getUnsigned(1);
-     	bpg.implicit_rdpcm_enabled_flag = bitStream.getUnsigned(1);
-    	bpg.explicit_rdpcm_enabled_flag = bitStream.getUnsigned(1);
-        bpg.extended_precision_processing_flag = bitStream.getUnsigned(1);
-        bpg.intra_smoothing_disabled_flag = bitStream.getUnsigned(1);
-        bpg.high_precision_offsets_enabled_flag = bitStream.getUnsigned(1);
-        bpg.persistent_rice_adaptation_enabled_flag = bitStream.getUnsigned(1);
-        bpg.cabac_bypass_alignment_enabled_flag = bitStream.getUnsigned(1);
- 	}
-
- 	bpg.trailing_bits = 0;
- 	while (bitStream._bitOffset < 0) {
- 		bpg.trailing_bits++;
- 		bitStream.getUnsigned(1);
-    }
-
-    // *********** hevc_header()
-
-    
-    // *********** hevc_data()
-    
-    bpg.hevc_data_byte = [];
-    while (bitStream._offset < bitStream.byteLength) {
-		bpg.hevc_data_byte[i] = bitStream.getUnsigned(8);
-    }
-
-    // *********** hevc_data()
-
-}
-
+}     
 
 function load() {
 
@@ -444,97 +116,11 @@ function load() {
 	downloader.start();
 }
 
-
-function saveBuffer(buffer, name) {		
-	if (saveChecked.checked) {
-		var d = new DataStream(buffer);
-		d.save(name);
-	}
-}
-
-/*******************************************************************/
-
-var avc_golomb_bits = [
-	8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0
-];
-
-// Function that decodes a ue7(n) code on the stream into a number
-function bitstream_get_ue7(bitStream) {
-	var res = 0;
-	var num;
-	var initBit = 1;
-
-	for (var i = 0; initBit; i++) {
-		initBit = bitStream.getUnsigned(1);
-		num = bitStream.getUnsigned(7);
-		res = (res*Math.pow(2, i*7))+num;
-	}
-
-	return res;
-}
-
-// Function that decodes a Exp-Golomb code (unsigned order k=0) on the stream into a number
-function bitstream_get_ue(bitstream) {
-	var coded;
-	var bits = 0;
-	var read;
-	var endTest;
-	var oldPos;
-	var res;
-
-	while (1) {
-		oldPos = bitstream.tell();
-		read = bitstream.getUnsigned(8);
-		bitstream.seek(oldPos);
-		if (read != 0) break;
-		//check whether we still have bits once the peek is done since we may have less than 8 bits available
-		try {
-  			bitstream.getUnsigned(8);
-  			bits += 8;
-		}
-		catch (e) {
-  			if (e instanceof RangeError) {
-    			console.log("[AVC/HEVC] Not enough bits in bitstream !!");
-    			return 0;
-  			}
-		}
-	}
-	coded = avc_golomb_bits[read];
-	bitstream.getUnsigned(coded);
-	bits += coded + 1;
-	res = bitstream.getUnsigned(bits);
-	return (res - 1);
-}
-
-// Function that encodes a number into a Exp-Golomb code (unsigned order k=0)
-function num_set_ue (num, bitstream) {
-	var length = 1;
-  	var temp = ++num;
-
-  	while (temp != 1) {
-    	temp >>= 1;
-    	length += 2;
-  	}
-
-  	//console.log(length >> 1,", ",(length+1) >> 1);
-  	
-  	bitstream.writeUnsigned(0, length >> 1)
-	bitstream.writeUnsigned(num, (length+1) >> 1)
+function saveBuffer(buffer, name) {     
+    if (saveChecked.checked) {
+        var d = new DataStream(buffer);
+        d.save(name);
+    }
 }
 
 // Function that reads the SPS NAL Unit of a MP4(HEVC), decode and stock them in a structure
@@ -1039,3 +625,329 @@ function buildBPG(sample) {
 	}
 }
 
+/**************************** BGP ****************************/
+
+// Construct a BPG from a a BGP bitstream
+var BPG = function(bitStream) {
+
+    this.file_size = bitStream.dataView.byteLength;
+    this.file_magic = bitStream.dataView.getUnsigned(32);
+    
+    this.pixel_format = bitStream.dataView.getUnsigned(3);
+    this.alpha1_flag = bitStream.dataView.getUnsigned(1);
+    this.bit_depth_minus_8 = bitStream.dataView.getUnsigned(4);
+
+    this.color_space = bitStream.dataView.getUnsigned(4);
+    this.extension_present_flag = bitStream.dataView.getUnsigned(1);
+    this.alpha2_flag = bitStream.dataView.getUnsigned(1);
+    this.limited_range_flag = bitStream.dataView.getUnsigned(1);
+    this.animation_flag = bitStream.dataView.getUnsigned(1);
+     
+    this.picture_width = bitStream.ue7nToNum();
+    this.picture_height = bitStream.ue7nToNum();
+     
+    this.picture_data_length = bitStream.ue7nToNum();
+     
+    if (this.extension_present_flag) {  
+        this.extension_data_length = bitStream.ue7nToNum();
+
+        this.extension_tag = [];
+        this.extension_tag_length = [];
+        this.loop_count = [];
+        this.frame_period_num = [];
+        this.frame_period_den =[]; 
+        for (var i = 0; i < this.extension_data_length; i++) {
+	        this.extension_tag[i] = bitStream.ue7nToNum();
+	        this.extension_tag_length[i] = bitStream.ue7nToNum();
+	        
+	        if (this.extension_tag === 5) {
+	            this.loop_count[i] = bitStream.ue7nToNum();
+			    this.frame_period_num[i] = bitStream.ue7nToNum();
+			    this.frame_period_den[i] = bitStream.ue7nToNum();
+			    this.dummy_byte = [];   
+			    for (var j = 0; j < this.extension_data_length; j++)
+			        this.dummy_byte[j] = bitStream.dataView.getUnsigned(8);
+		    }
+	        else {
+	            this.extension_tag_data_byte = [];
+	            for(var j = 0; j < this.extension_tag_length; j++)
+	                this.extension_tag_data_byte[j] = bitStream.dataView.getUnsigned(8);
+	        }
+	    }
+    }
+
+    if (this.alpha1_flag || this.alpha2_flag) {
+        this.header_transp = {};
+        this.readHEVCHeader(this.header_transp, bitStream);
+    }
+
+    this.header = {};
+    this.readHEVCHeader(this.header, bitStream);
+    
+    this.hevc_data_byte = [];
+    for (var i = 0; bitStream.dataView._offset < bitStream.dataView.byteLength; i++) {
+        this.hevc_data_byte[i] = bitStream.dataView.getUnsigned(8);
+    }
+
+    console.log("BPG loaded");
+}
+
+BPG.prototype.readHEVCHeader = function(header, bitStream) {
+    header.hevc_header_length = bitStream.ue7nToNum();
+    header.log2_min_luma_coding_block_size_minus3 = bitStream.expGolombToNum();
+    header.log2_diff_max_min_luma_coding_block_size = bitStream.expGolombToNum();
+    header.log2_min_transform_block_size_minus2 = bitStream.expGolombToNum();
+    header.log2_diff_max_min_transform_block_size = bitStream.expGolombToNum();
+    header.max_transform_hierarchy_depth_intra = bitStream.expGolombToNum();
+    header.sample_adaptive_offset_enabled_flag = bitStream.dataView.getUnsigned(1);
+    header.pcm_enabled_flag = bitStream.dataView.getUnsigned(1);
+
+    if (header.pcm_enabled_flag) {
+        header.pcm_sample_bit_depth_luma_minus1 = bitStream.dataView.dataView.getUnsigned(4);
+        header.pcm_sample_bit_depth_chroma_minus1 = bitStream.dataView.getUnsigned(4);
+        header.log2_min_pcm_luma_coding_block_size_minus3 = bitStream.expGolombToNum();
+        header.log2_diff_max_min_pcm_luma_coding_block_size = bitStream.expGolombToNum();
+        header.pcm_loop_filter_disabled_flag = bitStream.dataView.getUnsigned(1);
+    }
+    header.strong_intra_smoothing_enabled_flag = bitStream.dataView.getUnsigned(1);
+    header.sps_extension_present_flag = bitStream.dataView.getUnsigned(1);
+    if (header.sps_extension_present_flag) {
+        header.sps_range_extension_flag = bitStream.dataView.getUnsigned(1);
+        header.sps_extension_7bits = bitStream.dataView.getUnsigned(7);
+    }
+    if (header.sps_range_extension_flag) {
+        header.transform_skip_rotation_enabled_flag = bitStream.dataView.getUnsigned(1);
+        header.transform_skip_context_enabled_flag = bitStream.dataView.getUnsigned(1);
+        header.implicit_rdpcm_enabled_flag = bitStream.dataView.getUnsigned(1);
+        header.explicit_rdpcm_enabled_flag = bitStream.dataView.getUnsigned(1);
+        header.extended_precision_processing_flag = bitStream.dataView.getUnsigned(1);
+        header.intra_smoothing_disabled_flag = bitStream.dataView.getUnsigned(1);
+        header.high_precision_offsets_enabled_flag = bitStream.dataView.getUnsigned(1);
+        header.persistent_rice_adaptation_enabled_flag = bitStream.dataView.getUnsigned(1);
+        header.cabac_bypass_alignment_enabled_flag = bitStream.dataView.getUnsigned(1);
+    }
+
+    header.trailing_bits = 0;
+    while (bitStream.dataView._bitOffset < 0) {
+        header.trailing_bits++;
+        bitStream.dataView.getUnsigned(1);
+    }
+}
+
+BPG.prototype.writeHEVCHeader = function(header, bitStream) {
+    bitStream.numToue7n(header.hevc_header_length);
+    bitStream.numToExpGolomb(header.log2_min_luma_coding_block_size_minus3);
+    bitStream.numToExpGolomb(header.log2_diff_max_min_luma_coding_block_size);
+    bitStream.numToExpGolomb(header.log2_min_transform_block_size_minus2);
+    bitStream.numToExpGolomb(header.log2_diff_max_min_transform_block_size);
+    bitStream.numToExpGolomb(header.max_transform_hierarchy_depth_intra);
+    bitStream.dataView.writeUnsigned(header.sample_adaptive_offset_enabled_flag, 1);
+    bitStream.dataView.writeUnsigned(header.pcm_enabled_flag, 1);
+
+    if (header.pcm_enabled_flag) {
+    	bitStream.dataView.writeUnsigned(header.pcm_sample_bit_depth_luma_minus1, 4);
+    	bitStream.dataView.writeUnsigned(header.pcm_sample_bit_depth_chroma_minus1, 4);
+    	bitStream.numToExpGolomb(header.log2_min_pcm_luma_coding_block_size_minus3);
+    	bitStream.numToExpGolomb(header.log2_diff_max_min_pcm_luma_coding_block_size);
+    	bitStream.dataView.writeUnsigned(header.pcm_loop_filter_disabled_flag, 1);
+    }
+    	bitStream.dataView.writeUnsigned(header.strong_intra_smoothing_enabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.sps_extension_present_flag, 1);
+    if (header.sps_extension_present_flag) {
+    	bitStream.dataView.writeUnsigned(header.sps_range_extension_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.sps_extension_7bits, 1);
+    }
+    if (header.sps_range_extension_flag) {
+    	bitStream.dataView.writeUnsigned(header.transform_skip_rotation_enabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.transform_skip_context_enabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.implicit_rdpcm_enabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.explicit_rdpcm_enabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.extended_precision_processing_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.intra_smoothing_disabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.high_precision_offsets_enabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.persistent_rice_adaptation_enabled_flag, 1);
+    	bitStream.dataView.writeUnsigned(header.cabac_bypass_alignment_enabled_flag, 1);
+    }
+
+    for (var i = 0; i < header.trailing_bits; i++)
+    	bitStream.dataView.writeUnsigned(0, 1);
+}
+
+// Saves the BPG in a .BPG file
+BPG.prototype.toFile = function(fileName) {
+    var arrayBuffer = new ArrayBuffer(this.file_size);
+    var bitStream = new BitStream(arrayBuffer);
+
+    bitStream.dataView.writeUnsigned(this.file_magic, 32);
+
+    bitStream.dataView.writeUnsigned(this.pixel_format, 3);
+    bitStream.dataView.writeUnsigned(this.alpha1_flag, 1);
+    bitStream.dataView.writeUnsigned(this.bit_depth_minus_8, 4);
+
+    bitStream.dataView.writeUnsigned(this.color_space, 4);
+    bitStream.dataView.writeUnsigned(this.extension_present_flag, 1);
+    bitStream.dataView.writeUnsigned(this.alpha2_flag, 1);
+    bitStream.dataView.writeUnsigned(this.limited_range_flag, 1);
+    bitStream.dataView.writeUnsigned(this.animation_flag, 1);    
+
+    bitStream.numToue7n(this.picture_width);
+    bitStream.numToue7n(this.picture_height);
+     
+    bitStream.numToue7n(this.picture_data_length);
+     
+    if (this.extension_present_flag) {  
+    	bitStream.numToue7n(this.extension_data_length);
+
+	    for (var i = 0; i < this.extension_data_length; i++) {
+	    	bitStream.numToue7n(this.extension_tag[i]);
+	        bitStream.numToue7n(this.extension_tag_length[i]);
+	        
+	        if (this.extension_tag === 5) {
+	        	bitStream.numToue7n(this.loop_count[i]);
+	            bitStream.numToue7n(this.frame_period_num[i]);	
+	            bitStream.numToue7n(this.frame_period_den[i]);	
+			    for (var j = 0; j < this.extension_data_length; j++)
+			    	bitStream.dataView.writeUnsigned(this.dummy_byte[j], 8);
+			}
+	        else
+	            for(var j = 0; j < this.extension_tag_length; j++)
+	            	bitStream.dataView.writeUnsigned(this.extension_tag_data_byte[j], 8);
+	    }
+    }
+
+    if (this.alpha1_flag || this.alpha2_flag)
+        this.writeHEVCHeader(this.header_transp, bitStream);
+
+    this.writeHEVCHeader(this.header, bitStream);
+    
+    for (var i = 0; i < this.hevc_data_byte.length; i++)
+    	bitStream.dataView.writeUnsigned(this.hevc_data_byte[i], 8);
+
+    saveData(arrayBuffer, fileName);
+    console.log("BPG saved");
+
+}
+
+/**************************** BitStream ****************************/
+
+var BitStream = function(arrayBuffer) {
+    this.dataView = new jDataView(arrayBuffer);
+
+    this.avcGolombBits = [
+    8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0
+    ];
+}
+
+// Function that encodes a number into a Exp-Golomb code (unsigned order k=0)
+BitStream.prototype.numToExpGolomb = function(num) {
+    var length = 1;
+    var temp = ++num;
+
+    while (temp != 1) {
+        temp >>= 1;
+        length += 2;
+    }
+
+    //console.log(length >> 1,", ",(length+1) >> 1);
+    
+    this.dataView.writeUnsigned(0, length >> 1)
+    this.dataView.writeUnsigned(num, (length+1) >> 1)
+}
+
+// Function that decodes a Exp-Golomb code (unsigned order k=0) on the stream into a number
+BitStream.prototype.expGolombToNum = function() {
+    var coded;
+    var bits = 0;
+    var read;
+    var endTest;
+    var oldPos;
+    var res;
+
+    while (1) {
+        oldPos = this.dataView.tell();
+        read = this.dataView.getUnsigned(8);
+        this.dataView.seek(oldPos);
+        if (read != 0) break;
+        //check whether we still have bits once the peek is done since we may have less than 8 bits available
+        try {
+            this.dataView.getUnsigned(8);
+            bits += 8;
+        }
+        catch (e) {
+            if (e instanceof RangeError) {
+                console.log("[AVC/HEVC] Not enough bits in bitstream !!");
+                return 0;
+            }
+        }
+    }
+    coded = this.avcGolombBits[read];
+    this.dataView.getUnsigned(coded);
+    bits += coded + 1;
+    res = this.dataView.getUnsigned(bits);
+    return (res - 1);
+}
+
+// Function that decodes a ue7(n) code on the stream into a number
+BitStream.prototype.ue7nToNum = function() {
+    var res = 0;
+    var num;
+    var initBit = 1;
+
+    for (var i = 0; initBit; i++) {
+        initBit = this.dataView.getUnsigned(1);
+        num = this.dataView.getUnsigned(7);
+        res = (res * Math.pow(2, 7)) + num;
+    }
+
+    return res;
+}
+
+// Function that encodes a number into a ue7(n) code on the stream
+BitStream.prototype.numToue7n = function(num) {
+    var numBitsInit = num.toString(2).length;
+    var numBytesFinal = Math.ceil(numBitsInit/7);
+    var res = 0;
+    var mask7bits = 127; // 7 bits '1' 
+
+    for (var i = 0; i < numBytesFinal; i++) {
+        res += (num & mask7bits) << (8 * i);
+        num >>= 7;
+        if (i > 0)
+            res += Math.pow(2, (8 * i) + 7);
+    }
+
+    this.dataView.writeUnsigned(res, numBytesFinal*8);
+}
+
+
+/**************************** Support functions ****************************/
+
+function saveData(arrayBuffer, fileName) {
+    var blob = new Blob([arrayBuffer]);
+    var URL = (window.webkitURL || window.URL);
+    if (URL && URL.createObjectURL) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', fileName);
+        a.click();
+        URL.revokeObjectURL(url);
+    } else {
+        throw("DataStream.save: Can't create object URL.");
+    }
+}
