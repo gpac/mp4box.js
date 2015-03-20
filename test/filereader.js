@@ -14,11 +14,19 @@ function drop(e) {
 	else {
 		file = e.dataTransfer.files[0];
 	}
-	readFile(file);
+	parseFile(file);
 }
 
 function getBoxTable(box) {
 	var html = '<table>';
+	html += '<tr>';
+	html += '<td>';
+	html += 'Property name';
+	html += '</td>';
+	html += '<td>';
+	html += 'Property value';
+	html += '</td>';
+	html += '</tr>';
 	for (var prop in box) {
 		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples"].indexOf(prop) > -1) {
 			continue;
@@ -50,7 +58,8 @@ function getJSTreeData(boxes) {
 		var jstree_box = {};
 		jstree_data.push(jstree_box);
 		jstree_box.text = box.type;
-		jstree_box.box = box;
+		/* following line is commented out for now as jstree is extremely slow otherwise */
+		//jstree_box.data = { 'box': box };
 		if (box.boxes) {
 			jstree_box.children = getJSTreeData(box.boxes);
 		} else if (box.entries) {
@@ -61,47 +70,60 @@ function getJSTreeData(boxes) {
 }
 
 function createJSTree(boxes) {
-	var jstree_object = {}
-	jstree_object.core = {};
+	var jstree_node = $('#boxtree');
+	var jstree_object = { 'core' : {}} ;
 	jstree_object.core.data = getJSTreeData(boxes);
-	$('#boxtree').jstree(jstree_object);
-	$('#boxtree').on('loaded.jstree', function() {
+
+	jstree_node.on('loaded.jstree', function() {
     	$('#boxtree').jstree('open_all');
   	});
-	$('#boxtree').on("changed.jstree", function (e, data) {
-		if(data.selected.length) {
-			var node = data.instance.get_node(data.selected[0]);
-			$('#boxtable').html(getBoxTable(node.original.box));
-		}
-	});	
+	jstree_node.on("changed.jstree", function (e, data) {
+		$('#boxtable').html(getBoxTable(data.node.data.box));
+	});
+	jstree_node.jstree(jstree_object);
 }
 
-function readFile(file) {
-  var filePos = 0;
-  var reader = new FileReader();
-  var mp4box = new MP4Box();
+function parseFile(file) {
+    var fileSize   = file.size;
+    var chunkSize  = 1024 * 1024; // bytes
+    var offset     = 0;
+    var self       = this; // we need a reference to the current object
+    var readBlock  = null;
+ 	var mp4box 	   = new MP4Box();
 
-  mp4box.onError = function(e) { console.log("mp4box failed to parse data."); };
-  
-  mp4box.onReady = function (info) {
-    reader.abort();
-    createJSTree(mp4box.inputIsoFile.boxes);
-  }
+	mp4box.onError = function(e) { 
+		console.log("mp4box failed to parse data."); 
+	};
 
-  var append_data_to_mp4box = function(event) {
-    var arraybuffer = event.target.result;
-    console.log("Received file reading progress event", event, "loaded: "+ event.loaded, "position: "+filePos);
-    if (arraybuffer !== null) {
-      console.log("ArrayBuffer length: "+arraybuffer.byteLength)
-	    arraybuffer.fileStart = 0;
-	    var readNext = mp4box.appendBuffer(arraybuffer);
-	    console.log("Appended data to MP4Box, next offset should be ", readNext);
+    var onparsedbuffer = function(mp4box, buffer) {
+    	console.log("Appending buffer with offset "+offset);
+		buffer.fileStart = offset;
+    	//mp4box.appendBuffer(buffer);	
+		//createJSTree(mp4box.inputIsoFile.boxes);
+	}
+
+	var onBlockRead = function(evt) {
+        if (evt.target.error == null) {
+            onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
+            offset += evt.target.result.byteLength;
+        } else {
+            console.log("Read error: " + evt.target.error);
+            return;
+        }
+        if (offset >= fileSize) {
+            console.log("Done reading file");
+            return;
+        }
+
+        readBlock(offset, chunkSize, file);
     }
-  }
 
-  //reader.onprogress = append_data_to_mp4box;
-  reader.onloadend = append_data_to_mp4box;
+    readBlock = function(_offset, length, _file) {
+        var r = new FileReader();
+        var blob = _file.slice(_offset, length + _offset);
+        r.onload = onBlockRead;
+        r.readAsArrayBuffer(blob);
+    }
 
-  // Read in the mp4 video as ArrayBuffer
-  reader.readAsArrayBuffer(file);
+    readBlock(offset, chunkSize, file);
 }
