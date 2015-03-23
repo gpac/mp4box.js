@@ -46,7 +46,26 @@ window.onload = function () {
 	
 	/***********************************/
 	/* Load a BPG image and read its syntax */
-	
+
+	var fileInput = document.getElementById('fileInput');
+
+	fileInput.addEventListener('change',
+		function(e) {
+			var file = fileInput.files[0];
+			var fileReader = new FileReader();
+
+			fileReader.onload =
+				function(e) {
+					var arrayBufferRead = fileReader.result;
+					console.log("Start reading the BPG");
+                    var bitStreamRead = new BitStream(arrayBufferRead);
+				    var bpg = new BPG(bitStreamRead);
+				    console.log("Start saving the BPG");
+                    bpg.toFile("image.bpg");
+				}
+			fileReader.readAsArrayBuffer(file);	
+		}
+	); 	
 }     
 
 function load() {
@@ -803,9 +822,16 @@ BPG.prototype.toFile = function(fileName) {
     for (var i = 0; i < this.hevc_data_byte.length; i++)
     	bitStream.dataView.writeUnsigned(this.hevc_data_byte[i], 8);
 
+    // Save
     saveData(arrayBuffer, fileName);
     console.log("BPG saved");
 
+    // Visualisation
+    canvas = document.getElementById("mycanvas");
+    canvas.width = this.picture_width;
+    canvas.height = this.picture_height;
+    showBPG(arrayBuffer);
+    
 }
 
 /**************************** BitStream ****************************/
@@ -935,36 +961,26 @@ function saveData(arrayBuffer, fileName) {
     }
 }
 
-function showBPG() {
+function showBPG(arrayBuffer) {
 	console.log("Showing BPG");
 
-    var img, canvas, ctx;
+	var blob = new Blob([arrayBuffer]);
+	var URL = (window.webkitURL || window.URL);
+	var img, canvas, ctx;
+    if (URL && URL.createObjectURL) {
+        var url = URL.createObjectURL(blob);
+    	
+    	canvas = document.getElementById("mycanvas");
+    	ctx = canvas.getContext("2d");
 
-    canvas = document.getElementById("mycanvas");
-    ctx = canvas.getContext("2d");
-
-    img = new BPGDecoder(ctx);
-    img.onload = function() {
-        /* draw the image to the canvas */
-        ctx.putImageData(this.imageData, 0, 0);
-    };
-    img.load("test.bpg");
-}
-
-function uploadBPG() {
-	var fileInput = document.getElementById('fileInput');
-	var file = fileInput.files[0];
-	var fileReader = new FileReader();
-
-	fileReader.onload =
-		function(e) {
-			var arrayBufferRead = fileReader.result;
-			console.log("Start reading the BPG");
-            var bitStreamRead = new BitStream(arrayBufferRead);
-		    var bpg = new BPG(bitStreamRead);
-		    console.log("Start saving the BPG");
-            bpg.toFile("image.bpg");
-		}
-	fileReader.readAsArrayBuffer(file);	
+    	img = new BPGDecoder(ctx);
+    	img.onload = function() {
+        	/* draw the image to the canvas */
+        	ctx.putImageData(this.imageData, 0, 0);
+    	};
+    	img.load(url);
+    } else {
+        throw("DataStream.save: Can't create object URL.");
+	}
 }
 	
