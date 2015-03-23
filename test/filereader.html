@@ -3,11 +3,18 @@
     <head>
     	<meta charset="UTF-8">
 		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
-		<link rel="stylesheet" href="style.css" />
-		<link rel="stylesheet" href="lib/jstree/theme/style.css" />
+		
+		<!-- Include basic JQuery and JQuery UI files -->
 		<script src="lib/jquery/jquery.js"></script>		
-		<script src="lib/jstree/jstree.min.js"></script>
-        <script src="../src/log.js"></script>
+  		<link href="lib/jquery-ui/jquery-ui.min.css" rel="stylesheet" type="text/css">
+		<script src="lib/jquery-ui/jquery-ui.min.js"></script>		
+		
+		<!-- Include JQuery-based Fancytree skin, library, and extensions -->
+  		<link href="lib/fancytree/ui.fancytree.min.css" rel="stylesheet" type="text/css">
+  		<script src="lib/fancytree/jquery.fancytree-all.min.js" type="text/javascript"></script>
+
+        <link rel="stylesheet" href="style.css" />
+		<script src="../src/log.js"></script>
         <script src="../src/DataStream.js"></script>
         <script src="../src/descriptor.js"></script>
         <script src="../src/box.js"></script>
@@ -28,8 +35,12 @@
 			box-shadow: 10px 10px 10px #212121;
 		}
 
-		table, td {
+		table, td, th {
+			text-align: left;
 			vertical-align: text-top;
+			border-spacing: 0;
+			border: 0;
+			border-collapse: collapse;
 		}
 
 		td:first-child { width: 20%; }
@@ -40,8 +51,9 @@
 		<div>
 			<h2>MP4Box.js</h2>
 			<h3>ISOBMFF Box Structure Viewer</h3>
-			<p>Warning: works only for very small files</p>
-			<input type='file' id='fileinput' onchange='drop()'><br>
+			<p>Warning: May crash on large files (>1GB)</p>
+			<input type='file' id='fileinput' onchange='drop()'>
+			<div id="progressbar"><div id="progress-label" style="text-align: center;">0%</div></div>
 			<table>
 			<tr>
 			<td style="width: 30%">

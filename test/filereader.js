@@ -14,73 +14,89 @@ function drop(e) {
 	else {
 		file = e.dataTransfer.files[0];
 	}
+	$('#boxtree').html('');
+	$('#boxtable').html('');
+	$('#progressbar').progressbar({ value: 0, 
+		change: function() {
+           $('#progress-label').text( 
+              $('#progressbar').progressbar( "value" ) + "%" );
+        },
+        complete: function() {
+           $('#progress-label').text( "Loading Completed!" );
+        }
+    });
 	parseFile(file);
 }
 
 function getBoxTable(box) {
 	var html = '<table>';
+	html += '<thead>';
 	html += '<tr>';
-	html += '<td>';
+	html += '<th>';
 	html += 'Property name';
-	html += '</td>';
-	html += '<td>';
+	html += '</th>';
+	html += '<th>';
 	html += 'Property value';
-	html += '</td>';
+	html += '</th>';
 	html += '</tr>';
+	html += '</thead>';
+	html += '<tbody>';
 	for (var prop in box) {
 		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples"].indexOf(prop) > -1) {
 			continue;
-		} else if (box[prop].constructor === Object) {
+		} else if (box[prop] instanceof BoxParser.Box) {
+			continue;
+		} else if (typeof box[prop] === "function") {
 			continue;
 		} else if (box.subBoxNames && box.subBoxNames.indexOf(prop.slice(0,4)) > -1) {
 			continue;
 		} else {
 			html += '<tr>';
-			html += '<td>';
+			html += '<td><code>';
 			html += prop;
-			html += '</td>';
-			html += '<td>';
+			html += '</code></td>';
+			html += '<td><code>';
 			html += box[prop];
-			html += '</td>';
+			html += '</code></td>';
 			html += '</tr>';
 		}
 	}
+	html += '</tbody>';
 	html += '</html>';
 	return html;
 }
 
-
-function getJSTreeData(boxes) {
-	var jstree_data;
-	jstree_data = [];
+function getFancyTreeData(boxes) {
+	var array = [];
 	for (var i = 0; i < boxes.length; i++) {
 		var box = boxes[i];
-		var jstree_box = {};
-		jstree_data.push(jstree_box);
-		jstree_box.text = box.type;
-		/* following line is commented out for now as jstree is extremely slow otherwise */
-		//jstree_box.data = { 'box': box };
+		var fancytree_node = {};
+		array.push(fancytree_node);
+		fancytree_node.title = box.type;
+		fancytree_node.data = { 'box': box };
 		if (box.boxes) {
-			jstree_box.children = getJSTreeData(box.boxes);
+			fancytree_node.children = getFancyTreeData(box.boxes);
+			fancytree_node.folder = true;
 		} else if (box.entries) {
-			jstree_box.children = getJSTreeData(box.entries);
+			fancytree_node.children = getFancyTreeData(box.entries);
+			fancytree_node.folder = true;
 		}
 	}
-	return jstree_data;
+	return array;
 }
 
-function createJSTree(boxes) {
-	var jstree_node = $('#boxtree');
-	var jstree_object = { 'core' : {}} ;
-	jstree_object.core.data = getJSTreeData(boxes);
+function createTreeView(boxes) {
+	var treeview_node = $('#boxtree');
+	var fancytree_object = {};
+	fancytree_object.source = getFancyTreeData(boxes);
+	fancytree_object.activate = function(event, data) {
+		var node = data.node;
+		if( !$.isEmptyObject(node.data) ){
+			$('#boxtable').html(getBoxTable(node.data.box));
+		}
+	};
+	treeview_node.fancytree(fancytree_object);
 
-	jstree_node.on('loaded.jstree', function() {
-    	$('#boxtree').jstree('open_all');
-  	});
-	jstree_node.on("changed.jstree", function (e, data) {
-		$('#boxtable').html(getBoxTable(data.node.data.box));
-	});
-	jstree_node.jstree(jstree_object);
 }
 
 function parseFile(file) {
@@ -90,6 +106,7 @@ function parseFile(file) {
     var self       = this; // we need a reference to the current object
     var readBlock  = null;
  	var mp4box 	   = new MP4Box();
+ 	var startDate  = new Date();
 
 	mp4box.onError = function(e) { 
 		console.log("mp4box failed to parse data."); 
@@ -98,20 +115,24 @@ function parseFile(file) {
     var onparsedbuffer = function(mp4box, buffer) {
     	console.log("Appending buffer with offset "+offset);
 		buffer.fileStart = offset;
-    	//mp4box.appendBuffer(buffer);	
-		//createJSTree(mp4box.inputIsoFile.boxes);
+    	mp4box.appendBuffer(buffer);	
 	}
 
 	var onBlockRead = function(evt) {
         if (evt.target.error == null) {
             onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
             offset += evt.target.result.byteLength;
+			$( "#progressbar" ).progressbar({ value: Math.ceil(100*offset/fileSize) });
         } else {
             console.log("Read error: " + evt.target.error);
             return;
         }
         if (offset >= fileSize) {
-            console.log("Done reading file");
+			$( "#progressbar" ).progressbar({ value: 100 });
+        	var endRead = new Date();
+            console.log("Done reading file ("+fileSize+ " bytes) in "+(endRead - startDate)+" ms");
+			createTreeView(mp4box.inputIsoFile.boxes);
+            console.log("Done constructing tree in "+(new Date() - endRead)+" ms");
             return;
         }
 
@@ -126,4 +147,9 @@ function parseFile(file) {
     }
 
     readBlock(offset, chunkSize, file);
+}
+
+window.onload = function () {
+	$("#progressbar").progressbar({ value: 0});
+	$("#fileinput").button();
 }
