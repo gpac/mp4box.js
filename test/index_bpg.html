@@ -11,17 +11,26 @@
         <script src="../src/isofile.js"></script>
         <script src="../src/mp4box.js"></script>
         <script src="../src/jdataview.js"></script>
+        <script src="../src/bpgdec.js"></script>
 		<script src="downloader.js"></script>
 		<script src="index.js"></script>
     </head>
 	<body>
 		This is a test for the BGP extraction from a MP4 using MP4box.js
         </br>
-        Test: Choose a BPG file to load it. The program will decode it and encode to BPG again saving another copy.
+        </br>
+        Choose a BPG file.
+        With the <b>Create copy</b> button, the program will decode it and encode to BPG again saving another copy.
+        To verify the copy, save it as <b>test.bpg</b> inside the folder of this html and use the <b>Show BPG</b> button.
         </br>
         </br>
         <input id="fileInput" type="file">
         </br></br>
-        <div id="bpg"></div>
+        <button id="createCopy" onclick="uploadBPG()">Create copy</button>
+        <button id="showBPG" onclick="showBPG()">Show BPG</button>
+        </br>
+        </br>
+        <img src=".bpg" style="display: none;">
+        <canvas id="mycanvas" width="512" height="512"></canvas>
 	</body>
 </html>
