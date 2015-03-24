@@ -186,7 +186,7 @@ window.onload = function () {
 	progresslabel = $('#progress-label');
 	fileinput = $('#fileinput');
 	urlinput = $('#urlinput');
-
+	urlSelector = $('#urlSelector');
 	progressbar.progressbar({ value: 0});
 	fileinput.button();
 
@@ -204,4 +204,9 @@ window.onload = function () {
 	boxtable.html(getBoxTable({}));
 
 	$("#tabs").tabs();
+
+	for (var i in sampleUrls) {
+		urlSelector[0].add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
+	}
+
 }

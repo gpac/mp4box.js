@@ -21,6 +21,7 @@
         <script src="../src/text-mp4.js"></script>
         <script src="../src/isofile.js"></script>
         <script src="../src/mp4box.js"></script>
+		<script src="sample-urls.js"></script>
 		<script src="filereader.js"></script>
 		<script src="downloader.js"></script>
 		<style type="text/css">
@@ -68,7 +69,10 @@
 			    <button onclick='httpload()'>Load</button>
 			  </div>
 			  <div id="tabs-3">
-			    <p></p>
+				<legend>Select Example:</legend>
+				<select id="urlSelector">
+				</select>
+			    <button onclick='httpload()'>Load</button>
 			  </div>
 			</div>
 			<div id="progressbar"><div id="progress-label" style="text-align: center;">0%</div></div>
