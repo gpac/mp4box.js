@@ -50,51 +50,50 @@
 		</style>
     </head>
 	<body>
-		<div>
-			<h2>MP4Box.js</h2>
-			<h3>ISOBMFF Box Structure Viewer</h3>
-			<div id="tabs">
-			  <ul>
-			    <li><a href="#tabs-1">File loading</a></li>
-			    <li><a href="#tabs-2">HTTP URL loading</a></li>
-			    <li><a href="#tabs-3">Sample examples</a></li>
-			  </ul>
-			  <div id="tabs-1">
-				<p>Warning: May crash on large files (>1GB)</p>
-				<input type='file' id='fileinput' onchange='drop()'>
-			  </div>
-			  <div id="tabs-2">
-			    <label for="urlinput">Enter URL:</label>
-			    <input type='url' name='urlinput' id='urlinput'>
-			    <button onclick='httploadFromUrl()'>Load</button>
-			  </div>
-			  <div id="tabs-3">
-				<legend>Select Example:</legend>
-				<select id="urlSelector">
-				</select>
-			    <button onclick='httploadFromList()'>Load</button>
-			  </div>
-			</div>
-			<div id="progressbar"><div id="progress-label" style="text-align: center;">0%</div></div>
-			<table>
-			<thead>
-			<tr>
-			<th>Box Tree View</th>
-			<th>Box Property View</th>
-			</tr>
-			</thead>
-			<tbody>
-			<tr>
-			<td style="width: 30%">
-			<div id="boxtree">
-			</div>
-			</td>
-			<td>
-			<div id="boxtable">
-			</div>
-			</td>
-			</tr>
-			</tbody>
-			</table>
+		<h2>MP4Box.js</h2>
+		<h3>ISOBMFF Box Structure Viewer</h3>
+		<div id="tabs">
+		  <ul>
+		    <li><a href="#tabs-1">File loading</a></li>
+		    <li><a href="#tabs-2">HTTP URL loading</a></li>
+		    <li><a href="#tabs-3">Sample examples</a></li>
+		  </ul>
+		  <div id="tabs-1">
+			<p>Warning: May crash on large files (>1GB)</p>
+			<input type='file' id='fileinput' onchange='drop()'>
+		  </div>
+		  <div id="tabs-2">
+		    <label for="urlinput">Enter URL:</label>
+		    <input type='url' name='urlinput' id='urlinput'>
+		    <button onclick='httploadFromUrl()'>Load</button>
+		  </div>
+		  <div id="tabs-3">
+			<legend>Select Example:</legend>
+			<select id="urlSelector">
+			</select>
+		    <button onclick='httploadFromList()'>Load</button>
+		  </div>
+		</div>
+		<div id="progressbar"><div id="progress-label" style="text-align: center;">0%</div></div>
+		<table>
+		<thead>
+		<tr>
+		<th>Box Tree View</th>
+		<th>Box Property View</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td style="width: 30%">
+		<div id="boxtree">
+		</div>
+		</td>
+		<td>
+		<div id="boxtable">
+		</div>
+		</td>
+		</tr>
+		</tbody>
+		</table>
 	</body>
 </html>
