@@ -27,17 +27,6 @@ function drop(e) {
 	else {
 		file = e.dataTransfer.files[0];
 	}
-	boxtable.html(getBoxTable({}));
-	progressbar.progressbar({ 
-		value: 0, 
-		change: function() {
-           progresslabel.text( 
-              progressbar.progressbar( "value" ) + "%" );
-        },
-        complete: function() {
-           progresslabel.text( "Loading Completed!" );
-        }
-    });
 	parseFile(file);
 }
 
@@ -48,7 +37,7 @@ function httpload(url) {
 	downloader.setCallback(
 		function (response, end, error) { 
 			if (response) {
-				progressbar.progressbar({ value: 100*downloader.chunkStart/downloader.totalLength });
+				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
 				var nextStart = mp4box.appendBuffer(response);
 				downloader.setChunkStart(nextStart); 
 			}
@@ -199,7 +188,16 @@ window.onload = function () {
 	fileinput = $('#fileinput');
 	urlinput = $('#urlinput');
 	urlSelector = $('#urlSelector');
-	progressbar.progressbar({ value: 0});
+	progressbar.progressbar({ 
+		value: 0, 
+		change: function() {
+           progresslabel.text( 
+              progressbar.progressbar( "value" ) + "%" );
+        },
+        complete: function() {
+           progresslabel.text( "Loading Completed!" );
+        }
+    });
 	fileinput.button();
 
 	var fancytree_options = {};
