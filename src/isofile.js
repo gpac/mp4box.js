@@ -99,6 +99,7 @@ ISOFile.prototype.parse = function() {
 					   we create the box */
 					box = new BoxParser[ret.type+"Box"](ret.size-ret.hdr_size);	
 					this.parsingMdat = box;
+					this.boxes.push(box);
 					this.mdats.push(box);			
 					box.fileStart = this.stream.buffer.fileStart + this.stream.position;
 					box.hdr_size = ret.hdr_size;
