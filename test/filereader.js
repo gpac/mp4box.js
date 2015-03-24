@@ -40,7 +40,7 @@ function drop(e) {
 	parseFile(file);
 }
 
-function httpload() {	
+function httpload(url) {	
 	var downloader = new Downloader();
 	var startDate = new Date();
 	downloader.setCallback(
@@ -65,8 +65,16 @@ function httpload() {
 	);
 	downloader.setInterval(1000);
 	downloader.setChunkSize(chunkSize);
-	downloader.setUrl(urlinput[0].value);
+	downloader.setUrl(url);
 	downloader.start();	
+}
+
+function httploadFromUrl() {
+	httpload(urlinput.val());
+}
+
+function httploadFromList() {
+	httpload(urlSelector.find(":selected").val());
 }
 
 function getBoxTable(box) {
