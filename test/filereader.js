@@ -1,3 +1,5 @@
+var mp4box;
+
 var boxtree;
 var boxtable;
 var treeview_node;
@@ -40,7 +42,7 @@ function drop(e) {
 }
 
 function httpload(url) {	
-	var mp4box 	   = new MP4Box();
+	mp4box 	   = new MP4Box();
 	var downloader = new Downloader();
 	var startDate = new Date();
 	downloader.setCallback(
@@ -145,7 +147,8 @@ function parseFile(file) {
     var self       = this; // we need a reference to the current object
     var readBlock  = null;
  	var startDate  = new Date();
-	var mp4box 	   = new MP4Box();
+	
+	mp4box 	   = new MP4Box();
 
 	mp4box.onError = function(e) { 
 		console.log("mp4box failed to parse data."); 
