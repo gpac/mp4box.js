@@ -1,3 +1,11 @@
+var boxtree;
+var boxtable;
+var treeview_node;
+var progressbar
+var progresslabel;
+var fileinput;
+var fancytree;
+
 Log.setLogLevel(Log.i);
 
 function dragenter(e) {
@@ -14,15 +22,16 @@ function drop(e) {
 	else {
 		file = e.dataTransfer.files[0];
 	}
-	$('#boxtree').html('');
-	$('#boxtable').html('');
-	$('#progressbar').progressbar({ value: 0, 
+	//boxtree.html('');
+	boxtable.html('');
+	progressbar.progressbar({ 
+		value: 0, 
 		change: function() {
-           $('#progress-label').text( 
-              $('#progressbar').progressbar( "value" ) + "%" );
+           progresslabel.text( 
+              progressbar.progressbar( "value" ) + "%" );
         },
         complete: function() {
-           $('#progress-label').text( "Loading Completed!" );
+           progresslabel.text( "Loading Completed!" );
         }
     });
 	parseFile(file);
@@ -86,17 +95,8 @@ function getFancyTreeData(boxes) {
 }
 
 function createTreeView(boxes) {
-	var treeview_node = $('#boxtree');
-	var fancytree_object = {};
-	fancytree_object.source = getFancyTreeData(boxes);
-	fancytree_object.activate = function(event, data) {
-		var node = data.node;
-		if( !$.isEmptyObject(node.data) ){
-			$('#boxtable').html(getBoxTable(node.data.box));
-		}
-	};
-	treeview_node.fancytree(fancytree_object);
-
+	fancytree.reload(getFancyTreeData(boxes));
+	fancytree = boxtree.fancytree('getTree');
 }
 
 function parseFile(file) {
@@ -122,13 +122,13 @@ function parseFile(file) {
         if (evt.target.error == null) {
             onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
             offset += evt.target.result.byteLength;
-			$( "#progressbar" ).progressbar({ value: Math.ceil(100*offset/fileSize) });
+			progressbar.progressbar({ value: Math.ceil(100*offset/fileSize) });
         } else {
             console.log("Read error: " + evt.target.error);
             return;
         }
         if (offset >= fileSize) {
-			$( "#progressbar" ).progressbar({ value: 100 });
+			progressbar.progressbar({ value: 100 });
         	var endRead = new Date();
             console.log("Done reading file ("+fileSize+ " bytes) in "+(endRead - startDate)+" ms");
 			createTreeView(mp4box.inputIsoFile.boxes);
@@ -150,6 +150,23 @@ function parseFile(file) {
 }
 
 window.onload = function () {
-	$("#progressbar").progressbar({ value: 0});
-	$("#fileinput").button();
+	boxtree = $('#boxtree');
+	boxtable = $('#boxtable');
+	progressbar = $('#progressbar');
+	progresslabel = $('#progress-label');
+	fileinput = $('#fileinput');
+
+	progressbar.progressbar({ value: 0});
+	fileinput.button();
+
+	var fancytree_options = {};
+	fancytree_options.source = [];
+	fancytree_options.activate = function(event, data) {
+		var node = data.node;
+		if( !$.isEmptyObject(node.data) ){
+			boxtable.html(getBoxTable(node.data.box));
+		}
+	};
+	boxtree.fancytree(fancytree_options);
+	fancytree = boxtree.fancytree('getTree');
 }
