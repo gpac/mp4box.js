@@ -4,9 +4,13 @@ var treeview_node;
 var progressbar
 var progresslabel;
 var fileinput;
+var urlinput;
 var fancytree;
 
 Log.setLogLevel(Log.i);
+
+var chunkSize  = 1024 * 1024; // bytes
+var mp4box 	   = new MP4Box();
 
 function dragenter(e) {
 	e.stopPropagation();
@@ -34,6 +38,35 @@ function drop(e) {
         }
     });
 	parseFile(file);
+}
+
+function httpload() {	
+	var downloader = new Downloader();
+	var startDate = new Date();
+	downloader.setCallback(
+		function (response, end, error) { 
+			if (response) {
+				progressbar.progressbar({ value: 100*downloader.chunkStart/downloader.totalLength });
+				var nextStart = mp4box.appendBuffer(response);
+				downloader.setChunkStart(nextStart); 
+			}
+			if (end) {
+				progressbar.progressbar({ value: 100 });
+				var endRead = new Date();
+	            console.log("Done reading file ("+downloader.totalLength+ " bytes) in "+(endRead - startDate)+" ms");
+				createTreeView(mp4box.inputIsoFile.boxes);
+	            console.log("Done constructing tree in "+(new Date() - endRead)+" ms");
+				mp4box.flush();
+			}
+			if (error) {
+				reset();
+			}
+		}
+	);
+	downloader.setInterval(1000);
+	downloader.setChunkSize(chunkSize);
+	downloader.setUrl(urlinput[0].value);
+	downloader.start();	
 }
 
 function getBoxTable(box) {
@@ -100,11 +133,9 @@ function createTreeView(boxes) {
 
 function parseFile(file) {
     var fileSize   = file.size;
-    var chunkSize  = 1024 * 1024; // bytes
     var offset     = 0;
     var self       = this; // we need a reference to the current object
     var readBlock  = null;
- 	var mp4box 	   = new MP4Box();
  	var startDate  = new Date();
 
 	mp4box.onError = function(e) { 
@@ -154,6 +185,7 @@ window.onload = function () {
 	progressbar = $('#progressbar');
 	progresslabel = $('#progress-label');
 	fileinput = $('#fileinput');
+	urlinput = $('#urlinput');
 
 	progressbar.progressbar({ value: 0});
 	fileinput.button();
@@ -170,4 +202,6 @@ window.onload = function () {
 	fancytree = boxtree.fancytree('getTree');
 
 	boxtable.html(getBoxTable({}));
+
+	$("#tabs").tabs();
 }
