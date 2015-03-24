@@ -11,7 +11,7 @@ It can be used to:
 - [extract](#extraction) samples from an MP4 to create TextTracks.
 - more to come.
 
-A demo is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/) and the QUnit tests are [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/qunit.html)
+A Player demo is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/), a File Analyzer is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/filereader.html), and some QUnit tests are [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/qunit.html)
 
 API
 ===
