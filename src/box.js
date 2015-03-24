@@ -15,7 +15,8 @@ var BoxParser = {
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
 				  "esds", "subs",
-				  "txtC"
+				  "txtC",
+				  "sidx"
 				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -1071,6 +1072,35 @@ BoxParser.subsBox.prototype.parse = function(stream) {
 		}
 	}
 }
+
+BoxParser.sidxBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.reference_ID = stream.readUint32();
+	this.timescale = stream.readUint32();
+	if (this.version === 0) {
+		this.earliest_presentation_time = stream.readUint32();
+		this.first_offset = stream.readUint32();
+	} else {
+		this.earliest_presentation_time = stream.readUint64();
+		this.first_offset = stream.readUint64();
+	}
+	stream.readUint16();
+	this.references = [];
+	var count = stream.readUint16();
+	for (var i = 0; i < count; i++) {
+		var ref = {};
+		this.references.push(ref);
+		var tmp_32 = stream.readUint32();
+		ref.type = (tmp_32 >> 31) & 0x1;
+		ref.size = tmp_32 & 0x8FFFFFFF;
+		ref.duration = stream.readUint32();
+		tmp_32 = stream.readUint32();
+		ref.starts_with_SAP = (tmp_32 >> 31) & 0x1;
+		ref.SAP_type = (tmp_32 >> 28) & 0x7;
+		ref.SAP_delta_time = tmp_32 & 0xFFFFFFF;
+	}
+}
+
 
 BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 	this.size += 8;
