@@ -8,6 +8,7 @@ var movieInfo;
 
 /* object responsible for file downloading */
 var downloader = new Downloader();
+downloader.setDownloadTimeoutCallback = setDownloadTimeout;
 
 /* the HTML5 video element */
 var video;

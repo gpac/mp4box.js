@@ -8,6 +8,11 @@ function Downloader() {
 	this.url = null;
 	this.callback = null;
 	this.eof = false;
+	this.setDownloadTimeoutCallback = null;
+}
+
+Downloader.prototype.setDownloadTimeoutCallback = function(callback) {
+	this.setDownloadTimeoutCallback = callback;
 }
 
 Downloader.prototype.reset = function() {
@@ -100,7 +105,7 @@ Downloader.prototype.getFile = function() {
 				} else {
 					timeoutDuration = computeWaitingTimeFromBuffer(video);
 				}
-				setDownloadTimeout(timeoutDuration);
+				if (dl.setDownloadTimeoutCallback) dl.setDownloadTimeoutCallback(timeoutDuration);
 				Log.i("Downloader", "Next download scheduled in "+Math.floor(timeoutDuration)+ ' ms.');
 				window.setTimeout(dl.getFile.bind(dl), timeoutDuration);
 			} else {
