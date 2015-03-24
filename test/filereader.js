@@ -22,8 +22,7 @@ function drop(e) {
 	else {
 		file = e.dataTransfer.files[0];
 	}
-	//boxtree.html('');
-	boxtable.html('');
+	boxtable.html(getBoxTable({}));
 	progressbar.progressbar({ 
 		value: 0, 
 		change: function() {
@@ -169,4 +168,6 @@ window.onload = function () {
 	};
 	boxtree.fancytree(fancytree_options);
 	fancytree = boxtree.fancytree('getTree');
+
+	boxtable.html(getBoxTable({}));
 }
