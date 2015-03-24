@@ -8,7 +8,7 @@ var BoxParser = {
 	boxCodes : [ 
 				 "mdat", 
 				 "avcC", "hvcC", "ftyp", 
-				 "payl",
+				 "payl", "vttC",
 				 "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", 
@@ -1032,6 +1032,10 @@ BoxParser.tfdtBox.prototype.parse = function(stream) {
 	} else {
 		this.baseMediaDecodeTime = stream.readUint32();
 	}
+}
+
+BoxParser.vttCBox.prototype.parse = function(stream) {
+	this.text = stream.readString(this.size);
 }
 
 BoxParser.paylBox.prototype.parse = function(stream) {
