@@ -7,7 +7,7 @@ var BoxParser = {
 	OK : 1,
 	boxCodes : [ 
 				 "mdat", 
-				 "avcC", "hvcC", "ftyp", 
+				 "avcC", "hvcC", "ftyp", "styp", 
 				 "payl", "vttC",
 				 "vmhd", "smhd", "hmhd", "dref", "elst" // full boxes not yet parsed
 			   ],
@@ -432,6 +432,8 @@ BoxParser.ftypBox.prototype.parse = function(stream) {
 		i++;
 	}
 }
+
+BoxParser.stypBox.prototype.parse = BoxParser.ftypBox.prototype.parse;
 
 BoxParser.mvhdBox.prototype.parse = function(stream) {
 	this.flags = 0;
