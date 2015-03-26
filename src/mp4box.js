@@ -3,10 +3,8 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 var MP4Box = function () {
-	/* DataStream object used to parse the boxes */
-	this.inputStream = null;
-	/* List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non overlapping */
-	this.nextBuffers = [];	
+	/* MultiBufferStream to parse chunked file data */
+	this.inputStream = new MultiBufferStream();
 	/* ISOFile object containing the parsed boxes */
 	this.inputIsoFile = null;
 	/* Callback called when the moov parsing starts */
@@ -161,94 +159,6 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	return stream;
 }
 
-/* helper functions to enable calling "open" with additional buffers */
-ArrayBuffer.concat = function(buffer1, buffer2) {
-  Log.d("ArrayBuffer", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
-  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-  tmp.set(new Uint8Array(buffer1), 0);
-  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-  return tmp.buffer;
-};
-
-/* Reduces the size of a given buffer */
-MP4Box.prototype.reduceBuffer = function(buffer, offset, newLength) {
-	var smallB;
-	smallB = new Uint8Array(newLength);
-	smallB.set(new Uint8Array(buffer, offset, newLength));
-	smallB.buffer.fileStart = buffer.fileStart+offset;
-	smallB.buffer.usedBytes = 0;
-	return smallB.buffer;	
-}
-
-/* insert the new buffer in the sorted list of buffers (nextBuffers), 
-   making sure, it is not overlapping with existing ones (possibly reducing its size).
-   if the new buffer overrides/replaces the 0-th buffer (for instance because it is bigger), 
-   updates the DataStream buffer for parsing */
-MP4Box.prototype.insertBuffer = function(ab) {	
-	var to_add = true;
-	/* TODO: improve insertion if many buffers */
-	for (var i = 0; i < this.nextBuffers.length; i++) {
-		var b = this.nextBuffers[i];
-		if (ab.fileStart <= b.fileStart) {
-			/* the insertion position is found */
-			if (ab.fileStart === b.fileStart) {
-				/* The new buffer overlaps with an existing buffer */
-				if (ab.byteLength >  b.byteLength) {
-					/* the new buffer is bigger than the existing one
-					   remove the existing buffer and try again to insert 
-					   the new buffer to check overlap with the next ones */
-					this.nextBuffers.splice(i, 1);
-					i--; 
-					continue;
-				} else {
-					/* the new buffer is smaller than the existing one, just drop it */
-					Log.w("MP4Box", "Buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+") already appended, ignoring");
-				}
-			} else {
-				/* The beginning of the new buffer is not overlapping with an existing buffer
-				   let's check the end of it */
-				if (ab.fileStart + ab.byteLength <= b.fileStart) {
-					/* no overlap, we can add it as is */
-				} else {
-					/* There is some overlap, cut the new buffer short, and add it*/
-					ab = this.reduceBuffer(ab, 0, b.fileStart - ab.fileStart);
-				}
-				Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
-				this.nextBuffers.splice(i, 0, ab);
-				/* if this new buffer is inserted in the first place in the list of the buffer, 
-				   and the DataStream is initialized, make it the buffer used for parsing */
-				if (i === 0 && this.inputStream !== null) {
-					this.inputStream.buffer = ab;
-				}
-			}
-			to_add = false;
-			break;
-		} else if (ab.fileStart < b.fileStart + b.byteLength) {
-			/* the new buffer overlaps its beginning with the end of the current buffer */
-			var offset = b.fileStart + b.byteLength - ab.fileStart;
-			var newLength = ab.byteLength - offset;
-			if (newLength > 0) {
-				/* the new buffer is bigger than the current overlap, drop the overlapping part and try again inserting the remaining buffer */
-				ab = this.reduceBuffer(ab, offset, newLength);
-			} else {
-				/* the content of the new buffer is entirely contained in the existing buffer, drop it entirely */
-				to_add = false;
-				break;
-			}
-		}
-	}
-	/* if the buffer has not been added, we can add it at the end */
-	if (to_add) {
-		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
-		this.nextBuffers.push(ab);
-		/* if this new buffer is inserted in the first place in the list of the buffer, 
-		   and the DataStream is initialized, make it the buffer used for parsing */
-		if (i === 0 && this.inputStream !== null) {
-			this.inputStream.buffer = ab;
-		}
-	}
-}
-
 MP4Box.prototype.processSamples = function() {
 	var i;
 	var trak;
@@ -324,7 +234,6 @@ MP4Box.prototype.processSamples = function() {
    Returns the next expected file position, or undefined if not ready to parse */
 MP4Box.prototype.appendBuffer = function(ab) {
 	var nextFileStart;
-	var firstBuffer;
 	if (ab === null || ab === undefined) {
 		throw("Buffer must be defined and non empty");
 	}	
@@ -333,29 +242,17 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	}	
 	if (ab.byteLength === 0) {
 		Log.w("MP4Box", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
+		this.inputStream.getBufferLevel();
 		return;
 	}
 	/* mark the bytes in the buffer as not being used yet */
 	ab.usedBytes = 0;
-	this.insertBuffer(ab);
+	this.inputStream.insertBuffer(ab);
 
-	/* We create the DataStream object only when we have the first bytes of the file */
-	if (!this.inputStream) { 
-		if (this.nextBuffers.length > 0) {
-			firstBuffer = this.nextBuffers[0];
-			if (firstBuffer.fileStart === 0) {
-				this.inputStream = new DataStream(firstBuffer, 0, DataStream.BIG_ENDIAN);	
-				this.inputStream.nextBuffers = this.nextBuffers;
-				this.inputStream.bufferIndex = 0;
-			} else {
-				Log.w("MP4Box", "The first buffer should have a fileStart of 0");
-				return;
-			}
-		} else {
-			Log.w("MP4Box", "No buffer to start parsing from");
-			return;
-		}		
-	} 
+	if (!this.inputStream.initialized()) {
+		Log.w("MP4Box", "Not ready to start parsing");
+		return;
+	}
 
 	/* Initialize the ISOFile object if not yet created */
 	if (!this.inputIsoFile) {
@@ -401,13 +298,15 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		} else {
 			nextFileStart = this.inputIsoFile.nextParsePosition;
 		}		
-		var index = this.inputIsoFile.findPosition(true, nextFileStart);
+		var index = this.inputStream.findPosition(true, nextFileStart);
 		if (index !== -1) {
-			nextFileStart = this.inputIsoFile.findEndContiguousBuf(index);
+			nextFileStart = this.inputStream.findEndContiguousBuf(index);
 		}
 		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+nextFileStart);
+		this.inputStream.getBufferLevel();
 		return nextFileStart;
 	} else {
+		this.inputStream.getBufferLevel();
 		if (this.inputIsoFile !== null) {
 			/* moov has not been parsed but the first buffer was received, 
 			   the next fetch should probably be the next box start */

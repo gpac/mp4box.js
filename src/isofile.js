@@ -3,8 +3,8 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 var ISOFile = function (stream) {
-	/* DataStream object (extended with multiple underlying buffers) used to parse boxes */
-	this.stream = stream;
+	/* MutiBufferStream object used to parse boxes */
+	this.multistream = stream;
 	/* Array of all boxes (in order) found in the file */
 	this.boxes = [];
 	/* Array of all mdats */
@@ -31,39 +31,16 @@ var ISOFile = function (stream) {
 	this.nextParsePosition = 0;
 }
 
-ISOFile.prototype.mergeNextBuffer = function() {
-	var next_buffer;
-	if (this.stream.bufferIndex+1 < this.stream.nextBuffers.length) {
-		next_buffer = this.stream.nextBuffers[this.stream.bufferIndex+1];
-		if (next_buffer.fileStart === this.stream.buffer.fileStart + this.stream.buffer.byteLength) {
-			var oldLength = this.stream.buffer.byteLength;
-			var oldUsedBytes = this.stream.buffer.usedBytes;
-			var oldFileStart = this.stream.buffer.fileStart;
-			this.stream.nextBuffers[this.stream.bufferIndex] = ArrayBuffer.concat(this.stream.buffer, next_buffer);
-			this.stream.buffer = this.stream.nextBuffers[this.stream.bufferIndex];
-			this.stream.nextBuffers.splice(this.stream.bufferIndex+1, 1);
-			this.stream.buffer.usedBytes = oldUsedBytes; /* TODO: should it be += ? */
-			this.stream.buffer.fileStart = oldFileStart;
-			Log.d("ISOFile", "Concatenating buffer for box parsing (length: "+oldLength+"->"+this.stream.buffer.byteLength+")");
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		return false;
-	}
-}
-
 ISOFile.prototype.parse = function() {
 	var found;
 	var ret;
 	var box;
 	
-	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
+/*	Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
 		" ("+(this.stream.buffer.fileStart+this.lastBoxStartPosition)+" in the file)");
-
+*/
 	/* Reposition at the start position of the previous box not entirely parsed */
-	this.stream.seek(this.lastBoxStartPosition);
+	this.multistream.seek(this.lastBoxStartPosition);
 
 	while (true) {
 		
@@ -71,9 +48,9 @@ ISOFile.prototype.parse = function() {
 			/* we are in the parsing of an incomplete mdat box */
 			box = this.parsingMdat;
 
-			found = this.reposition(false, box.fileStart + box.hdr_size + box.size);
+			found = this.multistream.reposition(false, box.fileStart + box.hdr_size + box.size);
 			if (found) {
-				Log.d("ISOFile", "Found 'mdat' end in buffer #"+this.stream.bufferIndex);
+				Log.d("ISOFile", "Found 'mdat' end in buffered data");
 				/* the end of the mdat has been found */ 
 				this.parsingMdat = null;
 				/* we can parse more in this buffer */
@@ -82,14 +59,14 @@ ISOFile.prototype.parse = function() {
 				/* we don't have the end of this mdat yet, 
 				   indicate that the next byte to fetch is the end of the buffers we have so far, 
 				   return and wait for more buffer to come */
-				this.nextParsePosition = this.findEndContiguousBuf(this.stream.bufferIndex);
+				this.nextParsePosition = this.multistream.findEndContiguousBuf();
 				return;
 			}
 		} else {
 			/* not parsing an 'mdat' box
 			/* remember the position of the box start in case we need to roll back (if the box is incomplete) */
-			this.lastBoxStartPosition = this.stream.position;
-			ret = BoxParser.parseOneBox(this.stream);
+			this.lastBoxStartPosition = this.multistream.getPosition();
+			ret = BoxParser.parseOneBox(this.multistream);
 			if (ret.code === BoxParser.ERR_NOT_ENOUGH_DATA) {		
 				/* we did not have enough bytes in the current buffer to parse the entire box */
 				if (ret.type === "mdat") { 
@@ -101,12 +78,12 @@ ISOFile.prototype.parse = function() {
 					this.parsingMdat = box;
 					this.boxes.push(box);
 					this.mdats.push(box);			
-					box.fileStart = this.stream.buffer.fileStart + this.stream.position;
+					box.fileStart = this.multistream.getFilePosition();
 					box.hdr_size = ret.hdr_size;
-					this.stream.buffer.usedBytes += ret.hdr_size;
+					this.multistream.addUsedBytes(ret.hdr_size);
 					
 					/* let's see if we have the end of the box in the other buffers */
-					found = this.reposition(false, box.fileStart + box.hdr_size + box.size);
+					found = this.multistream.reposition(false, box.fileStart + box.hdr_size + box.size);
 					if (found) {
 						/* found the end of the box */
 						this.parsingMdat = null;
@@ -123,7 +100,7 @@ ISOFile.prototype.parse = function() {
 						} else {
 							/* we have the start of the moov box, 
 							   the next bytes should try to complete the current 'mdat' */
-							this.nextParsePosition = this.findEndContiguousBuf(this.stream.bufferIndex);
+							this.nextParsePosition = this.multistream.findEndContiguousBuf();
 						}
 						/* not much we can do, wait for more buffers to arrive */
 						return;
@@ -141,12 +118,12 @@ ISOFile.prototype.parse = function() {
 					   (TODO: we could skip 'free' boxes ...)
   					   or we did not have enough data to parse the type and size of the box, 
 					   we try to concatenate the current buffer with the next buffer to restart parsing */
-					merged = this.mergeNextBuffer();
+					merged = this.multistream.mergeNextBuffer();
 					if (merged) {
 						/* The next buffer was contiguous, the merging succeeded,
 						   we can now continue parsing, 
 						   the next best position to parse is at the end of this new buffer */
-						this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+						this.nextParsePosition = this.multistream.getEndFilePosition();
 						continue;
 					} else {
 						/* we cannot concatenate existing buffers because they are not contiguous or because there is no additional buffer */
@@ -154,15 +131,15 @@ ISOFile.prototype.parse = function() {
 						if (!ret.type) {
 							/* There were not enough bytes in the buffer to parse the box type and length,
 							   the next fetch should retrieve those missing bytes, i.e. the next bytes after this buffer */
-							this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+							this.nextParsePosition = this.multistream.getEndFilePosition();
 						} else {
 							/* we had enough bytes to parse size and type of the incomplete box
 							   if we haven't found yet the moov box, skip this one and try the next one 
 							   if we have found the moov box, let's continue linear parsing */
 							if (this.moovStartFound) {
-								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.buffer.byteLength;
+								this.nextParsePosition = this.multistream.getEndFilePosition();
 							} else {
-								this.nextParsePosition = this.stream.buffer.fileStart + this.stream.position + ret.size;
+								this.nextParsePosition = this.multistream.getFilePosition() + ret.size;
 							}
 						}
 						return;
@@ -178,7 +155,7 @@ ISOFile.prototype.parse = function() {
 					case "mdat":
 						this.mdats.push(box);
 						/* remember the position in the file of this box for comparison with sample offsets */
-						box.fileStart = this.stream.buffer.fileStart + box.start;
+						box.fileStart = this.multistream.getStartFilePosition() + box.start;
 						break;
 					case "moof":
 						this.moofs.push(box);
@@ -199,89 +176,17 @@ ISOFile.prototype.parse = function() {
 				}
 				if (box.type === "mdat") {
 					/* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */
-					this.stream.buffer.usedBytes += box.hdr_size;
+					this.multistream.addUsedBytes(box.hdr_size);
+					if (true) {
+						this.multistream.addUsedBytes(ret.size-box.hdr_size);
+					}
 				} else {
 					/* for all other boxes, the entire box data is considered used */
-					this.stream.buffer.usedBytes += ret.size;
+					this.multistream.addUsedBytes(ret.size);
 				}
 			}
 		}
 	}
-}
-
-/* Searches for the buffer containing the given file position:
-  - if found, repositions the parsing from there and returns true 
-  - if not found, does not change anything and returns false */
-ISOFile.prototype.reposition = function(fromStart, filePosition) {
-	var index;
-	index = this.findPosition(fromStart, filePosition);
-	if (index !== -1) {
-		this.stream.buffer = this.stream.nextBuffers[index];
-		this.stream.bufferIndex = index;
-		this.stream.position = filePosition - this.stream.buffer.fileStart;
-		Log.d("ISOFile", "Repositioning parser at buffer position: "+this.stream.position);
-		return true;
-	} else {
-		return false;
-	}
-}
-
-/* Searches for the buffer containing the given file position
-   Returns the index of the buffer (-1 if not found) */
-ISOFile.prototype.findPosition = function(fromStart, filePosition) {
-	var i;
-	var buffer = null;
-	var index = -1;
-
-	/* find the buffer with the largest position smaller than the given position */
-	if (fromStart === true) {
-	   /* the reposition can be in the past, we need to check from the beginning of the list of buffers */
-		i = 0;
-	} else {
-		i = this.stream.bufferIndex;
-	}
-
-	while (i < this.stream.nextBuffers.length) {
-		buffer = this.stream.nextBuffers[i];
-		if (buffer.fileStart <= filePosition) {
-			index = i;
-		} else {
-			break;
-		}
-		i++;
-	}
-
-	if (index !== -1) {
-		buffer = this.stream.nextBuffers[index];
-		if (buffer.fileStart + buffer.byteLength >= filePosition) {			
-			Log.d("ISOFile", "Found position in existing buffer #"+index);
-			return index;
-		} else {
-			return -1;
-		}
-	} else {
-		return -1;
-	}
-}
-
-ISOFile.prototype.findEndContiguousBuf = function(index) {
-	var i;
-	var currentBuf;
-	var nextBuf;
-	currentBuf = this.stream.nextBuffers[index];
-	/* find the end of the contiguous range of data */
-	if (this.stream.nextBuffers.length > index+1) {
-		for (i = index+1; i < this.stream.nextBuffers.length; i++) {
-			nextBuf = this.stream.nextBuffers[i];
-			if (nextBuf.fileStart === currentBuf.fileStart + currentBuf.byteLength) {
-				currentBuf = nextBuf;
-			} else {
-				break;
-			}
-		}
-	}
-	/* return the position of last byte in the file that we have */
-	return currentBuf.fileStart + currentBuf.byteLength;
 }
 
 /* Rewrite the entire file */
