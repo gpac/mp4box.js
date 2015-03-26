@@ -204,6 +204,7 @@ window.onload = function () {
 	fileinput.button();
 
 	var fancytree_options = {};
+	fancytree_options.autoScroll = true;
 	fancytree_options.source = [];
 	fancytree_options.activate = function(event, data) {
 		var node = data.node;
