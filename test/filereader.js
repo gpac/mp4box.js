@@ -27,7 +27,9 @@ function drop(e) {
 	else {
 		file = e.dataTransfer.files[0];
 	}
-	parseFile(file);
+	if (file) {
+		parseFile(file);
+	}
 }
 
 function httpload(url) {	
