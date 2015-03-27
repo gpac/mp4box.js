@@ -121,14 +121,35 @@ MultiBufferStream.prototype.getBufferLevel = function() {
 	var i;
 	var buffer;
 	var used, total;
+	var ranges = [];
+	var range;
+	var bufferedString = "";
 	used = 0;
 	total = 0;
 	for (i = 0; i < this.buffers.length; i++) {
 		buffer = this.buffers[i];
+		if (i === 0) {
+			range = {};
+			ranges.push(range);
+			range.start = buffer.fileStart;
+			range.end = buffer.fileStart+buffer.byteLength;
+			bufferedString += range.start+"-";
+		} else if (range.end === buffer.fileStart) {
+			range.end = buffer.fileStart+buffer.byteLength;
+		} else {
+			bufferedString += range.end+", "+range.start+"-";
+			range = {};
+			ranges.push(range);
+			range.start = buffer.fileStart;
+			range.end = buffer.fileStart+buffer.byteLength;
+		}
 		used += buffer.usedBytes;
 		total += buffer.byteLength;
 	}
-	Log.i("MultiBufferStream", ""+this.buffers.length+" buffers ("+used+"/"+total+" bytes)");
+	if (ranges.length > 0) {
+		bufferedString += range.end;
+	}
+	Log.i("MultiBufferStream", ""+this.buffers.length+" buffers ("+used+"/"+total+" bytes): "+bufferedString);
 	this.cleanBuffers();
 }
 
@@ -171,9 +192,9 @@ MultiBufferStream.prototype.mergeNextBuffer = function() {
 /* Searches for the buffer containing the given file position:
   - if found, repositions the parsing from there and returns true 
   - if not found, does not change anything and returns false */
-MultiBufferStream.prototype.reposition = function(fromStart, filePosition) {
+MultiBufferStream.prototype.reposition = function(fromStart, filePosition, markAsUsed) {
 	var index;
-	index = this.findPosition(fromStart, filePosition);
+	index = this.findPosition(fromStart, filePosition, markAsUsed);
 	if (index !== -1) {
 		this.buffer = this.buffers[index];
 		this.bufferIndex = index;
@@ -188,7 +209,7 @@ MultiBufferStream.prototype.reposition = function(fromStart, filePosition) {
 
 /* Searches for the buffer containing the given file position
    Returns the index of the buffer (-1 if not found) */
-MultiBufferStream.prototype.findPosition = function(fromStart, filePosition) {
+MultiBufferStream.prototype.findPosition = function(fromStart, filePosition, markAsUsed) {
 	var i;
 	var abuffer = null;
 	var index = -1;
@@ -205,11 +226,13 @@ MultiBufferStream.prototype.findPosition = function(fromStart, filePosition) {
 		abuffer = this.buffers[i];
 		if (abuffer.fileStart <= filePosition) {
 			index = i;
-			if (abuffer.fileStart + abuffer.byteLength <= filePosition) {
-				abuffer.usedBytes = abuffer.byteLength;	
-			} else {
-				abuffer.usedBytes = filePosition - abuffer.fileStart;
-			}			
+			if (markAsUsed) {
+				if (abuffer.fileStart + abuffer.byteLength <= filePosition) {
+					abuffer.usedBytes = abuffer.byteLength;	
+				} else {
+					abuffer.usedBytes = filePosition - abuffer.fileStart;
+				}			
+			}
 		} else {
 			break;
 		}
@@ -234,7 +257,7 @@ MultiBufferStream.prototype.findEndContiguousBuf = function(inputindex) {
 	var currentBuf;
 	var nextBuf;
 	var index = inputindex || this.bufferIndex;
-	currentBuf = this.buffers[this.bufferIndex];
+	currentBuf = this.buffers[index];
 	/* find the end of the contiguous range of data */
 	if (this.buffers.length > index+1) {
 		for (i = index+1; i < this.buffers.length; i++) {

@@ -29,6 +29,8 @@ var ISOFile = function (stream) {
 	    - otherwise, the position of the next sample to fetch
 	 */
 	this.nextParsePosition = 0;
+	/* keep mdat data */
+	this.discardMdatData = false;
 }
 
 ISOFile.prototype.parse = function() {
@@ -48,7 +50,7 @@ ISOFile.prototype.parse = function() {
 			/* we are in the parsing of an incomplete mdat box */
 			box = this.parsingMdat;
 
-			found = this.multistream.reposition(false, box.fileStart + box.hdr_size + box.size);
+			found = this.multistream.reposition(false, box.fileStart + box.hdr_size + box.size, this.discardMdatData);
 			if (found) {
 				Log.d("ISOFile", "Found 'mdat' end in buffered data");
 				/* the end of the mdat has been found */ 
@@ -83,7 +85,7 @@ ISOFile.prototype.parse = function() {
 					this.multistream.addUsedBytes(ret.hdr_size);
 					
 					/* let's see if we have the end of the box in the other buffers */
-					found = this.multistream.reposition(false, box.fileStart + box.hdr_size + box.size);
+					found = this.multistream.reposition(false, box.fileStart + box.hdr_size + box.size, this.discardMdatData);
 					if (found) {
 						/* found the end of the box */
 						this.parsingMdat = null;
@@ -584,56 +586,44 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 		return sample;
 	}
 
-	/* The sample has only been partially fetched, we need to check in all mdat boxes (e.g. if the input file is fragmented) 
-	   and in all mdat buffers (if the input file was not fetched in a single download) */
-	for (i = 0; i < this.stream.nextBuffers.length; i++) {
-		buffer = this.stream.nextBuffers[i];
+	/* The sample has only been partially fetched, we need to check in all buffers */
+	var index =	this.multistream.findPosition(true, sample.offset + sample.alreadyRead, false);
+	if (index > -1) {
+		var buffer = this.multistream.buffers[index];
+		var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
+		if (sample.size - sample.alreadyRead <= lengthAfterStart) {
+			/* the (rest of the) sample is entirely contained in this buffer */
 
-		if (sample.offset + sample.alreadyRead >= buffer.fileStart &&
-		    sample.offset + sample.alreadyRead <  buffer.fileStart + buffer.byteLength) {
-			/* The sample starts in this buffer */
+			Log.i("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
+				(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
+
+			DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
+			                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
+
+			/* update the number of bytes used in this buffer and check if it needs to be removed */
+			buffer.usedBytes += sample.size - sample.alreadyRead;
+			this.multistream.getBufferLevel();
+
+			sample.alreadyRead = sample.size;
+
+			return sample;
+		} else {
+			/* the sample does not end in this buffer */				
 			
-			var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
-			if (sample.size - sample.alreadyRead <= lengthAfterStart) {
-				/* the (rest of the) sample is entirely contained in this buffer */
+			Log.i("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+
+				(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
+			
+			DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
+			                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);
+			sample.alreadyRead += lengthAfterStart;
 
-				Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
-					(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
-
-				DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
-				                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
-				sample.alreadyRead = sample.size;
-
-				/* update the number of bytes used in this buffer and check if it needs to be removed */
-				buffer.usedBytes += sample.size - sample.alreadyRead;
-				if (buffer.usedBytes === buffer.byteLength) {
-					this.stream.nextBuffers.splice(i, 1);
-					i--;
-					/* TODO: check if the DataStream buffer needs to be updated */
-				}
-
-				return sample;
-			} else {
-				/* the sample does not end in this buffer */				
-				
-				Log.d("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+
-					(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
-				
-				DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
-				                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);
-				sample.alreadyRead += lengthAfterStart;
-
-				/* update the number of bytes used in this buffer and check if it needs to be removed */
-				buffer.usedBytes += lengthAfterStart;
-				if (buffer.usedBytes === buffer.byteLength) {
-					this.stream.nextBuffers.splice(i, 1);
-					i--;
-					/* TODO: check if the DataStream buffer needs to be updated */
-				}
-			}
+			/* update the number of bytes used in this buffer and check if it needs to be removed */
+			buffer.usedBytes += lengthAfterStart;
+			this.multistream.getBufferLevel();
 		}
+	} else {
+		return null;
 	}
-	return null;
 }
 
 /* Release the memory used to store the data of the sample */

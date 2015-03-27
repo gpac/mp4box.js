@@ -33,7 +33,7 @@ function drop(e) {
 }
 
 function httpload(url) {	
-	mp4box 	   = new MP4Box();
+	mp4box 	   = new MP4Box(false);
 	var downloader = new Downloader();
 	var startDate = new Date();
 	downloader.setCallback(
@@ -142,7 +142,7 @@ function parseFile(file) {
     var readBlock  = null;
  	var startDate  = new Date();
 	
-	mp4box 	   = new MP4Box();
+	mp4box 	   = new MP4Box(false);
 
 	mp4box.onError = function(e) { 
 		console.log("mp4box failed to parse data."); 

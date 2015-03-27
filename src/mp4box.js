@@ -2,7 +2,7 @@
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-var MP4Box = function () {
+var MP4Box = function (keepMdatData) {
 	/* MultiBufferStream to parse chunked file data */
 	this.inputStream = new MultiBufferStream();
 	/* ISOFile object containing the parsed boxes */
@@ -31,6 +31,7 @@ var MP4Box = function () {
 	this.isFragmentationStarted = false;
 	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
+	this.keepMdatData = keepMdatData;
 }
 
 MP4Box.prototype.setSegmentOptions = function(id, user, options) {
@@ -257,6 +258,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	/* Initialize the ISOFile object if not yet created */
 	if (!this.inputIsoFile) {
 		this.inputIsoFile = new ISOFile(this.inputStream);
+		this.inputIsoFile.discardMdatData = (this.keepMdatData ? false : true);
 	}
 
 	/* Parse whatever is in the existing buffers */
@@ -298,7 +300,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		} else {
 			nextFileStart = this.inputIsoFile.nextParsePosition;
 		}		
-		var index = this.inputStream.findPosition(true, nextFileStart);
+		var index = this.inputStream.findPosition(true, nextFileStart, false);
 		if (index !== -1) {
 			nextFileStart = this.inputStream.findEndContiguousBuf(index);
 		}
@@ -544,7 +546,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 			/* No sample info, in all tracks, cannot seek */
 			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
 		} else {
-			var index = this.inputIsoFile.findPosition(true, seek_info.offset);
+			var index = this.inputIsoFile.findPosition(true, seek_info.offset, false);
 			if (index !== -1) {
 				seek_info.offset = this.inputIsoFile.findEndContiguousBuf(index);
 			}
