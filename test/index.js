@@ -81,6 +81,7 @@ window.onload = function () {
 	// 	}
 	// ); 	
 }     
+var done = false;
 
 function load() {
 
@@ -102,7 +103,10 @@ function load() {
 				console.log(sample.description.hvcC);
 				console.log(sample.data);
 				// Send MP4 data to build a BPG
-				extractBPG(sample);
+				if (!done) {			
+					extractBPG(sample);
+					done = true;
+				}
 			}
 		}
 		downloader.stop();
@@ -697,6 +701,7 @@ MP4HEVC.prototype.readData = function(data, headerLength) {
 			for (l = 3 + j; j < l; j++)
 				parsedData[j] = 0;
 			parsedData[j] = 1;
+			j++;
 		}
 		parsedData[j] = data[i];
 	}
