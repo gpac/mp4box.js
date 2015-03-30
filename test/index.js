@@ -11,7 +11,7 @@ var mp4box;
 var downloader;
 
 window.onload = function () {
-	load();
+	//load(hevcURL);
 	// var buffer = new ArrayBuffer(10000000);
     //var arr = new Uint8Array(buffer);
 	// var bitstream1 = new BitStream(buffer);
@@ -83,7 +83,7 @@ window.onload = function () {
 }     
 var done = false;
 
-function load() {
+function load(url) {
 
 	mp4box = new MP4Box();
 	mp4box.onMoovStart = function () {
@@ -117,7 +117,8 @@ function load() {
 	downloader.setCallback(
 		function (response, end, error) { 
 			if (response) {
-				mp4box.appendBuffer(response);
+				var nextStart = mp4box.appendBuffer(response);
+				downloader.setChunkStart(nextStart); 
 			}
 			if (end) {
 				mp4box.flush();
@@ -127,7 +128,7 @@ function load() {
 			}
 		}
 	);
-	downloader.setUrl(hevcURL);
+	downloader.setUrl(url);
 	downloader.setInterval(1000);
 	downloader.setChunkSize(1000000);
 	downloader.start();
@@ -440,7 +441,7 @@ MP4HEVC.prototype.readSPS = function (nalu) {
 				aspect_ratio_idc = bitStreamRead.dataView.getUnsigned(8);
 				if (aspect_ratio_idc === 255) 
 					// sar_width u(16), sar_height u(16)
-					bitStreamRead.skip(2);
+					bitStreamRead.dataView.skip(2);
 			}
 
 			// overscan_info_present_flag u(1)
@@ -1008,13 +1009,14 @@ BPG.prototype.toFile = function(fileName) {
     	bitStream.dataView.writeUnsigned(this.hevc_data_byte[i], 8);
 
     // Save
-    saveData(arrayBuffer, fileName);
+/*    saveData(arrayBuffer, fileName);
     console.log("BPG saved");
-
+*/
     // Visualisation
     canvas = document.getElementById("mycanvas");
     canvas.width = this.picture_width;
     canvas.height = this.picture_height;
+
     showBPG(arrayBuffer);
     
 }
@@ -1160,6 +1162,9 @@ function showBPG(arrayBuffer) {
     	canvas = document.getElementById("mycanvas");
     	ctx = canvas.getContext("2d");
 
+		ctx.fillStyle="red";
+		ctx.fillRect(0,0,canvas.width,canvas.height);
+
     	img = new BPGDecoder(ctx);
     	img.onload = function() {
         	/* draw the image to the canvas */
@@ -1196,3 +1201,78 @@ function extractBPG(sample) {
 
 	BPG.toFile();
 }	
+
+
+function parseFile(file) {
+    var fileSize   = file.size;
+    var offset     = 0;
+    var self       = this; // we need a reference to the current object
+    var readBlock  = null;
+ 	var startDate  = new Date();
+	var chunkSize  = 1000000;
+	mp4box 	   = new MP4Box();
+
+	mp4box.onError = function(e) { 
+		console.log("mp4box failed to parse data."); 
+	};
+
+ 	mp4box.onReady = function (info) {
+		Log.i("Application", "Movie information received");
+		movieInfo = info;
+		mp4box.setExtractionOptions(1, null, { nbSamples: 1 });
+	}
+	mp4box.onSamples = function (id, user, samples) {	
+		var texttrack = user;
+		Log.i("Track #"+id,"Received "+samples.length+" new sample(s)");
+		for (var j = 0; j < samples.length; j++) {
+			var sample = samples[j];
+			if (sample.description.type === "hvc1") {
+				console.log(sample.description.hvcC);
+				console.log(sample.data);
+				// Send MP4 data to build a BPG
+				if (!done) {			
+					extractBPG(sample);
+					done = true;
+				}
+			}
+		}
+		mp4box.unsetExtractionOptions(1);
+	}	
+
+   var onparsedbuffer = function(mp4box, buffer) {
+    	console.log("Appending buffer with offset "+offset);
+		buffer.fileStart = offset;
+    	mp4box.appendBuffer(buffer);	
+	}
+
+	var onBlockRead = function(evt) {
+        if (evt.target.error == null) {
+            onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
+            offset += evt.target.result.byteLength;
+        } else {
+            console.log("Read error: " + evt.target.error);
+            return;
+        }
+        if (offset >= fileSize) {
+        	var endRead = new Date();
+            console.log("Done reading file ("+fileSize+ " bytes) in "+(endRead - startDate)+" ms");
+            return;
+        }
+
+        readBlock(offset, chunkSize, file);
+    }
+
+    readBlock = function(_offset, length, _file) {
+        var r = new FileReader();
+        var blob = _file.slice(_offset, length + _offset);
+        r.onload = onBlockRead;
+        r.readAsArrayBuffer(blob);
+    }
+
+    readBlock(offset, chunkSize, file);
+}
+
+function onFileEvent(e) {
+	var file = document.getElementById('fileinput').files[0];
+	parseFile(file);
+}
