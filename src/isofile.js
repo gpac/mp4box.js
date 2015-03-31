@@ -594,8 +594,8 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 		if (sample.size - sample.alreadyRead <= lengthAfterStart) {
 			/* the (rest of the) sample is entirely contained in this buffer */
 
-			Log.i("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
-				(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+(sample.size - sample.alreadyRead)+")");
+			Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
+				(sample.offset+sample.alreadyRead - buffer.fileStart)+" read size: "+(sample.size - sample.alreadyRead)+" full size: "+sample.size+")");
 
 			DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
 			                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, sample.size - sample.alreadyRead);
@@ -610,8 +610,8 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 		} else {
 			/* the sample does not end in this buffer */				
 			
-			Log.i("ISOFile","Getting sample data (alreadyRead: "+sample.alreadyRead+" offset: "+
-				(sample.offset+sample.alreadyRead - buffer.fileStart)+" size: "+lengthAfterStart+")");
+			Log.d("ISOFile","Getting sample #"+sampleNum+" partial data (alreadyRead: "+sample.alreadyRead+" offset: "+
+				(sample.offset+sample.alreadyRead - buffer.fileStart)+" read size: "+lengthAfterStart+" full size: "+sample.size+")");
 			
 			DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
 			                  buffer, sample.offset+sample.alreadyRead - buffer.fileStart, lengthAfterStart);

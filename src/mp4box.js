@@ -2,7 +2,7 @@
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-var MP4Box = function (keepMdatData) {
+var MP4Box = function (_keepMdatData) {
 	/* MultiBufferStream to parse chunked file data */
 	this.inputStream = new MultiBufferStream();
 	/* ISOFile object containing the parsed boxes */
@@ -31,7 +31,8 @@ var MP4Box = function (keepMdatData) {
 	this.isFragmentationStarted = false;
 	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
-	this.keepMdatData = keepMdatData;
+	/* Boolean indicating if bytes containing media data should be kept in memory */
+	this.keepMdatData = (_keepMdatData ? _keepMdatData : true);
 }
 
 MP4Box.prototype.setSegmentOptions = function(id, user, options) {
@@ -135,10 +136,11 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	var trak = this.inputIsoFile.getTrackById(track_id);
 	var sample = this.inputIsoFile.getSample(trak, sampleNumber);
 	if (sample == null) {
+		sample = trak.samples[sampleNumber];
 		if (this.nextSeekPosition) {
-			this.nextSeekPosition = Math.min(trak.samples[sampleNumber].offset,this.nextSeekPosition);
+			this.nextSeekPosition = Math.min(sample.offset+sample.alreadyRead,this.nextSeekPosition);
 		} else {
-			this.nextSeekPosition = trak.samples[sampleNumber].offset;
+			this.nextSeekPosition = trak.samples[sampleNumber].offset+sample.alreadyRead;
 		}
 		return null;
 	}
@@ -252,6 +254,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 
 	if (!this.inputStream.initialized()) {
 		Log.w("MP4Box", "Not ready to start parsing");
+		this.inputStream.getBufferLevel();
 		return;
 	}
 
@@ -263,6 +266,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 
 	/* Parse whatever is in the existing buffers */
 	this.inputIsoFile.parse();
+	this.inputStream.getBufferLevel();
 
 	/* Check if the moovStart callback needs to be called */
 	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
@@ -290,9 +294,6 @@ MP4Box.prototype.appendBuffer = function(ab) {
 			this.onReady(info);
 		}
 
-		/* See if any sample extraction or segment creation needs to be done with the available samples */
-		this.processSamples();
-
 		/* Inform about the best range to fetch next */
 		if (this.nextSeekPosition) {
 			nextFileStart = this.nextSeekPosition;
@@ -304,10 +305,19 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		if (index !== -1) {
 			nextFileStart = this.inputStream.findEndContiguousBuf(index);
 		}
-		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+nextFileStart);
 		this.inputStream.getBufferLevel();
+		/* See if any sample extraction or segment creation needs to be done with the available samples */
+		this.processSamples();
+
+		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+nextFileStart);
+
+		this.inputStream.cleanBuffers();
+		this.inputStream.getBufferLevel();
+
 		return nextFileStart;
 	} else {
+		this.inputStream.getBufferLevel();
+		this.inputStream.cleanBuffers();
 		this.inputStream.getBufferLevel();
 		if (this.inputIsoFile !== null) {
 			/* moov has not been parsed but the first buffer was received, 

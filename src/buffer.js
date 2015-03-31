@@ -150,7 +150,6 @@ MultiBufferStream.prototype.getBufferLevel = function() {
 		bufferedString += range.end;
 	}
 	Log.i("MultiBufferStream", ""+this.buffers.length+" buffers ("+used+"/"+total+" bytes): "+bufferedString);
-	this.cleanBuffers();
 }
 
 MultiBufferStream.prototype.cleanBuffers = function () {
@@ -231,7 +230,8 @@ MultiBufferStream.prototype.findPosition = function(fromStart, filePosition, mar
 					abuffer.usedBytes = abuffer.byteLength;	
 				} else {
 					abuffer.usedBytes = filePosition - abuffer.fileStart;
-				}			
+				}		
+				this.getBufferLevel();	
 			}
 		} else {
 			break;
@@ -283,10 +283,12 @@ MultiBufferStream.prototype.getFilePosition = function() {
 
 MultiBufferStream.prototype.addUsedBytes = function(nbBytes) {
 	this.buffer.usedBytes += nbBytes;
+	this.getBufferLevel();
 }
 
 MultiBufferStream.prototype.setAllUsedBytes = function() {
 	this.buffer.usedBytes = this.buffer.byteLength;
+	this.getBufferLevel();
 }
 
 MultiBufferStream.prototype.getEndFilePosition = function() {
