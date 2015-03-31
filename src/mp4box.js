@@ -654,3 +654,18 @@ MP4Box.prototype.seek = function(time, useRap) {
 		return seek_info;
 	}
 }
+
+MP4Box.prototype.getTrackSamplesInfo = function(track_id) {
+	var track = this.inputIsoFile.getTrackById(id);
+	if (track) {
+		return track.samples;
+	} else {
+		return;
+	}
+}
+
+MP4Box.prototype.getTrackSample = function(track_id, number) {
+	var track = this.inputIsoFile.getTrackById(track_id);
+	var sample = this.inputIsoFile.getSample(track, number);
+	return sample;	
+}
