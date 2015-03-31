@@ -199,4 +199,8 @@ function extractBPG(sample) {
 	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size);
 
 	return bpg;
-}	
+}
+
+window.onload = function() {
+	$("#tabs");
+}

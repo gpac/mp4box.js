@@ -3,6 +3,13 @@
     <head>
         <meta charset="UTF-8">
         <title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
+
+        <!-- Include basic JQuery and JQuery UI files -->
+        <script src="../lib/jquery/jquery.js"></script>        
+        <link href="../lib/jquery-ui/jquery-ui.min.css" rel="stylesheet" type="text/css">
+        <script src="../lib/jquery-ui/jquery-ui.min.js"></script>      
+
+        <link rel="stylesheet" href="style.css"/>
         <script src="../src/Log.js"></script>
         <script src="../src/DataStream.js"></script>
         <script src="../src/descriptor.js"></script>
@@ -17,23 +24,33 @@
         <script src="bpg.js"></script>
         <script src="hevcframe.js"></script>
         <script src="index_bpg.js"></script>
+
     </head>
     <body>
-        This is a test for the BPG extraction from a MP4 using MP4box.js
-        </br>
-        </br>
-        Choose a BPG file.
-        The program will decode it and encode to BPG again saving another copy.
-        The new encoded BPG will autommatically be shown.
-        </br>
-        </br>
-        <input type='file' id='fileinput' onchange='onFileEvent();'>
-        <input id="url" type="text" oninput="load(this.value);">
-        <input id="fileInput" type="file">
-        </br></br>
-        </br>
-        </br>
-        <img src=".bpg" style="display: none;">
+        <h2>MP4Box.js</h2>
+        <h3>HEVC / BPG - Image manipulation</h3>
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-1">File upload</a></li>
+                <li><a href="#tabs-2">HTTP URL input</a></li>
+                <li><a href="#tabs-3">List examples</a></li>
+            </ul>
+            <div id="tabs-1"> 
+                <input type='file' id='fileinput' onchange='onFileEvent();'>
+            </div>
+            <div id="tabs-2">
+                <label for="urlinput">Enter URL:</label>
+                <input id="url" type="text" oninput="load(this.value);">
+                <!-- <input type='url' name='urlinput' id='urlinput'>
+                <button onclick='httploadFromUrl()'>Load</button> -->
+            </div>
+            <div id="tabs-3">
+                <legend>Select Example:</legend>
+                <select id="urlSelector">
+                </select>
+                <button onclick='httploadFromList()'>Load</button>
+            </div>
+        </div>
         <canvas id="mycanvas" width="512" height="512"></canvas>
     </body>
 </html>

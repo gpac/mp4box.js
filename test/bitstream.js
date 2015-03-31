@@ -4,7 +4,7 @@
  */
 
 var BitStream = function(arrayBuffer) {
-    this.dataView = new jDataView(arrayBuffer);
+    this.dataView      = new jDataView(arrayBuffer);
 
     this.avcGolombBits = [
     8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3,
