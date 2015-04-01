@@ -232,7 +232,7 @@ BPG.prototype.show = function() {
 
     if (bitStream) {
 
-        canvas = document.getElementById("mycanvas");
+        canvas = document.getElementById("canvas");
         canvas.width = this.picture_width;
         canvas.height = this.picture_height;
 
@@ -242,7 +242,7 @@ BPG.prototype.show = function() {
         if (URL && URL.createObjectURL) {
             var url = URL.createObjectURL(blob);
             
-            canvas = document.getElementById("mycanvas");
+            canvas = document.getElementById("canvas");
             ctx = canvas.getContext("2d");
 
             ctx.fillStyle="red";

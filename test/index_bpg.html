@@ -6,10 +6,10 @@
 
         <!-- Include basic JQuery and JQuery UI files -->
         <script src="../lib/jquery/jquery.js"></script>        
-        <link href="../lib/jquery-ui/jquery-ui.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" type="text/css" href="../lib/jquery-ui/jquery-ui.min.css">
         <script src="../lib/jquery-ui/jquery-ui.min.js"></script>      
 
-        <link rel="stylesheet" href="style.css"/>
+        <link rel="stylesheet" type="text/css" href="style.css">
         <script src="../src/Log.js"></script>
         <script src="../src/DataStream.js"></script>
         <script src="../src/descriptor.js"></script>
@@ -24,33 +24,49 @@
         <script src="bpg.js"></script>
         <script src="hevcframe.js"></script>
         <script src="index_bpg.js"></script>
-
     </head>
+
     <body>
         <h2>MP4Box.js</h2>
-        <h3>HEVC / BPG - Image manipulation</h3>
+        <h3>HEVC / BPG - Image extraction and manipulation</h3>
+       
         <div id="tabs">
             <ul>
                 <li><a href="#tabs-1">File upload</a></li>
                 <li><a href="#tabs-2">HTTP URL input</a></li>
                 <li><a href="#tabs-3">List examples</a></li>
+                <li><a href="#tabs-4">BPG manipulation</a></li>
             </ul>
-            <div id="tabs-1"> 
-                <input type='file' id='fileinput' onchange='onFileEvent();'>
+            <div id="tabs-1">
+                <legend>BPG extraction from video file upload</legend>
+                </br>
+                <input type="file" id="videoFileInput" onchange="loadFromFile(this);">
             </div>
             <div id="tabs-2">
-                <label for="urlinput">Enter URL:</label>
-                <input id="url" type="text" oninput="load(this.value);">
-                <!-- <input type='url' name='urlinput' id='urlinput'>
-                <button onclick='httploadFromUrl()'>Load</button> -->
+                <legend>BPG extraction from HTTP URL video file</legend>
+                </br>
+                <label for="urlInput">Enter URL:</label>
+                <input type="url" id="urlInput">
+                <button onclick="loadFromHttpUrl();">Load</button>
             </div>
             <div id="tabs-3">
-                <legend>Select Example:</legend>
+                <legend>BPG extraction from video file examples</legend>
+                </br>
+                <legend>Select example:</legend>
                 <select id="urlSelector">
                 </select>
-                <button onclick='httploadFromList()'>Load</button>
+                <button onclick="loadFromHttpUrlList();">Load</button>
+            </div>
+            <div id="tabs-4">
+                <legend>BPG visualisation and regeneration</legend>
+                </br>
+                <input type="file" id="imageFileInput">
+                <button id="createCopy" onclick="loadFromFile(this);">Create copy</button>
+                <button id="show" onclick="loadFromFile(this);">Show</button>
             </div>
         </div>
-        <canvas id="mycanvas" width="512" height="512"></canvas>
+
+        <canvas id="canvas" width="512" height="512"></canvas>
+
     </body>
 </html>

@@ -3,8 +3,6 @@
  * Index
  */
 
-var hevcURL = "http://download.tsi.telecom-paristech.fr/gpac/dataset/dash/uhd/mux_sources/hevcds_720p30_2M.mp4";
-
 /* Setting the level of logs (error, warning, info, debug) */
 Log.setLogLevel(Log.d);
 
@@ -17,42 +15,53 @@ var downloader;
 /* Flag for stop downloading */
 var done = false;
 
-function load(url) {
+// HTTP URL input (TRY TO PUT EVERYTHING HERE)
+function loadHttpUrl(url) {
 
 	mp4box = new MP4Box();
 
-	mp4box.onMoovStart = function () {
-		Log.i("Application", "Starting to parse movie information");
+	mp4box.onMoovStart = function() {
+		console.log("Starting to receive File Information");
 	}
 
-	mp4box.onReady = function (info) {
-		Log.i("Application", "Movie information received");
-		movieInfo = info;
-		mp4box.setExtractionOptions(2, null, { nbSamples: 1 });
+	mp4box.onReady = function(info) {
+		console.log("Received File Information");
+		// Extract only for video tracks
+		for (var i = 0; i < info.tracks.length; i++) {
+			// Video track
+			if (info.tracks[i].video !== undefined)
+				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
+		}
+	}
+
+	mp4box.onError = function(e) {
+ 		console.log("Received Error Message "+e);
 	}
 
 	mp4box.onSamples = function (id, user, samples) {	
-		var texttrack = user;
-		Log.i("Track #"+id,"Received "+samples.length+" new sample(s)");
-		for (var j = 0; j < samples.length; j++) {
-			var sample = samples[j];
+		console.log("Received "+samples.length+" samples on track "+id+" for object "+user);
+
+		for (var i = 0; i < samples.length; i++) {
+			var sample = samples[i];
+			// Check if it is HEVC
 			if (sample.description.type === "hvc1") {
-				console.log(sample.description.hvcC);
-				console.log(sample.data);
 				// Send MP4 data to build a BPG
-				if (!done) {			
-					extractBPG(sample);
+				if (!done) {
 					var bpg = extractBPG(sample);
 					bpg.show();
 					done = true;
 				}
 			}
+			else
+				throw("index_bpg.loadHttpUrl: Not HEVC file.");
 		}
+
 		downloader.stop();
-		mp4box.unsetExtractionOptions(1);
+		mp4box.unsetExtractionOptions(id);
 	}	
 
     downloader = new Downloader();
+
 	downloader.setCallback(
 		function (response, end, error) { 
 			if (response) {
@@ -74,39 +83,25 @@ function load(url) {
 	downloader.start();
 }
 
-function saveBuffer(buffer, name) {     
-    if (saveChecked.checked) {
-        var d = new DataStream(buffer);
-        d.save(name);
-    }
+// HTTP URL input handler
+function loadFromHttpUrl() {
+	var url = document.getElementById('urlInput').value;
+
+	if (url)
+		loadHttpUrl(url);	
+	else
+		throw ("index_bpg.loadFromHttpUrl(): URL not informed.");
 }
 
-function saveData(arrayBuffer, fileName) {
-    var blob = new Blob([arrayBuffer]);
-    var URL = (window.webkitURL || window.URL);
-    if (URL && URL.createObjectURL) {
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.setAttribute('href', url);
-        a.setAttribute('download', fileName);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    } 
-    else {
-        throw("index_bpg.saveData(): Can't create object URL.");
-    }
-}
-
-function parseFile(file) {
+// Video file upload
+function loadVideoFile(file) {
     var fileSize   = file.size;
     var offset     = 0;
     var self       = this; // we need a reference to the current object
     var readBlock  = null;
  	var startDate  = new Date();
 	var chunkSize  = 1000000;
-	mp4box 	   = new MP4Box();
+	mp4box 	       = new MP4Box();
 
 	mp4box.onError = function(e) { 
 		console.log("mp4box failed to parse data."); 
@@ -114,8 +109,12 @@ function parseFile(file) {
 
  	mp4box.onReady = function (info) {
 		Log.i("Application", "Movie information received");
-		movieInfo = info;
-		mp4box.setExtractionOptions(1, null, { nbSamples: 1 });
+		// Extract only for video tracks
+		for (var i = 0; i < info.tracks.length; i++) {
+			// Video track
+			if (info.tracks[i].video !== undefined)
+				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
+		}
 	}
 	mp4box.onSamples = function (id, user, samples) {	
 		var texttrack = user;
@@ -123,11 +122,8 @@ function parseFile(file) {
 		for (var j = 0; j < samples.length; j++) {
 			var sample = samples[j];
 			if (sample.description.type === "hvc1") {
-				console.log(sample.description.hvcC);
-				console.log(sample.data);
 				// Send MP4 data to build a BPG
 				if (!done) {			
-					var hevcFrame = new HEVCFrame();
 					var bpg = extractBPG(sample);
 					bpg.show();
 					done = true;
@@ -170,9 +166,43 @@ function parseFile(file) {
     readBlock(offset, chunkSize, file);
 }
 
-function onFileEvent(e) {
-	var file = document.getElementById('fileinput').files[0];
-	parseFile(file);
+// File upload handler
+function loadFromFile(element) {
+	var file;
+
+	if (element) {
+		if (element.id === "videoFileInput") {
+			file = document.getElementById('videoFileInput').files[0];
+			loadVideoFile(file);
+		}
+		if (element.id === "createCopy") {
+			file = document.getElementById('imageFileInput').files[0];
+			loadImageFile(file, 0);
+		}
+		if (element.id === "show") {
+			file = document.getElementById('imageFileInput').files[0];
+			loadImageFile(file, 1);
+		}
+	}
+}
+
+// Save file from an ArrayBuffer
+function saveData(arrayBuffer, fileName) {
+    var blob = new Blob([arrayBuffer]);
+    var URL = (window.webkitURL || window.URL);
+    if (URL && URL.createObjectURL) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', fileName);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } 
+    else {
+        throw("index_bpg.saveData(): Can't create object URL.");
+    }
 }
 
 // Extract a BPG from the HEVCFrame using the NAL Units
@@ -196,11 +226,36 @@ function extractBPG(sample) {
 	hevcFrame.readData(mp4NALUSData, sample.description.hvcC.lengthSizeMinusOne + 1);
 
 	// Create BPG
-	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size);
+	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size); // CORRECT SIZE
 
 	return bpg;
 }
 
+// BPG manipulation: show, save a copy
+function loadImageFile(file, output) {
+	var fileReader = new FileReader();
+
+	fileReader.onload =
+		function(e) {
+			var arrayBufferRead = fileReader.result;
+			console.log("Start reading the BPG");
+            var bitStreamRead = new BitStream(arrayBufferRead);
+		    var bpg = new BPG(bitStreamRead);
+		    switch(output) {
+		    	case 0:
+		    		console.log("Start saving the BPG");
+		    		var bitStreamWrite = bpg.toBitStream();
+		    		saveData(bitStreamWrite.dataView.buffer, "image.bpg");
+		    		break;
+		    	case 1:
+		    		bpg.show();
+		    }
+		}
+
+	fileReader.readAsArrayBuffer(file);
+}
+
+// UI adjustments
 window.onload = function() {
-	$("#tabs");
+	$("#tabs").tabs();
 }

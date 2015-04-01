@@ -1,3 +1,5 @@
+(function() {
+
 function b(a) {
 	throw a;
 }
@@ -14965,3 +14967,5 @@ window.onload = function() {
 		c.load(g)
 	}
 };
+
+})();
