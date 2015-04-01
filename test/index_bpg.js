@@ -3,35 +3,39 @@
  * Index
  */
 
-/* Setting the level of logs (error, warning, info, debug) */
+// Setting the level of logs (error, warning, info, debug)
 Log.setLogLevel(Log.d);
 
-/* The main object processing the mp4 files */
+// The main object processing the mp4 files
 var mp4box;
 
-/* Object responsible for file downloading */
+// Object responsible for file downloading
 var downloader;
 
-/* Flag for stop downloading */
+// Flag for stop stracting
 var done = false;
 
-// HTTP URL input (TRY TO PUT EVERYTHING HERE)
-function loadHttpUrl(url) {
-
-	mp4box = new MP4Box();
+// Setup MP4Box
+function setMP4Box() {
 
 	mp4box.onMoovStart = function() {
 		console.log("Starting to receive File Information");
 	}
 
 	mp4box.onReady = function(info) {
+		var isHEVC = false;
 		console.log("Received File Information");
 		// Extract only for video tracks
 		for (var i = 0; i < info.tracks.length; i++) {
 			// Video track
-			if (info.tracks[i].video !== undefined)
+			if (info.tracks[i].codec.substring(0,4) === "hvc1") {
+				// 1 call for each sample
 				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
+				isHEVC = true;
+			}
 		}
+		if (!isHEVC)
+			throw("index_bpg.setMP4Box(): Not a HEVC movie file.");
 	}
 
 	mp4box.onError = function(e) {
@@ -53,42 +57,46 @@ function loadHttpUrl(url) {
 				}
 			}
 			else
-				throw("index_bpg.loadHttpUrl: Not HEVC file.");
+				throw("index_bpg.setMP4Box(): Not a expected HEVC movie file.");
 		}
 
-		downloader.stop();
+		if (downloader !== undefined)
+			downloader.stop();
+		
 		mp4box.unsetExtractionOptions(id);
 	}	
-
-    downloader = new Downloader();
-
-	downloader.setCallback(
-		function (response, end, error) { 
-			if (response) {
-				var nextStart = mp4box.appendBuffer(response);
-				downloader.setChunkStart(nextStart); 
-			}
-			if (end) {
-				mp4box.flush();
-			}
-			if (error) {
-				console.log("error downloading");
-			}
-		}
-	);
-
-	downloader.setUrl(url);
-	downloader.setInterval(1000);
-	downloader.setChunkSize(1000000);
-	downloader.start();
 }
 
-// HTTP URL input handler
+// HTTP URL input
 function loadFromHttpUrl() {
 	var url = document.getElementById('urlInput').value;
 
-	if (url)
-		loadHttpUrl(url);	
+	if (url) {
+		mp4box = new MP4Box();
+		setMP4Box();
+
+		downloader = new Downloader();
+
+		downloader.setCallback(
+			function (response, end, error) { 
+				if (response) {
+					var nextStart = mp4box.appendBuffer(response);
+					downloader.setChunkStart(nextStart); 
+				}
+				if (end) {
+					mp4box.flush();
+				}
+				if (error) {
+					console.log("index_bpg.loadFromHttpUrl(): Error downloading.");
+				}
+			}
+		);
+
+		downloader.setUrl(url);
+		downloader.setInterval(1000);
+		downloader.setChunkSize(1000000);
+		downloader.start();
+	}
 	else
 		throw ("index_bpg.loadFromHttpUrl(): URL not informed.");
 }
@@ -100,43 +108,15 @@ function loadVideoFile(file) {
     var self       = this; // we need a reference to the current object
     var readBlock  = null;
  	var startDate  = new Date();
-	var chunkSize  = 1000000;
-	mp4box 	       = new MP4Box();
+	var chunkSize  = 1000000;	
+	
+	mp4box = new MP4Box();
+	setMP4Box();
 
-	mp4box.onError = function(e) { 
-		console.log("mp4box failed to parse data."); 
-	};
-
- 	mp4box.onReady = function (info) {
-		Log.i("Application", "Movie information received");
-		// Extract only for video tracks
-		for (var i = 0; i < info.tracks.length; i++) {
-			// Video track
-			if (info.tracks[i].video !== undefined)
-				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
-		}
-	}
-	mp4box.onSamples = function (id, user, samples) {	
-		var texttrack = user;
-		Log.i("Track #"+id,"Received "+samples.length+" new sample(s)");
-		for (var j = 0; j < samples.length; j++) {
-			var sample = samples[j];
-			if (sample.description.type === "hvc1") {
-				// Send MP4 data to build a BPG
-				if (!done) {			
-					var bpg = extractBPG(sample);
-					bpg.show();
-					done = true;
-				}
-			}
-		}
-		mp4box.unsetExtractionOptions(1);
-	}	
-
-   var onparsedbuffer = function(mp4box, buffer) {
+   	var onparsedbuffer = function(mp4box, buffer) {
     	console.log("Appending buffer with offset "+offset);
 		buffer.fileStart = offset;
-    	mp4box.appendBuffer(buffer);	
+		mp4box.appendBuffer(buffer);	
 	}
 
 	var onBlockRead = function(evt) {
@@ -250,7 +230,7 @@ function loadImageFile(file, output) {
 		    	case 1:
 		    		bpg.show();
 		    }
-		}
+		};
 
 	fileReader.readAsArrayBuffer(file);
 }
