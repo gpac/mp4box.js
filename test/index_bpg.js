@@ -13,13 +13,14 @@ var mp4box;
 var downloader;
 
 // Flag for stop stracting
-var done = false;
+var done;
 
 // Setup MP4Box
 function setMP4Box() {
 
 	mp4box.onMoovStart = function() {
 		console.log("Starting to receive File Information");
+		done = false;
 	}
 
 	mp4box.onReady = function(info) {

@@ -222,11 +222,12 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 		// num_short_term_ref_pic_sets ue(v)
 		var num_short_term_ref_pic_sets = bitStreamRead.expGolombToNum();
 		var inter_ref_pic_set_prediction_flag;
-		var num_negative_pics;
-		var num_positive_pics;
-		var used_by_curr_pic_flag;
+		var num_negative_pics = [];
+		var num_positive_pics = [];
+		var delta_poc = [];
+				
 		for (i = 0; i < num_short_term_ref_pic_sets; i++) {
-			//*********** st_ref_pic_set(i)
+			//*********** st_ref_pic_set(stRpsIdx) stRpsIdx = i
 
 			inter_ref_pic_set_prediction_flag = 0;
 			if (i)
@@ -234,42 +235,84 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 				inter_ref_pic_set_prediction_flag = bitStreamRead.dataView.getUnsigned(1);
 			
 			if (inter_ref_pic_set_prediction_flag) {
+				var delta_idx_minus1 = 0;
+				var k = 0, k0 = 0, k1 = 0;
 				if (i === num_short_term_ref_pic_sets)
 					// delta_idx_minus1 ue(v)
-					bitStreamRead.expGolombToNum();
+					delta_idx_minus1 = bitStreamRead.expGolombToNum();
+
+				if (delta_idx_minus1 > i - 1 || delta_idx_minus1 < 0)
+					throw("HEVCFrame.readSPS(): st_ref_pic_set error.")
+
+				var ref_i = i - 1 - delta_idx_minus1; // RefRpsIdx
 
 				// delta_rps_sign u(1)
-				bitStreamRead.dataView.getUnsigned(1);
+				var delta_rps_sign = bitStreamRead.dataView.getUnsigned(1);
 				// abs_delta_rps_minus1 ue(v)
-				bitStreamRead.expGolombToNum();
-				// for( j = 0; j <= NumDeltaPocs[ RefRpsIdx ] = 0 ; j++ ) { 
+				var abs_delta_rps_minus1 = bitStreamRead.expGolombToNum();
+
+				var deltaRPS = (1 - (delta_rps_sign << 1)) * (abs_delta_rps_minus1 + 1);
 				
-				// used_by_curr_pic_flag u(1)
-				used_by_curr_pic_flag =	bitStreamRead.dataView.getUnsigned(1);
-				if (!used_by_curr_pic_flag)
-					// use_delta_flag
-					bitStreamRead.dataView.getUnsigned(1);
+				var num_delta_pocs = num_negative_pics[ref_i] + num_positive_pics[ref_i];
+				for (var j = 0; j <= num_delta_pocs; j++) {
+					// used_by_curr_pic_flag u(1)
+					var used_by_curr_pic_flag =	bitStreamRead.dataView.getUnsigned(1);
+					var ref_idc = used_by_curr_pic_flag ? 1 : 0;
+					if (!used_by_curr_pic_flag) {
+						// use_delta_flag
+						var use_delta_flag = bitStreamRead.dataView.getUnsigned(1);
+						ref_idc = use_delta_flag << 1;
+					}
+					if ((ref_idc == 1) || (ref_idc == 2)) {
+						var deltaPOC = deltaRPS;
+						if (j < num_delta_pocs)
+							deltaPOC += delta_poc[ref_i][j];
+
+						if (delta_poc[i] === undefined)
+							delta_poc[i] = [];
+						delta_poc[i][k] = deltaPOC;
+
+						if (deltaPOC < 0)  
+							k0++;
+						else 
+							k1++;
+						k++;
+					}
+				}
+				num_negative_pics[i] = k0;
+				num_positive_pics[i] = k1;
 			}
 			else {
+				var prev = 0;
+				var poc = 0;
+				var delta_poc_s0_minus1;
+				var delta_poc_s1_minus1;
 				// num_negative_pics ue(v)
-				num_negative_pics = bitStreamRead.expGolombToNum();
+				num_negative_pics[i] = bitStreamRead.expGolombToNum();
 				// num_positive_pics ue(v)
-				num_positive_pics = bitStreamRead.expGolombToNum();
-				for (var i = 0; i < num_negative_pics; i++) {
-					// delta_poc_s0_minus1[i] ue(v)
-					bitStreamRead.expGolombToNum();
-					// used_by_curr_pic_s0_flag[i] u(1)
+				num_positive_pics[i] = bitStreamRead.expGolombToNum();
+				delta_poc[i] = [];
+				for (var j = 0; j < num_negative_pics; j++) {
+					// delta_poc_s0_minus1 ue(v)
+					delta_poc_s0_minus1 = bitStreamRead.expGolombToNum();
+					poc = prev - delta_poc_s0_minus1 - 1;
+					prev = poc;
+					delta_poc[i][j] = poc;
+					// used_by_curr_pic_s0_flag u(1)
 					bitStreamRead.dataView.getUnsigned(1);
 				}
-				for (var i = 0; i < num_positive_pics; i++) {
-					// delta_poc_s1_minus1[i] ue(v)
-					bitStreamRead.expGolombToNum();
-					// used_by_curr_pic_s1_flag[i] u(1)
+				for (var j = 0; j < num_positive_pics; j++) {
+					// delta_poc_s1_minus1 ue(v)
+					delta_poc_s1_minus1 = bitStreamRead.expGolombToNum();
+					poc = prev - delta_poc_s1_minus1 - 1;
+					prev = poc;
+					delta_poc[i][j] = poc;
+					// used_by_curr_pic_s1_flag u(1)
 					bitStreamRead.dataView.getUnsigned(1);
 				}
 			}
 
-			//*********** st_ref_pic_set(i)
+			//*********** st_ref_pic_set(stRpsIdx) stRpsIdx = i
 		}
 
 		// long_term_ref_pics_present_flag u(1)
