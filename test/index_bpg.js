@@ -54,6 +54,8 @@ function setMP4Box() {
 				if (!done) {
 					var bpg = extractBPG(sample);
 					bpg.show();
+					var bitStreamWrite = bpg.toBitStream();
+		    		saveData(bitStreamWrite.dataView.buffer, "image.bpg");
 					done = true;
 				}
 			}
