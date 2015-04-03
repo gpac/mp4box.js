@@ -50,21 +50,25 @@ function setMP4Box() {
 			var sample = samples[i];
 			// Check if it is HEVC
 			if (sample.description.type === "hvc1") {
-				// Send MP4 data to build a BPG
-				if (!done) {
-					var bpg = extractBPG(sample);
-					bpg.show();
-					done = true;
+				if (sample.dts !== 0 && sample.is_rap === true) {
+					// Send MP4 data to build a BPG
+					if (!done) {
+						var bpg = extractBPG(sample);
+						bpg.show();
+						done = true;
+					}
 				}
 			}
 			else
 				throw("index_bpg.setMP4Box(): Not a expected HEVC movie file.");
 		}
 
-		if (downloader !== undefined)
-			downloader.stop();
-		
-		mp4box.unsetExtractionOptions(id);
+		if (done) {
+			if (downloader !== undefined)
+				downloader.stop();
+			
+			mp4box.unsetExtractionOptions(id);
+		}
 	}	
 }
 
