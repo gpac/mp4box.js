@@ -292,7 +292,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 				// num_positive_pics ue(v)
 				num_positive_pics[i] = bitStreamRead.expGolombToNum();
 				delta_poc[i] = [];
-				for (var j = 0; j < num_negative_pics; j++) {
+				for (var j = 0; j < num_negative_pics[i]; j++) {
 					// delta_poc_s0_minus1 ue(v)
 					delta_poc_s0_minus1 = bitStreamRead.expGolombToNum();
 					poc = prev - delta_poc_s0_minus1 - 1;
@@ -301,7 +301,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 					// used_by_curr_pic_s0_flag u(1)
 					bitStreamRead.dataView.getUnsigned(1);
 				}
-				for (var j = 0; j < num_positive_pics; j++) {
+				for (var j = 0; j < num_positive_pics[i]; j++) {
 					// delta_poc_s1_minus1 ue(v)
 					delta_poc_s1_minus1 = bitStreamRead.expGolombToNum();
 					poc = prev - delta_poc_s1_minus1 - 1;
