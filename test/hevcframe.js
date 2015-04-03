@@ -21,7 +21,6 @@ var HEVCFrame = function() {
 
 // Function that reads the SPS NAL Unit of a MP4(HEVC), decode and stock them in a structure
 HEVCFrame.prototype.readSPS = function (nalu) {
-	var numBytes;
 
 	// Remove Emulation Bytes of the NALU
 	var parsedNalu = this.removeEmulationBytes(nalu);
@@ -643,7 +642,7 @@ HEVCFrame.prototype.toBPG = function(fileSize) {
     bpg.header = {};
 
     bpg.header.hevc_header_length = fileSize; // ceil
-    bpg.header.log2_min_luma_coding_block_size_minus3 = this.SPS. log2_min_luma_coding_block_size_minus3;
+    bpg.header.log2_min_luma_coding_block_size_minus3 = this.SPS.log2_min_luma_coding_block_size_minus3;
     bpg.header.log2_diff_max_min_luma_coding_block_size = this.SPS.log2_diff_max_min_luma_coding_block_size;
     bpg.header.log2_min_transform_block_size_minus2 = this.SPS.log2_min_transform_block_size_minus2;
     bpg.header.log2_diff_max_min_transform_block_size = this.SPS.log2_diff_max_min_transform_block_size;
