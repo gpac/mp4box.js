@@ -87,7 +87,7 @@ function getBoxTable(box) {
 	html += '</thead>';
 	html += '<tbody>';
 	for (var prop in box) {
-		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples", "references"].indexOf(prop) > -1) {
+		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos"].indexOf(prop) > -1) {
 			continue;
 		} else if (box[prop] instanceof BoxParser.Box) {
 			continue;
@@ -127,6 +127,12 @@ function getFancyTreeData(boxes) {
 			fancytree_node.folder = true;
 		} else if (box.references) {
 			fancytree_node.children = getFancyTreeData(box.references);
+			fancytree_node.folder = true;
+		} else if (box.items) {
+			fancytree_node.children = getFancyTreeData(box.items);
+			fancytree_node.folder = true;
+		} else if (box.item_infos) {
+			fancytree_node.children = getFancyTreeData(box.item_infos);
 			fancytree_node.folder = true;
 		}
 	}
