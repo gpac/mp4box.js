@@ -386,8 +386,10 @@ function addSourceBufferListener(info) {
 				if (check.checked) { 
 					addBuffer(video, track_id, codec);
 					initButton.disabled = false;
+					initAllButton.disabled = true;
 				} else {
 					initButton.disabled = removeBuffer(video, track_id);
+					initAllButton.disabled = initButton.disabled;
 				}
 			};
 		})(track.id, track.codec));
