@@ -296,10 +296,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		} else {
 			nextFileStart = this.inputIsoFile.nextParsePosition;
 		}		
-		var index = this.inputStream.findPosition(true, nextFileStart, false);
-		if (index !== -1) {
-			nextFileStart = this.inputStream.findEndContiguousBuf(index);
-		}
+		nextFileStart = this.inputStream.getEndFilePositionAfter(nextFileStart);
 		this.inputStream.getBufferLevel();
 		/* See if any sample extraction or segment creation needs to be done with the available samples */
 		this.processSamples();
@@ -553,10 +550,9 @@ MP4Box.prototype.seek = function(time, useRap) {
 			/* No sample info, in all tracks, cannot seek */
 			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
 		} else {
-			var index = this.inputStream.findPosition(true, seek_info.offset, false);
-			if (index !== -1) {
-				seek_info.offset = this.inputStream.findEndContiguousBuf(index);
-			}
+			/* check if the seek position is already in some buffer and in that case return the end of that buffer (or of the last contiguous buffer) */
+			/* TODO: Should wait until append operations are done */
+			seek_info.offset = this.inputStream.getEndFilePositionAfter(seek_info.offset);
 		}
 		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" (requested time "+Log.getDurationString(time, 1)+") needs a buffer with a fileStart position of "+seek_info.offset);
 		return seek_info;

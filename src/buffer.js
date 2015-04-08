@@ -304,3 +304,11 @@ MultiBufferStream.prototype.getStartFilePosition = function() {
 	return this.buffer.fileStart + this.buffer.byteLength;
 }
 
+MultiBufferStream.prototype.getEndFilePositionAfter = function(pos) {
+	var index = this.findPosition(true, pos, false);
+	if (index !== -1) {
+		return this.findEndContiguousBuf(index);
+	} else {
+		return pos;
+	}
+}
