@@ -117,7 +117,7 @@ MultiBufferStream.prototype.insertBuffer = function(ab) {
 }
 
 
-MultiBufferStream.prototype.getBufferLevel = function() {
+MultiBufferStream.prototype.getBufferLevel = function(info) {
 	var i;
 	var buffer;
 	var used, total;
@@ -149,7 +149,12 @@ MultiBufferStream.prototype.getBufferLevel = function() {
 	if (ranges.length > 0) {
 		bufferedString += range.end;
 	}
-	Log.i("MultiBufferStream", ""+this.buffers.length+" buffers ("+used+"/"+total+" bytes): "+bufferedString);
+	var log = (info ? Log.i : Log.d)
+	if (this.buffers.length === 0) {
+		log("MultiBufferStream", "No stored buffer");
+	} else {
+		log("MultiBufferStream", ""+this.buffers.length+" stored buffer(s) ("+used+"/"+total+" bytes): "+bufferedString);
+	}
 }
 
 MultiBufferStream.prototype.cleanBuffers = function () {
@@ -158,7 +163,7 @@ MultiBufferStream.prototype.cleanBuffers = function () {
 	for (i = 0; i < this.buffers.length; i++) {
 		buffer = this.buffers[i];
 		if (buffer.usedBytes === buffer.byteLength) {
-			Log.i("MultiBufferStream", "Removing buffer #"+i);
+			Log.d("MultiBufferStream", "Removing buffer #"+i);
 			this.buffers.splice(i, 1);
 			i--;
 		}

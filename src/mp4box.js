@@ -312,7 +312,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+nextFileStart);
 
 		this.inputStream.cleanBuffers();
-		this.inputStream.getBufferLevel();
+		this.inputStream.getBufferLevel(true);
 
 		return nextFileStart;
 	} else {
@@ -491,6 +491,8 @@ MP4Box.prototype.flush = function() {
 	Log.i("MP4Box", "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();
 	this.processSamples();
+	this.inputStream.cleanBuffers();
+	this.inputStream.getBufferLevel(true);
 }
 
 /* Finds the byte offset for a given time on a given track
