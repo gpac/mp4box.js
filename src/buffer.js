@@ -133,13 +133,13 @@ MultiBufferStream.prototype.logBufferLevel = function(info) {
 			ranges.push(range);
 			range.start = buffer.fileStart;
 			range.end = buffer.fileStart+buffer.byteLength;
-			bufferedString += range.start+"-";
+			bufferedString += "["+range.start+"-";
 		} else if (range.end === buffer.fileStart) {
 			range.end = buffer.fileStart+buffer.byteLength;
 		} else {
 			range = {};
 			range.start = buffer.fileStart;
-			bufferedString += (ranges[ranges.length-1].end-1)+", "+range.start+"-";
+			bufferedString += (ranges[ranges.length-1].end-1)+"], ["+range.start+"-";
 			range.end = buffer.fileStart+buffer.byteLength;
 			ranges.push(range);
 		}
@@ -147,7 +147,7 @@ MultiBufferStream.prototype.logBufferLevel = function(info) {
 		total += buffer.byteLength;
 	}
 	if (ranges.length > 0) {
-		bufferedString += (range.end-1);
+		bufferedString += (range.end-1)+"]";
 	}
 	var log = (info ? Log.i : Log.d)
 	if (this.buffers.length === 0) {
