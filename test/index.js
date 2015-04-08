@@ -343,12 +343,16 @@ function addBuffer(video, track_id, codec) {
 	var ms = video.ms;
 	var mime = 'video/mp4; codecs=\"'+codec+'\"';
 	if (MediaSource.isTypeSupported(mime)) {
-		Log.i("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
-		sb = ms.addSourceBuffer(mime);
-		sb.ms = ms;
-		sb.id = track_id;
-		mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
-		sb.pendingAppends = [];
+		try {
+			Log.i("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
+			sb = ms.addSourceBuffer(mime);
+			sb.ms = ms;
+			sb.id = track_id;
+			mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
+			sb.pendingAppends = [];
+		} catch (e) {
+			Log.e("MSE - SourceBuffer #"+track_id,"Cannot create buffer with type '"+mime+"'" + e);
+		}
 	} else {
 		Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 		var textrack = video.addTextTrack("subtitles", "Text track for track "+track_id);
