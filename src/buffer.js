@@ -261,7 +261,7 @@ MultiBufferStream.prototype.findEndContiguousBuf = function(inputindex) {
 	var i;
 	var currentBuf;
 	var nextBuf;
-	var index = inputindex || this.bufferIndex;
+	var index = (inputindex !== undefined ? inputindex : this.bufferIndex);
 	currentBuf = this.buffers[index];
 	/* find the end of the contiguous range of data */
 	if (this.buffers.length > index+1) {

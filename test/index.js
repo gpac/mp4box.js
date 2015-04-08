@@ -407,9 +407,6 @@ function initializeAllSourceBuffers() {
 			var track = info.tracks[i];
 			addBuffer(video, track.id, track.codec);
 		}
-		initAllButton.disabled = true;
-		initButton.disabled = true;
-		startButton.disabled = false;
 		initializeSourceBuffers();
 	}
 }
@@ -426,7 +423,6 @@ function initializeSourceBuffers() {
 	}
 	initAllButton.disabled = true;	
 	initButton.disabled = true;
-	startButton.disabled = false;
 }
 
 /* main player functions */
