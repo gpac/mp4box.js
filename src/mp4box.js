@@ -6,7 +6,7 @@ var MP4Box = function (_keepMdatData) {
 	/* MultiBufferStream to parse chunked file data */
 	this.inputStream = new MultiBufferStream();
 	/* Boolean indicating if bytes containing media data should be kept in memory */
-	this.keepMdatData = (_keepMdatData ? _keepMdatData : true);
+	this.keepMdatData = (_keepMdatData !== undefined ? _keepMdatData : true);
 	/* ISOFile object containing the parsed boxes */
 	this.inputIsoFile = new ISOFile(this.inputStream);
 	this.inputIsoFile.discardMdatData = (this.keepMdatData ? false : true);
