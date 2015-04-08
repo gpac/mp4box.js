@@ -174,54 +174,62 @@ BPG.prototype.writeHEVCHeader = function(header, bitStream) {
 //  Write the BPG in a BitStream
 BPG.prototype.toBitStream = function() {
     var arrayBuffer = new ArrayBuffer(this.file_size);
-    var bitStream = new BitStream(arrayBuffer);
+    var bitStreamWrite = new BitStream(arrayBuffer);
+    var bitStreamRead = new BitStream(arrayBuffer);
 
-    bitStream.dataView.writeUnsigned(this.file_magic, 32);
+    bitStreamWrite.dataView.writeUnsigned(this.file_magic, 32);
 
-    bitStream.dataView.writeUnsigned(this.pixel_format, 3);
-    bitStream.dataView.writeUnsigned(this.alpha1_flag, 1);
-    bitStream.dataView.writeUnsigned(this.bit_depth_minus_8, 4);
+    bitStreamWrite.dataView.writeUnsigned(this.pixel_format, 3);
+    bitStreamWrite.dataView.writeUnsigned(this.alpha1_flag, 1);
+    bitStreamWrite.dataView.writeUnsigned(this.bit_depth_minus_8, 4);
 
-    bitStream.dataView.writeUnsigned(this.color_space, 4);
-    bitStream.dataView.writeUnsigned(this.extension_present_flag, 1);
-    bitStream.dataView.writeUnsigned(this.alpha2_flag, 1);
-    bitStream.dataView.writeUnsigned(this.limited_range_flag, 1);
-    bitStream.dataView.writeUnsigned(this.animation_flag, 1);    
+    bitStreamWrite.dataView.writeUnsigned(this.color_space, 4);
+    bitStreamWrite.dataView.writeUnsigned(this.extension_present_flag, 1);
+    bitStreamWrite.dataView.writeUnsigned(this.alpha2_flag, 1);
+    bitStreamWrite.dataView.writeUnsigned(this.limited_range_flag, 1);
+    bitStreamWrite.dataView.writeUnsigned(this.animation_flag, 1);    
 
-    bitStream.numToue7n(this.picture_width);
-    bitStream.numToue7n(this.picture_height);
+    bitStreamWrite.numToue7n(this.picture_width);
+    bitStreamWrite.numToue7n(this.picture_height);
      
-    bitStream.numToue7n(this.picture_data_length);
+    bitStreamWrite.numToue7n(this.picture_data_length);
      
     if (this.extension_present_flag) {  
-    	bitStream.numToue7n(this.extension_data_length);
+    	bitStreamWrite.numToue7n(this.extension_data_length);
 
 	    for (var i = 0; i < this.extension_data_length; i++) {
-	    	bitStream.numToue7n(this.extension_tag[i]);
-	        bitStream.numToue7n(this.extension_tag_length[i]);
+	    	bitStreamWrite.numToue7n(this.extension_tag[i]);
+	        bitStreamWrite.numToue7n(this.extension_tag_length[i]);
 	        
 	        if (this.extension_tag[i] === 5) {
-	        	bitStream.numToue7n(this.loop_count[i]);
-	            bitStream.numToue7n(this.frame_period_num[i]);	
-	            bitStream.numToue7n(this.frame_period_den[i]);	
+	        	bitStreamWrite.numToue7n(this.loop_count[i]);
+	            bitStreamWrite.numToue7n(this.frame_period_num[i]);	
+	            bitStreamWrite.numToue7n(this.frame_period_den[i]);	
 			    for (var j = 0; j < this.extension_tag_length[i]; j++)
-			    	bitStream.dataView.writeUnsigned(this.dummy_byte[i][j], 8);
+			    	bitStreamWrite.dataView.writeUnsigned(this.dummy_byte[i][j], 8);
 			}
 	        else
 	            for(var j = 0; j < this.extension_tag_length[i]; j++)
-	            	bitStream.dataView.writeUnsigned(this.extension_tag_data_byte[i][j], 8);
+	            	bitStreamWrite.dataView.writeUnsigned(this.extension_tag_data_byte[i][j], 8);
 	    }
     }
 
     if (this.alpha1_flag || this.alpha2_flag)
-        this.writeHEVCHeader(this.header_transp, bitStream);
+        this.writeHEVCHeader(this.header_transp, bitStreamWrite);
 
-    this.writeHEVCHeader(this.header, bitStream);
+    this.writeHEVCHeader(this.header, bitStreamWrite);
     
     for (var i = 0; i < this.hevc_data_byte.length; i++)
-    	bitStream.dataView.writeUnsigned(this.hevc_data_byte[i], 8);
+    	bitStreamWrite.dataView.writeUnsigned(this.hevc_data_byte[i], 8);
 
-    return bitStream;
+    // Final BitStream to write the right amount of data
+    var arrayBufferFinal = new ArrayBuffer(bitStreamWrite.dataView._offset);
+    var bitStreamFinal = new BitStream(arrayBufferFinal);
+
+    for (var i = 0; i < bitStreamWrite.dataView._offset; i++)
+        bitStreamFinal.dataView.writeUnsigned(bitStreamRead.dataView.getUnsigned(8), 8);
+
+    return bitStreamFinal;
 }
 
 // Show the BPG in a canvas using the BPGDecoder

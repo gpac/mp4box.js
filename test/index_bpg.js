@@ -50,7 +50,7 @@ function setMP4Box() {
 			var sample = samples[i];
 			// Check if it is HEVC
 			if (sample.description.type === "hvc1") {
-				if (sample.dts !== 0 && sample.is_rap === true) {
+				if (sample.dts !==0  && sample.is_rap === true) {
 					// Send MP4 data to build a BPG
 					if (!done) {
 						var bpg = extractBPG(sample);
@@ -213,7 +213,7 @@ function extractBPG(sample) {
 	hevcFrame.readData(mp4NALUSData, sample.description.hvcC.lengthSizeMinusOne + 1);
 
 	// Create BPG
-	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size); // CORRECT SIZE
+	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size);
 
 	return bpg;
 }

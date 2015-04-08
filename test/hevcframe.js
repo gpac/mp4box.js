@@ -168,7 +168,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 					for (var matrixId = 0; matrixId < 6; matrixId += (sizeId === 3) ? 3 : 1) {
 						
 						// scaling_list_pred_mode_flag[sizeId][matrixId]
-						if (scaling_list_pred_mode_flag[sizeId] == undefined)
+						if (scaling_list_pred_mode_flag[sizeId] === undefined)
 							scaling_list_pred_mode_flag[sizeId] = [];
 						scaling_list_pred_mode_flag[sizeId][matrixId] = bitStreamRead.expGolombToNum();
 						
@@ -262,7 +262,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 						var use_delta_flag = bitStreamRead.dataView.getUnsigned(1);
 						ref_idc = use_delta_flag << 1;
 					}
-					if ((ref_idc == 1) || (ref_idc == 2)) {
+					if ((ref_idc === 1) || (ref_idc === 2)) {
 						var deltaPOC = deltaRPS;
 						if (j < num_delta_pocs)
 							deltaPOC += delta_poc[ref_i][j];
@@ -616,12 +616,12 @@ HEVCFrame.prototype.readData = function(data, headerLength) {
 HEVCFrame.prototype.toBPG = function(fileSize) {
     var bpg = new BPG();
 
-    bpg.file_size = fileSize;
+    bpg.file_size = fileSize; // Just a ceil
 
     bpg.file_magic = 0x425047fb;
     
     bpg.pixel_format = this.SPS.chroma_format_idc;
-    bpg.alpha1_flag = 0;
+    bpg.alpha1_flag = 0; // ?
     if (this.SPS.bit_depth_luma_minus8 === this.SPS.bit_depth_chroma_minus8)
     	bpg.bit_depth_minus_8 = this.SPS.bit_depth_chroma_minus8;
     else
@@ -641,7 +641,7 @@ HEVCFrame.prototype.toBPG = function(fileSize) {
 
     bpg.header = {};
 
-    bpg.header.hevc_header_length = fileSize; // ceil
+    bpg.header.hevc_header_length = fileSize; // Just a ceil
     bpg.header.log2_min_luma_coding_block_size_minus3 = this.SPS.log2_min_luma_coding_block_size_minus3;
     bpg.header.log2_diff_max_min_luma_coding_block_size = this.SPS.log2_diff_max_min_luma_coding_block_size;
     bpg.header.log2_min_transform_block_size_minus2 = this.SPS.log2_min_transform_block_size_minus2;
