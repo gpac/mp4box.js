@@ -558,7 +558,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 				seek_info.offset = this.inputStream.findEndContiguousBuf(index);
 			}
 		}
-		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
+		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" (requested time "+Log.getDurationString(time, 1)+") needs a buffer with a fileStart position of "+seek_info.offset);
 		return seek_info;
 	}
 }
