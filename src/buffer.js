@@ -18,12 +18,12 @@ MultiBufferStream.prototype.initialized = function() {
 			return true;
 		} else {
 			Log.w("MultiBufferStream", "The first buffer should have a fileStart of 0");
-			this.getBufferLevel();
+			this.logBufferLevel();
 			return false;
 		}
 	} else {
 		Log.w("MultiBufferStream", "No buffer to start parsing from");
-		this.getBufferLevel();
+		this.logBufferLevel();
 		return false;
 	}			
 }
@@ -117,7 +117,7 @@ MultiBufferStream.prototype.insertBuffer = function(ab) {
 }
 
 
-MultiBufferStream.prototype.getBufferLevel = function(info) {
+MultiBufferStream.prototype.logBufferLevel = function(info) {
 	var i;
 	var buffer;
 	var used, total;
@@ -151,7 +151,7 @@ MultiBufferStream.prototype.getBufferLevel = function(info) {
 	}
 	var log = (info ? Log.i : Log.d)
 	if (this.buffers.length === 0) {
-		log("MultiBufferStream", "No stored buffer");
+		log("MultiBufferStream", "No more buffer in memory");
 	} else {
 		log("MultiBufferStream", ""+this.buffers.length+" stored buffer(s) ("+used+"/"+total+" bytes): "+bufferedString);
 	}
@@ -236,7 +236,7 @@ MultiBufferStream.prototype.findPosition = function(fromStart, filePosition, mar
 				} else {
 					abuffer.usedBytes = filePosition - abuffer.fileStart;
 				}		
-				this.getBufferLevel();	
+				this.logBufferLevel();	
 			}
 		} else {
 			break;
@@ -288,12 +288,12 @@ MultiBufferStream.prototype.getFilePosition = function() {
 
 MultiBufferStream.prototype.addUsedBytes = function(nbBytes) {
 	this.buffer.usedBytes += nbBytes;
-	this.getBufferLevel();
+	this.logBufferLevel();
 }
 
 MultiBufferStream.prototype.setAllUsedBytes = function() {
 	this.buffer.usedBytes = this.buffer.byteLength;
-	this.getBufferLevel();
+	this.logBufferLevel();
 }
 
 MultiBufferStream.prototype.getEndFilePosition = function() {

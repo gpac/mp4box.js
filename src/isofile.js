@@ -602,7 +602,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 
 			/* update the number of bytes used in this buffer and check if it needs to be removed */
 			buffer.usedBytes += sample.size - sample.alreadyRead;
-			this.multistream.getBufferLevel();
+			this.multistream.logBufferLevel();
 
 			sample.alreadyRead = sample.size;
 
@@ -619,7 +619,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 
 			/* update the number of bytes used in this buffer and check if it needs to be removed */
 			buffer.usedBytes += lengthAfterStart;
-			this.multistream.getBufferLevel();
+			this.multistream.logBufferLevel();
 		}
 	} else {
 		return null;

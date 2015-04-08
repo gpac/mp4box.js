@@ -246,22 +246,24 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	}	
 	if (ab.byteLength === 0) {
 		Log.w("MP4Box", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
-		this.inputStream.getBufferLevel();
+		this.inputStream.logBufferLevel();
 		return;
 	}
+	Log.i("MP4Box", "Processing buffer (fileStart: "+ab.fileStart+")");
+
 	/* mark the bytes in the buffer as not being used yet */
 	ab.usedBytes = 0;
 	this.inputStream.insertBuffer(ab);
+	this.inputStream.logBufferLevel();
 
 	if (!this.inputStream.initialized()) {
 		Log.w("MP4Box", "Not ready to start parsing");
-		this.inputStream.getBufferLevel();
 		return;
 	}
 
 	/* Parse whatever is in the existing buffers */
 	this.inputIsoFile.parse();
-	this.inputStream.getBufferLevel();
+	this.inputStream.logBufferLevel();
 
 	/* Check if the moovStart callback needs to be called */
 	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
@@ -289,6 +291,9 @@ MP4Box.prototype.appendBuffer = function(ab) {
 			this.onReady(info);
 		}
 
+		/* See if any sample extraction or segment creation needs to be done with the available samples */
+		this.processSamples();
+
 		/* Inform about the best range to fetch next */
 		if (this.nextSeekPosition) {
 			nextFileStart = this.nextSeekPosition;
@@ -297,29 +302,21 @@ MP4Box.prototype.appendBuffer = function(ab) {
 			nextFileStart = this.inputIsoFile.nextParsePosition;
 		}		
 		nextFileStart = this.inputStream.getEndFilePositionAfter(nextFileStart);
-		this.inputStream.getBufferLevel();
-		/* See if any sample extraction or segment creation needs to be done with the available samples */
-		this.processSamples();
-
-		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+nextFileStart);
-
-		this.inputStream.cleanBuffers();
-		this.inputStream.getBufferLevel(true);
-
-		return nextFileStart;
 	} else {
-		this.inputStream.getBufferLevel();
-		this.inputStream.cleanBuffers();
-		this.inputStream.getBufferLevel();
 		if (this.inputIsoFile !== null) {
 			/* moov has not been parsed but the first buffer was received, 
 			   the next fetch should probably be the next box start */
-			return this.inputIsoFile.nextParsePosition;
+			nextFileStart = this.inputIsoFile.nextParsePosition;
 		} else {
 			/* No valid buffer has been parsed yet, we cannot know what to parse next */
-			return 0;
+			nextFileStart = 0;
 		}
 	}	
+	Log.i("MP4Box", "Done processing buffer (fileStart: "+ab.fileStart+") - next buffer to fetch should have a fileStart position of "+nextFileStart);
+	this.inputStream.logBufferLevel();
+	this.inputStream.cleanBuffers();
+	this.inputStream.logBufferLevel(true);
+	return nextFileStart;
 }
 
 MP4Box.prototype.getInfo = function() {
@@ -484,7 +481,7 @@ MP4Box.prototype.flush = function() {
 	this.inputIsoFile.updateSampleLists();
 	this.processSamples();
 	this.inputStream.cleanBuffers();
-	this.inputStream.getBufferLevel(true);
+	this.inputStream.logBufferLevel(true);
 }
 
 /* Finds the byte offset for a given time on a given track
