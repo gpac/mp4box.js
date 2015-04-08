@@ -5,8 +5,11 @@
 var MP4Box = function (_keepMdatData) {
 	/* MultiBufferStream to parse chunked file data */
 	this.inputStream = new MultiBufferStream();
+	/* Boolean indicating if bytes containing media data should be kept in memory */
+	this.keepMdatData = (_keepMdatData ? _keepMdatData : true);
 	/* ISOFile object containing the parsed boxes */
-	this.inputIsoFile = null;
+	this.inputIsoFile = new ISOFile(this.inputStream);
+	this.inputIsoFile.discardMdatData = (this.keepMdatData ? false : true);
 	/* Callback called when the moov parsing starts */
 	this.onMoovStart = null;
 	/* Boolean keeping track of the call to onMoovStart, to avoid double calls */
@@ -31,8 +34,6 @@ var MP4Box = function (_keepMdatData) {
 	this.isFragmentationStarted = false;
 	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
-	/* Boolean indicating if bytes containing media data should be kept in memory */
-	this.keepMdatData = (_keepMdatData ? _keepMdatData : true);
 }
 
 MP4Box.prototype.setSegmentOptions = function(id, user, options) {
@@ -256,12 +257,6 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		Log.w("MP4Box", "Not ready to start parsing");
 		this.inputStream.getBufferLevel();
 		return;
-	}
-
-	/* Initialize the ISOFile object if not yet created */
-	if (!this.inputIsoFile) {
-		this.inputIsoFile = new ISOFile(this.inputStream);
-		this.inputIsoFile.discardMdatData = (this.keepMdatData ? false : true);
 	}
 
 	/* Parse whatever is in the existing buffers */
@@ -558,9 +553,9 @@ MP4Box.prototype.seek = function(time, useRap) {
 			/* No sample info, in all tracks, cannot seek */
 			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
 		} else {
-			var index = this.inputIsoFile.findPosition(true, seek_info.offset, false);
+			var index = this.inputStream.findPosition(true, seek_info.offset, false);
 			if (index !== -1) {
-				seek_info.offset = this.inputIsoFile.findEndContiguousBuf(index);
+				seek_info.offset = this.inputStream.findEndContiguousBuf(index);
 			}
 		}
 		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
