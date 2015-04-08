@@ -599,7 +599,7 @@ function computeWaitingTimeFromBuffer(v) {
 	/* computing the intersection of the buffered values of all active sourcebuffers around the current time, 
 	   may already be done by the browser when calling video.buffered (to be checked: TODO) */
 	for (var i = 0; i < ms.activeSourceBuffers.length; i++) {
-		sb = ms.activeSourceBuffers.item(i);
+		sb = ms.activeSourceBuffers[i];
 		for (var j = 0; j < sb.buffered.length; j++) {
 			startRange = sb.buffered.start(j);
 			endRange = sb.buffered.end(j);
