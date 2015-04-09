@@ -6,18 +6,43 @@ module.exports = function(grunt) {
       options: {
         separator: ';'
       },
-      dist: {
-        src: ['src/**/*.js'],
-        dest: 'dist/<%= pkg.name %>.js'
+      all: {
+        src: ['src/log.js',         // logging system
+              'src/DataStream.js',  // bit/byte/string read-write operations
+              'src/descriptor.js',  // MPEG-4 descriptor parsing
+              'src/box.js',         // base code for box parsing/writing
+              'src/box-parse.js',   // box parsing code 
+              'src/box-write.js',   // box writing code
+              'src/box-unpack.js',  // box code for sample manipulation
+              'src/mp4-text.js',  // text-based track manipulations
+              'src/isofile.js',     // file level operations (read, write)
+              'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
+        ],
+        dest: 'dist/<%= pkg.name %>.all.js'
+      },
+      simple: {
+        src: ['src/log.js',         // logging system
+              'src/DataStream.js',  // bit/byte/string read-write operations
+              'src/box.js',         // base code for box parsing/writing
+              'src/box-parse.js',   // box parsing code 
+              'src/isofile.js',     // file level operations (read, write)
+              'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
+        ],
+        dest: 'dist/<%= pkg.name %>.simple.js'
       }
     },
     uglify: {
       options: {
         banner: '/*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
       },
-      dist: {
+      all: {
         files: {
-          'dist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
+          'dist/<%= pkg.name %>.all.min.js': ['<%= concat.all.dest %>']
+        }
+      },
+      simple: {
+        files: {
+          'dist/<%= pkg.name %>.simple.min.js': ['<%= concat.simple.dest %>']
         }
       }
     },
@@ -39,7 +64,7 @@ module.exports = function(grunt) {
 	    }
   	},
   	jshint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js', '!test/lib/**/*.js'],
+      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js', '!test/lib/**/*.js' , '!test/mp4/**/*.js'],
       options: {
         // options here to override JSHint defaults
     	eqeqeq: false,
@@ -65,6 +90,9 @@ module.exports = function(grunt) {
 
   grunt.registerTask('test', ['jshint', 'connect', 'qunit']);
 
-  grunt.registerTask('default', [ 'jshint', 'concat', 'uglify']);
+  grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
+  grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
+
+  grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
 
 };

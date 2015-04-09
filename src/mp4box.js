@@ -669,3 +669,7 @@ MP4Box.prototype.getTrackSample = function(track_id, number) {
 	var sample = this.inputIsoFile.getSample(track, number);
 	return sample;	
 }
+
+if (typeof exports !== 'undefined') {
+	exports.MP4Box = MP4Box;	
+}
