@@ -233,33 +233,52 @@ BPG.prototype.toBitStream = function() {
 }
 
 // Show the BPG in a canvas using the BPGDecoder
-BPG.prototype.show = function() {
+BPG.prototype.show = function(isThumbnail) {
     console.log("Showing BPG");
 
     var bitStream = this.toBitStream();
 
-    if (bitStream) {
+    if (this.dts !== undefined)
+        var dts = this.dts;
 
-        canvas = document.getElementById("canvas");
-        canvas.width = this.picture_width;
-        canvas.height = this.picture_height;
+    if (bitStream) {
 
         var blob = new Blob([bitStream.dataView.buffer]);
         var URL = (window.webkitURL || window.URL);
-        var img, canvas, ctx;
         if (URL && URL.createObjectURL) {
             var url = URL.createObjectURL(blob);
-            
-            canvas = document.getElementById("canvas");
-            ctx = canvas.getContext("2d");
+        
+            //ctx.fillStyle="red";
+            //ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle="red";
-            ctx.fillRect(0,0,canvas.width,canvas.height);
-
-            img = new BPGDecoder(ctx);
+            var canvas = document.createElement("canvas");
+            var ctx = canvas.getContext("2d");
+            var img = new BPGDecoder(ctx);
             img.onload = function() {
-                /* draw the image to the canvas */
+                
+                canvas.height = this.imageData.height;
+                canvas.width = this.imageData.width;
                 ctx.putImageData(this.imageData, 0, 0);
+
+                // Thumbnails in timeline 
+                if (isThumbnail) {
+                    sF = 100.0 / this.imageData.height;
+                    var timeline = document.getElementById("timeline");
+                    var canvasTimeline = document.createElement("canvas");
+                    timeline.appendChild(canvasTimeline);
+                    canvasTimeline.id = "canvasThumbnail" + dts;
+                    var ctxTimeline = canvasTimeline.getContext("2d");
+                    ctxTimeline.scale(sF, sF);
+                    ctxTimeline.drawImage(canvas, 0, 0);
+                }
+                // Image
+                else {
+                    sF = 500.0 / this.imageData.height;
+                    var canvasImage = document.getElementById("canvasImage");
+                    var ctxImage = canvasImage.getContext("2d");
+                    ctxImage.scale(sF, sF);
+                    ctxImage.drawImage(canvas, 0, 0);
+                }
             };
             img.load(url);
         }

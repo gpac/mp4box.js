@@ -613,10 +613,12 @@ HEVCFrame.prototype.readData = function(data, headerLength) {
 	this.data = parsedData;
 }
 
-HEVCFrame.prototype.toBPG = function(fileSize) {
+HEVCFrame.prototype.toBPG = function(fileSize, dts) {
     var bpg = new BPG();
 
     bpg.file_size = fileSize; // Just a ceil
+
+    bpg.dts = dts; // Time in the timeline in casa of an image extraction
 
     bpg.file_magic = 0x425047fb;
     

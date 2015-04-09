@@ -27,46 +27,44 @@
     </head>
 
     <body>
-        <h2>MP4Box.js</h2>
-        <h3>HEVC / BPG - Image extraction and manipulation</h3>
-       
-        <div id="tabs">
-            <ul>
-                <li><a href="#tabs-1">File upload</a></li>
-                <li><a href="#tabs-2">HTTP URL input</a></li>
-                <li><a href="#tabs-3">List examples</a></li>
-                <li><a href="#tabs-4">BPG manipulation</a></li>
-            </ul>
-            <div id="tabs-1">
-                <legend>BPG extraction from video file upload</legend>
-                </br>
-                <input type="file" id="videoFileInput" onchange="loadFromFile(this);">
-            </div>
-            <div id="tabs-2">
-                <legend>BPG extraction from HTTP URL video file</legend>
-                </br>
-                <label for="urlInput">Enter URL:</label>
-                <input type="url" id="urlInput">
-                <button onclick="loadFromHttpUrl();">Load</button>
-            </div>
-            <div id="tabs-3">
-                <legend>BPG extraction from video file examples</legend>
-                </br>
-                <legend>Select example:</legend>
-                <select id="urlSelector">
-                </select>
-                <button onclick="loadFromHttpUrlList();">Load</button>
-            </div>
-            <div id="tabs-4">
-                <legend>BPG visualisation and regeneration</legend>
-                </br>
-                <input type="file" id="imageFileInput">
-                <button id="createCopy" onclick="loadFromFile(this);">Create copy</button>
-                <button id="show" onclick="loadFromFile(this);">Show</button>
+        <div id="menu"> 
+            <h2>MP4Box.js</h2>
+            <h3>HEVC / BPG - Image extraction and manipulation</h3>
+           
+            <div id="tabs">
+                <ul>
+                    <li><a href="#tabs-1">File upload</a></li>
+                    <li><a href="#tabs-2">HTTP URL input</a></li>
+                    <!-- <li><a href="#tabs-3">List examples</a></li> -->
+                </ul>
+                <div id="tabs-1">
+                    <legend>Select a HEVC(MP4) / BPG file</legend>
+                    </br>
+                    <input type="file" id="fileInput" onchange="loadFromFile();">
+                </div>
+                <div id="tabs-2">
+                    <legend>Insert a HEVC(MP4) / BPG HTTP URL</legend>
+                    </br>
+                    <label for="urlInput">Enter URL:</label>
+                    <input type="url" id="urlInput">
+                    <button onclick="loadFromHttpUrl();">Load</button>
+                </div>
+                <!-- <div id="tabs-3">
+                    <legend>BPG extraction from video file examples</legend>
+                    </br>
+                    <legend>Select example:</legend>
+                    <select id="urlSelector">
+                    </select>
+                    <button onclick="loadFromHttpUrlList();">Load</button>
+                </div> -->
             </div>
         </div>
 
-        <canvas id="canvas" width="512" height="512"></canvas>
+        <div id="timeline"></div>
+
+        <div id="image">
+            <canvas id="canvasImage"></canvas>
+        </div>
 
     </body>
 </html>
