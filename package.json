@@ -4,14 +4,15 @@
   "description": "JavaScript version of GPAC's MP4Box tool",
   "keywords": [
     "mp4",
-    "MSE",
+    "HTML 5 media",
+    "Media Source Extension",
     "streaming"
   ],
   "homepage": "https://github.com/gpac/mp4box.js",
   "main": "dist/mp4box.all.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gpac/mp4box.js.git"
+    "url": "git://github.com/gpac/mp4box.js.git"
   },
   "bugs": {
     "url": "https://github.com/gpac/mp4box.js/issues"
