@@ -265,16 +265,24 @@ BPG.prototype.show = function(isThumbnail) {
                     sF = 100.0 / this.imageData.height;
                     var timeline = document.getElementById("timeline");
                     var canvasTimeline = document.createElement("canvas");
+                    canvasTimeline.className = "thumbnail";
+                    canvasTimeline.height = 100;
+                    canvasTimeline.width = this.imageData.width * sF;
                     timeline.appendChild(canvasTimeline);
                     canvasTimeline.id = "canvasThumbnail" + dts;
                     var ctxTimeline = canvasTimeline.getContext("2d");
                     ctxTimeline.scale(sF, sF);
                     ctxTimeline.drawImage(canvas, 0, 0);
+
+                    // canvasTimeline.addEventListener("click", , false);
+
                 }
                 // Image
                 else {
                     sF = 500.0 / this.imageData.height;
                     var canvasImage = document.getElementById("canvasImage");
+                    canvasImage.height = 500;
+                    canvasImage.width = this.imageData.width * sF;
                     var ctxImage = canvasImage.getContext("2d");
                     ctxImage.scale(sF, sF);
                     ctxImage.drawImage(canvas, 0, 0);

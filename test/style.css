@@ -6,17 +6,13 @@ body {
 	font-family: tahoma, arial, sans-serif;
 }
 
-/*#menu {
-	width: 100%;
-	padding: 20px;
-	position: fixed;
-	left: 0px;
-	top: 0px;
-}*/
-
 #image {
 	position: fixed;
   	top: 50%;
   	left: 50%;
   	transform: translate(-50%, -50%);
+}
+
+.thumbnail {
+	margin: 10px;
 }
