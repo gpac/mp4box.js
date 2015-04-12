@@ -13,6 +13,21 @@ body {
   	transform: translate(-50%, -50%);
 }
 
+#progressLabel {
+	text-align: center;
+}
+
+#menu {
+	height: 279px;
+}
+
 .thumbnail {
 	margin: 10px;
+}
+
+.fixed-menu {
+	position: fixed;
+	top: 0;
+	left: 20px;
+	right: 20px;
 }

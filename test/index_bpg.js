@@ -12,6 +12,12 @@ var mp4box;
 // Object responsible for file downloading
 var downloader;
 
+// Progress bar information
+var progressBar;
+var progressLabel;
+var samplesRead;
+var totalSamples;
+
 // Setup MP4Box
 function setMP4Box() {
 
@@ -26,9 +32,12 @@ function setMP4Box() {
 		for (var i = 0; i < info.tracks.length; i++) {
 			// Video track
 			if (info.tracks[i].codec.substring(0,4) === "hvc1") {
+				totalSamples = info.tracks[i].nb_samples;
+				samplesRead = 0;
 				// 1 call for each sample
 				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
 				isHEVC = true;
+				progressLabel.show();
 			}
 		}
 		if (!isHEVC)
@@ -53,6 +62,8 @@ function setMP4Box() {
 					/*var bitStreamWrite = bpg.toBitStream();
 	    			saveData(bitStreamWrite.dataView.buffer, "image.bpg");*/	
 				}
+				samplesRead++;
+				progressBar.progressbar({ value: Math.ceil(100*samplesRead/totalSamples) });
 			}
 			else
 				throw("index_bpg.setMP4Box(): Not a expected HEVC movie file.");
@@ -191,8 +202,12 @@ function loadFromFile() {
 	var file = document.getElementById('fileInput').files[0];
 	
 	// HEVC(MP4)
-	if (file.type === "video/mp4")
+	if (file.type === "video/mp4") {
+		var timeline = document.getElementById("timeline");
+		timeline.innerHTML = "";
 		loadVideoFile(file);
+	}
+		
 	
 	// BPG
 	if (file.name.split('.').pop() === "bpg")
@@ -221,4 +236,25 @@ function saveData(arrayBuffer, fileName) {
 // UI adjustments
 window.onload = function() {
 	$("#tabs").tabs();
+
+	progressLabel = $('#progressLabel');
+	progressLabel.hide();
+	progressBar = $('#progressbar');
+	progressBar.progressbar({ 
+		value: 0,
+		change: function() {
+           progressLabel.text(progressBar.progressbar("value") + "%");
+        },
+        complete: function() {
+           progressLabel.text("Loading Completed!");
+        }
+    });
+
+	$(window).scroll(function () { 
+		if ($(this).scrollTop() > 283)
+			progressBar.addClass("fixed-menu"); 
+		else 
+			progressBar.removeClass("fixed-menu"); 
+		
+	});  
 }
