@@ -262,20 +262,35 @@ BPG.prototype.show = function(isThumbnail) {
 
                 // Thumbnails in timeline 
                 if (isThumbnail) {
-                    sF = 100.0 / this.imageData.height;
+                    
+                    // Elements creation
                     var timeline = document.getElementById("timeline");
+                    var newSample = document.createElement("div");
                     var canvasTimeline = document.createElement("canvas");
+                    var timestamp = document.createElement("span");
+
+                    // Canvas configuration
+                    sF = 100.0 / this.imageData.height;
                     canvasTimeline.className = "thumbnail";
                     canvasTimeline.height = 100;
                     canvasTimeline.width = this.imageData.width * sF;
-                    timeline.appendChild(canvasTimeline);
                     canvasTimeline.id = "canvasThumbnail" + dts;
                     var ctxTimeline = canvasTimeline.getContext("2d");
                     ctxTimeline.scale(sF, sF);
                     ctxTimeline.drawImage(canvas, 0, 0);
 
-                    // canvasTimeline.addEventListener("click", , false);
+                    // Timestamp
+                    timestamp.innerHTML = "DTS: " + dts;
+                    timestamp.className = "timestamp";
 
+                    // Container
+                    newSample.style.display = "inline-block";
+                    newSample.style.position = "relative"
+
+                    // Inclusions
+                    newSample.appendChild(timestamp);
+                    newSample.appendChild(canvasTimeline);
+                    timeline.appendChild(newSample);
                 }
                 // Image
                 else {

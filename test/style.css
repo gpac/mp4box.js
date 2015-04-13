@@ -21,13 +21,25 @@ body {
 	height: 279px;
 }
 
+#timeline {
+	text-align: center;
+}
+
 .thumbnail {
-	margin: 10px;
+	margin: 20px 5px;
 }
 
 .fixed-menu {
+	z-index: 9999px;
 	position: fixed;
 	top: 0;
 	left: 20px;
 	right: 20px;
+}
+
+.timestamp {
+	position: absolute;
+  	bottom: 0px;
+  	text-align: center;
+  	width: 100%;
 }
