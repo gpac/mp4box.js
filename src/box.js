@@ -380,3 +380,6 @@ BoxParser.mp4aBox.prototype.getCodec = function() {
 }
 
 
+if (typeof exports !== "undefined") {
+	exports.BoxParser = BoxParser;
+}
