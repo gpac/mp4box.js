@@ -3,6 +3,9 @@
  * BPG
  */
 
+// List representing the images buffered for decoding
+var imagesBuffer = [];
+
 // Construct a BPG from a a BGP bitstream
 var BPG = function(bitStream) {
 
@@ -234,6 +237,12 @@ BPG.prototype.toBitStream = function() {
 
 // Show the BPG in a canvas using the BPGDecoder
 BPG.prototype.show = function(isThumbnail) {
+
+    var timeline = document.getElementById("timeline");
+    var thumbnail;
+    var bpg = this;
+    var imageRead;
+
     console.log("Showing BPG");
 
     var bitStream = this.toBitStream();
@@ -254,55 +263,37 @@ BPG.prototype.show = function(isThumbnail) {
             var canvas = document.createElement("canvas");
             var ctx = canvas.getContext("2d");
             var img = new BPGDecoder(ctx);
+
+            // Insert the image at the end of the line
+            if (isThumbnail)
+                imagesBuffer.push(dts);
+
             img.onload = function() {
-                
+
                 canvas.height = this.imageData.height;
                 canvas.width = this.imageData.width;
                 ctx.putImageData(this.imageData, 0, 0);
 
                 // Thumbnails in timeline 
                 if (isThumbnail) {
-                    
-                    // Elements creation
-                    var timeline = document.getElementById("timeline");
-                    var newSample = document.createElement("div");
-                    var canvasTimeline = document.createElement("canvas");
-                    var timestamp = document.createElement("span");
 
-                    // Canvas configuration
-                    sF = 100.0 / this.imageData.height;
-                    canvasTimeline.className = "thumbnail";
-                    canvasTimeline.height = 100;
-                    canvasTimeline.width = this.imageData.width * sF;
-                    canvasTimeline.id = "canvasThumbnail" + dts;
-                    var ctxTimeline = canvasTimeline.getContext("2d");
-                    ctxTimeline.scale(sF, sF);
-                    ctxTimeline.drawImage(canvas, 0, 0);
+                    // Remove first element of the line and check if it is the same decoded
+                    for (var imageBufferedDTS = imagesBuffer.shift();
+                    dts !== imageBufferedDTS;
+                    imageBufferedDTS = imagesBuffer.shift()) {
+                        thumbnail = bpg.buildThumbnail(this.imageData, imageBufferedDTS);
+                        timeline.appendChild(thumbnail);
+                    }
 
-                    // Timestamp
-                    timestamp.innerHTML = "DTS: " + dts;
-                    timestamp.className = "timestamp";
-
-                    // Container
-                    newSample.style.display = "inline-block";
-                    newSample.style.position = "relative"
-
-                    // Inclusions
-                    newSample.appendChild(timestamp);
-                    newSample.appendChild(canvasTimeline);
-                    timeline.appendChild(newSample);
+                    thumbnail = bpg.buildThumbnail(this.imageData, dts, canvas);
+                    timeline.appendChild(thumbnail);
                 }
                 // Image
                 else {
-                    sF = 500.0 / this.imageData.height;
-                    var canvasImage = document.getElementById("canvasImage");
-                    canvasImage.height = 500;
-                    canvasImage.width = this.imageData.width * sF;
-                    var ctxImage = canvasImage.getContext("2d");
-                    ctxImage.scale(sF, sF);
-                    ctxImage.drawImage(canvas, 0, 0);
+                    bpg.buildImage(this.imageData, canvas);
                 }
             };
+
             img.load(url);
         }
         else {
@@ -312,4 +303,88 @@ BPG.prototype.show = function(isThumbnail) {
     else {
         throw("BPG.show(): empty BPG.");
     }
+}
+
+BPG.prototype.buildThumbnail = function(imageData, dts, canvas) {
+
+    var bpg = this;
+
+    // Update the progress bar
+    samplesRead++;
+    progressBar.progressbar({ value: Math.ceil(100*samplesRead/totalSamples) });
+
+    // Elements creation
+    var thumbnail = document.createElement("div");
+    var canvasTimeline = document.createElement("canvas");
+    var timestamp = document.createElement("span");
+
+    // Canvas configuration
+    var sF = 100.0 / imageData.height;
+    canvasTimeline.className = "thumbnail";
+    canvasTimeline.height = 100;
+    canvasTimeline.width = imageData.width * sF;
+    canvasTimeline.id = "canvasThumbnail" + dts;
+    var ctxTimeline = canvasTimeline.getContext("2d");
+    if (canvas !== undefined) { 
+        ctxTimeline.scale(sF, sF);
+        ctxTimeline.drawImage(canvas, 0, 0);
+        canvasTimeline.addEventListener("click", function() {bpg.buildImage(imageData, canvas);}, false);
+        canvasTimeline.addEventListener("mouseover", function() {$(this).addClass("selected-thumbnail");}, false);
+        canvasTimeline.addEventListener("mouseout", function() {$(this).removeClass("selected-thumbnail");}, false);
+    }
+    else {
+        ctxTimeline.font = "10px Arial";
+        ctxTimeline.textAlign = "center";
+        ctxTimeline.textBaseline = "middle";
+        ctxTimeline.fillStyle = "red";
+        ctxTimeline.fillText("Could not decode image", (canvasTimeline.width / 2), (canvasTimeline.height / 2));
+    }
+
+    // Timestamp
+    timestamp.innerHTML = "DTS: " + dts;
+    timestamp.className = "timestamp";
+
+    // Container
+    thumbnail.style.display = "inline-block";
+    thumbnail.style.position = "relative"
+
+    // Inclusions
+    thumbnail.appendChild(timestamp);
+    thumbnail.appendChild(canvasTimeline);
+    
+    return thumbnail;
+}
+
+BPG.prototype.buildImage = function(imageData, canvas) {
+    var bitStream = this.toBitStream();
+
+    // Popup
+    $("#popup").show();
+
+    // Container
+    var image = document.getElementById("image");
+
+    // Buttons
+    var downloadButton = document.createElement("button");
+    var closeButton = document.createElement("button");
+    downloadButton.style.cssText = "position: absolute; bottom: 0px; left: 0px;"
+    closeButton.style.cssText = "position: absolute; top: 0px; right: 0px;"
+    downloadButton.innerHTML = "<img src='download_icon.png'>";
+    closeButton.innerHTML = "<img src='close_icon.png'>";
+    downloadButton.addEventListener("click", function() {saveData(bitStream.dataView.buffer, "image.bpg");}, false);
+    closeButton.addEventListener("click", function() {image.innerHTML = ""; $("#popup").hide();}, false);
+
+    // Canvas configuration
+    var sF = 500.0 / imageData.height;
+    var canvasImage = document.createElement("canvas");
+    canvasImage.height = 500;
+    canvasImage.width = imageData.width * sF;
+    var ctxImage = canvasImage.getContext("2d");
+    ctxImage.scale(sF, sF);
+    ctxImage.drawImage(canvas, 0, 0);
+
+    // Inclusions
+    image.appendChild(downloadButton);
+    image.appendChild(closeButton);
+    image.appendChild(canvasImage);
 }

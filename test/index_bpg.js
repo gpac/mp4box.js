@@ -33,7 +33,7 @@ function setMP4Box() {
 			// Video track
 			if (info.tracks[i].codec.substring(0,4) === "hvc1") {
 				totalSamples = info.tracks[i].nb_samples;
-				samplesRead = 0;
+				samplesRead = samplesReceived = 0;
 				// 1 call for each sample
 				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
 				isHEVC = true;
@@ -59,11 +59,7 @@ function setMP4Box() {
 					// Send MP4 data to build a BPG	
 					var bpg = extractBPG(sample);
 					bpg.show(1);
-					/*var bitStreamWrite = bpg.toBitStream();
-	    			saveData(bitStreamWrite.dataView.buffer, "image.bpg");*/	
 				}
-				samplesRead++;
-				progressBar.progressbar({ value: Math.ceil(100*samplesRead/totalSamples) });
 			}
 			else
 				throw("index_bpg.setMP4Box(): Not a expected HEVC movie file.");
@@ -142,10 +138,7 @@ function loadImageFile(file) {
 			console.log("Start reading the BPG");
             var bitStreamRead = new BitStream(arrayBufferRead);
 		    var bpg = new BPG(bitStreamRead);
-		    bpg.show(0);
-    		/*console.log("Start saving the BPG");
-    		var bitStreamWrite = bpg.toBitStream();
-    		saveData(bitStreamWrite.dataView.buffer, "image.bpg");*/    
+		    bpg.show(0); 
 		};
 
 	fileReader.readAsArrayBuffer(file);
@@ -207,8 +200,6 @@ function loadFromFile() {
 		timeline.innerHTML = "";
 		loadVideoFile(file);
 	}
-		
-	
 	// BPG
 	if (file.name.split('.').pop() === "bpg")
 		loadImageFile(file);
@@ -237,9 +228,9 @@ function saveData(arrayBuffer, fileName) {
 window.onload = function() {
 	$("#tabs").tabs();
 
-	progressLabel = $('#progressLabel');
+	progressLabel = $("#progressLabel");
 	progressLabel.hide();
-	progressBar = $('#progressbar');
+	progressBar = $("#progressbar");
 	progressBar.progressbar({ 
 		value: 0,
 		change: function() {
@@ -256,5 +247,7 @@ window.onload = function() {
 		else 
 			progressBar.removeClass("fixed-menu"); 
 		
-	});  
+	});
+
+	$("#popup").hide();
 }
