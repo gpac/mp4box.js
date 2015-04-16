@@ -8,7 +8,9 @@ module.exports = function(grunt) {
       },
       all: {
         src: ['src/log.js',         // logging system
-              'src/DataStream.js',  // bit/byte/string read-write operations
+              'src/DataStream.js',  // bit/byte/string read operations
+              'src/DataStream-write.js',  // bit/byte/string write operations
+              'src/DataStream-map.js',  // bit/byte/string other operations
               'src/descriptor.js',  // MPEG-4 descriptor parsing
               'src/box.js',         // base code for box parsing/writing
               'src/box-parse.js',   // box parsing code 
@@ -29,6 +31,16 @@ module.exports = function(grunt) {
               'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
         ],
         dest: 'dist/<%= pkg.name %>.simple.js'
+      },
+      boxparser: {
+        src: ['src/log.js',         // logging system
+              'src/DataStream.js',  // bit/byte/string read-write operations
+              'src/box.js',         // base code for box parsing/writing
+              'src/box-parse.js',   // box parsing code 
+              'src/isofile.js',     // file level operations (read, write)
+              'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
+        ],
+        dest: 'dist/boxparser.js'
       }
     },
     uglify: {
@@ -44,7 +56,13 @@ module.exports = function(grunt) {
         files: {
           'dist/<%= pkg.name %>.simple.min.js': ['<%= concat.simple.dest %>']
         }
+      },
+      boxparser: {
+        files: {
+          'dist/boxparser.min.js': ['<%= concat.boxparser.dest %>']
+        }
       }
+
     },
     qunit: {
 		all: {
@@ -92,7 +110,8 @@ module.exports = function(grunt) {
 
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
+  grunt.registerTask('boxparser', [ 'concat:boxparser', 'uglify:boxparser']);
 
-  grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
+  grunt.registerTask('default', [ 'jshint', 'all', 'simple', 'boxparser']);
 
 };
