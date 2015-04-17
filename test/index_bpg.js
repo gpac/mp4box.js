@@ -15,8 +15,8 @@ var downloader;
 // Progress bar information
 var progressBar;
 var progressLabel;
-var samplesRead;
-var totalSamples;
+var timeProgress;
+var totalDuration;
 
 // Setup MP4Box
 function setMP4Box() {
@@ -32,8 +32,8 @@ function setMP4Box() {
 		for (var i = 0; i < info.tracks.length; i++) {
 			// Video track
 			if (info.tracks[i].codec.substring(0,4) === "hvc1") {
-				totalSamples = info.tracks[i].nb_samples;
-				samplesRead = samplesReceived = 0;
+				totalDuration = info.tracks[i].duration;
+				timeProgress = 0;
 				// 1 call for each sample
 				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
 				isHEVC = true;
@@ -96,6 +96,8 @@ function extractBPG(sample) {
 // HTTP URL input
 function loadFromHttpUrl() {
 	var url = document.getElementById('urlInput').value;
+	var timeline = document.getElementById("timeline");
+	timeline.innerHTML = "";
 
 	if (url) {
 		mp4box = new MP4Box();

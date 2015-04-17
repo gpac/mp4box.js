@@ -41,17 +41,22 @@ var BPG = function(bitStream) {
 	        this.frame_period_den = []; 
 	        this.dummy_byte = [];
 	        this.extension_tag_data_byte = [];
-	        for (var i = 0; i < this.extension_data_length; i++) {
+            var extensionBytesRead, animationBytesRead;
+	        for (var i = 0; i < this.extension_data_length; i += extensionBytesRead + j) {
+                extensionBytesRead = bitStream.dataView._offset;
 		        this.extension_tag[i] = bitStream.ue7nToNum();
 		        this.extension_tag_length[i] = bitStream.ue7nToNum();
+                extensionBytesRead = bitStream.dataView._offset - extensionBytesRead;
 		        
 		        if (this.extension_tag[i] === 5) {
 		        	// animation_control_extension
+                    animationBytesRead = bitStream.dataView._offset;
 		            this.loop_count[i] = bitStream.ue7nToNum();
 				    this.frame_period_num[i] = bitStream.ue7nToNum();
 				    this.frame_period_den[i] = bitStream.ue7nToNum();
-				    this.dummy_byte[i] = [];   
-				    for (var j = 0; j < this.extension_tag_length[i]; j++)
+				    this.dummy_byte[i] = [];  
+                    animationBytesRead = bitStream.dataView._offset - animationBytesRead;
+				    for (var j = animationBytesRead; j < this.extension_tag_length[i]; j++)
 				        this.dummy_byte[i][j] = bitStream.dataView.getUnsigned(8);
 				    // animation_control_extension
 			    }
@@ -200,15 +205,20 @@ BPG.prototype.toBitStream = function() {
     if (this.extension_present_flag) {  
     	bitStreamWrite.numToue7n(this.extension_data_length);
 
-	    for (var i = 0; i < this.extension_data_length; i++) {
+        var extensionBytesWritten, animationBytesWritten;
+	    for (var i = 0; i < this.extension_data_length; i += extensionBytesWritten + j) {
+            extensionBytesWritten = bitStreamWrite.dataView._offset;
 	    	bitStreamWrite.numToue7n(this.extension_tag[i]);
 	        bitStreamWrite.numToue7n(this.extension_tag_length[i]);
+            extensionBytesWritten = bitStreamWrite.dataView._offset - extensionBytesWritten;
 	        
 	        if (this.extension_tag[i] === 5) {
+                animationBytesWritten = bitStreamWrite.dataView._offset;
 	        	bitStreamWrite.numToue7n(this.loop_count[i]);
 	            bitStreamWrite.numToue7n(this.frame_period_num[i]);	
 	            bitStreamWrite.numToue7n(this.frame_period_den[i]);	
-			    for (var j = 0; j < this.extension_tag_length[i]; j++)
+                animationBytesWritten = bitStreamWrite.dataView._offset - animationBytesWritten;
+			    for (var j = animationBytesWritten; j < this.extension_tag_length[i]; j++)
 			    	bitStreamWrite.dataView.writeUnsigned(this.dummy_byte[i][j], 8);
 			}
 	        else
@@ -310,8 +320,8 @@ BPG.prototype.buildThumbnail = function(imageData, dts, canvas) {
     var bpg = this;
 
     // Update the progress bar
-    samplesRead++;
-    progressBar.progressbar({ value: Math.ceil(100*samplesRead/totalSamples) });
+    timeProgress = dts;
+    progressBar.progressbar({ value: Math.ceil(100*timeProgress/totalDuration) });
 
     // Elements creation
     var thumbnail = document.createElement("div");
@@ -341,7 +351,7 @@ BPG.prototype.buildThumbnail = function(imageData, dts, canvas) {
     }
 
     // Timestamp
-    timestamp.innerHTML = "DTS: " + dts;
+    timestamp.innerHTML = Log.getDurationString(dts);
     timestamp.className = "timestamp";
 
     // Container
@@ -375,12 +385,10 @@ BPG.prototype.buildImage = function(imageData, canvas) {
     closeButton.addEventListener("click", function() {image.innerHTML = ""; $("#popup").hide();}, false);
 
     // Canvas configuration
-    var sF = 500.0 / imageData.height;
     var canvasImage = document.createElement("canvas");
-    canvasImage.height = 500;
-    canvasImage.width = imageData.width * sF;
+    canvasImage.height = imageData.height;
+    canvasImage.width = imageData.width;
     var ctxImage = canvasImage.getContext("2d");
-    ctxImage.scale(sF, sF);
     ctxImage.drawImage(canvas, 0, 0);
 
     // Inclusions
