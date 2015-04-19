@@ -30,6 +30,7 @@ button {
 
 #progressLabel {
 	text-align: center;
+	vertical-align: middle;
 }
 
 #menu {
@@ -38,6 +39,11 @@ button {
 
 #timeline {
 	text-align: center;
+}
+
+#stopButton {
+	cursor: pointer;
+	vertical-align: middle;
 }
 
 .thumbnail {

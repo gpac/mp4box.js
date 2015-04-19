@@ -15,8 +15,14 @@ var downloader;
 // Progress bar information
 var progressBar;
 var progressLabel;
+var progressText;
 var timeProgress;
 var totalDuration;
+
+// Stop the extraction process
+var stopProcess = false;
+var stopButton;
+
 
 // Setup MP4Box
 function setMP4Box() {
@@ -31,7 +37,8 @@ function setMP4Box() {
 		// Extract only for video tracks
 		for (var i = 0; i < info.tracks.length; i++) {
 			// Video track
-			if (info.tracks[i].codec.substring(0,4) === "hvc1") {
+			var codec = info.tracks[i].codec.substring(0,4);
+			if (codec === "hvc1" || codec === "hev1") {
 				totalDuration = info.tracks[i].duration;
 				timeProgress = 0;
 				// 1 call for each sample
@@ -49,22 +56,36 @@ function setMP4Box() {
 	}
 
 	mp4box.onSamples = function (id, user, samples) {	
-		console.log("Received "+samples.length+" samples on track "+id+" for object "+user);
 
-		for (var i = 0; i < samples.length; i++) {
-			var sample = samples[i];
-			// Check if it is HEVC
-			if (sample.description.type === "hvc1") {
-				if (sample.is_rap === true) {
-					// Send MP4 data to build a BPG	
-					var bpg = extractBPG(sample);
-					bpg.show(1);
+		if (!stopProcess) {
+			console.log("Received "+samples.length+" samples on track "+id+" for object "+user);
+
+
+			for (var i = 0; i < samples.length; i++) {
+				var sample = samples[i];
+				// Check if it is HEVC
+				if (sample.description.type === "hvc1" || sample.description.type === "hev1") {
+					if (sample.is_rap === true) {
+						// Send MP4 data to build a BPG	
+						var bpg = extractBPG(sample);
+						bpg.show(1);
+					}
 				}
+				else
+					throw("index_bpg.setMP4Box(): Not a expected HEVC movie file.");
 			}
-			else
-				throw("index_bpg.setMP4Box(): Not a expected HEVC movie file.");
 		}
-	}	
+	}
+}
+
+function stopExtraction() {
+	stopButton.prop("onclick", null);
+	stopButton.css("opacity", "0.4");
+	stopButton.css("cursor", "default");
+	stopProcess = true;
+	if (downloader)
+		downloader.stop();
+	mp4box.unsetExtractionOptions(1);	
 }
 
 // Extract a BPG from the HEVCFrame using the NAL Units
@@ -231,24 +252,26 @@ window.onload = function() {
 	$("#tabs").tabs();
 
 	progressLabel = $("#progressLabel");
+	progressText = $("#progressText");
 	progressLabel.hide();
+	stopButton = $("#stopButton");
 	progressBar = $("#progressbar");
 	progressBar.progressbar({ 
 		value: 0,
 		change: function() {
-           progressLabel.text(progressBar.progressbar("value") + "%");
+           	progressText.text(progressBar.progressbar("value") + "%");
         },
         complete: function() {
-           progressLabel.text("Loading Completed!");
+        	$("#stopButton").hide();
+           	progressText.text("Loading Completed!");
         }
     });
 
 	$(window).scroll(function () { 
 		if ($(this).scrollTop() > 283)
-			progressBar.addClass("fixed-menu"); 
+			progressBar.addClass("fixed-menu");
 		else 
-			progressBar.removeClass("fixed-menu"); 
-		
+			progressBar.removeClass("fixed-menu");
 	});
 
 	$("#popup").hide();
