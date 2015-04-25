@@ -114,9 +114,8 @@ function extractBPG(sample) {
 	return bpg;
 }
 
-// HTTP URL input
-function loadFromHttpUrl() {
-	var url = document.getElementById('urlInput').value;
+// HTTP URL video
+function loadVideoFileHttpUrl(url) {
 	var timeline = document.getElementById("timeline");
 	timeline.innerHTML = "";
 
@@ -136,7 +135,7 @@ function loadFromHttpUrl() {
 					mp4box.flush();
 				}
 				if (error) {
-					console.log("index_bpg.loadFromHttpUrl(): Error downloading.");
+					console.log("index_bpg.loadVideoFileHttpUrl(): Error downloading.");
 				}
 			}
 		);
@@ -150,9 +149,40 @@ function loadFromHttpUrl() {
 		throw ("index_bpg.loadFromHttpUrl(): URL not informed.");
 }
 
+// HTTP URL video
+function loadImageFileHttpUrl(url) {
+	var url = document.getElementById('urlInput').value;
+
+	if (url) {
+		downloader = new Downloader();
+
+		downloader.setCallback(
+			function (response, end, error) { 
+				if (end && response) {
+					var arrayBufferRead = response;
+					console.log("Start reading the BPG");
+		            var bitStreamRead = new BitStream(arrayBufferRead);
+				    var bpg = new BPG(bitStreamRead);
+				    bpg.show(0); 
+				}
+				if (error) {
+					console.log("index_bpg.loadImageFromHttpUrl(): Error downloading.");
+				}
+			}
+		);
+
+		downloader.setUrl(url);
+		downloader.setInterval(1000);
+		downloader.setChunkSize(Number.POSITIVE_INFINITY);
+		downloader.start();
+	}
+	else
+		throw ("index_bpg.loadFromHttpUrl(): URL not informed.");
+}
+
 
 // Image file upload
-function loadImageFile(file) {
+function loadImageFileUpload(file) {
 	var fileReader = new FileReader();
 
 	fileReader.onload =
@@ -168,13 +198,16 @@ function loadImageFile(file) {
 }
 
 // Video file upload
-function loadVideoFile(file) {
+function loadVideoFileUpload(file) {
     var fileSize   = file.size;
     var offset     = 0;
     var self       = this; // we need a reference to the current object
     var readBlock  = null;
  	var startDate  = new Date();
 	var chunkSize  = 1000000;	
+
+	var timeline = document.getElementById("timeline");
+	timeline.innerHTML = "";
 	
 	mp4box = new MP4Box();
 	setMP4Box();
@@ -218,14 +251,39 @@ function loadFromFile() {
 	var file = document.getElementById('fileInput').files[0];
 	
 	// HEVC(MP4)
-	if (file.type === "video/mp4") {
-		var timeline = document.getElementById("timeline");
-		timeline.innerHTML = "";
-		loadVideoFile(file);
-	}
+	if (file.type === "video/mp4")
+		loadVideoFileUpload(file);
 	// BPG
-	if (file.name.split('.').pop() === "bpg")
-		loadImageFile(file);
+	else
+		if (file.name.split('.').pop() === "bpg")
+			loadImageFileUpload(file);
+		else
+			throw("index_bpg.loadFromFile(): Not a valid file.");	
+}
+
+// HTTP URL input handler
+function loadFromHttpUrl() {
+	
+	var url = document.getElementById('urlInput').value;
+	var validUrl = true;
+
+	if (url.length > 3) {
+		var extension = url.substring(url.length - 3);
+		// HEVC(MP4)
+		if (extension === "mp4")
+			loadVideoFileHttpUrl(url);
+		// BPG
+		else
+			if (extension === "bpg")
+				loadImageFileHttpUrl(url);		
+			else
+				validUrl = false;
+	}
+	else
+		validUrl = false;
+
+	if (!validUrl)
+		throw("index_bpg.loadFromHttpUrl(): Not a valid HTTP URL.");
 }
 
 // Save file from an ArrayBuffer
