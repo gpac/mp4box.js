@@ -428,7 +428,7 @@ function wa() {
 l.stackTrace = function() {
 	return wa()
 };
-for (var J, Q, L, xa, M, ya, N, O, R = 0, D = 0, za = 0, A = 0, Aa = 0, Ba = 0, E = 0, Ca = l.TOTAL_STACK || 5242880, F = l.TOTAL_MEMORY || 33554432, S = 65536; S < F || S < 2 * Ca;) S = 16777216 > S ? 2 * S : S + 16777216;
+for (var J, Q, L, xa, M, ya, N, O, R = 0, D = 0, za = 0, A = 0, Aa = 0, Ba = 0, E = 0, Ca = l.TOTAL_STACK || 5242880, F = l.TOTAL_MEMORY || 100000000, S = 65536; S < F || S < 2 * Ca;) S = 16777216 > S ? 2 * S : S + 16777216;
 S !== F && (l.a("increasing TOTAL_MEMORY to " + S + " to be compliant with the asm.js spec"), F = S);
 y("undefined" !== typeof Int32Array && "undefined" !== typeof Float64Array && !!(new Int32Array(1)).subarray && !!(new Int32Array(1)).set, "JS engine does not provide full typed array support");
 var T = new ArrayBuffer(F);

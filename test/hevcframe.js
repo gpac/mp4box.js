@@ -618,7 +618,7 @@ HEVCFrame.prototype.toBPG = function(fileSize, dts) {
 
     bpg.file_size = fileSize; // Just a ceil
 
-    bpg.dts = dts; // Time in the timeline in casa of an image extraction
+    bpg.dts = dts; // Time in the timeline in case of an image extraction
 
     bpg.file_magic = 0x425047fb;
     
