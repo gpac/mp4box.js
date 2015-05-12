@@ -237,9 +237,9 @@ BoxParser.hdlrBox.prototype.parse = function(stream) {
 		stream.readUint32();
 		this.handler = stream.readString(4);
 		stream.readUint32Array(3);
-		this.name = stream.readCString();
+		this.name = stream.readString(this.size-20);
 	} else {
-		this.data = stream.readUint8Array(size);
+		this.data = stream.readUint8Array(this.size);
 	}
 }
 
