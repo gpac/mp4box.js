@@ -13,37 +13,45 @@ function Downloader() {
 
 Downloader.prototype.setDownloadTimeoutCallback = function(callback) {
 	this.setDownloadTimeoutCallback = callback;
+	return this;
 }
 
 Downloader.prototype.reset = function() {
 	this.chunkStart = 0;
 	this.totalLength = 0;
 	this.eof = false;
+	return this;
 }
 
 Downloader.prototype.setRealTime = function(_realtime) {
 	this.realtime = _realtime;
+	return this;
 }
 
 Downloader.prototype.setChunkSize = function(_size) {
 	this.chunkSize = _size;
+	return this;
 }
 
 Downloader.prototype.setChunkStart = function(_start) {
 	this.chunkStart = _start;
 	this.eof = false;
+	return this;
 }
 
 Downloader.prototype.setInterval = function(_timeout) {
 	this.chunkTimeout = _timeout;
+	return this;
 }
 
 Downloader.prototype.setUrl = function(_url) {
 	this.url = _url;
+	return this;
 }
 
 Downloader.prototype.setCallback = function(_callback) {
 	this.callback = _callback;
+	return this;
 }
 
 Downloader.prototype.isStopped = function () {
@@ -129,6 +137,7 @@ Downloader.prototype.start = function() {
 	Log.i("Downloader", "Starting file download");
 	this.chunkStart = 0;
 	this.resume();
+	return this;
 }
 
 Downloader.prototype.resume = function() {
@@ -138,9 +147,11 @@ Downloader.prototype.resume = function() {
 		this.chunkSize = Infinity;
 	}
 	this.getFile();
+	return this;
 }
 
 Downloader.prototype.stop = function() {
 	Log.i("Downloader", "Stopping file download");
 	this.isActive = false;
+	return this;
 }
