@@ -471,7 +471,7 @@ ISOFile.prototype.buildSampleLists = function() {
 				sample.dts = 0;
 			}
 			if (ctts) {
-				if (j > last_sample_in_ctts_run) {
+				if (j >= last_sample_in_ctts_run) {
 					ctts_run_index++;
 					if (last_sample_in_ctts_run < 0) {
 						last_sample_in_ctts_run = 0;
