@@ -684,3 +684,14 @@ BoxParser.emsgBox.prototype.parse = function(stream) {
 	var message_size = this.size - (4*4 + (this.scheme_id_uri.length+1) + (this.value.length+1));
 	this.message_data = stream.readUint8Array(message_size);
 }
+
+BoxParser.prftBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.ref_track_id = stream.readUint32();
+	this.ntp_timestamp = stream.readUint64();
+	if (this.version === 0) {
+		this.media_time = stream.readUint32();
+	} else {
+		this.media_time = stream.readUint64();
+	}
+}
