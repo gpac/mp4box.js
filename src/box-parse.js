@@ -672,3 +672,15 @@ BoxParser.sidxBox.prototype.parse = function(stream) {
 		ref.SAP_delta_time = tmp_32 & 0xFFFFFFF;
 	}
 }
+
+BoxParser.emsgBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.scheme_id_uri 				= stream.readCString();
+	this.value 						= stream.readCString();
+	this.timescale 					= stream.readUint32();
+	this.presentation_time_delta 	= stream.readUint32();
+	this.event_duration			 	= stream.readUint32();
+	this.id 						= stream.readUint32();
+	var message_size = this.size - (4*4 + (this.scheme_id_uri.length+1) + (this.value.length+1));
+	this.message_data = stream.readUint8Array(message_size);
+}
