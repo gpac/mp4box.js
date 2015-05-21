@@ -16,7 +16,7 @@ var BoxParser = {
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
 				  "esds", "subs",
 				  "txtC",
-				  "sidx", "emsg", "prft"
+				  "sidx", "emsg", "prft", "pssh"
 				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
