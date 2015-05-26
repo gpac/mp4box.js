@@ -38,7 +38,7 @@ function setMP4Box() {
 		for (var i = 0; i < info.tracks.length; i++) {
 			// Video track
 			var codec = info.tracks[i].codec.substring(0,4);
-			if (codec === "hvc1" || codec === "hev1") {
+			if (codec === "hvc1") {
 				totalDuration = info.tracks[i].duration;
 				timeProgress = 0;
 				// 1 call for each sample
@@ -64,7 +64,7 @@ function setMP4Box() {
 			for (var i = 0; i < samples.length; i++) {
 				var sample = samples[i];
 				// Check if it is HEVC
-				if (sample.description.type === "hvc1" || sample.description.type === "hev1") {
+				if (sample.description.type === "hvc1") {
 					if (sample.is_rap === true) {
 						// Send MP4 data to build a BPG	
 						var bpg = extractBPG(sample);
@@ -78,14 +78,23 @@ function setMP4Box() {
 	}
 }
 
-function stopExtraction() {
-	stopButton.prop("onclick", null);
-	stopButton.css("opacity", "0.4");
-	stopButton.css("cursor", "default");
-	stopProcess = true;
-	if (downloader)
-		downloader.stop();
-	mp4box.unsetExtractionOptions(1);	
+function toggleStopExtraction(stop) {
+	if (stop) {
+		stopButton.prop("onclick", null);
+		stopButton.css("opacity", "0.4");
+		stopButton.css("cursor", "default");
+		stopProcess = true;
+		if (downloader)
+			downloader.stop();
+		mp4box.unsetExtractionOptions(1);
+	}
+	else {
+		stopButton.show();
+		stopButton.attr("onclick", "toggleStopExtraction(true);");
+		stopButton.css("opacity", "1.0");
+		stopButton.css("cursor", "pointer");
+		stopProcess = false;
+	}
 }
 
 // Extract a BPG from the HEVCFrame using the NAL Units
@@ -118,6 +127,7 @@ function extractBPG(sample) {
 function loadVideoFileHttpUrl(url) {
 	var timeline = document.getElementById("timeline");
 	timeline.innerHTML = "";
+	progressBar.progressbar({ value: 0 });
 
 	if (url) {
 		mp4box = new MP4Box();
@@ -208,6 +218,7 @@ function loadVideoFileUpload(file) {
 
 	var timeline = document.getElementById("timeline");
 	timeline.innerHTML = "";
+	progressBar.progressbar({ value: 0 });
 	
 	mp4box = new MP4Box();
 	setMP4Box();
@@ -249,6 +260,7 @@ function loadVideoFileUpload(file) {
 function loadFromFile() {
 	
 	var file = document.getElementById('fileInput').files[0];
+	toggleStopExtraction(false);
 	
 	// HEVC(MP4)
 	if (file.type === "video/mp4")
@@ -258,7 +270,9 @@ function loadFromFile() {
 		if (file.name.split('.').pop() === "bpg")
 			loadImageFileUpload(file);
 		else
-			throw("index_bpg.loadFromFile(): Not a valid file.");	
+			throw("index_bpg.loadFromFile(): Not a valid file.");
+
+	document.getElementById('fileInput').value = "";
 }
 
 // HTTP URL input handler
@@ -266,6 +280,7 @@ function loadFromHttpUrl() {
 	
 	var url = document.getElementById('urlInput').value;
 	var validUrl = true;
+	toggleStopExtraction(false);
 
 	if (url.length > 3) {
 		var extension = url.substring(url.length - 3);

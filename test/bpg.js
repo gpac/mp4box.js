@@ -266,10 +266,6 @@ BPG.prototype.show = function(isThumbnail) {
         var URL = (window.webkitURL || window.URL);
         if (URL && URL.createObjectURL) {
             var url = URL.createObjectURL(blob);
-        
-            //ctx.fillStyle="red";
-            //ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             var canvas = document.createElement("canvas");
             var ctx = canvas.getContext("2d");
             var img = new BPGDecoder(ctx);
