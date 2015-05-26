@@ -664,7 +664,7 @@ BoxParser.sidxBox.prototype.parse = function(stream) {
 		this.references.push(ref);
 		var tmp_32 = stream.readUint32();
 		ref.type = (tmp_32 >> 31) & 0x1;
-		ref.size = tmp_32 & 0x8FFFFFFF;
+		ref.size = tmp_32 & 0x7FFFFFFF;
 		ref.duration = stream.readUint32();
 		tmp_32 = stream.readUint32();
 		ref.starts_with_SAP = (tmp_32 >> 31) & 0x1;
