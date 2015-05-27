@@ -513,12 +513,14 @@ function load() {
 
 	downloader.setCallback(
 		function (response, end, error) { 
+			var nextStart = 0;
 			if (response) {
-				var nextStart = mp4box.appendBuffer(response);
-				downloader.setChunkStart(nextStart); 
+				nextStart = mp4box.appendBuffer(response);
 			}
 			if (end) {
 				mp4box.flush();
+			} else {
+				downloader.setChunkStart(nextStart); 			
 			}
 			if (error) {
 				reset();

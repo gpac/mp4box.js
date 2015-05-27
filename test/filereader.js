@@ -38,10 +38,11 @@ function httpload(url) {
 	var startDate = new Date();
 	downloader.setCallback(
 		function (response, end, error) { 
+			var nextStart = 0;
 			if (response) {
 				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
-				var nextStart = mp4box.appendBuffer(response);
-				downloader.setChunkStart(nextStart); 
+				nextStart = mp4box.appendBuffer(response);
+				
 			}
 			if (end) {
 				progressbar.progressbar({ value: 100 });
@@ -50,6 +51,8 @@ function httpload(url) {
 				createTreeView(mp4box.inputIsoFile.boxes);
 	            console.log("Done constructing tree in "+(new Date() - endRead)+" ms");
 				mp4box.flush();
+			} else {
+				downloader.setChunkStart(nextStart); 
 			}
 			if (error) {
 				reset();
