@@ -16,6 +16,7 @@ module.exports = function(grunt) {
               'src/box-parse.js',   // box parsing code 
               'src/box-write.js',   // box writing code
               'src/box-unpack.js',  // box code for sample manipulation
+              'src/meta.js',        // box code for meta-related box parsing
               'src/text-mp4.js',  // text-based track manipulations
               'src/isofile.js',     // file level operations (read, write)
               'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
@@ -27,6 +28,7 @@ module.exports = function(grunt) {
               'src/DataStream.js',  // bit/byte/string read-write operations
               'src/box.js',         // base code for box parsing/writing
               'src/box-parse.js',   // box parsing code 
+              'src/meta.js',        // box code for meta-related box parsing
               'src/isofile.js',     // file level operations (read, write)
               'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
         ],
