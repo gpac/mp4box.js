@@ -1,7 +1,3 @@
-//BoxParser.boxCodes = BoxParser.boxCodes.concat([ "idat", "meco" ]);
-
-//BoxParser.fullBoxCodes = BoxParser.fullBoxCodes.concat([ "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere"]);
-
 BoxParser.metaBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.boxes = [];
