@@ -55,7 +55,7 @@ function httpload(url) {
 				downloader.setChunkStart(nextStart); 
 			}
 			if (error) {
-				reset();
+				console.log("Error downloading file");
 			}
 		}
 	);
