@@ -1058,6 +1058,134 @@ QUnit.asyncTest( "Long Segmentation", function( assert ) {
 	});
 });
 
+
+QUnit.module("Box parsing tests");
+var boxtests = [
+					{ 
+						url: "./mp4/box/sidx.mp4",	
+						boxname: "sidx",
+						data: {
+							type: "sidx",
+							size: 140,
+							flags: 0,
+							version: 0,
+							reference_ID: 1,
+							timescale: 24,
+							earliest_presentation_time: 0,
+							first_offset: 0,
+							references: [
+								{ 
+									type: 0,
+									size: 776279,
+									duration: 224,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 298018,
+									duration: 110,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 151055,
+									duration: 62,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 583055,
+									duration: 130,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 310294,
+									duration: 45,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 353217,
+									duration: 50,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 229078,
+									duration: 37,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 685457,
+									duration: 114,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 746586,
+									duration: 250,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								},
+								{ 
+									type: 0,
+									size: 228474,
+									duration: 231,
+									starts_with_SAP: 1,
+									SAP_type: 1,
+									SAP_delta_time: 0
+								}
+							]
+						}
+					}
+				];
+
+function checkBoxData(assert, box, data) {
+	assert.ok(box, "Found "+data.type+" box");
+	for (var prop in data) {
+		if (Array.isArray(data[prop])) {
+			for (var i = 0; i < data[prop].length; i++) {
+				var boxentry = box[prop][i];
+				var dataentry = data[prop][i];
+				for (var entprop in dataentry) {
+					assert.equal(boxentry[entprop], dataentry[entprop], "Box property "+prop+", entry #"+i+", property "+entprop+" is correct");
+				} 
+			}
+		} else {
+			assert.equal(box[prop], data[prop], "Box property "+prop+" is correct");
+		}
+	}
+}
+
+QUnit.asyncTest( "sidx", function( assert ) {
+	var boxtestIndex = 0;
+	var mp4box = new MP4Box();
+	getFile(boxtests[boxtestIndex].url, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		checkBoxData(assert, mp4box.inputIsoFile[boxtests[boxtestIndex].boxname], boxtests[boxtestIndex].data);
+	});
+});
+
+
 /*QUnit.module("misc");
 QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 	var index = 0;
