@@ -124,6 +124,7 @@ Downloader.prototype.getFile = function() {
 				window.setTimeout(dl.getFile.bind(dl), timeoutDuration);
 			} else {
 				/* end of file */
+				dl.isActive = false;
 			}
 		}
 	};
