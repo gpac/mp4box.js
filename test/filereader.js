@@ -225,4 +225,7 @@ window.onload = function () {
 		urlSelector[0].add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
 	}
 
+	if (window.location.search) {
+		httpload(window.location.search.substring(1));
+	}
 }
