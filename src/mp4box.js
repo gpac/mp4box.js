@@ -641,6 +641,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 				seek_info.time = trak_seek_info.time;
 			}
 		}
+		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
 		if (seek_info.offset === Infinity) {
 			/* No sample info, in all tracks, cannot seek */
 			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
@@ -650,7 +651,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 				seek_info.offset = this.inputIsoFile.findEndContiguousBuf(index);
 			}
 		}
-		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
+		Log.i("MP4Box", "Adjusted (post-buffer) seek position of "+seek_info.offset);
 		return seek_info;
 	}
 }
