@@ -511,6 +511,9 @@ ISOFile.prototype.updateSampleLists = function() {
 	var box, moof, traf, trak, trex;
 	var sample;
 	
+	if (this.moov === undefined) {
+		return;
+	}
 	/* if the input file is fragmented and fetched in multiple downloads, we need to update the list of samples */
 	while (this.lastMoofIndex < this.moofs.length) {
 		box = this.moofs[this.lastMoofIndex];
@@ -648,6 +651,9 @@ ISOFile.prototype.getTrexById = function(id) {
 
 /* Helper function */
 ISOFile.prototype.getTrackById = function(id) {
+	if (this.moov === undefined) {
+		return null;
+	}
 	for (var j = 0; j < this.moov.traks.length; j++) {
 		var trak = this.moov.traks[j];
 		if (trak.tkhd.track_id == id) return trak;
