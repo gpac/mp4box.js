@@ -1156,6 +1156,22 @@ var boxtests = [
 								}
 							]
 						}
+					},
+					{
+						url: "./mp4/box/emsg.m4s",
+						boxname: "emsg",
+						data: {
+							type: "emsg",
+							size: 482,
+							flags:	0,
+							version:	0,
+							scheme_id_uri:	"urn:mpeg:dash:event:2012",
+							value:	"advert",
+							timescale:	1,
+							presentation_time_delta:	1,
+							event_duration:	1,
+							id:	1							
+						}
 					}
 				];
 
@@ -1176,15 +1192,21 @@ function checkBoxData(assert, box, data) {
 	}
 }
 
-QUnit.asyncTest( "sidx", function( assert ) {
-	var boxtestIndex = 0;
-	var mp4box = new MP4Box();
-	getFile(boxtests[boxtestIndex].url, function (buffer) {
-		mp4box.appendBuffer(buffer);
-		checkBoxData(assert, mp4box.inputIsoFile[boxtests[boxtestIndex].boxname], boxtests[boxtestIndex].data);
+function makeBoxParsingTest(i) {
+	var boxtestIndex = i;
+	QUnit.asyncTest( boxtests[boxtestIndex].boxname, function( assert ) {
+		var mp4box = new MP4Box();
+		getFile(boxtests[boxtestIndex].url, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			checkBoxData(assert, mp4box.inputIsoFile[boxtests[boxtestIndex].boxname], boxtests[boxtestIndex].data);
+			QUnit.start();
+		});
 	});
-});
+}
 
+for (var i = 0; i < boxtests.length; i++) {
+	makeBoxParsingTest(i);
+}
 
 /*QUnit.module("misc");
 QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
