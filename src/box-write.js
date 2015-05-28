@@ -478,10 +478,54 @@ BoxParser.tfdtBox.prototype.write = function(stream) {
 	this.version = 0;
 	this.flags = 0;
 	this.size = 4;
+	if (this.version === 1) {
+		this.size += 4;
+	}
 	this.writeHeader(stream);
-	if (this.version == 1) {
+	if (this.version === 1) {
 		stream.writeUint64(this.baseMediaDecodeTime);
 	} else {
 		stream.writeUint32(this.baseMediaDecodeTime); 
+	}
+}
+
+BoxParser.drefBox.prototype.write = function(stream) {
+	this.version = 0;
+	this.flags = 0;
+	this.size = 4; //
+	this.writeHeader(stream);
+	stream.writeUint32(this.entries.length);
+	for (var i = 0; i < this.entries.length; i++) {
+		this.entries[i].write(stream);
+		this.size += this.entries[i].size;
+	}	
+	/* adjusting the size, now that all sub-boxes are known */
+	Log.d("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
+	stream.adjustUint32(this.sizePosition, this.size);
+}
+
+BoxParser["url Box"].prototype.write = function(stream) {
+	this.version = 0;	
+	if (this.location) {
+		this.flags = 0x000001;
+		this.size = this.location.length+1;
+	} else {
+		this.flags = 0;
+		this.size = 0;
+	}
+	this.writeHeader(stream);
+	if (this.location) {
+		stream.writeCString(this.location);
+	}
+}
+
+BoxParser["urn Box"].prototype.write = function(stream) {
+	this.version = 0;	
+	this.flags = 0;
+	this.size = this.name.length+1+(this.location ? this.location.length+1 : 0);
+	this.writeHeader(stream);
+	stream.writeCString(this.name);
+	if (this.location) {
+		stream.writeCString(this.location);
 	}
 }
