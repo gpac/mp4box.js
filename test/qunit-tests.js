@@ -1197,12 +1197,13 @@ var boxtests = [
 				];
 
 function checkBoxData(assert, box, data) {
+	var i;
 	assert.ok(box, "Found "+data.type+" box");
 	for (var prop in data) {
 		if ([ "size", "sizePosition", "start", "fileStart"].indexOf(prop) > -1) {
 			continue;
 		} else if (Array.isArray(data[prop])) {
-			for (var i = 0; i < data[prop].length; i++) {
+			for (i = 0; i < data[prop].length; i++) {
 				var boxentry = box[prop][i];
 				var dataentry = data[prop][i];
 				assert.deepEqual(boxentry, dataentry, "Box property "+prop+", entry #"+i+" deep equality");
@@ -1214,7 +1215,7 @@ function checkBoxData(assert, box, data) {
 			if (uint8box.length !== uint8data.length) {
 				equal = false;
 			} else {
-				for (var i = 0; i < uint8box.length; i++) {
+				for (i = 0; i < uint8box.length; i++) {
 					if (uint8data[i] !== uint8box[i]) {
 						equal = false;
 						break;
