@@ -1182,7 +1182,9 @@ var boxtests = [
 function checkBoxData(assert, box, data) {
 	assert.ok(box, "Found "+data.type+" box");
 	for (var prop in data) {
-		if (Array.isArray(data[prop])) {
+		if ([ "size", "sizePosition", "start", "fileStart"].indexOf(prop) > -1) {
+			continue;
+		} else if (Array.isArray(data[prop])) {
 			for (var i = 0; i < data[prop].length; i++) {
 				var boxentry = box[prop][i];
 				var dataentry = data[prop][i];
@@ -1190,6 +1192,21 @@ function checkBoxData(assert, box, data) {
 					assert.equal(boxentry[entprop], dataentry[entprop], "Box property "+prop+", entry #"+i+", property "+entprop+" is correct");
 				} 
 			}
+		} else if (data[prop].byteLength) {
+			var uint8data = new Uint8Array(data[prop]);
+			var uint8box = new Uint8Array(box[prop]);
+			var equal = true;
+			if (uint8box.length !== uint8data.length) {
+				equal = false;
+			} else {
+				for (var i = 0; i < uint8box.length; i++) {
+					if (uint8data[i] !== uint8box[i]) {
+						equal = false;
+						break;
+					}
+				}
+			}
+			assert.ok(equal, "TypedArray equality for "+prop);
 		} else {
 			assert.equal(box[prop], data[prop], "Box property "+prop+" is correct");
 		}
@@ -1211,6 +1228,33 @@ function makeBoxParsingTest(i) {
 for (var i = 0; i < boxtests.length; i++) {
 	makeBoxParsingTest(i);
 }
+
+QUnit.module("Box read/write/read tests");
+function makeBoxReadWriteReadTest(i) {
+	var boxtestIndex = i;
+	QUnit.asyncTest( boxtests[boxtestIndex].boxname, function( assert ) {
+		var boxref;
+		var mp4box_read_ref = new MP4Box();
+		var mp4box_write = new MP4Box();
+		var written_buffer;
+		var mp4box_read_written = new MP4Box();
+		getFile(boxtests[boxtestIndex].url, function (buffer) {
+			mp4box_read_ref.appendBuffer(buffer);
+			boxref = mp4box_read_ref.inputIsoFile[boxtests[boxtestIndex].boxname];
+			mp4box_write.inputIsoFile.boxes.push(boxref);
+			written_buffer = mp4box_write.writeFile();
+			written_buffer.fileStart = 0;
+			mp4box_read_written.appendBuffer(written_buffer);
+			checkBoxData(assert, mp4box_read_written.inputIsoFile[boxtests[boxtestIndex].boxname], boxref);
+			QUnit.start();
+		});
+	});
+}
+
+for (var i = 1; i < boxtests.length; i++) {
+	makeBoxReadWriteReadTest(i);
+}
+
 
 /*QUnit.module("misc");
 QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
@@ -1237,6 +1281,7 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 	getFileRange(testFiles[index].url, 0, Infinity, xhr_callback);
 });*/
 
+QUnit.module("misc");
 QUnit.asyncTest( "issue #16 (Peersm)", function( assert ) {
 	var index = 11;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
