@@ -1065,8 +1065,23 @@ QUnit.asyncTest( "Long Segmentation", function( assert ) {
 
 QUnit.module("Box parsing tests");
 var boxtests = [
+					{
+						url: "./mp4/box/sidx.mp4",
+						rangeStart: 0,
+						rangeSize: 36,
+						boxname: "ftyp",
+						data: {
+							type: "ftyp",
+							size: 36,
+							major_brand: "iso5",
+							minor_version: 1,
+							compatible_brands: [ "avc1", "iso5", "dsms", "msix", "dash"]
+						}
+					},
 					{ 
 						url: "./mp4/box/sidx.mp4",	
+						rangeStart: 1566,
+						rangeSize: 152,
 						boxname: "sidx",
 						data: {
 							type: "sidx",
@@ -1079,81 +1094,81 @@ var boxtests = [
 							first_offset: 0,
 							references: [
 								{ 
-									type: 0,
-									size: 776279,
-									duration: 224,
+									reference_type: 0,
+									reference_size: 776279,
+									subsegment_duration: 224,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 298018,
-									duration: 110,
+									reference_type: 0,
+									reference_size: 298018,
+									subsegment_duration: 110,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 151055,
-									duration: 62,
+									reference_type: 0,
+									reference_size: 151055,
+									subsegment_duration: 62,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 583055,
-									duration: 130,
+									reference_type: 0,
+									reference_size: 583055,
+									subsegment_duration: 130,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 310294,
-									duration: 45,
+									reference_type: 0,
+									reference_size: 310294,
+									subsegment_duration: 45,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 353217,
-									duration: 50,
+									reference_type: 0,
+									reference_size: 353217,
+									subsegment_duration: 50,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 229078,
-									duration: 37,
+									reference_type: 0,
+									reference_size: 229078,
+									subsegment_duration: 37,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 685457,
-									duration: 114,
+									reference_type: 0,
+									reference_size: 685457,
+									subsegment_duration: 114,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 746586,
-									duration: 250,
+									reference_type: 0,
+									reference_size: 746586,
+									subsegment_duration: 250,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
 								},
 								{ 
-									type: 0,
-									size: 228474,
-									duration: 231,
+									reference_type: 0,
+									reference_size: 228474,
+									subsegment_duration: 231,
 									starts_with_SAP: 1,
 									SAP_type: 1,
 									SAP_delta_time: 0
@@ -1163,6 +1178,8 @@ var boxtests = [
 					},
 					{
 						url: "./mp4/box/emsg.m4s",
+						rangeStart: 106,
+						rangeSize: 494,
 						boxname: "emsg",
 						data: {
 							type: "emsg",
@@ -1188,9 +1205,7 @@ function checkBoxData(assert, box, data) {
 			for (var i = 0; i < data[prop].length; i++) {
 				var boxentry = box[prop][i];
 				var dataentry = data[prop][i];
-				for (var entprop in dataentry) {
-					assert.equal(boxentry[entprop], dataentry[entprop], "Box property "+prop+", entry #"+i+", property "+entprop+" is correct");
-				} 
+				assert.deepEqual(boxentry, dataentry, "Box property "+prop+", entry #"+i+" deep equality");
 			}
 		} else if (data[prop].byteLength) {
 			var uint8data = new Uint8Array(data[prop]);
@@ -1217,11 +1232,15 @@ function makeBoxParsingTest(i) {
 	var boxtestIndex = i;
 	QUnit.asyncTest( boxtests[boxtestIndex].boxname, function( assert ) {
 		var mp4box = new MP4Box();
-		getFile(boxtests[boxtestIndex].url, function (buffer) {
+		var callback = function (buffer) {
+			buffer.fileStart = 0;
 			mp4box.appendBuffer(buffer);
 			checkBoxData(assert, mp4box.inputIsoFile[boxtests[boxtestIndex].boxname], boxtests[boxtestIndex].data);
 			QUnit.start();
-		});
+		};
+		var rangeStart = boxtests[boxtestIndex].rangeStart || 0;
+		var rangeEnd = (boxtests[boxtestIndex].rangeSize+boxtests[boxtestIndex].rangeStart-1) || Infinity;
+		getFileRange(boxtests[boxtestIndex].url, rangeStart, rangeEnd, callback);
 	});
 }
 
@@ -1238,7 +1257,8 @@ function makeBoxReadWriteReadTest(i) {
 		var mp4box_write = new MP4Box();
 		var written_buffer;
 		var mp4box_read_written = new MP4Box();
-		getFile(boxtests[boxtestIndex].url, function (buffer) {
+		var callback = function (buffer) {
+			buffer.fileStart = 0;
 			mp4box_read_ref.appendBuffer(buffer);
 			boxref = mp4box_read_ref.inputIsoFile[boxtests[boxtestIndex].boxname];
 			mp4box_write.inputIsoFile.boxes.push(boxref);
@@ -1247,7 +1267,10 @@ function makeBoxReadWriteReadTest(i) {
 			mp4box_read_written.appendBuffer(written_buffer);
 			checkBoxData(assert, mp4box_read_written.inputIsoFile[boxtests[boxtestIndex].boxname], boxref);
 			QUnit.start();
-		});
+		};
+		var rangeStart = boxtests[boxtestIndex].rangeStart || 0;
+		var rangeEnd = (boxtests[boxtestIndex].rangeSize+boxtests[boxtestIndex].rangeStart-1) || Infinity;
+		getFileRange(boxtests[boxtestIndex].url, rangeStart, rangeEnd, callback);
 	});
 }
 
