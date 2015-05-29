@@ -8,7 +8,7 @@ var MP4Box = function () {
 	/* List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non overlapping */
 	this.nextBuffers = [];	
 	/* ISOFile object containing the parsed boxes */
-	this.inputIsoFile = null;
+	this.inputIsoFile = new ISOFile();
 	/* Callback called when the moov parsing starts */
 	this.onMoovStart = null;
 	/* Boolean keeping track of the call to onMoovStart, to avoid double calls */
@@ -358,8 +358,8 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	} 
 
 	/* Initialize the ISOFile object if not yet created */
-	if (!this.inputIsoFile) {
-		this.inputIsoFile = new ISOFile(this.inputStream);
+	if (!this.inputIsoFile.stream) {
+		this.inputIsoFile.stream = this.inputStream;
 	}
 
 	/* Parse whatever is in the existing buffers */
