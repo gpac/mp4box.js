@@ -1,4 +1,4 @@
-Log.setLogLevel(Log.d);
+Log.setLogLevel(Log.i);
 
 QUnit.module("Append entire file as one buffer, fire onReady when moov is parsed ");
 function runBasicTest(index) {
