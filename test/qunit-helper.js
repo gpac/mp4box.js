@@ -2,6 +2,7 @@
 function getFileRange(url, start, end, callback) {
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, true);
+	console.log("Getting resource at "+url);
 	xhr.responseType = "arraybuffer";
 	if (start !== 0 || end !== Infinity) {
 		xhr.setRequestHeader('Range', 'bytes=' + start + '-' + (end == Infinity ? '':end));

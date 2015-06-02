@@ -709,15 +709,16 @@ QUnit.asyncTest( "Extraction without callback", function( assert ) {
 
 QUnit.module("Parsing-driven download");
 QUnit.asyncTest( "Moov-last", function( assert ) {
+	var index = 9;
 	var mp4box = new MP4Box();
 
-	getFileRange('./mp4/moov_last.mp4', 0, 19, function (buffer) {
+	getFileRange(testFiles[index].url, 0, 19, function (buffer) {
 		var next_pos = mp4box.appendBuffer(buffer);
 		assert.equal(next_pos, 32, "Next position after first append corresponds to next box start");
-		getFileRange('./mp4/moov_last.mp4', 20, 39, function (buffer) {
+		getFileRange(testFiles[index].url, 20, 39, function (buffer) {
 			var next_pos = mp4box.appendBuffer(buffer);
 			assert.equal(next_pos, 40, "Next position after second append corresponds to next box start");
-			getFileRange('./mp4/moov_last.mp4', 40, 100, function (buffer) {
+			getFileRange(testFiles[index].url, 40, 100, function (buffer) {
 				var next_pos = mp4box.appendBuffer(buffer);
 				assert.equal(next_pos, 1309934+40, "Next position after third append corresponds to moov position");
 				QUnit.start();
@@ -784,17 +785,17 @@ QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
 		track_id = info.tracks[0].id;
 	}
 	getFile(testFiles[index].url, function (buffer) {
-		/* appending the whole buffer without setting any extraction option, no sample will be processed */
+		// appending the whole buffer without setting any extraction option, no sample will be processed 
 		mp4box.appendBuffer(buffer);
 		
-		/* setting extraction option and then seeking and calling sample processing */
+		// setting extraction option and then seeking and calling sample processing 
 		seekStep = 0;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
 		doExtraction = true;
 		mp4box.seek(seekTime, true); // find preceeding rap
 		mp4box.flush();
 
-		/* setting extraction option and then seeking and calling sample processing */
+		// setting extraction option and then seeking and calling sample processing 
 		seekStep = 1;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
 		mp4box.seek(seekTime, false); // don't seek on rap
@@ -848,17 +849,17 @@ QUnit.asyncTest( "Seek in the past", function( assert ) {
 		track_id = info.tracks[0].id;
 	}
 	getFile(testFiles[index].url, function (buffer) {
-		/* appending the whole buffer without setting any extraction option, no sample will be processed */
+		// appending the whole buffer without setting any extraction option, no sample will be processed 
 		mp4box.appendBuffer(buffer);
 		
-		/* setting extraction option and then seeking and calling sample processing */
+		// setting extraction option and then seeking and calling sample processing 
 		seekStep = 0;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
 		doExtraction = true;
 		mp4box.seek(seekTime0, true); // find preceeding rap
 		mp4box.flush();
 
-		/* setting extraction option and then seeking and calling sample processing */
+		// setting extraction option and then seeking and calling sample processing 
 		seekStep = 1;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
 		mp4box.seek(seekTime1, true); // find preceeding rap
@@ -881,9 +882,9 @@ QUnit.asyncTest( "Seek and fetch out of order", function( assert ) {
 	mp4box.onReady = function(info) { 
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;
-		/* setting extraction option and then seeking and calling sample processing */
+		// setting extraction option and then seeking and calling sample processing 
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1000, rapAlignement: true } );
-		/* getting the first 1000 samples */
+		// getting the first 1000 samples 
 		getFileRange(testFiles[index].url, 68190, 371814, function (buffer) {
 			mp4box.appendBuffer(buffer);
 			mp4box.seek(560, true);
@@ -899,7 +900,7 @@ QUnit.asyncTest( "Seek and fetch out of order", function( assert ) {
 	
 	}
 	getFileRange(testFiles[index].url, 0, 68190, function (buffer) {
-		/* appending the ftyp/moov */
+		// appending the ftyp/moov 
 		mp4box.appendBuffer(buffer);
 	});
 });

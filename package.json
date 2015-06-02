@@ -35,6 +35,8 @@
     "grunt-contrib-qunit": "^0.5.2",
     "grunt-contrib-uglify": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",
+    "karma": "^0.12.35",
+    "karma-qunit": "^0.1.4",
     "qunitjs": "^1.15.0"
   },
   "scripts": {
