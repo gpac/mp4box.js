@@ -115,6 +115,6 @@ module.exports = function(grunt) {
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
   grunt.registerTask('boxparser', [ 'concat:boxparser', 'uglify:boxparser']);
 
-  grunt.registerTask('default', [ 'jshint', 'all', 'simple', 'boxparser']);
+  grunt.registerTask('default', [ 'jshint', 'all', 'simple', 'boxparser', 'test']);
 
 };
