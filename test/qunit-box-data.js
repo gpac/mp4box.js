@@ -1,6 +1,7 @@
+var boxTestBaseUrl = 'http://download.tsi.telecom-paristech.fr/gpac/mp4box.js';
 var boxtests = [
 	{
-		url: "http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/box/sidx.mp4",
+		url: boxTestBaseUrl + "/mp4/box/sidx.mp4",
 		rangeStart: 0,
 		rangeSize: 36,
 		boxname: "ftyp",
@@ -13,7 +14,7 @@ var boxtests = [
 		}
 	},
 	{ 
-		url: "http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/box/sidx.mp4",	
+		url: boxTestBaseUrl + "/mp4/box/sidx.mp4",	
 		rangeStart: 1566,
 		rangeSize: 152,
 		boxname: "sidx",
@@ -111,7 +112,7 @@ var boxtests = [
 		}
 	},
 	{
-		url: "http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/box/emsg.m4s",
+		url: boxTestBaseUrl + "/mp4/box/emsg.m4s",
 		rangeStart: 106,
 		rangeSize: 494,
 		boxname: "emsg",
