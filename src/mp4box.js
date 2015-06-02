@@ -543,6 +543,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 				seek_info.time = trak_seek_info.time;
 			}
 		}
+		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
 		if (seek_info.offset === Infinity) {
 			/* No sample info, in all tracks, cannot seek */
 			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
@@ -551,7 +552,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 			/* TODO: Should wait until append operations are done */
 			seek_info.offset = this.inputStream.getEndFilePositionAfter(seek_info.offset);
 		}
-		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" (requested time "+Log.getDurationString(time, 1)+") needs a buffer with a fileStart position of "+seek_info.offset);
+		Log.i("MP4Box", "Adjusted (post-buffer) seek position of "+seek_info.offset);
 		return seek_info;
 	}
 }
@@ -569,4 +570,8 @@ MP4Box.prototype.getTrackSample = function(track_id, number) {
 	var track = this.inputIsoFile.getTrackById(track_id);
 	var sample = this.inputIsoFile.getSample(track, number);
 	return sample;	
+}
+
+if (typeof exports !== 'undefined') {
+	exports.MP4Box = MP4Box;	
 }

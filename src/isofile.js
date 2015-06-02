@@ -378,7 +378,7 @@ ISOFile.prototype.buildSampleLists = function() {
 				sample.dts = 0;
 			}
 			if (ctts) {
-				if (j > last_sample_in_ctts_run) {
+				if (j >= last_sample_in_ctts_run) {
 					ctts_run_index++;
 					if (last_sample_in_ctts_run < 0) {
 						last_sample_in_ctts_run = 0;
@@ -418,6 +418,9 @@ ISOFile.prototype.updateSampleLists = function() {
 	var box, moof, traf, trak, trex;
 	var sample;
 	
+	if (this.moov === undefined) {
+		return;
+	}
 	/* if the input file is fragmented and fetched in multiple downloads, we need to update the list of samples */
 	while (this.lastMoofIndex < this.moofs.length) {
 		box = this.moofs[this.lastMoofIndex];
@@ -555,6 +558,9 @@ ISOFile.prototype.getTrexById = function(id) {
 
 /* Helper function */
 ISOFile.prototype.getTrackById = function(id) {
+	if (this.moov === undefined) {
+		return null;
+	}
 	for (var j = 0; j < this.moov.traks.length; j++) {
 		var trak = this.moov.traks[j];
 		if (trak.tkhd.track_id == id) return trak;
@@ -632,4 +638,24 @@ ISOFile.prototype.releaseSample = function(trak, sampleNum) {
 	sample.data = null;
 	this.samplesDataSize -= sample.size;
 	return sample.size;
+}
+
+/* Find and return specific boxes using recursion and early return */
+ISOFile.prototype.getBox = function(type) {
+  var result = this.getBoxes(type, true);
+  return (result.length ? result[0] : null);  
+}
+
+ISOFile.prototype.getBoxes = function(type, returnEarly) {
+  var result = [];
+  ISOFile._sweep.call(this, type, result, returnEarly);
+  return result;
+}
+
+ISOFile._sweep = function(type, result, returnEarly) {
+  if (this.type && this.type == type) result.push(this);
+  for (var box in this.boxes) {
+    if (result.length && returnEarly) return;
+    ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
+  }
 }

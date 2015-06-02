@@ -38,10 +38,11 @@ function httpload(url) {
 	var startDate = new Date();
 	downloader.setCallback(
 		function (response, end, error) { 
+			var nextStart = 0;
 			if (response) {
 				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
-				var nextStart = mp4box.appendBuffer(response);
-				downloader.setChunkStart(nextStart); 
+				nextStart = mp4box.appendBuffer(response);
+				
 			}
 			if (end) {
 				progressbar.progressbar({ value: 100 });
@@ -50,9 +51,11 @@ function httpload(url) {
 				createTreeView(mp4box.inputIsoFile.boxes);
 	            console.log("Done constructing tree in "+(new Date() - endRead)+" ms");
 				mp4box.flush();
+			} else {
+				downloader.setChunkStart(nextStart); 
 			}
 			if (error) {
-				reset();
+				console.log("Error downloading file");
 			}
 		}
 	);
@@ -84,7 +87,7 @@ function getBoxTable(box) {
 	html += '</thead>';
 	html += '<tbody>';
 	for (var prop in box) {
-		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples", "references"].indexOf(prop) > -1) {
+		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos"].indexOf(prop) > -1) {
 			continue;
 		} else if (box[prop] instanceof BoxParser.Box) {
 			continue;
@@ -124,6 +127,12 @@ function getFancyTreeData(boxes) {
 			fancytree_node.folder = true;
 		} else if (box.references) {
 			fancytree_node.children = getFancyTreeData(box.references);
+			fancytree_node.folder = true;
+		} else if (box.items) {
+			fancytree_node.children = getFancyTreeData(box.items);
+			fancytree_node.folder = true;
+		} else if (box.item_infos) {
+			fancytree_node.children = getFancyTreeData(box.item_infos);
 			fancytree_node.folder = true;
 		}
 	}
@@ -225,4 +234,7 @@ window.onload = function () {
 		urlSelector[0].add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
 	}
 
+	if (window.location.search) {
+		httpload(window.location.search.substring(1));
+	}
 }
