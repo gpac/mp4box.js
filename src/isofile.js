@@ -595,7 +595,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 	/* The sample has only been partially fetched, we need to check in all buffers */
 	var index =	this.multistream.findPosition(true, sample.offset + sample.alreadyRead, false);
 	if (index > -1) {
-		var buffer = this.multistream.buffers[index];
+		buffer = this.multistream.buffers[index];
 		var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
 		if (sample.size - sample.alreadyRead <= lengthAfterStart) {
 			/* the (rest of the) sample is entirely contained in this buffer */
