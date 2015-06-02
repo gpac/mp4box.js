@@ -744,3 +744,23 @@ ISOFile.prototype.releaseSample = function(trak, sampleNum) {
 	this.samplesDataSize -= sample.size;
 	return sample.size;
 }
+
+/* Find and return specific boxes using recursion and early return */
+ISOFile.prototype.getBox = function(type) {
+  var result = this.getBoxes(type, true);
+  return (result.length ? result[0] : null);  
+}
+
+ISOFile.prototype.getBoxes = function(type, returnEarly) {
+  var result = [];
+  ISOFile._sweep.call(this, type, result, returnEarly);
+  return result;
+}
+
+ISOFile._sweep = function(type, result, returnEarly) {
+  if (this.type && this.type == type) result.push(this);
+  for (var box in this.boxes) {
+    if (result.length && returnEarly) return;
+    ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
+  }
+}
