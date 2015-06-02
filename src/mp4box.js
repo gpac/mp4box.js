@@ -234,10 +234,7 @@ MP4Box.prototype.processSamples = function() {
 	}
 }
 
-/* Processes a new ArrayBuffer (with a fileStart property)
-   Returns the next expected file position, or undefined if not ready to parse */
-MP4Box.prototype.appendBuffer = function(ab) {
-	var nextFileStart;
+MP4Box.prototype.checkBuffer = function (ab) {
 	if (ab === null || ab === undefined) {
 		throw("Buffer must be defined and non empty");
 	}	
@@ -247,7 +244,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	if (ab.byteLength === 0) {
 		Log.w("MP4Box", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
 		this.inputStream.logBufferLevel();
-		return;
+		return false;
 	}
 	Log.i("MP4Box", "Processing buffer (fileStart: "+ab.fileStart+")");
 
@@ -258,12 +255,23 @@ MP4Box.prototype.appendBuffer = function(ab) {
 
 	if (!this.inputStream.initialized()) {
 		Log.w("MP4Box", "Not ready to start parsing");
-		return;
+		return false;
+	}
+	return true;
+}
+
+/* Processes a new ArrayBuffer (with a fileStart property)
+   Returns the next expected file position, or undefined if not ready to parse */
+MP4Box.prototype.appendBuffer = function(ab) {
+	var nextFileStart;
+	if (this.checkBuffer) {
+		if (!this.checkBuffer(ab)) {
+			return;
+		}
 	}
 
 	/* Parse whatever is in the existing buffers */
 	this.inputIsoFile.parse();
-	this.inputStream.logBufferLevel();
 
 	/* Check if the moovStart callback needs to be called */
 	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
@@ -274,25 +282,28 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	if (this.inputIsoFile.moov) {
 		/* A moov box has been entirely parsed */
 		
-		/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
-		if (!this.sampleListBuilt) {
-			this.inputIsoFile.buildSampleLists();
-			this.sampleListBuilt = true;
-		} 
+		if (this.processSamples) {
+			/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
+			if (!this.sampleListBuilt) {
+				this.inputIsoFile.buildSampleLists();
+				this.sampleListBuilt = true;
+			} 
 
-		/* We update the sample information if there are any new moof boxes */
-		this.inputIsoFile.updateSampleLists();
+			/* We update the sample information if there are any new moof boxes */
+			this.inputIsoFile.updateSampleLists();
+		}
 		
 		/* If the application needs to be informed that the 'moov' has been found, 
 		   we create the information object and callback the application */
 		if (this.onReady && !this.readySent) {
-			var info = this.getInfo();
 			this.readySent = true;
-			this.onReady(info);
+			this.onReady(this.getInfo());
 		}
 
-		/* See if any sample extraction or segment creation needs to be done with the available samples */
-		this.processSamples();
+		if (this.processSamples) {
+			/* See if any sample extraction or segment creation needs to be done with the available samples */
+			this.processSamples();
+		}
 
 		/* Inform about the best range to fetch next */
 		if (this.nextSeekPosition) {
@@ -301,7 +312,9 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		} else {
 			nextFileStart = this.inputIsoFile.nextParsePosition;
 		}		
-		nextFileStart = this.inputStream.getEndFilePositionAfter(nextFileStart);
+		if (this.inputStream.getEndFilePositionAfter) {
+			nextFileStart = this.inputStream.getEndFilePositionAfter(nextFileStart);
+		}
 	} else {
 		if (this.inputIsoFile !== null) {
 			/* moov has not been parsed but the first buffer was received, 
@@ -312,10 +325,12 @@ MP4Box.prototype.appendBuffer = function(ab) {
 			nextFileStart = 0;
 		}
 	}	
-	Log.i("MP4Box", "Done processing buffer (fileStart: "+ab.fileStart+") - next buffer to fetch should have a fileStart position of "+nextFileStart);
-	this.inputStream.logBufferLevel();
-	this.inputStream.cleanBuffers();
-	this.inputStream.logBufferLevel(true);
+	if (this.inputStream.cleanBuffers) {
+		Log.i("MP4Box", "Done processing buffer (fileStart: "+ab.fileStart+") - next buffer to fetch should have a fileStart position of "+nextFileStart);
+		this.inputStream.logBufferLevel();
+		this.inputStream.cleanBuffers();
+		this.inputStream.logBufferLevel(true);
+	}
 	return nextFileStart;
 }
 

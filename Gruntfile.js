@@ -4,48 +4,40 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       options: {
-        separator: ';'
+        separator: ''
       },
       all: {
-        src: ['src/log.js',         // logging system
-              'src/DataStream.js',  // bit/byte/string read operations
-              'src/DataStream-write.js',  // bit/byte/string write operations
-              'src/DataStream-map.js',  // bit/byte/string other operations
-              'src/buffer.js',      // multi-buffer datastream
-              'src/descriptor.js',  // MPEG-4 descriptor parsing
-              'src/box.js',         // base code for box parsing/writing
-              'src/box-parse.js',   // box parsing code 
-              'src/box-write.js',   // box writing code
-              'src/box-unpack.js',  // box code for sample manipulation
-              'src/meta.js',        // box code for meta-related box parsing
-              'src/text-mp4.js',  // text-based track manipulations
-              'src/isofile.js',     // file level operations (read, write)
-              'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
+        src: ['src/log.js',                       // logging system
+              'src/DataStream.js',                // bit/byte/string read operations
+              'src/DataStream-write.js',          // bit/byte/string write operations
+              'src/DataStream-map.js',            // bit/byte/string other operations
+              'src/buffer.js',                    // multi-buffer datastream
+              'src/descriptor.js',                // MPEG-4 descriptor parsing
+              'src/box.js',                       // core code for box definitions
+              'src/box-codecs.js',                // core code for box definitions
+              'src/box-parse.js',                 // basic box parsing code 
+              'src/box-write.js',                 // box writing code
+              'src/box-unpack.js',                // box code for sample manipulation
+              'src/meta.js',                      // box code for meta-related box parsing
+              'src/text-mp4.js',                  // text-based track manipulations
+              'src/isofile.js',                   // basic file level operations (parse, get boxes)
+              'src/isofile-advanced-parsing.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
+              'src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
+              'src/isofile-write.js',             // file level write operations (segment creation ...)
+              'src/mp4box.js'                     // application level operations (data append, sample extraction, segmentation, ...)
         ],
         dest: 'dist/<%= pkg.name %>.all.js'
       },
       simple: {
-        src: ['src/log.js',         // logging system
-              'src/DataStream.js',  // bit/byte/string read-write operations
-              'src/buffer.js',      // multi-buffer datastream
-              'src/box.js',         // base code for box parsing/writing
-              'src/box-parse.js',   // box parsing code 
-              'src/meta.js',        // box code for meta-related box parsing
-              'src/isofile.js',     // file level operations (read, write)
-              'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
+        src: ['src/log.js',         
+              'src/DataStream.js',  
+              'src/box.js',         
+              'src/box-parse.js',   
+              'src/meta.js',   
+              'src/isofile.js'      
         ],
         dest: 'dist/<%= pkg.name %>.simple.js'
       },
-      boxparser: {
-        src: ['src/log.js',         // logging system
-              'src/DataStream.js',  // bit/byte/string read-write operations
-              'src/box.js',         // base code for box parsing/writing
-              'src/box-parse.js',   // box parsing code 
-              'src/isofile.js',     // file level operations (read, write)
-              'src/mp4box.js'       // application level operations (data append, sample extraction, segmentation, ...)
-        ],
-        dest: 'dist/boxparser.js'
-      }
     },
     uglify: {
       options: {
@@ -62,12 +54,6 @@ module.exports = function(grunt) {
           'dist/<%= pkg.name %>.simple.min.js': ['<%= concat.simple.dest %>']
         }
       },
-      boxparser: {
-        files: {
-          'dist/boxparser.min.js': ['<%= concat.boxparser.dest %>']
-        }
-      }
-
     },
     qunit: {
 		all: {
@@ -121,8 +107,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
-  grunt.registerTask('boxparser', [ 'concat:boxparser', 'uglify:boxparser']);
 
-  grunt.registerTask('default', [ 'jshint', 'all', 'simple', 'boxparser']);
+  grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
 
 };

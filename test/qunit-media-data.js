@@ -44,10 +44,10 @@ var testFiles = [
 		desc: "non-fragmented MP4 file with single AVC stream, moov is last box",
 		url: mediaTestBaseUrl + 'mp4/moov_last.mp4'
 	},
-	// { // 10
-	// 	desc: "long movie",
-	// 	url: mediaTestBaseUrl + 'mp4/Bad.Influence.se4ep13.mp4'
-	// },
+	{ // 10
+		desc: "long movie",
+		url: mediaTestBaseUrl + 'mp4/Bad.Influence.se4ep13.mp4'
+	},
 	{ // 11
 		desc: "Incomplete file from torrent",
 		url: mediaTestBaseUrl + 'mp4/as2-incomplete.mp4'

@@ -505,17 +505,16 @@ QUnit.asyncTest( "appending a buffer overlapping more than one existing buffer",
 	});
 });
 
-QUnit.asyncTest( "appending only one buffer with fileStart different from zero", function( assert ) {
+QUnit.asyncTest( "appending only one buffer with fileStart different from zero should not reach onReady", function( assert ) {
 	var index = 0;
-	var timeout = window.setTimeout(function() { assert.ok(true, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var mp4box = new MP4Box();
+	QUnit.expect(0);
 	mp4box.onReady = function(info) { 
-		window.clearTimeout(timeout);
 		assert.ok(false, "moov found!" );
-		QUnit.start();
 	}
 	getFileRange(testFiles[index].url, 25000, 49999, function (buffer) {
 		mp4box.appendBuffer(buffer);
+		QUnit.start();
 	});
 });
 
@@ -608,14 +607,12 @@ QUnit.asyncTest( "Basic Segmentation", function( assert ) {
 	});
 });
 
-QUnit.asyncTest( "Segmentation when no sample is ready", function( assert ) {
+QUnit.asyncTest( "Segmentation when no sample is ready should not reach onSegment", function( assert ) {
 	var index = 0;
 	var track_id;
-	var timeout = window.setTimeout(function() { assert.ok(true, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var mp4box = new MP4Box();
 	mp4box.onSegment = function(id, user, buffer, sampleNum) {		
 		assert.ok(false, "No segment data");
-		QUnit.start();	
 	}
 	mp4box.onReady = function(info) { 
 		assert.ok(true, "moov found!" );	
@@ -625,6 +622,7 @@ QUnit.asyncTest( "Segmentation when no sample is ready", function( assert ) {
 	}
 	getFileRange(testFiles[index].url, 0, 68500, function (buffer) {
 		mp4box.appendBuffer(buffer);
+		QUnit.start();	
 	});
 });
 
@@ -671,14 +669,12 @@ QUnit.asyncTest( "Basic Extraction", function( assert ) {
 	});
 });
 
-QUnit.asyncTest( "Extraction when no sample is ready", function( assert ) {
+QUnit.asyncTest( "Extraction when no sample is ready should not reach onSamples", function( assert ) {
 	var index = 0;
 	var track_id;
-	var timeout = window.setTimeout(function() { assert.ok(true, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var mp4box = new MP4Box();
 	mp4box.onSamples = function(id, user, samples) {		
 		assert.ok(false, "No sample data");
-		QUnit.start();	
 	}
 	mp4box.onReady = function(info) { 
 		assert.ok(true, "moov found!" );	
@@ -686,7 +682,8 @@ QUnit.asyncTest( "Extraction when no sample is ready", function( assert ) {
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
 	}
 	getFileRange(testFiles[index].url, 0, 68500, function (buffer) {
-			mp4box.appendBuffer(buffer);
+		mp4box.appendBuffer(buffer);
+		QUnit.start();
 	});
 });
 
@@ -942,6 +939,7 @@ QUnit.asyncTest( "Write-back the entire file", function( assert ) {
 
 QUnit.module("Playback test");
 QUnit.asyncTest( "Long Segmentation", function( assert ) {
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var index = 10;
 	var mp4box = new MP4Box();
 	var start = 0;
@@ -961,14 +959,7 @@ QUnit.asyncTest( "Long Segmentation", function( assert ) {
 	mp4box.onSegment = function(id, user, buffer, sampleNum) {	
 		assert.ok(true, "Segment received!" );
 		if (sampleNum === lastSample) {
-			mp4box.unsetSegmentOptions(track_id);
-			QUnit.start();
-		}
-	}
-	mp4box.onSamples = function(id, user, samples) {	
-		assert.ok(true, "Samples received!" );
-		console.log("Memory usage: used/total/limit "+console.memory.usedJSHeapSize+"/"+console.memory.totalJSHeapSize+"/"+console.memory.jsHeapSizeLimit);
-		if (samples === lastSample) {
+			window.clearTimeout(timeout);
 			mp4box.unsetSegmentOptions(track_id);
 			QUnit.start();
 		}
