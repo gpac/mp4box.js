@@ -109,7 +109,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-connect');
 
-  grunt.registerTask('test', ['jshint', 'connect', 'qunit']);
+  grunt.registerTask('test', ['connect', 'qunit']);
 
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
