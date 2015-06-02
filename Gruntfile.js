@@ -99,6 +99,11 @@ module.exports = function(grunt) {
     watch: {
       files: ['<%= jshint.files %>'],
       tasks: ['jshint', 'connect', 'qunit']
+    },
+    karma: {
+      unit: {
+        configFile: 'karma.conf.js'
+      }
     }
   });
 
@@ -108,6 +113,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-karma');
 
   grunt.registerTask('test', ['connect', 'qunit']);
 
@@ -115,6 +121,6 @@ module.exports = function(grunt) {
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
   grunt.registerTask('boxparser', [ 'concat:boxparser', 'uglify:boxparser']);
 
-  grunt.registerTask('default', [ 'jshint', 'all', 'simple', 'boxparser', 'test']);
+  grunt.registerTask('default', [ 'jshint', 'all', 'simple', 'boxparser']);
 
 };
