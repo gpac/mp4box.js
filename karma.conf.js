@@ -20,12 +20,8 @@ module.exports = function(config) {
       'qunit-media-data.js',
       'qunit-box-data.js',
       'qunit-tests.js',
-      {pattern: 'mp4/*.mp4', watched: false, included: false, served: true},
     ],
 
-    proxies:  {
-        '/mp4/': '/mp4/',
-    },
 
     // list of files to exclude
     exclude: [
