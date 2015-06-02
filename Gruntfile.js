@@ -11,6 +11,7 @@ module.exports = function(grunt) {
               'src/DataStream.js',  // bit/byte/string read operations
               'src/DataStream-write.js',  // bit/byte/string write operations
               'src/DataStream-map.js',  // bit/byte/string other operations
+              'src/buffer.js',      // multi-buffer datastream
               'src/descriptor.js',  // MPEG-4 descriptor parsing
               'src/box.js',         // base code for box parsing/writing
               'src/box-parse.js',   // box parsing code 
@@ -26,6 +27,7 @@ module.exports = function(grunt) {
       simple: {
         src: ['src/log.js',         // logging system
               'src/DataStream.js',  // bit/byte/string read-write operations
+              'src/buffer.js',      // multi-buffer datastream
               'src/box.js',         // base code for box parsing/writing
               'src/box-parse.js',   // box parsing code 
               'src/meta.js',        // box code for meta-related box parsing
