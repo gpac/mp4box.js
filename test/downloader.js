@@ -68,7 +68,7 @@ Downloader.prototype.getFile = function() {
 		dl.eof = true;
 	}
 	if (dl.eof === true) {
-		Log.i("Downloader", "File download done.");
+		Log.info("Downloader", "File download done.");
 		this.callback(null, true);
 		return;
 	}
@@ -94,7 +94,7 @@ Downloader.prototype.getFile = function() {
 	xhr.onreadystatechange = function (e) { 
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
 			var rangeReceived = xhr.getResponseHeader("Content-Range");
-			Log.i("Downloader", "Received data range: "+rangeReceived);
+			Log.info("Downloader", "Received data range: "+rangeReceived);
 			/* if the length of the file is not known, we get it from the response header */
 			if (!dl.totalLength && rangeReceived) {
 				var sizeIndex;
@@ -120,7 +120,7 @@ Downloader.prototype.getFile = function() {
 					timeoutDuration = computeWaitingTimeFromBuffer(video);
 				}
 				if (dl.setDownloadTimeoutCallback) dl.setDownloadTimeoutCallback(timeoutDuration);
-				Log.i("Downloader", "Next download scheduled in "+Math.floor(timeoutDuration)+ ' ms.');
+				Log.info("Downloader", "Next download scheduled in "+Math.floor(timeoutDuration)+ ' ms.');
 				window.setTimeout(dl.getFile.bind(dl), timeoutDuration);
 			} else {
 				/* end of file */
@@ -129,20 +129,20 @@ Downloader.prototype.getFile = function() {
 		}
 	};
 	if (dl.isActive) {
-		Log.i("Downloader", "Fetching "+this.url+(range ? (" with range: "+range): ""));
+		Log.info("Downloader", "Fetching "+this.url+(range ? (" with range: "+range): ""));
 		xhr.send();
 	}
 }
 
 Downloader.prototype.start = function() {
-	Log.i("Downloader", "Starting file download");
+	Log.info("Downloader", "Starting file download");
 	this.chunkStart = 0;
 	this.resume();
 	return this;
 }
 
 Downloader.prototype.resume = function() {
-	Log.i("Downloader", "Resuming file download");
+	Log.info("Downloader", "Resuming file download");
 	this.isActive = true;
 	if (this.chunkSize === 0) {
 		this.chunkSize = Infinity;
@@ -152,7 +152,7 @@ Downloader.prototype.resume = function() {
 }
 
 Downloader.prototype.stop = function() {
-	Log.i("Downloader", "Stopping file download");
+	Log.info("Downloader", "Stopping file download");
 	this.isActive = false;
 	return this;
 }

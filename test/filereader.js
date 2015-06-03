@@ -9,7 +9,7 @@ var fileinput;
 var urlinput;
 var fancytree;
 
-Log.setLogLevel(Log.i);
+Log.setLogLevel(Log.info);
 
 var chunkSize  = 1024 * 1024; // bytes
 
