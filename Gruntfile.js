@@ -4,7 +4,10 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       options: {
-        separator: ''
+        separator: '',
+        process: function(src, filepath) {
+          return '// file:' + filepath + '\n' + src;
+        }
       },
       all: {
         src: ['src/log.js',                       // logging system
