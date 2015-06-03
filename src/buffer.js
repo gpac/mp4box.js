@@ -282,10 +282,6 @@ MultiBufferStream.prototype.getPosition = function() {
 	return this.position;
 }
 
-MultiBufferStream.prototype.getFilePosition = function() {
-	return this.buffer.fileStart + this.position;
-}
-
 MultiBufferStream.prototype.addUsedBytes = function(nbBytes) {
 	this.buffer.usedBytes += nbBytes;
 	this.logBufferLevel();
@@ -296,11 +292,15 @@ MultiBufferStream.prototype.setAllUsedBytes = function() {
 	this.logBufferLevel();
 }
 
-MultiBufferStream.prototype.getEndFilePosition = function() {
-	return this.buffer.fileStart + this.buffer.byteLength;
+MultiBufferStream.prototype.getFilePosition = function() {
+	return this.buffer.fileStart + this.position;
 }
 
 MultiBufferStream.prototype.getStartFilePosition = function() {
+	return this.buffer.fileStart;
+}
+
+MultiBufferStream.prototype.getEndFilePosition = function() {
 	return this.buffer.fileStart + this.buffer.byteLength;
 }
 

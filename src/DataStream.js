@@ -22,6 +22,7 @@ var DataStream = function(arrayBuffer, byteOffset, endianness) {
   this.endianness = endianness == null ? DataStream.LITTLE_ENDIAN : endianness;
 };
 DataStream.prototype = {};
+
 /**
   Internal function to resize the DataStream buffer when required.
   @param {number} extra Number of bytes to add to the buffer allocation.
