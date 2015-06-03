@@ -4,7 +4,7 @@
  */
 var ISOFile = function (stream) {
 	/* MutiBufferStream object used to parse boxes */
-	this.multistream = stream;
+	this.stream = stream;
 	/* Array of all boxes (in order) found in the file */
 	this.boxes = [];
 	/* Array of all mdats */
@@ -28,7 +28,7 @@ ISOFile.prototype.parse = function() {
 
 	while (true) {
 		
-		if (this.processIncompleteMdat && this.hasIncompleteMdat()) {
+		if (this.hasIncompleteMdat && this.hasIncompleteMdat()) {
 			if (this.processIncompleteMdat()) {
 				continue;
 			} else {
@@ -38,7 +38,7 @@ ISOFile.prototype.parse = function() {
 			if (this.saveParsePosition)	{
 				this.saveParsePosition();
 			}
-			ret = BoxParser.parseOneBox(this.multistream);
+			ret = BoxParser.parseOneBox(this.stream);
 			if (ret.code === BoxParser.ERR_NOT_ENOUGH_DATA) {		
 				if (this.processIncompleteBox) {
 					if (this.processIncompleteBox(ret)) {
@@ -48,6 +48,7 @@ ISOFile.prototype.parse = function() {
 					}
 				} else {
 					Log.w("ISOFile", "Cannot parse incomplete box");
+					return;
 				}
 			} else {
 				/* the box is entirely parsed */
@@ -59,7 +60,11 @@ ISOFile.prototype.parse = function() {
 					case "mdat":
 						this.mdats.push(box);
 						/* remember the position in the file of this box for comparison with sample offsets */
-						box.fileStart = this.multistream.getStartFilePosition() + box.start;
+						if (this.stream.getStartFilePosition) {
+							box.fileStart = this.stream.getStartFilePosition() + box.start;
+						} else {
+							box.fileStart = box.start;
+						}
 						break;
 					case "moof":
 						this.moofs.push(box);

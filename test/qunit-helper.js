@@ -1,3 +1,5 @@
+Log.setLogLevel(Log.i);
+var TIMEOUT_MS = 10000;
 
 function getFileRange(url, start, end, callback) {
 	var xhr = new XMLHttpRequest();
@@ -25,4 +27,37 @@ function getFileRange(url, start, end, callback) {
 
 function getFile(url, callback) {
 	getFileRange(url, 0, Infinity, callback);
+}
+
+function checkBoxData(assert, box, data) {
+	var i;
+	assert.ok(box, "Found "+data.type+" box");
+	for (var prop in data) {
+		if ([ "size", "sizePosition", "start", "fileStart"].indexOf(prop) > -1) {
+			continue;
+		} else if (Array.isArray(data[prop])) {
+			for (i = 0; i < data[prop].length; i++) {
+				var boxentry = box[prop][i];
+				var dataentry = data[prop][i];
+				assert.deepEqual(boxentry, dataentry, "Box property "+prop+", entry #"+i+" deep equality");
+			}
+		} else if (data[prop].byteLength) {
+			var uint8data = new Uint8Array(data[prop]);
+			var uint8box = new Uint8Array(box[prop]);
+			var equal = true;
+			if (uint8box.length !== uint8data.length) {
+				equal = false;
+			} else {
+				for (i = 0; i < uint8box.length; i++) {
+					if (uint8data[i] !== uint8box[i]) {
+						equal = false;
+						break;
+					}
+				}
+			}
+			assert.ok(equal, "TypedArray equality for "+prop);
+		} else {
+			assert.equal(box[prop], data[prop], "Box property "+prop+" is correct");
+		}
+	}
 }

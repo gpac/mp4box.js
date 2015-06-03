@@ -30,7 +30,7 @@ module.exports = function(grunt) {
       },
       simple: {
         src: ['src/log.js',         
-              'src/DataStream.js',  
+              'src/stream.js',  
               'src/box.js',         
               'src/box-parse.js',   
               'src/meta.js',   
@@ -86,7 +86,7 @@ module.exports = function(grunt) {
     },
     watch: {
       files: ['<%= jshint.files %>'],
-      tasks: ['jshint', 'connect', 'qunit']
+      tasks: ['default']
     },
     karma: {
       unit: {
