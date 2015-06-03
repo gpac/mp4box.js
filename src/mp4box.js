@@ -154,7 +154,7 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 
 	/* adjusting the data_offset now that the moof size is known*/
 	moof.trun.data_offset = moof.size+8; //8 is mdat header
-	Log.d("BoxWriter", "Adjusting data_offset with new value "+moof.trun.data_offset);
+	Log.debug("MP4Box", "Adjusting data_offset with new value "+moof.trun.data_offset);
 	stream.adjustUint32(moof.trun.data_offset_position, moof.trun.data_offset);
 		
 	var mdat = new BoxParser.mdatBox();

@@ -11,28 +11,28 @@ var Log = (function (){
 		var log_level = LOG_LEVEL_ERROR;
 		var logObject = {
 			setLogLevel : function(level) {
-				if (level == this.d) log_level = LOG_LEVEL_DEBUG;
-				else if (level == this.i) log_level = LOG_LEVEL_INFO;
-				else if (level == this.w) log_level = LOG_LEVEL_WARNING;
-				else if (level == this.e) log_level = LOG_LEVEL_ERROR;
+				if (level == this.debug) log_level = LOG_LEVEL_DEBUG;
+				else if (level == this.info) log_level = LOG_LEVEL_INFO;
+				else if (level == this.warn) log_level = LOG_LEVEL_WARNING;
+				else if (level == this.error) log_level = LOG_LEVEL_ERROR;
 				else log_level = LOG_LEVEL_ERROR;
 			},
-			d : function(module, msg) {
+			debug : function(module, msg) {
 				if (LOG_LEVEL_DEBUG >= log_level) {
 					console.debug("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			},
-			i : function(module, msg) {
+			info : function(module, msg) {
 				if (LOG_LEVEL_INFO >= log_level) {
 					console.info("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			},
-			w : function(module, msg) {
+			warn : function(module, msg) {
 				if (LOG_LEVEL_WARNING >= log_level) {
 					console.warn("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			},
-			e : function(module, msg) {
+			error : function(module, msg) {
 				if (LOG_LEVEL_ERROR >= log_level) {
 					console.error("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}

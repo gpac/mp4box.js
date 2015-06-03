@@ -309,7 +309,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 		sample.data = new Uint8Array(sample.size);
 		sample.alreadyRead = 0;
 		this.samplesDataSize += sample.size;
-		Log.d("ISOFile", "Allocating sample #"+sampleNum+" on track #"+trak.tkhd.track_id+" of size "+sample.size+" (total: "+this.samplesDataSize+")");
+		Log.debug("ISOFile", "Allocating sample #"+sampleNum+" on track #"+trak.tkhd.track_id+" of size "+sample.size+" (total: "+this.samplesDataSize+")");
 	} else if (sample.alreadyRead == sample.size) {
 		/* Already fetched entirely */
 		return sample;
@@ -323,7 +323,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 		if (sample.size - sample.alreadyRead <= lengthAfterStart) {
 			/* the (rest of the) sample is entirely contained in this buffer */
 
-			Log.d("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
+			Log.debug("ISOFile","Getting sample #"+sampleNum+" data (alreadyRead: "+sample.alreadyRead+" offset: "+
 				(sample.offset+sample.alreadyRead - buffer.fileStart)+" read size: "+(sample.size - sample.alreadyRead)+" full size: "+sample.size+")");
 
 			DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 
@@ -339,7 +339,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 		} else {
 			/* the sample does not end in this buffer */				
 			
-			Log.d("ISOFile","Getting sample #"+sampleNum+" partial data (alreadyRead: "+sample.alreadyRead+" offset: "+
+			Log.debug("ISOFile","Getting sample #"+sampleNum+" partial data (alreadyRead: "+sample.alreadyRead+" offset: "+
 				(sample.offset+sample.alreadyRead - buffer.fileStart)+" read size: "+lengthAfterStart+" full size: "+sample.size+")");
 			
 			DataStream.memcpy(sample.data.buffer, sample.alreadyRead, 

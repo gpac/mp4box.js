@@ -14,15 +14,15 @@ MultiBufferStream.prototype.initialized = function() {
 		if (firstBuffer.fileStart === 0) {
 			this.buffer = firstBuffer;
 			this.bufferIndex = 0;
-			Log.d("MultiBufferStream", "Stream ready for parsing");
+			Log.debug("MultiBufferStream", "Stream ready for parsing");
 			return true;
 		} else {
-			Log.w("MultiBufferStream", "The first buffer should have a fileStart of 0");
+			Log.warn("MultiBufferStream", "The first buffer should have a fileStart of 0");
 			this.logBufferLevel();
 			return false;
 		}
 	} else {
-		Log.w("MultiBufferStream", "No buffer to start parsing from");
+		Log.warn("MultiBufferStream", "No buffer to start parsing from");
 		this.logBufferLevel();
 		return false;
 	}			
@@ -30,7 +30,7 @@ MultiBufferStream.prototype.initialized = function() {
 
 /* helper functions to enable calling "open" with additional buffers */
 ArrayBuffer.concat = function(buffer1, buffer2) {
-  Log.d("ArrayBuffer", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
+  Log.debug("ArrayBuffer", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
   var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
   tmp.set(new Uint8Array(buffer1), 0);
   tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
@@ -69,7 +69,7 @@ MultiBufferStream.prototype.insertBuffer = function(ab) {
 					continue;
 				} else {
 					/* the new buffer is smaller than the existing one, just drop it */
-					Log.w("MultiBufferStream", "Buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+") already appended, ignoring");
+					Log.warn("MultiBufferStream", "Buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+") already appended, ignoring");
 				}
 			} else {
 				/* The beginning of the new buffer is not overlapping with an existing buffer
@@ -80,7 +80,7 @@ MultiBufferStream.prototype.insertBuffer = function(ab) {
 					/* There is some overlap, cut the new buffer short, and add it*/
 					ab = this.reduceBuffer(ab, 0, b.fileStart - ab.fileStart);
 				}
-				Log.d("MultiBufferStream", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
+				Log.debug("MultiBufferStream", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
 				this.buffers.splice(i, 0, ab);
 				/* if this new buffer is inserted in the first place in the list of the buffer, 
 				   and the DataStream is initialized, make it the buffer used for parsing */
@@ -106,7 +106,7 @@ MultiBufferStream.prototype.insertBuffer = function(ab) {
 	}
 	/* if the buffer has not been added, we can add it at the end */
 	if (to_add) {
-		Log.d("MultiBufferStream", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
+		Log.debug("MultiBufferStream", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
 		this.buffers.push(ab);
 		/* if this new buffer is inserted in the first place in the list of the buffer, 
 		   and the DataStream is initialized, make it the buffer used for parsing */
@@ -149,7 +149,7 @@ MultiBufferStream.prototype.logBufferLevel = function(info) {
 	if (ranges.length > 0) {
 		bufferedString += (range.end-1)+"]";
 	}
-	var log = (info ? Log.i : Log.d)
+	var log = (info ? Log.info : Log.debug)
 	if (this.buffers.length === 0) {
 		log("MultiBufferStream", "No more buffer in memory");
 	} else {
@@ -163,7 +163,7 @@ MultiBufferStream.prototype.cleanBuffers = function () {
 	for (i = 0; i < this.buffers.length; i++) {
 		buffer = this.buffers[i];
 		if (buffer.usedBytes === buffer.byteLength) {
-			Log.d("MultiBufferStream", "Removing buffer #"+i);
+			Log.debug("MultiBufferStream", "Removing buffer #"+i);
 			this.buffers.splice(i, 1);
 			i--;
 		}
@@ -183,7 +183,7 @@ MultiBufferStream.prototype.mergeNextBuffer = function() {
 			this.buffers.splice(this.bufferIndex+1, 1);
 			this.buffer.usedBytes = oldUsedBytes; /* TODO: should it be += ? */
 			this.buffer.fileStart = oldFileStart;
-			Log.d("ISOFile", "Concatenating buffer for box parsing (length: "+oldLength+"->"+this.buffer.byteLength+")");
+			Log.debug("ISOFile", "Concatenating buffer for box parsing (length: "+oldLength+"->"+this.buffer.byteLength+")");
 			return true;
 		} else {
 			return false;
@@ -203,10 +203,10 @@ MultiBufferStream.prototype.reposition = function(fromStart, filePosition, markA
 		this.buffer = this.buffers[index];
 		this.bufferIndex = index;
 		this.position = filePosition - this.buffer.fileStart;
-		Log.d("MultiBufferStream", "Repositioning parser at buffer position: "+this.position);
+		Log.debug("MultiBufferStream", "Repositioning parser at buffer position: "+this.position);
 		return true;
 	} else {
-		Log.d("MultiBufferStream", "Position "+filePosition+" not found in buffered data");
+		Log.debug("MultiBufferStream", "Position "+filePosition+" not found in buffered data");
 		return false;
 	}
 }
@@ -247,7 +247,7 @@ MultiBufferStream.prototype.findPosition = function(fromStart, filePosition, mar
 	if (index !== -1) {
 		abuffer = this.buffers[index];
 		if (abuffer.fileStart + abuffer.byteLength >= filePosition) {			
-			Log.d("MultiBufferStream", "Found position in existing buffer #"+index);
+			Log.debug("MultiBufferStream", "Found position in existing buffer #"+index);
 			return index;
 		} else {
 			return -1;

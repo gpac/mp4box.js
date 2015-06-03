@@ -109,7 +109,7 @@ BoxParser.iinfBox.prototype.parse = function(stream) {
 	for (var i = 0; i < this.entry_count; i++) {
 		ret = BoxParser.parseOneBox(stream);
 		if (ret.box.type !== "infe") {
-			Log.e("BoxParser", "Expected 'infe' box, got "+ret.box.type);
+			Log.error("BoxParser", "Expected 'infe' box, got "+ret.box.type);
 		}
 		this.item_infos[i] = ret.box;
 	}
@@ -126,7 +126,7 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 	}
 	if (this.version === 1) {
 		this.extension_type = stream.readString(4);
-		Log.e("BoxParser", "Cannot parse extension type");
+		Log.error("BoxParser", "Cannot parse extension type");
 	}
 	if (this.version >= 2) {
 		if (this.version === 2) {

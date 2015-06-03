@@ -103,7 +103,7 @@ ISOFile.prototype.processIncompleteMdat = function () {
 
 	found = this.multistream.reposition(false, box.fileStart + box.hdr_size + box.size, this.discardMdatData);
 	if (found) {
-		Log.d("ISOFile", "Found 'mdat' end in buffered data");
+		Log.debug("ISOFile", "Found 'mdat' end in buffered data");
 		/* the end of the mdat has been found */ 
 		this.parsingMdat = null;
 		/* we can parse more in this buffer */
@@ -118,7 +118,7 @@ ISOFile.prototype.processIncompleteMdat = function () {
 }
 
 ISOFile.prototype.restoreParsePosition = function() {
-	/*Log.d("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
+	/*Log.debug("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
 		" ("+(this.stream.buffer.fileStart+this.lastBoxStartPosition)+" in the file)");*/
 	/* Reposition at the start position of the previous box not entirely parsed */
 	this.multistream.seek(this.lastBoxStartPosition);	

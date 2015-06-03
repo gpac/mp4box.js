@@ -12,7 +12,7 @@ ISOFile.prototype.writeInitializationSegment = function(outstream) {
 	var mehd;
 	var trex;
 	var box;
-	Log.d("ISOFile", "Generating initialization segment");
+	Log.debug("ISOFile", "Generating initialization segment");
 	/* write the ftyp box as is in the input, may need to be fixed for DASH brands ?*/
 	this.ftyp.write(outstream);
 

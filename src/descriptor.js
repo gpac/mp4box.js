@@ -33,7 +33,7 @@ var MPEG4DescriptorParser = function () {
 			hdrSize++;
 		} 
 		size += byteRead & 0x7F;
-		Log.d("MPEG4DescriptorParser", "Found "+(descTagToName[tag] | "Descriptor "+tag)+", size "+size+" at position "+stream.position);
+		Log.debug("MPEG4DescriptorParser", "Found "+(descTagToName[tag] | "Descriptor "+tag)+", size "+size+" at position "+stream.position);
 		if (descTagToName[tag]) {
 			desc = new classes[descTagToName[tag]](size);
 		} else {

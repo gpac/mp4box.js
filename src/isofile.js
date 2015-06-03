@@ -47,7 +47,7 @@ ISOFile.prototype.parse = function() {
 						return;
 					}
 				} else {
-					Log.w("ISOFile", "Cannot parse incomplete box");
+					Log.warn("ISOFile", "Cannot parse incomplete box");
 					return;
 				}
 			} else {
@@ -78,7 +78,7 @@ ISOFile.prototype.parse = function() {
 						/* falls through */
 					default:
 						if (this[box.type] !== undefined) {
-							Log.w("ISOFile", "Duplicate Box of type: "+box.type+", overriding previous occurrence");
+							Log.warn("ISOFile", "Duplicate Box of type: "+box.type+", overriding previous occurrence");
 						}
 						this[box.type] = box;
 						break;

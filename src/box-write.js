@@ -7,7 +7,7 @@ BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 	if (this.size > MAX_SIZE) {
 		this.size += 8;
 	}
-	Log.d("BoxWriter", "Writing box "+this.type+" of size: "+this.size+" at position "+stream.position+(msg || ""));
+	Log.debug("BoxWriter", "Writing box "+this.type+" of size: "+this.size+" at position "+stream.position+(msg || ""));
 	if (this.size > MAX_SIZE) {
 		stream.writeUint32(1);
 	} else {
@@ -52,7 +52,7 @@ BoxParser.ContainerBox.prototype.write = function(stream) {
 		}
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	Log.d("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
+	Log.debug("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 
@@ -156,7 +156,7 @@ BoxParser.stsdBox.prototype.write = function(stream) {
 		this.size += this.entries[i].size;
 	}
 	/* adjusting the size, now that all sub-boxes are known */
-	Log.d("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
+	Log.debug("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 
@@ -500,7 +500,7 @@ BoxParser.drefBox.prototype.write = function(stream) {
 		this.size += this.entries[i].size;
 	}	
 	/* adjusting the size, now that all sub-boxes are known */
-	Log.d("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
+	Log.debug("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);
 }
 

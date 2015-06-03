@@ -151,12 +151,12 @@ var BoxParser = {
 		var start = stream.position;
 		var hdr_size = 0;
 		if (stream.byteLength - stream.position < 8) {
-			Log.d("BoxParser", "Not enough data in stream to parse the type and size of the box");
+			Log.debug("BoxParser", "Not enough data in stream to parse the type and size of the box");
 			return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
 		}
 		var size = stream.readUint32();
 		var type = stream.readString(4);
-		Log.d("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start+" in the current buffer ("+(stream.buffer.fileStart+start)+" in the file)");
+		Log.debug("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start+" in the current buffer ("+(stream.buffer.fileStart+start)+" in the file)");
 		hdr_size = 8;
 		if (type == "uuid") {
 			uuid = stream.readString(16);
@@ -165,7 +165,7 @@ var BoxParser = {
 		if (size == 1) {
 			if (stream.byteLength - stream.position < 8) {
 				stream.seek(start);
-				Log.w("BoxParser", "Not enough data in stream to parse the extended size of the \""+type+"\" box");
+				Log.warn("BoxParser", "Not enough data in stream to parse the extended size of the \""+type+"\" box");
 				return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
 			}
 			size = stream.readUint64();
@@ -177,7 +177,7 @@ var BoxParser = {
 		
 		if (start + size > stream.byteLength ) {
 			stream.seek(start);
-			Log.w("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
+			Log.warn("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
 			return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size };
 		}
 		if (BoxParser[type+"Box"]) {
