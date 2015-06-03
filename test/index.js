@@ -315,22 +315,24 @@ function onInitAppended(e) {
 		updateBufferedString(sb, "Init segment append ended");
 		sb.sampleNum = 0;
 		sb.removeEventListener('updateend', onInitAppended);
-		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true));
+		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true, true));
 		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
-		onUpdateEnd.call(sb, false);
+		onUpdateEnd.call(sb, false, true);
 		if (autoplay && startButton.disabled) {
 			start();
 		}
 	}
 }
 
-function onUpdateEnd(isNotInit) {
-	if (isNotInit === true) {
-		updateBufferedString(this, "Update ended");
-	}
-	if (this.sampleNum) {
-		mp4box.releaseUsedSamples(this.id, this.sampleNum);
-		delete this.sampleNum;
+function onUpdateEnd(isNotInit, isEndOfAppend) {
+	if (isEndOfAppend === true) {
+		if (isNotInit === true) {
+			updateBufferedString(this, "Update ended");
+		}
+		if (this.sampleNum) {
+			mp4box.releaseUsedSamples(this.id, this.sampleNum);
+			delete this.sampleNum;
+		}
 	}
 	if (this.ms.readyState === "open" && this.updating === false && this.pendingAppends.length > 0) {
 		var obj = this.pendingAppends.shift();
@@ -480,7 +482,7 @@ function load() {
 		sb.segmentIndex++;
 		sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
 		Log.info("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
-		onUpdateEnd.call(sb, true);
+		onUpdateEnd.call(sb, true, false);
 	}
 	mp4box.onSamples = function (id, user, samples) {	
 		var texttrack = user;
