@@ -141,4 +141,3 @@ ISOFile.prototype.updateUsedBytes = function(box, ret) {
 		this.multistream.addUsedBytes(ret.size);
 	}	
 }
-

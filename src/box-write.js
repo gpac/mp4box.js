@@ -577,4 +577,3 @@ BoxParser.elstBox.prototype.write = function(stream) {
 		stream.writeInt16(entry.media_rate_fraction);
 	}
 }
-

@@ -50,4 +50,3 @@ ISOFile.prototype.writeInitializationSegment = function(outstream) {
 	}
 	this.moov.write(outstream);
 }
-

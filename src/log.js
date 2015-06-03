@@ -81,4 +81,3 @@ Log.printRanges = function(ranges) {
 		return "(empty)";
 	}
 }
-

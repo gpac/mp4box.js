@@ -160,4 +160,3 @@ BoxParser.mp4aBox.prototype.getCodec = function() {
 		return baseCodec;
 	}
 }
-

@@ -399,4 +399,3 @@ ISOFile.prototype.getTrackById = function(id) {
 	}
 	return null;
 }
-

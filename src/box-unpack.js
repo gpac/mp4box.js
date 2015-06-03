@@ -61,4 +61,3 @@ BoxParser.stszBox.prototype.unpack = function(samples) {
 		samples[i].size = this.sample_sizes[i];
 	}
 }
-

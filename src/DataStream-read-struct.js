@@ -271,4 +271,3 @@ DataStream.prototype.readType = function(t, struct) {
   }
   return v;
 };
-

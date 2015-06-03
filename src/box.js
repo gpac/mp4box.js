@@ -219,8 +219,6 @@ BoxParser.TRUN_FLAGS_SIZE		= 0x200;
 BoxParser.TRUN_FLAGS_FLAGS		= 0x400;
 BoxParser.TRUN_FLAGS_CTS_OFFSET	= 0x800;
 
-
-
 if (typeof exports !== "undefined") {
 	exports.BoxParser = BoxParser;
 }

@@ -48,4 +48,3 @@ Textin4Parser.prototype.parseSample = function(sample) {
 	textString = stream.readString(sample.data.length);
 	return textString;
 }
-
