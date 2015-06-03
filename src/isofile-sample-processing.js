@@ -316,9 +316,9 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 	}
 
 	/* The sample has only been partially fetched, we need to check in all buffers */
-	var index =	this.multistream.findPosition(true, sample.offset + sample.alreadyRead, false);
+	var index =	this.stream.findPosition(true, sample.offset + sample.alreadyRead, false);
 	if (index > -1) {
-		buffer = this.multistream.buffers[index];
+		buffer = this.stream.buffers[index];
 		var lengthAfterStart = buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
 		if (sample.size - sample.alreadyRead <= lengthAfterStart) {
 			/* the (rest of the) sample is entirely contained in this buffer */
@@ -331,7 +331,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 
 			/* update the number of bytes used in this buffer and check if it needs to be removed */
 			buffer.usedBytes += sample.size - sample.alreadyRead;
-			this.multistream.logBufferLevel();
+			this.stream.logBufferLevel();
 
 			sample.alreadyRead = sample.size;
 
@@ -348,7 +348,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 
 			/* update the number of bytes used in this buffer and check if it needs to be removed */
 			buffer.usedBytes += lengthAfterStart;
-			this.multistream.logBufferLevel();
+			this.stream.logBufferLevel();
 		}
 	} else {
 		return null;

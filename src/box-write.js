@@ -177,7 +177,7 @@ BoxParser.SampleEntry.prototype.writeFooter = function(stream) {
 		this.boxes[i].write(stream);
 		this.size += this.boxes[i].size;
 	}
-	Log.d("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
+	Log.debug("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
 	stream.adjustUint32(this.sizePosition, this.size);	
 }
 
