@@ -67,6 +67,7 @@ ISOFile.prototype.buildSampleLists = function() {
 			sample.number = j;
 			sample.track_id = trak.tkhd.track_id;
 			sample.timescale = trak.mdia.mdhd.timescale;
+			sample.alreadyRead = 0;
 			trak.samples[j] = sample;
 			/* size can be known directly */
 			sample.size = stsz.sample_sizes[j];

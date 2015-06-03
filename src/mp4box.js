@@ -30,8 +30,10 @@ var MP4Box = function (_keepMdatData) {
 	this.fragmentedTracks = [];
 	/* Array of Track objects for which extraction of samples is requested */
 	this.extractedTracks = [];
+	/* Boolean indicating that fragmention is ready */
+	this.isFragmentationInitialized = false;
 	/* Boolean indicating that fragmented has started */
-	this.isFragmentationStarted = false;
+	this.sampleProcessingStarted = false;
 	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
 }
@@ -166,10 +168,12 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 MP4Box.prototype.processSamples = function() {
 	var i;
 	var trak;
+	if (!this.sampleProcessingStarted) return;
+
 	/* For each track marked for fragmentation, 
 	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) 
 	   and create a fragment with it */
-	if (this.isFragmentationStarted && this.onSegment !== null) {
+	if (this.isFragmentationInitialized && this.onSegment !== null) {
 		for (i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
 			trak = fragTrak.trak;
@@ -446,8 +450,8 @@ MP4Box.prototype.initializeSegmentation = function() {
 	if (this.onSegment === null) {
 		Log.warn("MP4Box", "No segmentation callback set!");
 	}
-	if (!this.isFragmentationStarted) {
-		this.isFragmentationStarted = true;		
+	if (!this.isFragmentationInitialized) {
+		this.isFragmentationInitialized = true;		
 		this.nextMoofNumber = 0;
 		this.inputIsoFile.resetTables();
 	}	
@@ -506,38 +510,40 @@ MP4Box.prototype.flush = function() {
 MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	var j;
 	var sample;
-	var rap_offset = Infinity;
-	var rap_time = 0;
 	var seek_offset = Infinity;
 	var rap_seek_sample_num = 0;
 	var seek_sample_num = 0;
 	var timescale;
+	
+	if (trak.samples.length === 0) {
+		Log.info("MP4Box", "No sample in track, cannot seek! Using time "+Log.getDurationString(0, 1) +" and offset: "+0);
+		return { offset: 0, time: 0 };
+	} 
+
 	for (j = 0; j < trak.samples.length; j++) {
 		sample = trak.samples[j];
 		if (j === 0) {
-			seek_offset = sample.offset;
 			seek_sample_num = 0;
 			timescale = sample.timescale;
 		} else if (sample.cts > time * sample.timescale) {
-			seek_offset = trak.samples[j-1].offset;
 			seek_sample_num = j-1;
 			break;
 		} 
 		if (useRap && sample.is_rap) {
-			rap_offset = sample.offset;
-			rap_time = sample.cts;
 			rap_seek_sample_num = j;
 		}
 	}
 	if (useRap) {
-		trak.nextSample = rap_seek_sample_num;
-		Log.info("MP4Box", "Seeking to RAP sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(rap_time, timescale) +" and offset: "+rap_offset);
-		return { offset: rap_offset, time: rap_time/timescale };
-	} else {
-		trak.nextSample = seek_sample_num;
-		Log.info("MP4Box", "Seeking to non-RAP sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(time)+" and offset: "+rap_offset);
-		return { offset: seek_offset, time: time };
+		seek_sample_num = rap_seek_sample_num;
 	}
+	time = trak.samples[seek_sample_num].cts;
+	trak.nextSample = seek_sample_num;
+	while (trak.samples[seek_sample_num].alreadyRead === trak.samples[seek_sample_num].size) {
+		seek_sample_num++;
+	}
+	seek_offset = trak.samples[seek_sample_num].offset+trak.samples[seek_sample_num].alreadyRead;
+	Log.info("MP4Box", "Seeking to "+(useRap ? "RAP": "")+" sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(time, timescale) +" and offset: "+seek_offset);
+	return { offset: seek_offset, time: time/timescale };
 }
 
 /* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
@@ -550,6 +556,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 	if (!this.inputIsoFile.moov) {
 		throw "Cannot seek: moov not received!";
 	} else {
+		this.sampleProcessingStarted = true;
 		for (i = 0; i<moov.traks.length; i++) {
 			trak = moov.traks[i];			
 			trak_seek_info = this.seekTrack(time, useRap, trak);
@@ -565,7 +572,8 @@ MP4Box.prototype.seek = function(time, useRap) {
 			/* No sample info, in all tracks, cannot seek */
 			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
 		} else {
-			/* check if the seek position is already in some buffer and in that case return the end of that buffer (or of the last contiguous buffer) */
+			/* check if the seek position is already in some buffer and
+			 in that case return the end of that buffer (or of the last contiguous buffer) */
 			/* TODO: Should wait until append operations are done */
 			seek_info.offset = this.inputStream.getEndFilePositionAfter(seek_info.offset);
 		}
