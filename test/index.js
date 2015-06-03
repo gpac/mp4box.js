@@ -45,7 +45,9 @@ window.onload = function () {
 	saveChecked = document.getElementById("saveChecked");
 	
 	for (var i in sampleUrls) {
-		urlSelector.add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
+		if (sampleUrls[i].playable === undefined || sampleUrls[i].playable) {
+			urlSelector.add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
+		}
 	}
 
 	video.addEventListener("seeking", onSeeking);
