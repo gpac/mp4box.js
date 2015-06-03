@@ -29,7 +29,7 @@ module.exports = function(grunt) {
         dest: 'dist/<%= pkg.name %>.all.js'
       },
       simple: {
-        src: ['src/log.js',         
+        src: ['src/log-simple.js',         
               'src/stream.js',  
               'src/box.js',         
               'src/box-parse.js',   
