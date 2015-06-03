@@ -189,6 +189,7 @@ MP4Box.prototype.processSamples = function() {
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
 				if (trak.nextSample % fragTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
 					Log.info("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+(trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]"); 
+					Log.info("MP4Box", "Sample data size in memory: "+this.inputIsoFile.getAllocatedSampleDataSize()); 			
 					if (this.onSegment) {
 						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample);
 					}
@@ -330,6 +331,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		this.inputStream.logBufferLevel();
 		this.inputStream.cleanBuffers();
 		this.inputStream.logBufferLevel(true);
+		Log.info("MP4Box", "Sample data size in memory: "+this.inputIsoFile.getAllocatedSampleDataSize()); 			
 	}
 	return nextFileStart;
 }
@@ -486,7 +488,7 @@ MP4Box.prototype.releaseUsedSamples = function (id, sampleNum) {
 	for (var i = trak.lastValidSample; i < sampleNum; i++) {
 		size+=this.inputIsoFile.releaseSample(trak, i);
 	}
-	Log.debug("MP4Box", "Track #"+id+" released samples up to "+sampleNum+" (total size: "+size+", remaining: "+this.inputIsoFile.samplesDataSize+")");
+	Log.info("MP4Box", "Track #"+id+" released samples up to "+sampleNum+" (released size: "+size+", remaining: "+this.inputIsoFile.samplesDataSize+")");
 	trak.lastValidSample = sampleNum;
 }
 

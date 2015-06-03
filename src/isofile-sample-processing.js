@@ -358,9 +358,17 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 /* Release the memory used to store the data of the sample */
 ISOFile.prototype.releaseSample = function(trak, sampleNum) {	
 	var sample = trak.samples[sampleNum];
-	sample.data = null;
-	this.samplesDataSize -= sample.size;
-	return sample.size;
+	if (sample.data) {
+		this.samplesDataSize -= sample.size;
+		sample.data = null;
+		return sample.size;
+	} else {
+		return 0;
+	}
+}
+
+ISOFile.prototype.getAllocatedSampleDataSize = function() {
+	return this.samplesDataSize;
 }
 
 /* Builds the MIME Type 'codecs' sub-parameters for the whole file */
