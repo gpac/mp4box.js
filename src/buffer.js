@@ -193,6 +193,10 @@ MultiBufferStream.prototype.mergeNextBuffer = function() {
 	}
 }
 
+MultiBufferStream.prototype.seek = function(pos) {
+	this.reposition(true, pos, false);
+}
+
 /* Searches for the buffer containing the given file position:
   - if found, repositions the parsing from there and returns true 
   - if not found, does not change anything and returns false */

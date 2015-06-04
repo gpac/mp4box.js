@@ -24,8 +24,8 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 		this.parsingMdat = box;
 		this.boxes.push(box);
 		this.mdats.push(box);			
-		box.fileStart = this.stream.getFilePosition();
 		box.hdr_size = ret.hdr_size;
+		box.fileStart = this.stream.getFilePosition() - box.hdr_size;
 		this.stream.addUsedBytes(box.hdr_size);
 		
 		/* let's see if we have the end of the box in the other buffers */

@@ -1,14 +1,16 @@
-Log.setLogLevel(Log.i);
+Log.setLogLevel(Log.debug);
 var TIMEOUT_MS = 10000;
 
 function getFileRange(url, start, end, callback) {
 	var xhr = new XMLHttpRequest();
+	var range= '';
 	xhr.open("GET", url, true);
-	console.log("Getting resource at "+url);
 	xhr.responseType = "arraybuffer";
 	if (start !== 0 || end !== Infinity) {
-		xhr.setRequestHeader('Range', 'bytes=' + start + '-' + (end == Infinity ? '':end));
+		range = 'bytes=' + start + '-' + (end == Infinity ? '':end);
+		xhr.setRequestHeader('Range', range);
 	}
+	Log.info("XHR", "Getting resource at "+url+" range: "+range);
 	xhr.onreadystatechange = function (e) { 
 		var buffer;
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
