@@ -598,6 +598,7 @@ QUnit.asyncTest( "Basic Segmentation", function( assert ) {
 		track_id = info.tracks[0].id;
 		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
 		mp4box.initializeSegmentation();
+		mp4box.start();
 	}
 	getFile(testFiles[index].url, function (buffer) {
 		mp4box.appendBuffer(buffer);
@@ -616,6 +617,7 @@ QUnit.asyncTest( "Segmentation when no sample is ready should not reach onSegmen
 		track_id = info.tracks[0].id;
 		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
 		mp4box.initializeSegmentation();
+		mp4box.start();
 	}
 	getFileRange(testFiles[index].url, 0, 68500, function (buffer) {
 		mp4box.appendBuffer(buffer);
@@ -633,6 +635,7 @@ QUnit.asyncTest( "Segmentation without callback", function( assert ) {
 		track_id = info.tracks[0].id;
 		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
 		mp4box.initializeSegmentation();
+		mp4box.start();
 	}
 	getFile(testFiles[index].url, function (buffer) {
 		mp4box.appendBuffer(buffer);
@@ -660,6 +663,7 @@ QUnit.asyncTest( "Basic Extraction", function( assert ) {
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
+		mp4box.start();
 	}
 	getFile(testFiles[index].url, function (buffer) {
 			mp4box.appendBuffer(buffer);
@@ -677,6 +681,7 @@ QUnit.asyncTest( "Extraction when no sample is ready should not reach onSamples"
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
+		mp4box.start();
 	}
 	getFileRange(testFiles[index].url, 0, 68500, function (buffer) {
 		mp4box.appendBuffer(buffer);
@@ -693,6 +698,7 @@ QUnit.asyncTest( "Extraction without callback", function( assert ) {
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
+		mp4box.start();
 	}
 	getFile(testFiles[index].url, function (buffer) {
 		mp4box.appendBuffer(buffer);
@@ -788,7 +794,7 @@ QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
 		doExtraction = true;
 		mp4box.seek(seekTime, true); // find preceeding rap
-		mp4box.flush();
+		mp4box.start();
 
 		// setting extraction option and then seeking and calling sample processing 
 		seekStep = 1;
@@ -852,7 +858,7 @@ QUnit.asyncTest( "Seek in the past", function( assert ) {
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
 		doExtraction = true;
 		mp4box.seek(seekTime0, true); // find preceeding rap
-		mp4box.flush();
+		mp4box.start();
 
 		// setting extraction option and then seeking and calling sample processing 
 		seekStep = 1;
@@ -879,6 +885,8 @@ QUnit.asyncTest( "Seek and fetch out of order", function( assert ) {
 		track_id = info.tracks[0].id;
 		// setting extraction option and then seeking and calling sample processing 
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1000, rapAlignement: true } );
+		mp4box.start();
+
 		// getting the first 1000 samples 
 		getFileRange(testFiles[index].url, 68190, 371814, function (buffer) {
 			mp4box.appendBuffer(buffer);
@@ -971,6 +979,7 @@ QUnit.asyncTest( "Long Segmentation", function( assert ) {
 			lastSample = info.tracks[0].nb_samples - info.tracks[0].nb_samples % nbFragSamples;	
 		}		
 		mp4box.initializeSegmentation();
+		mp4box.start();		
 		getNext();
 	}
 	getFileRange(testFiles[index].url, start, start+size-1, function (buffer) {

@@ -177,7 +177,7 @@ MP4Box.prototype.processSamples = function() {
 		for (i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
 			trak = fragTrak.trak;
-			while (trak.nextSample < trak.samples.length) {				
+			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {				
 				/* The sample information is there (either because the file is not fragmented and this is not the last sample, 
 				or because the file is fragmented and the moof for that sample has been received */
 				Log.debug("MP4Box", "Creating media fragment on track #"+fragTrak.id +" for sample "+trak.nextSample); 
@@ -214,7 +214,7 @@ MP4Box.prototype.processSamples = function() {
 		for (i = 0; i < this.extractedTracks.length; i++) {
 			var extractTrak = this.extractedTracks[i];
 			trak = extractTrak.trak;
-			while (trak.nextSample < trak.samples.length) {				
+			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {				
 				Log.debug("MP4Box", "Exporting on track #"+extractTrak.id +" sample #"+trak.nextSample);
 				var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
 				if (sample) {
@@ -556,7 +556,6 @@ MP4Box.prototype.seek = function(time, useRap) {
 	if (!this.inputIsoFile.moov) {
 		throw "Cannot seek: moov not received!";
 	} else {
-		this.sampleProcessingStarted = true;
 		for (i = 0; i<moov.traks.length; i++) {
 			trak = moov.traks[i];			
 			trak_seek_info = this.seekTrack(time, useRap, trak);
@@ -595,6 +594,15 @@ MP4Box.prototype.getTrackSample = function(track_id, number) {
 	var track = this.inputIsoFile.getTrackById(track_id);
 	var sample = this.inputIsoFile.getSample(track, number);
 	return sample;	
+}
+
+MP4Box.prototype.start = function() {
+	this.sampleProcessingStarted = true;
+	this.processSamples();
+}
+
+MP4Box.prototype.stop = function() {
+	this.sampleProcessingStarted = false;
 }
 
 if (typeof exports !== 'undefined') {

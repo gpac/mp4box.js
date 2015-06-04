@@ -133,7 +133,7 @@ ISOFile.prototype.updateUsedBytes = function(box, ret) {
 	if (box.type === "mdat") {
 		/* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */
 		this.stream.addUsedBytes(box.hdr_size);
-		if (true) {
+		if (this.discardMdatData) {
 			this.stream.addUsedBytes(box.size-box.hdr_size);
 		}
 	} else {
