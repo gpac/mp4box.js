@@ -33,7 +33,7 @@ function checkBoxData(assert, box, data) {
 	var i;
 	assert.ok(box, "Found "+data.type+" box");
 	for (var prop in data) {
-		if ([ "size", "sizePosition", "start", "fileStart"].indexOf(prop) > -1) {
+		if ([ "sizePosition", "start", "fileStart"].indexOf(prop) > -1) {
 			continue;
 		} else if (Array.isArray(data[prop])) {
 			for (i = 0; i < data[prop].length; i++) {

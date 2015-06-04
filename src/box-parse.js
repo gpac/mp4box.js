@@ -4,24 +4,22 @@
  */
 BoxParser.Box.prototype.parse = function(stream) {
 	if (this.type != "mdat") {
-		this.data = stream.readUint8Array(this.size);
+		this.data = stream.readUint8Array(this.size-this.hdr_size);
 	} else {
-		stream.seek(this.start+this.size+this.hdr_size);
+		stream.seek(this.start+this.size);
 	}
 }
 
 BoxParser.FullBox.prototype.parseFullHeader = function (stream) {
 	this.version = stream.readUint8();
 	this.flags = stream.readUint24();
-	this.size -= 4;
+	this.hdr_size += 4;
 }
 
 BoxParser.ContainerBox.prototype.parse = function(stream) {
 	var ret;
 	var box;
-	var start;
-	start = stream.position;
-	while (stream.position < start+this.size) {
+	while (stream.position < this.start+this.size) {
 		ret = BoxParser.parseOneBox(stream);
 		box = ret.box;
 		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
@@ -35,7 +33,6 @@ BoxParser.ContainerBox.prototype.parse = function(stream) {
 }
 
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
-	this.start = stream.position;
 	stream.readUint8Array(6);
 	this.data_reference_index = stream.readUint16();
 }
@@ -95,7 +92,7 @@ BoxParser.MetadataSampleEntry.prototype.parse = function(stream) {
 }
 
 BoxParser.TrackReferenceTypeBox.prototype.parse = function(stream) {
-	this.track_ids = stream.readUint8Array(this.size);
+	this.track_ids = stream.readUint8Array(this.size-this.hdr_size);
 }
 
 BoxParser.metxBox.prototype.parse = function(stream) {
@@ -147,14 +144,15 @@ BoxParser.tx3gBox.prototype.parse = function(stream) {
 }
 
 BoxParser.ftypBox.prototype.parse = function(stream) {
+	var toparse = this.size - this.hdr_size;
 	this.major_brand = stream.readString(4);
 	this.minor_version = stream.readUint32();
-	this.size -= 8;
+	toparse -= 8;
 	this.compatible_brands = [];
 	var i = 0;
-	while (this.size>=4) {
+	while (toparse>=4) {
 		this.compatible_brands[i] = stream.readString(4);
-		this.size -= 4;
+		toparse -= 4;
 		i++;
 	}
 }
@@ -237,9 +235,9 @@ BoxParser.hdlrBox.prototype.parse = function(stream) {
 		stream.readUint32();
 		this.handler = stream.readString(4);
 		stream.readUint32Array(3);
-		this.name = stream.readString(this.size-20);
+		this.name = stream.readString(this.size-this.hdr_size-20);
 	} else {
-		this.data = stream.readUint8Array(this.size);
+		this.data = stream.readUint8Array(this.size-this.hdr_size);
 	}
 }
 
@@ -258,29 +256,30 @@ BoxParser.avcCBox.prototype.parse = function(stream) {
 	var i;
 	var nb_nalus;
 	var length;
+	var toparse;
 	this.configurationVersion = stream.readUint8();
 	this.AVCProfileIndication = stream.readUint8();
 	this.profile_compatibility = stream.readUint8();
 	this.AVCLevelIndication = stream.readUint8();
 	this.lengthSizeMinusOne = (stream.readUint8() & 0x3);
 	nb_nalus = (stream.readUint8() & 0x1F);
-	this.size -= 6;
+	toparse = this.size - this.hdr_size - 6;
 	this.SPS = new Array(nb_nalus); 
 	for (i = 0; i < nb_nalus; i++) {
 		length = stream.readUint16();
 		this.SPS[i] = stream.readUint8Array(length);
-		this.size -= 2+length;
+		toparse -= 2+length;
 	}
 	nb_nalus = stream.readUint8();
-	this.size--;
+	toparse--;
 	this.PPS = new Array(nb_nalus); 
 	for (i = 0; i < nb_nalus; i++) {
 		length = stream.readUint16();
 		this.PPS[i] = stream.readUint8Array(length);
-		this.size -= 2+length;
+		toparse -= 2+length;
 	}
-	if (this.size>0) {
-		this.ext = stream.readUint8Array(this.size);
+	if (toparse>0) {
+		this.ext = stream.readUint8Array(toparse);
 	}
 }
 
@@ -329,8 +328,7 @@ BoxParser.hvcCBox.prototype.parse = function(stream) {
 
 BoxParser.esdsBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
-	this.data = stream.readUint8Array(this.size);
-	this.size = 0;
+	this.data = stream.readUint8Array(this.size-this.hdr_size);
 	if (typeof MPEG4DescriptorParser !== "undefined") {
 		var esd_parser = new MPEG4DescriptorParser();
 		this.esd = esd_parser.parseOneDescriptor(new DataStream(this.data.buffer, 0, DataStream.BIG_ENDIAN));
@@ -363,7 +361,7 @@ BoxParser.cttsBox.prototype.parse = function(stream) {
 			this.sample_offsets.push(stream.readInt32()); /* signed */
 		}
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -377,7 +375,7 @@ BoxParser.cslgBox.prototype.parse = function(stream) {
 		this.compositionStartTime = stream.readInt32(); /* signed */
 		this.compositionEndTime = stream.readInt32(); /* signed */
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -394,7 +392,7 @@ BoxParser.sttsBox.prototype.parse = function(stream) {
 			this.sample_deltas.push(stream.readUint32());
 		}
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -408,7 +406,7 @@ BoxParser.stssBox.prototype.parse = function(stream) {
 			this.sample_numbers.push(stream.readUint32());
 		}
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -425,7 +423,7 @@ BoxParser.stshBox.prototype.parse = function(stream) {
 			this.sync_sample_numbers.push(stream.readUint32());
 		}
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -436,7 +434,7 @@ BoxParser.stcoBox.prototype.parse = function(stream) {
 	if (this.version === 0) {
 		this.chunk_offsets = stream.readUint32Array(entry_count);
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -451,7 +449,7 @@ BoxParser.co64Box.prototype.parse = function(stream) {
 			this.chunk_offsets.push(stream.readUint64());
 		}
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -470,7 +468,7 @@ BoxParser.stscBox.prototype.parse = function(stream) {
 			this.sample_description_index.push(stream.readUint32());
 		}
 	} else {
-		this.data = stream.readUint8Array(this.size-4);
+		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
@@ -492,7 +490,7 @@ BoxParser.stszBox.prototype.parse = function(stream) {
 			}		
 		}
 	} else {
-		this.data = stream.readUint8Array(this.size);
+		this.data = stream.readUint8Array(this.size-this.hdr_size);
 	}
 }
 
@@ -523,31 +521,31 @@ BoxParser.tfhdBox.prototype.parse = function(stream) {
 	var readBytes = 0;
 	this.parseFullHeader(stream);
 	this.track_id = stream.readUint32();
-	if (this.size > readBytes && (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET)) {
+	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET)) {
 		this.base_data_offset = stream.readUint64();
 		readBytes += 8;
 	} else {
 		this.base_data_offset = 0;
 	}
-	if (this.size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC)) {
+	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC)) {
 		this.default_sample_description_index = stream.readUint32();
 		readBytes += 4;
 	} else {
 		this.default_sample_description_index = 0;
 	}
-	if (this.size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_DUR)) {
+	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_DUR)) {
 		this.default_sample_duration = stream.readUint32();
 		readBytes += 4;
 	} else {
 		this.default_sample_duration = 0;
 	}
-	if (this.size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_SIZE)) {
+	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_SIZE)) {
 		this.default_sample_size = stream.readUint32();
 		readBytes += 4;
 	} else {
 		this.default_sample_size = 0;
 	}
-	if (this.size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_FLAGS)) {
+	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_SAMPLE_FLAGS)) {
 		this.default_sample_flags = stream.readUint32();
 		readBytes += 4;
 	} else {
@@ -560,13 +558,13 @@ BoxParser.trunBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.sample_count = stream.readUint32();
 	readBytes+= 4;
-	if (this.size > readBytes && (this.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) ) {
+	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) ) {
 		this.data_offset = stream.readInt32(); //signed
 		readBytes += 4;
 	} else {
 		this.data_offset = 0;
 	}
-	if (this.size > readBytes && (this.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG) ) {
+	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG) ) {
 		this.first_sample_flags = stream.readUint32();
 		readBytes += 4;
 	} else {
@@ -576,7 +574,7 @@ BoxParser.trunBox.prototype.parse = function(stream) {
 	this.sample_size = [];
 	this.sample_flags = [];
 	this.sample_composition_time_offset = [];
-	if (this.size > readBytes) {
+	if (this.size - this.hdr_size > readBytes) {
 		for (var i = 0; i < this.sample_count; i++) {
 			if (this.flags & BoxParser.TRUN_FLAGS_DURATION) {
 				this.sample_duration[i] = stream.readUint32();
@@ -608,12 +606,10 @@ BoxParser.tfdtBox.prototype.parse = function(stream) {
 }
 
 BoxParser.vttCBox.prototype.parse = function(stream) {
-	this.text = stream.readString(this.size);
+	this.text = stream.readString(this.size - this.hdr_size);
 }
 
-BoxParser.paylBox.prototype.parse = function(stream) {
-	this.text = stream.readString(this.size);
-}
+BoxParser.paylBox.prototype.parse = BoxParser.vttCBox.prototype.parse;
 
 BoxParser.subsBox.prototype.parse = function(stream) {
 	var i,j;
@@ -681,7 +677,7 @@ BoxParser.emsgBox.prototype.parse = function(stream) {
 	this.presentation_time_delta 	= stream.readUint32();
 	this.event_duration			 	= stream.readUint32();
 	this.id 						= stream.readUint32();
-	var message_size = this.size - (4*4 + (this.scheme_id_uri.length+1) + (this.value.length+1));
+	var message_size = this.size - this.hdr_size - (4*4 + (this.scheme_id_uri.length+1) + (this.value.length+1));
 	this.message_data = stream.readUint8Array(message_size);
 }
 
@@ -706,8 +702,8 @@ BoxParser.psshBox.prototype.parse = function(stream) {
 			this.kid[i] = stream.readUint8Array(16);
 		}
 	} 
-	var size = stream.readUint32();
-	this.data = stream.readUint8Array(size);
+	var datasize = stream.readUint32();
+	this.data = stream.readUint8Array(datasize);
 }
 
 BoxParser.elstBox.prototype.parse = function(stream) {
@@ -790,7 +786,7 @@ BoxParser["url Box"].prototype.parse = function(stream) {
 BoxParser["urn Box"].prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.name = stream.readCString();
-	if (this.size - this.name.length - 1 > 0) {
+	if (this.size - this.hdr_size - this.name.length - 1 > 0) {
 		this.location = stream.readCString();
 	}
 }

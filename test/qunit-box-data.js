@@ -20,7 +20,7 @@ var boxtests = [
 		boxname: "sidx",
 		data: {
 			type: "sidx",
-			size: 140,
+			size: 152,
 			flags: 0,
 			version: 0,
 			reference_ID: 1,
@@ -118,7 +118,7 @@ var boxtests = [
 		boxname: "emsg",
 		data: {
 			type: "emsg",
-			size: 482,
+			size: 494,
 			flags:	0,
 			version:	0,
 			scheme_id_uri:	"urn:mpeg:dash:event:2012",

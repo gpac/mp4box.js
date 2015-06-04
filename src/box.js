@@ -181,12 +181,12 @@ var BoxParser = {
 			return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size };
 		}
 		if (BoxParser[type+"Box"]) {
-			box = new BoxParser[type+"Box"](size - hdr_size);		
+			box = new BoxParser[type+"Box"](size);		
 		} else {
 			if (isSampleEntry) {
-				box = new BoxParser.SampleEntry(type, size - hdr_size);
+				box = new BoxParser.SampleEntry(type, size);
 			} else {
-				box = new BoxParser.Box(type, size - hdr_size);
+				box = new BoxParser.Box(type, size);
 			}
 		}
 		/* recording the position of the box in the input stream */

@@ -20,16 +20,16 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 		
 		/* special handling for mdat boxes, since we don't actually need to parse it linearly 
 		   we create the box */
-		box = new BoxParser[ret.type+"Box"](ret.size-ret.hdr_size);	
+		box = new BoxParser[ret.type+"Box"](ret.size);	
 		this.parsingMdat = box;
 		this.boxes.push(box);
 		this.mdats.push(box);			
 		box.fileStart = this.stream.getFilePosition();
 		box.hdr_size = ret.hdr_size;
-		this.stream.addUsedBytes(ret.hdr_size);
+		this.stream.addUsedBytes(box.hdr_size);
 		
 		/* let's see if we have the end of the box in the other buffers */
-		found = this.stream.reposition(false, box.fileStart + box.hdr_size + box.size, this.discardMdatData);
+		found = this.stream.reposition(false, box.fileStart + box.size, this.discardMdatData);
 		if (found) {
 			/* found the end of the box */
 			this.parsingMdat = null;
@@ -42,7 +42,7 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 				/* moov not find yet, 
 				   the file probably has 'mdat' at the beginning, and 'moov' at the end, 
 				   indicate that the downloader should not try to download those bytes now */
-				this.nextParsePosition = box.fileStart + box.size + box.hdr_size;
+				this.nextParsePosition = box.fileStart + box.size;
 			} else {
 				/* we have the start of the moov box, 
 				   the next bytes should try to complete the current 'mdat' */
@@ -101,7 +101,7 @@ ISOFile.prototype.processIncompleteMdat = function () {
 	/* we are in the parsing of an incomplete mdat box */
 	box = this.parsingMdat;
 
-	found = this.stream.reposition(false, box.fileStart + box.hdr_size + box.size, this.discardMdatData);
+	found = this.stream.reposition(false, box.fileStart + box.size, this.discardMdatData);
 	if (found) {
 		Log.debug("ISOFile", "Found 'mdat' end in buffered data");
 		/* the end of the mdat has been found */ 
@@ -134,10 +134,10 @@ ISOFile.prototype.updateUsedBytes = function(box, ret) {
 		/* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */
 		this.stream.addUsedBytes(box.hdr_size);
 		if (true) {
-			this.stream.addUsedBytes(ret.size-box.hdr_size);
+			this.stream.addUsedBytes(box.size-box.hdr_size);
 		}
 	} else {
 		/* for all other boxes, the entire box data is considered used */
-		this.stream.addUsedBytes(ret.size);
+		this.stream.addUsedBytes(box.size);
 	}	
 }
