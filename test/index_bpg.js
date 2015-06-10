@@ -38,8 +38,8 @@ function setMP4Box() {
 		for (var i = 0; i < info.tracks.length; i++) {
 			// Video track
 			var codec = info.tracks[i].codec.substring(0,4);
-			if (codec === "hvc1") {
-				totalDuration = info.tracks[i].duration;
+			if (codec === "hvc1" || codec === "hev1") {
+				totalDuration = info.tracks[i].duration/info.tracks[i].timescale;
 				timeProgress = 0;
 				// 1 call for each sample
 				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
@@ -118,7 +118,7 @@ function extractBPG(sample) {
 	hevcFrame.readData(mp4NALUSData, sample.description.hvcC.lengthSizeMinusOne + 1);
 
 	// Create BPG
-	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size, sample.dts);
+	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size, sample.dts/sample.timescale);
 
 	return bpg;
 }
