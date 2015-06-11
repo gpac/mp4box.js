@@ -21,6 +21,22 @@ for (var i = 0; i < testFiles.length; i++) {
 	runBasicTest(i);
 }
 
+QUnit.module("Memory usage");
+QUnit.asyncTest( "Moov-last", function( assert ) {
+	var index = 9;
+	var mp4box = new MP4Box(false);
+
+	getFileRange(testFiles[index].url, 0, 1024*1024-1, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		getFileRange(testFiles[index].url, 1024*1024, 2*1024*1024-1, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			assert.equal(mp4box.inputIsoFile.getAllocatedSampleDataSize(), 0, "All sample bytes are released");
+			assert.equal(mp4box.inputStream.buffers.length, 0, "All buffers are released");
+			QUnit.start();
+		});			
+	});
+});
+
 QUnit.module("Advanced chunk parsing");
 QUnit.test( "appending invalid buffer", function( assert ) {
 	var mp4box = new MP4Box();
