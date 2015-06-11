@@ -87,7 +87,7 @@ function getBoxTable(box) {
 	html += '</thead>';
 	html += '<tbody>';
 	for (var prop in box) {
-		if (["hdr_size", "start", "fileStart", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos"].indexOf(prop) > -1) {
+		if (["hdr_size", "start", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos"].indexOf(prop) > -1) {
 			continue;
 		} else if (box[prop] instanceof BoxParser.Box) {
 			continue;
