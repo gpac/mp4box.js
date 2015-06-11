@@ -47,6 +47,7 @@ window.onload = function () {
 	for (var i in sampleUrls) {
 		urlSelector.add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
 	}
+	$("#tabs").tabs();
 
 	video.addEventListener("seeking", onSeeking);
 	reset();	
@@ -541,6 +542,7 @@ function start() {
 	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
 	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
 	downloader.resume();
+	mp4box.start();
 }		
 
 function stop() {

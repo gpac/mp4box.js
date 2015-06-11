@@ -3,6 +3,11 @@
     <head>
     	<meta charset="UTF-8">
 		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
+		<!-- Include basic JQuery and JQuery UI files -->
+		<script src="lib/jquery/jquery.js"></script>		
+  		<link href="lib/jquery-ui/jquery-ui.min.css" rel="stylesheet" type="text/css">
+		<script src="lib/jquery-ui/jquery-ui.min.js"></script>		
+
 		<link rel="stylesheet" href="style.css" />
         <script src="../dist/mp4box.all.js"></script>
 		<script src="downloader.js"></script>
@@ -23,37 +28,45 @@
 
 			<h2>MP4Box.js</h2>
 			<h3>Playing any MP4 in your browser (see also <a href="filereader.html">File Analyzer</a>)</h3>
-			<table>
-			<td>
-				<video id="v" width="640" height="480" autoplay controls> </video>
-			</td>
-			<td>
-			<div id="infoDiv">
+
+			<div>
+				<video id="v" width="640" height="480" autoplay poster="http://gpac.wp.mines-telecom.fr/files/2014/01/FondBig_1600x230.png"> </video>
 			</div>
-			</td>
-			</table>
-			<fieldset>
-				<legend>Select or set URL:</legend>
-				<select id="urlSelector" onchange="setUrl(this.value);" onfocus="this.selectedIndex = -1;">
-				</select>
-				<label>URL:</label>
-				<input id="url" type="text" oninput="document.getElementById('urlSelector').selectedIndex = -1; setUrl(this.value);">
-			</fieldset>
-			<fieldset>
-				<legend>Controls</legend>
-				<button id="playButton" onclick="play()" disabled>Play</button>
-				<button id="loadButton" onclick="load()" disabled>Load Media Info</button>
-				<button id="initAllButton" onclick="initializeAllSourceBuffers()" disabled>Add and Initialize All Source Buffers</button>
-				<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
-				<button id="startButton" onclick="start()" disabled>Load Media Data &amp; Play</button>
-				<button id="stopButton" onclick="stop()" disabled>Stop Media Download</button>
-				<button onclick="reset()">Reset</button><br>
-				<label for="playback_rate_range">Playback Rate</label>
-				<input id="playback_rate_range" name="playback_rate_range" type="range" min="1" max="20" step="1" value="1" oninput="setPlaybackRate(this.value);">
-				<output id="playback_rate_range_out" for="playback_rate_range">1</output>
-			</fieldset>
-			<fieldset class="downloadControls">
-				<legend>Download Settings</legend>
+
+			<div id="tabs">
+			  <ul>
+			    <li><a href="#tabs-1">Player Controls</a></li>
+			    <li><a href="#infoDiv">Media Info</a></li>
+			    <li><a href="#tabs-2">Download Settings</a></li>
+			    <li><a href="#tabs-3">Segmentation/Extraction Settings</a></li>
+			    <li><a href="#tabs-4">Debug Settings</a></li>
+			    <li><a href="#tabs-5">Instructions &amp; Notes</a></li>
+			  </ul>
+			  <div id="tabs-1">
+				<fieldset>
+					<legend>Select or set URL:</legend>
+					<select id="urlSelector" onchange="setUrl(this.value);" onfocus="this.selectedIndex = -1;">
+					</select>
+					<label>URL:</label>
+					<input id="url" type="text" oninput="document.getElementById('urlSelector').selectedIndex = -1; setUrl(this.value);">
+				</fieldset>
+				<fieldset>
+					<legend>Download/Playback Controls</legend>
+					<button id="playButton" onclick="play()" disabled>Play</button>
+					<button id="loadButton" onclick="load()" disabled>Load Media Info</button>
+					<button id="initAllButton" onclick="initializeAllSourceBuffers()" disabled>Add and Initialize All Source Buffers</button>
+					<button id="initButton" onclick="initializeSourceBuffers()" disabled>Initialize Source Buffers</button>
+					<button id="startButton" onclick="start()" disabled>Load Media Data &amp; Play</button>
+					<button id="stopButton" onclick="stop()" disabled>Stop Media Download</button>
+					<button onclick="reset()">Reset</button><br>
+					<label for="playback_rate_range">Playback Rate</label>
+					<input id="playback_rate_range" name="playback_rate_range" type="range" min="1" max="20" step="1" value="1" oninput="setPlaybackRate(this.value);">
+					<output id="playback_rate_range_out" for="playback_rate_range">1</output>
+				</fieldset>
+			  </div>
+			  <div id="infoDiv">
+			  </div>
+			  <div id="tabs-2">
 				<div>
 					<label for="chunk_size_range">Download Rate: <span id="chunk_dl_rate">8000</span> kbps</label>
 				</div>
@@ -71,9 +84,8 @@
 					<label for="dl_realtime">Real-time Download</label>
 					<input id="dl_realtime" name="dl_realtime" type="checkbox" onchange="toggleDownloadMode(event);">
 				</div>
-			</fieldset>
-			<fieldset class="segmentationControl">
-				<legend>Segmentation/Extraction Settings</legend>
+			  </div>
+			  <div id="tabs-3">
 				<label for="segment_size_range">Number of Media Samples per Segment for MSE appendBuffer</label>
 				<input id="segment_size_range" name="segment_size_range" type="range" min="1" max="5000" step="1" value="1000" oninput="setSegmentSize(this.value);">
 				<output id="segment_size_range_out" for="segment_size_range">1000</output>
@@ -81,13 +93,8 @@
 				<label for="extraction_size_range">Number of TextTrack Samples per Extraction Callback</label>
 				<input id="extraction_size_range" name="extraction_size_range" type="range" min="1" max="100" step="1" value="1" oninput="setExtractionSize(this.value);">
 				<output id="extraction_size_range_out" for="extraction_size_range">1</output>
-			</fieldset>
-			<fieldset>
-				<legend>Debug Settings</legend>			
-				<div>
-					<label>Save results:</label>
-					<input id="saveChecked" type="checkbox">
-				</div>
+			  </div>
+			  <div id="tabs-4">
 				<div>
 					<label>Set Log Level:</label>
 					<select id="logLevelSelect" onchange="Log.setLogLevel(Log[this.value]);" onfocus="this.selectedIndex = -1;">
@@ -97,61 +104,66 @@
 						<option value="d">Debug (can be slow!)</option>
 					</select>
 				</div>
-			</fieldset>
-		</div>
-		<div>
-			<h3>Instructions</h3>					
-			  <p>To run this demo (in Chrome or Firefox), you should:
-				<ol>
-				  <li>Select an existing file or enter a URL. <br>
-				  Be careful to select a video hosted on a server which allows this page
-				  to fetch those videos using XHR (i.e. using CORS) or run Chrome in command
-				  line with the --test-type and --disable-web-security switches.</li>
-				  <li>Optionally change some settings:
-				  <ul>
-				  <li>Download Settings:
-				  <ul>
-				  <li>Select a chunk size for the download of the media file. 0 means fetching the whole file in one XHR.</li>
-				  <li>Select the timeout between two chunk downloads (the associated bitrate is computed and displayed)</li>
-				  <li>You can alternatively select the real-time download: the timeout for download is computed based on the buffer state and playback rate</li>
-				  </ul>				  
-				  </li>
-				  <li>Segmentation Settings: change the number of frames used to created a media segment. A small number means a lot of processing for the browser via MSE. A large number means additional latency before the initial playback.</li>
-				  <li>Debug Settings:
-				  <ul>
-				  <li>Save Results: will download a file on your computer for each created segment !</li>
-				  <li>Log level: error, warning, info or debug messages are output in the debug console.</li>
-				  </ul>
-				  </li>
-				  </ul>
-				  </li>
-				  <li>Then either hit the "Play" button and let the file download and play, or control individually each step:				  
-				  <ol>				  
-				  <li>Hit the "Load Media Info" button. Chunks will be downloaded until there is enough data to display the file information.</li>
-				  <li>Once the file information is displayed, select the tracks you want to play. For each track a SourceBuffer or a TextTrack is created.</li>
-				  <li>Once your tracks are selected, initialize the Source Buffers with the "Initialize Source Buffers" button. (You can also hit the "Add and Initialize All Source Buffers". This will select all tracks and try to create a SourceBuffer for it. Might not work for all files!)</li>
-				  <li>Then hit the "Load Media Data &amp; Play" button to resume the download and let the playback start.</li>
-				 </ol>
-				 <li>At any time, you can:
-				 <ul>
-				  <li>hit the "Stop Media Download" button and then "Load Media Data &amp; Play" again when ready.</li>
-				  <li>hit the "Reset" button to select a different URL.</li>
-				  <li>seek into the video using the timeline.</li>
-				  <li>change the playback rate of the video.</li>
-				  </ol>
-				</ol>
-			</p>
-			<h3>Notes</h3>
-			<ul>
-			  <li>The Media Source API in Chrome has some limitations, which you might encounter when playing with this demo:
-				<ul>
-				  <li>It does not support more than 1 video and 1 audio</li>
-				  <li>It does not support adding new SourceBuffers once the existing SourceBuffers are initialized. But you can remove some, even during playback.</li>
-				</ul>
-			  </li>
-			</ul>
-			<h3>Feedback</h3>
-			<p>To get the code of this demo, or to send patchs or feedback, check out the <a href="https://github.com/gpac/mp4box.js">Git Hub Repository</a>.</p>
+				<div>
+					<label>Save Segments:</label>
+					<input id="saveChecked" type="checkbox">
+				</div>
+			  </div>
+			  <div id="tabs-5">
+					<h3>Instructions</h3>					
+					  <p>To run this demo (in Chrome or Firefox), you should:
+						<ol>
+						  <li>Select an existing file or enter a URL. <br>
+						  Be careful to select a video hosted on a server which allows this page
+						  to fetch those videos using XHR (i.e. using CORS) or run Chrome in command
+						  line with the --test-type and --disable-web-security switches.</li>
+						  <li>Optionally change some settings:
+						  <ul>
+						  <li>Download Settings:
+						  <ul>
+						  <li>Select a chunk size for the download of the media file. 0 means fetching the whole file in one XHR.</li>
+						  <li>Select the timeout between two chunk downloads (the associated bitrate is computed and displayed)</li>
+						  <li>You can alternatively select the real-time download: the timeout for download is computed based on the buffer state and playback rate</li>
+						  </ul>				  
+						  </li>
+						  <li>Segmentation Settings: change the number of frames used to created a media segment. A small number means a lot of processing for the browser via MSE. A large number means additional latency before the initial playback.</li>
+						  <li>Debug Settings:
+						  <ul>
+						  <li>Save Results: will download a file on your computer for each created segment !</li>
+						  <li>Log level: error, warning, info or debug messages are output in the debug console.</li>
+						  </ul>
+						  </li>
+						  </ul>
+						  </li>
+						  <li>Then either hit the "Play" button and let the file download and play, or control individually each step:				  
+						  <ol>				  
+						  <li>Hit the "Load Media Info" button. Chunks will be downloaded until there is enough data to display the file information.</li>
+						  <li>Once the file information is displayed, select the tracks you want to play. For each track a SourceBuffer or a TextTrack is created.</li>
+						  <li>Once your tracks are selected, initialize the Source Buffers with the "Initialize Source Buffers" button. (You can also hit the "Add and Initialize All Source Buffers". This will select all tracks and try to create a SourceBuffer for it. Might not work for all files!)</li>
+						  <li>Then hit the "Load Media Data &amp; Play" button to resume the download and let the playback start.</li>
+						 </ol>
+						 <li>At any time, you can:
+						 <ul>
+						  <li>hit the "Stop Media Download" button and then "Load Media Data &amp; Play" again when ready.</li>
+						  <li>hit the "Reset" button to select a different URL.</li>
+						  <li>seek into the video using the timeline.</li>
+						  <li>change the playback rate of the video.</li>
+						  </ol>
+						</ol>
+					</p>
+					<h3>Notes</h3>
+					<ul>
+					  <li>The Media Source API in Chrome has some limitations, which you might encounter when playing with this demo:
+						<ul>
+						  <li>It does not support more than 1 video and 1 audio</li>
+						  <li>It does not support adding new SourceBuffers once the existing SourceBuffers are initialized. But you can remove some, even during playback.</li>
+						</ul>
+					  </li>
+					</ul>
+					<h3>Feedback</h3>
+					<p>To get the code of this demo, or to send patchs or feedback, check out the <a href="https://github.com/gpac/mp4box.js">Git Hub Repository</a>.</p>
+			  </div>
+			</div>
 		</div>
 	</body>
 </html>
