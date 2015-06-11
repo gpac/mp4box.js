@@ -178,7 +178,7 @@ var BoxParser = {
 		if (start + size > stream.byteLength ) {
 			stream.seek(start);
 			Log.warn("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
-			return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size };
+			return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size };
 		}
 		if (BoxParser[type+"Box"]) {
 			box = new BoxParser[type+"Box"](size);		
@@ -192,7 +192,11 @@ var BoxParser = {
 		/* recording the position of the box in the input stream */
 		box.hdr_size = hdr_size;
 		box.start = start;
-		box.fileStart = start + stream.buffer.fileStart;
+		if (stream.getStartFilePosition) {
+			box.fileStart = start + stream.getStartFilePosition();
+		} else {
+			box.fileStart = start;
+		}
 		box.parse(stream);
 		return { code: BoxParser.OK, box: box, size: size };
 	},
