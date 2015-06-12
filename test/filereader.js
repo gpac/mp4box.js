@@ -3,7 +3,7 @@ var mp4box;
 var boxtree;
 var boxtable;
 var treeview_node;
-var progressbar
+var progressbar;
 var progresslabel;
 var fileinput;
 var urlinput;

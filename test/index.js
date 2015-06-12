@@ -21,6 +21,8 @@ var infoDiv, dlTimeoutDiv;
 var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel, extractionSizeLabel;
 var urlSelector;
 var saveChecked;
+var progressbar;
+var progresslabel;
 
 window.onload = function () {
 	video = document.getElementById('v');
@@ -45,6 +47,18 @@ window.onload = function () {
 	saveChecked = document.getElementById("saveChecked");
 
 	$("#tabs").tabs();
+	progressbar = $('#progressbar');
+	progresslabel = $('#progress-label');
+	progressbar.progressbar({ 
+		value: 0, 
+		change: function() {
+           progresslabel.text( 
+              "Download in progress: " + progressbar.progressbar( "value" ) + "%" );
+        },
+        complete: function() {
+           progresslabel.text( "Download Completed!" );
+        }
+    });
 
 	buildUrlList(urlSelector);
 
@@ -521,9 +535,11 @@ function load() {
 		function (response, end, error) { 
 			var nextStart = 0;
 			if (response) {
+				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
 				nextStart = mp4box.appendBuffer(response);
 			}
 			if (end) {
+				progressbar.progressbar({ value: 100 });
 				mp4box.flush();
 			} else {
 				downloader.setChunkStart(nextStart); 			
