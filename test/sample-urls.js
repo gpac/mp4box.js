@@ -89,13 +89,13 @@ var sampleUrls = [
 	}
 ];
 
-function buildUrlList(urlSelector) {
+function buildUrlList(urlSelector, addNonPlayable) {
 	for (var i in sampleUrls) {
 		var group = document.createElement("optgroup");
 		group.label = sampleUrls[i].groupName;
 		urlSelector.add(group);
 		for (var j in sampleUrls[i].urls) {
-			if (sampleUrls[i].urls[j].playable === undefined || sampleUrls[i].urls[j].playable) {
+			if (addNonPlayable || sampleUrls[i].urls[j].playable === undefined || sampleUrls[i].urls[j].playable) {
 				group.appendChild(new Option(sampleUrls[i].urls[j].desc, sampleUrls[i].urls[j].url));
 			}
 		}

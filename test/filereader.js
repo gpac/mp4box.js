@@ -230,7 +230,7 @@ window.onload = function () {
 
 	$("#tabs").tabs();
 
-	buildUrlList(urlSelector);
+	buildUrlList(urlSelector[0], true);
 	
 	if (window.location.search) {
 		httpload(window.location.search.substring(1));
