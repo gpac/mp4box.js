@@ -230,10 +230,8 @@ window.onload = function () {
 
 	$("#tabs").tabs();
 
-	for (var i in sampleUrls) {
-		urlSelector[0].add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
-	}
-
+	buildUrlList(urlSelector);
+	
 	if (window.location.search) {
 		httpload(window.location.search.substring(1));
 	}

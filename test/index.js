@@ -43,13 +43,10 @@ window.onload = function () {
 	urlSelector = document.getElementById('urlSelector');
 	urlSelector.selectedIndex = -1;
 	saveChecked = document.getElementById("saveChecked");
-	
-	for (var i in sampleUrls) {
-		if (sampleUrls[i].playable === undefined || sampleUrls[i].playable) {
-			urlSelector.add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
-		}
-	}
+
 	$("#tabs").tabs();
+
+	buildUrlList(urlSelector);
 
 	video.addEventListener("seeking", onSeeking);
 	reset();	
@@ -57,6 +54,7 @@ window.onload = function () {
 
 /* GUI-related callback functions */
 function setUrl(url) {
+	reset();
 	urlInput.value = url;
 	if (urlInput.value !== "") {
 		loadButton.disabled = false;
@@ -282,7 +280,11 @@ function resetMediaSource() {
 	mediaSource.addEventListener("sourceopen", onSourceOpen);
 	mediaSource.addEventListener("sourceclose", onSourceClose);
 	video.src = window.URL.createObjectURL(mediaSource);
-	/* TODO: remove Text tracks */
+	/* TODO: cannot remove Text tracks! Turning them off for now*/
+	for (var i = 0; i < video.textTracks.length; i++) {
+		var tt = video.textTracks[i];
+		tt.mode = "disabled";
+	}
 }
 
 function onSourceClose(e) {
@@ -355,6 +357,7 @@ function addBuffer(video, track_id, codec) {
 	} else {
 		Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 		var textrack = video.addTextTrack("subtitles", "Text track for track "+track_id);
+		textrack.mode = "showing";
 		mp4box.setExtractionOptions(track_id, textrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 	}
 }
