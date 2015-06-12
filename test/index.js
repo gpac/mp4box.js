@@ -563,7 +563,6 @@ function start() {
 	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
 	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
 	downloader.resume();
-	mp4box.start();
 }		
 
 function stop() {
