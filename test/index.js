@@ -577,6 +577,7 @@ function stop() {
 function play() {
 	playButton.disabled = true;
 	autoplay = true;
+	video.play();
 	load();
 }
 
