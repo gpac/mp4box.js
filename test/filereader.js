@@ -3,7 +3,7 @@ var mp4box;
 var boxtree;
 var boxtable;
 var treeview_node;
-var progressbar
+var progressbar;
 var progresslabel;
 var fileinput;
 var urlinput;
@@ -230,10 +230,8 @@ window.onload = function () {
 
 	$("#tabs").tabs();
 
-	for (var i in sampleUrls) {
-		urlSelector[0].add(new Option(sampleUrls[i].desc, sampleUrls[i].url));
-	}
-
+	buildUrlList(urlSelector[0], true);
+	
 	if (window.location.search) {
 		httpload(window.location.search.substring(1));
 	}
