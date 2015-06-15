@@ -759,8 +759,8 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 			if (this.default_length === 0) {
 				entry.description_length = stream.readUint32();
 			}
-			entry.data = stream.readUint8Array(this.default_length || entry.description_length);
 		}
+		entry.data = stream.readUint8Array(this.default_length || entry.description_length);
 	}
 }
 
