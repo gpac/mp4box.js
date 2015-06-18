@@ -335,7 +335,8 @@ function onInitAppended(e) {
 		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true, true));
 		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
 		onUpdateEnd.call(sb, false, true);
-		if (autoplay && startButton.disabled) {
+		sb.ms.pendingInits--;
+		if (autoplay && sb.ms.pendingInits === 0) {
 			start();
 		}
 	}
@@ -437,11 +438,15 @@ function initializeSourceBuffers() {
 	var initSegs = mp4box.initializeSegmentation();
 	for (var i = 0; i < initSegs.length; i++) {
 		var sb = initSegs[i].user;
+		if (i === 0) {
+			sb.ms.pendingInits = 0;
+		}
 		sb.addEventListener("updateend", onInitAppended);
 		Log.info("MSE - SourceBuffer #"+sb.id,"Appending initialization data");
 		sb.appendBuffer(initSegs[i].buffer);
 		saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
 		sb.segmentIndex = 0;
+		sb.ms.pendingInits++;
 	}
 	initAllButton.disabled = true;	
 	initButton.disabled = true;
