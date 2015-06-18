@@ -362,6 +362,7 @@ ISOFile.prototype.releaseSample = function(trak, sampleNum) {
 	if (sample.data) {
 		this.samplesDataSize -= sample.size;
 		sample.data = null;
+		sample.alreadyRead = 0;
 		return sample.size;
 	} else {
 		return 0;
