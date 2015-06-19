@@ -19,9 +19,9 @@ module.exports = function(grunt) {
               'src/box.js',                       // core code for box definitions
               'src/box-codecs.js',                // core code for box definitions
               'src/box-parse.js',                 // basic box parsing code 
+              'src/parsing/*.js',                 // box-specific parsing code
               'src/box-write.js',                 // box writing code
               'src/box-unpack.js',                // box code for sample manipulation
-              'src/meta.js',                      // box code for meta-related box parsing
               'src/text-mp4.js',                  // text-based track manipulations
               'src/isofile.js',                   // basic file level operations (parse, get boxes)
               'src/isofile-advanced-parsing.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
@@ -36,7 +36,18 @@ module.exports = function(grunt) {
               'src/stream.js',  
               'src/box.js',         
               'src/box-parse.js',   
-              'src/meta.js',   
+              'src/parsing/emsg.js',               // box-specific parsing code
+              'src/parsing/styp.js',
+              'src/parsing/ftyp.js',
+              'src/parsing/mdhd.js',
+              'src/parsing/mfhd.js',
+              'src/parsing/mvhd.js',
+              'src/parsing/sidx.js',
+              'src/parsing/ssix.js',
+              'src/parsing/tkhd.js',
+              'src/parsing/tfhd.js',
+              'src/parsing/tfdt.js',
+              'src/parsing/trun.js',
               'src/isofile.js'      
         ],
         dest: 'dist/<%= pkg.name %>.simple.js'

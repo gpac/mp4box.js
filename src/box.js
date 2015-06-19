@@ -10,7 +10,9 @@ var BoxParser = {
 				 "avcC", "hvcC", "ftyp", "styp", 
 				 "payl", "vttC",
 				 "vmhd", "smhd", "hmhd", // full boxes not yet parsed
-				 "idat", "meco"
+				 "idat", "meco",
+				 "udta", "strk",
+				 "free", "skip"
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
@@ -21,6 +23,7 @@ var BoxParser = {
 				  "elst", "dref", "url ", "urn ",
 				  "sbgp", "sgpd",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
+				  "ssix"
 				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -35,7 +38,8 @@ var BoxParser = {
 		[ "moof", [ "traf" ] ],
 		[ "traf", [ "trun" ] ],
 		[ "vttc" ], 
-		[ "tref" ]
+		[ "tref" ],
+		[ "mfra" ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
