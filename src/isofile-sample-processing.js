@@ -167,7 +167,7 @@ ISOFile.prototype.buildSampleLists = function() {
 				}
 			}
 		}
-		if (j>0) trak.samples[j-1].duration = trak.mdia.mdhd.duration - trak.samples[j-1].dts;
+		if (j>0) trak.samples[j-1].duration = Math.max(trak.mdia.mdhd.duration - trak.samples[j-1].dts, 0);
 	}
 }
 
