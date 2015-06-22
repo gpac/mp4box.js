@@ -177,6 +177,7 @@ function parseFile(file) {
         	var endRead = new Date();
             console.log("Done reading file ("+fileSize+ " bytes) in "+(endRead - startDate)+" ms");
 			createTreeView(mp4box.inputIsoFile.boxes);
+			buildItemTable(mp4box.inputIsoFile.getBox("meta"));
             console.log("Done constructing tree in "+(new Date() - endRead)+" ms");
             return;
         }
@@ -192,6 +193,101 @@ function parseFile(file) {
     }
 
     readBlock(offset, chunkSize, file);
+}
+
+function flattenItemInfo(meta) {
+	var items = [];
+	var i;
+	var item;
+	for (i = 0; i < meta.iinf.item_infos.length; i++) {
+		item = {};
+		item.id = meta.iinf.item_infos[i].item_ID;
+		items[item.id] = item;
+		item.name = meta.iinf.item_infos[i].item_name;
+		if (meta.iinf.item_infos[i].protection_index > 0) {
+			item.protection = meta.ipro.protections[meta.iinf.item_infos[i].protection_index-1];
+		}
+		if (meta.iinf.item_infos[i].item_type) {
+			item.type = meta.iinf.item_infos[i].item_type;
+		} else {
+			item.type = "mime";
+		}
+		item.content_type = meta.iinf.item_infos[i].content_type;
+		item.content_encoding = meta.iinf.item_infos[i].content_encoding;
+	}
+	if (meta.iloc) {
+		for(i = 0; i < meta.iloc.items.length; i++) {
+			var offset;
+			var itemloc = meta.iloc.items[i];
+			item = items[itemloc.item_ID];
+			if (itemloc.data_reference_index !== 0) {
+				Log.warn("Item storage with reference to other files: not supported");
+				item.source = meta.dinf.boxes[itemloc.data_reference_index-1];
+			}
+			if (itemloc.construction_method !== undefined) {
+				Log.warn("Item storage with construction_method : not supported");
+				switch(itemloc.construction_method) {
+					case 0: // offset into the file referenced by the data reference index
+					break;
+					case 1: // offset into the idat box of this meta box
+					break;
+					case 2: // offset into another item
+					break;
+				}
+			} else {
+				item.extents = []
+				for (i = 0; i < itemloc.extents.length; i++) {
+					item.extents[i] = {};
+					item.extents[i].offset = itemloc.extents[i].extent_offset + itemloc.base_offset;
+					item.extents[i].length = itemloc.extents[i].extent_length;
+				}
+			}
+		}
+	}
+	if (meta.pitm) {
+		items[meta.pitm.item_ID].primary = true;
+	}
+	if (meta.iref) {
+		// TODO
+	}
+	return items;
+}
+
+function buildItemTable(meta) {
+	var html;
+	html = "<table>";
+	html += "<thead>";
+	html += "<tr>";
+	html += "<th>ID</th>";
+	html += "<th>Name</th>";
+	html += "<th>Type</th>";
+	html += "<th>Primary</th>";
+	html += "<th>Protected</th>";
+	html += "<th>Byte ranges</th>";
+	// html += "<th>References</th>";
+	// html += "<th>Referenced by</th>";
+	html += "</tr>";
+	html += "</thead>";
+	html += "<tbody>";
+	var items = flattenItemInfo(meta);
+	for (var i in items) {
+		var item = items[i];
+		html += "<tr>";
+		html += "<td>"+item.id+"</td>";
+		html += "<td>"+item.name+"</td>";
+		html += "<td>"+(item.type === "mime" ? item.content_type : item.type)+"</td>";
+		html += "<td>"+(item.primary ? "Yes" : "No")+"</td>";
+		html += "<td>"+(item.protection ? item.protection : "No")+"</td>";
+		html += "<td>";
+		for (var j = 0; j < item.extents.length; j++) {
+			html+= "["+item.extents[j].offset+"-"+(item.extents[j].offset+item.extents[j].length-1)+"] "
+		}
+		html += "</td>";
+		html += "</tr>";
+	}
+	html += "</tbody>";
+	html += "</table>";
+	$("#itemview").html(html);
 }
 
 window.onload = function () {
@@ -229,6 +325,7 @@ window.onload = function () {
 	boxtable.html(getBoxTable({}));
 
 	$("#tabs").tabs();
+	$("#resulttabs").tabs();
 
 	buildUrlList(urlSelector[0], true);
 	
