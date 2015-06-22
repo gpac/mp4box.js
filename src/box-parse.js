@@ -248,7 +248,8 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 	entryCount = stream.readUint32();
 	for (i = 1; i <= entryCount; i++) {
 		ret = BoxParser.parseOneBox(stream, true);
-		this.entries.push(ret.box);
+		var box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
+		this.entries.push(box);
 	}
 }
 

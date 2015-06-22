@@ -197,12 +197,13 @@ function parseFile(file) {
 
 function flattenItemInfo(meta) {
 	var items = [];
-	var i;
+	var i, j;
 	var item;
 	for (i = 0; i < meta.iinf.item_infos.length; i++) {
 		item = {};
 		item.id = meta.iinf.item_infos[i].item_ID;
 		items[item.id] = item;
+		item.ref_to = [];
 		item.name = meta.iinf.item_infos[i].item_name;
 		if (meta.iinf.item_infos[i].protection_index > 0) {
 			item.protection = meta.ipro.protections[meta.iinf.item_infos[i].protection_index-1];
@@ -236,10 +237,10 @@ function flattenItemInfo(meta) {
 				}
 			} else {
 				item.extents = []
-				for (i = 0; i < itemloc.extents.length; i++) {
-					item.extents[i] = {};
-					item.extents[i].offset = itemloc.extents[i].extent_offset + itemloc.base_offset;
-					item.extents[i].length = itemloc.extents[i].extent_length;
+				for (j = 0; j < itemloc.extents.length; j++) {
+					item.extents[j] = {};
+					item.extents[j].offset = itemloc.extents[j].extent_offset + itemloc.base_offset;
+					item.extents[j].length = itemloc.extents[j].extent_length;
 				}
 			}
 		}
@@ -248,13 +249,19 @@ function flattenItemInfo(meta) {
 		items[meta.pitm.item_ID].primary = true;
 	}
 	if (meta.iref) {
-		// TODO
+		for (i=0; i <meta.iref.references.length; i++) {
+			var ref = meta.iref.references[i];
+			for (j=0; j<ref.references.length; j++) {
+				items[ref.from_item_ID].ref_to.push({type: ref.type, id: ref.references[j]});
+			}
+		}
 	}
 	return items;
 }
 
 function buildItemTable(meta) {
 	var html;
+	var i, j;
 	html = "<table>";
 	html += "<thead>";
 	html += "<tr>";
@@ -264,23 +271,29 @@ function buildItemTable(meta) {
 	html += "<th>Primary</th>";
 	html += "<th>Protected</th>";
 	html += "<th>Byte ranges</th>";
-	// html += "<th>References</th>";
-	// html += "<th>Referenced by</th>";
+	html += "<th>References [type, item ID]</th>";
 	html += "</tr>";
 	html += "</thead>";
 	html += "<tbody>";
 	var items = flattenItemInfo(meta);
-	for (var i in items) {
+	for (i in items) {
 		var item = items[i];
 		html += "<tr>";
 		html += "<td>"+item.id+"</td>";
-		html += "<td>"+item.name+"</td>";
+		html += "<td>"+(item.name ? item.name: "")+"</td>";
 		html += "<td>"+(item.type === "mime" ? item.content_type : item.type)+"</td>";
 		html += "<td>"+(item.primary ? "Yes" : "No")+"</td>";
 		html += "<td>"+(item.protection ? item.protection : "No")+"</td>";
 		html += "<td>";
-		for (var j = 0; j < item.extents.length; j++) {
+		for (j = 0; j < item.extents.length; j++) {
 			html+= "["+item.extents[j].offset+"-"+(item.extents[j].offset+item.extents[j].length-1)+"] "
+		}
+		html += "</td>";
+		html += "<td>";
+		if (item.ref_to) {
+			for (j = 0; j < item.ref_to.length; j++) {
+				html+= "["+item.ref_to[j].type+", "+item.ref_to[j].id+"] "
+			}
 		}
 		html += "</td>";
 		html += "</tr>";

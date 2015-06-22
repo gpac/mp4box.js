@@ -20,7 +20,7 @@ var BoxParser = {
 				  "sidx", "emsg", "prft", "pssh",
 				  "elst", "dref", "url ", "urn ",
 				  "sbgp", "sgpd",
-				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
+				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "mere",
 				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -35,7 +35,8 @@ var BoxParser = {
 		[ "moof", [ "traf" ] ],
 		[ "traf", [ "trun" ] ],
 		[ "vttc" ], 
-		[ "tref" ]
+		[ "tref" ],
+		[ "iref" ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
@@ -134,8 +135,11 @@ var BoxParser = {
 		BoxParser.Box.call(this, type, size);
 		this.boxes = [];
 	},
-	SampleEntry: function(type, size) {
+	SampleEntry: function(type, size, hdr_size, start, fileStart) {
 		BoxParser.Box.call(this, type, size);	
+		this.hdr_size = hdr_size;
+		this.start = start;
+		this.fileStart = fileStart;
 		this.boxes = [];
 	},
 	TrackReferenceTypeBox: function(type, size) {
@@ -146,7 +150,7 @@ var BoxParser = {
 		BoxParser.FullBox.call(this, "stsd", size);
 		this.entries = [];
 	},
-	parseOneBox: function(stream, isSampleEntry) {
+	parseOneBox: function(stream, headerOnly) {
 		var box;
 		var start = stream.position;
 		var hdr_size = 0;
@@ -180,11 +184,18 @@ var BoxParser = {
 			Log.warn("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
 			return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size };
 		}
-		if (BoxParser[type+"Box"]) {
-			box = new BoxParser[type+"Box"](size);		
+		if (headerOnly) {
+			var ret;
+			ret = { code: BoxParser.OK, type: type, size: size, hdr_size: hdr_size, start: start, fileStart: 0 };
+			if (stream.getStartFilePosition) {
+				ret.fileStart = start + stream.getStartFilePosition();
+			} else {
+				ret.fileStart = start;
+			}
+			return ret;
 		} else {
-			if (isSampleEntry) {
-				box = new BoxParser.SampleEntry(type, size);
+			if (BoxParser[type+"Box"]) {
+				box = new BoxParser[type+"Box"](size);		
 			} else {
 				box = new BoxParser.Box(type, size);
 			}

@@ -138,7 +138,7 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 			this.item_ID = stream.readUint32();
 		}
 		this.item_protection_index = stream.readUint16();
-		this.item_type = stream.readUint32();
+		this.item_type = stream.readString(4);
 		this.name = stream.readCString();
 		if (this.item_type === "mime") {
 			this.content_type = stream.readCString();
@@ -146,5 +146,60 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 		} else if (this.item_type === "uri ") {
 			this.item_uri_type = stream.readCString();
 		}
+	}
+}
+
+BoxParser.SingleItemTypeReferenceBox = function(type, size, hdr_size, start, fileStart) {
+	BoxParser.Box.call(this, type, size);
+	this.hdr_size = hdr_size;
+	this.start = start;
+	this.fileStart = fileStart;
+}
+BoxParser.SingleItemTypeReferenceBox.prototype = new BoxParser.Box();
+BoxParser.SingleItemTypeReferenceBox.prototype.parse = function(stream) {
+	this.from_item_ID = stream.readUint16();
+	var count =  stream.readUint16();
+	this.references = [];
+	for(var i = 0; i < count; i++) {
+		this.references[i] = stream.readUint16();
+	}
+}
+
+BoxParser.SingleItemTypeReferenceBoxLarge = function(type, size, hdr_size, start, fileStart) {
+	BoxParser.Box.call(this, type, size);
+	this.hdr_size = hdr_size;
+	this.start = start;
+	this.fileStart = fileStart;
+}
+BoxParser.SingleItemTypeReferenceBoxLarge.prototype = new BoxParser.Box();
+BoxParser.SingleItemTypeReferenceBoxLarge.prototype.parse = function(stream) {
+	this.from_item_ID = stream.readUint32();
+	var count =  stream.readUint16();
+	this.references = [];
+	for(var i = 0; i < count; i++) {
+		this.references[i] = stream.readUint32();
+	}
+}
+
+BoxParser.irefBox = function(size) {
+	BoxParser.FullBox.call(this, "iref", size);
+	this.references = [];
+}	
+BoxParser.irefBox.prototype = new BoxParser.FullBox();
+BoxParser.irefBox.prototype.parse = function(stream) {
+	var ret;
+	var entryCount;
+	var box;
+	this.parseFullHeader(stream);
+
+	while (stream.position < this.start+this.size) {
+		ret = BoxParser.parseOneBox(stream, true);
+		if (this.version === 0) {
+			box = new BoxParser.SingleItemTypeReferenceBox(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
+		} else {
+			box = new BoxParser.SingleItemTypeReferenceBoxLarge(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
+		}
+		box.parse(stream);
+		this.references.push(box);
 	}
 }
