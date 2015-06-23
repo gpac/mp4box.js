@@ -13,7 +13,7 @@ var BoxParser = {
 				 "idat", "meco",
 				 "tref"
 			   ],
-	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", 
+	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nmhd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
 				  "esds", "subs",
