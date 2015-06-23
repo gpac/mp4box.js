@@ -35,5 +35,6 @@ var conformanceFiles = [
 	"ff-conformance/thefiles/male_amr122DTX.3gp",
 	"ff-conformance/thefiles/mbms-fec.iso3",
 	"ff-conformance/thefiles/pdin_example.3gp",
-	"ff-conformance/thefiles/rs_example.3gp"
+	"ff-conformance/thefiles/rs_example.3gp",
+	"ff-conformance/thefiles/sg-tl-st.mp4"
 ];
