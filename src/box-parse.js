@@ -91,10 +91,6 @@ BoxParser.MetadataSampleEntry.prototype.parse = function(stream) {
 	this.parseFooter(stream);
 }
 
-BoxParser.TrackReferenceTypeBox.prototype.parse = function(stream) {
-	this.track_ids = stream.readUint8Array(this.size-this.hdr_size);
-}
-
 BoxParser.metxBox.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();
@@ -807,5 +803,27 @@ BoxParser["urn Box"].prototype.parse = function(stream) {
 	this.name = stream.readCString();
 	if (this.size - this.hdr_size - this.name.length - 1 > 0) {
 		this.location = stream.readCString();
+	}
+}
+
+BoxParser.TrackReferenceTypeBox = function(type, size, hdr_size, start, fileStart) {
+	BoxParser.Box.call(this, type, size);
+	this.hdr_size = hdr_size;
+	this.start = start;
+	this.fileStart = fileStart;
+}
+BoxParser.TrackReferenceTypeBox.prototype = new BoxParser.Box();
+BoxParser.TrackReferenceTypeBox.prototype.parse = function(stream) {
+	this.track_ids = stream.readUint32Array((this.size-this.hdr_size)/4);
+}
+
+BoxParser.trefBox.prototype.parse = function(stream) {
+	var ret;
+	var box;
+	while (stream.position < this.start+this.size) {
+		ret = BoxParser.parseOneBox(stream, true);
+		box = new BoxParser.TrackReferenceTypeBox(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
+		box.parse(stream);
+		this.boxes.push(box);
 	}
 }

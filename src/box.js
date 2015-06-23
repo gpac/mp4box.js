@@ -10,7 +10,8 @@ var BoxParser = {
 				 "avcC", "hvcC", "ftyp", "styp", 
 				 "payl", "vttC",
 				 "vmhd", "smhd", "hmhd", // full boxes not yet parsed
-				 "idat", "meco"
+				 "idat", "meco",
+				 "tref"
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nhmd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
@@ -46,9 +47,6 @@ var BoxParser = {
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
 		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] }
 	],
-	trackReferenceTypes: [
-		"scal"
-	],
 	initialize: function() {
 		var i, j;
 		var length;
@@ -56,7 +54,6 @@ var BoxParser = {
 		BoxParser.ContainerBox.prototype = new BoxParser.Box();
 		BoxParser.stsdBox.prototype = new BoxParser.FullBox();
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
-		BoxParser.TrackReferenceTypeBox.prototype = new BoxParser.Box();
 		/* creating constructors for simple boxes */
 		length = BoxParser.boxCodes.length;
 		for (i=0; i<length; i++) {
@@ -111,16 +108,6 @@ var BoxParser = {
 				BoxParser[types[i]+"Box"].prototype = new BoxParser[prefix+"SampleEntry"]();
 			}
 		}
-		/* creating constructors for track reference type boxes */
-		length = BoxParser.trackReferenceTypes.length;
-		for (i=0; i<length; i++) {
-			BoxParser[BoxParser.trackReferenceTypes[i]+"Box"] = (function (j) { 
-				return function(size) {
-					BoxParser.TrackReferenceTypeBox.call(this, BoxParser.trackReferenceTypes[j], size);
-				}
-			})(i);
-			BoxParser[BoxParser.trackReferenceTypes[i]+"Box"].prototype = new BoxParser.Box();
-		}
 	},
 	Box: function(_type, _size) {
 		this.type = _type;
@@ -141,10 +128,6 @@ var BoxParser = {
 		this.start = start;
 		this.fileStart = fileStart;
 		this.boxes = [];
-	},
-	TrackReferenceTypeBox: function(type, size) {
-		BoxParser.Box.call(this, type, size);	
-		this.track_ids = [];
 	},
 	stsdBox: function(size) {
 		BoxParser.FullBox.call(this, "stsd", size);
