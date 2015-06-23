@@ -130,6 +130,8 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 	if (this.version === 1) {
 		this.extension_type = stream.readString(4);
 		Log.error("BoxParser", "Cannot parse extension type");
+		stream.seek(this.start+this.size);
+		return;
 	}
 	if (this.version >= 2) {
 		if (this.version === 2) {
@@ -146,6 +148,10 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 		} else if (this.item_type === "uri ") {
 			this.item_uri_type = stream.readCString();
 		}
+	}
+	if (stream.position > this.start+this.size) {
+		Log.warn("BoxParser", "Parsed more than the size of the box (null-terminated string problem?)");
+		stream.seek(this.start+this.size);
 	}
 }
 
