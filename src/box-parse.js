@@ -237,6 +237,11 @@ BoxParser.hdlrBox.prototype.parse = function(stream) {
 	}
 }
 
+BoxParser.stsdBox = function(size) {
+	BoxParser.FullBox.call(this, "stsd", size);
+	this.entries = [];
+};
+BoxParser.stsdBox.prototype = new BoxParser.FullBox();
 BoxParser.stsdBox.prototype.parse = function(stream) {
 	var ret;
 	var entryCount;

@@ -52,7 +52,6 @@ var BoxParser = {
 		var length;
 		BoxParser.FullBox.prototype = new BoxParser.Box();
 		BoxParser.ContainerBox.prototype = new BoxParser.Box();
-		BoxParser.stsdBox.prototype = new BoxParser.FullBox();
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
 		/* creating constructors for simple boxes */
 		length = BoxParser.boxCodes.length;
@@ -128,10 +127,6 @@ var BoxParser = {
 		this.start = start;
 		this.fileStart = fileStart;
 		this.boxes = [];
-	},
-	stsdBox: function(size) {
-		BoxParser.FullBox.call(this, "stsd", size);
-		this.entries = [];
 	},
 	parseOneBox: function(stream, headerOnly) {
 		var box;
