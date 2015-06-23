@@ -165,3 +165,11 @@ MP4BoxStream.prototype.readUint32Array = function(length) {
   }
   return arr;
 }
+
+MP4BoxStream.prototype.readInt32Array = function(length) {
+  var arr = [];
+  for (var i = 0; i < length; i++) {
+    arr[i] = this.readInt32();
+  }
+  return arr;
+}
