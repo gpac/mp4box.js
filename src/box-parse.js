@@ -244,11 +244,20 @@ BoxParser.hdlrBox.prototype.parse = function(stream) {
 BoxParser.stsdBox.prototype.parse = function(stream) {
 	var ret;
 	var entryCount;
+	var box;
 	this.parseFullHeader(stream);
 	entryCount = stream.readUint32();
 	for (i = 1; i <= entryCount; i++) {
 		ret = BoxParser.parseOneBox(stream, true);
-		var box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
+		if (BoxParser[ret.type+"Box"]) {
+			box = new BoxParser[ret.type+"Box"](ret.size);
+			box.hdr_size = ret.hdr_size;
+			box.start = ret.start;
+			box.fileStart = ret.fileStart;
+		} else {
+			box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
+		}
+		box.parse(stream);
 		this.entries.push(box);
 	}
 }
