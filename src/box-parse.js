@@ -256,6 +256,7 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 			box.start = ret.start;
 			box.fileStart = ret.fileStart;
 		} else {
+			Log.warn("BoxParser", "Unknown sample entry type: "+ret.type);
 			box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
 		}
 		box.parse(stream);
@@ -761,6 +762,7 @@ BoxParser.sbgpBox.prototype.parse = function(stream) {
 BoxParser.sgpdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.grouping_type = stream.readString(4);
+	Log.debug("BoxParser", "Found Sample Groups of type "+this.grouping_type);
 	if (this.version === 1) {
 		this.default_length = stream.readUint32();
 	}
@@ -770,14 +772,19 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 	this.entries = [];
 	var entry_count = stream.readUint32();
 	for (var i = 0; i < entry_count; i++) {
-		var entry = {};
+		var entry;
+		if (BoxParser[this.grouping_type+"SampleGroupEntry"]) {
+			entry = new BoxParser[this.grouping_type+"SampleGroupEntry"]();	
+		}  else {
+			entry = new BoxParser.SampleGroupEntry();	
+		}
 		this.entries.push(entry);
 		if (this.version === 1) {
 			if (this.default_length === 0) {
 				entry.description_length = stream.readUint32();
 			}
 		}
-		entry.data = stream.readUint8Array(this.default_length || entry.description_length);
+		entry.parse(stream, this.default_length || entry.description_length);
 	}
 }
 
@@ -832,3 +839,92 @@ BoxParser.trefBox.prototype.parse = function(stream) {
 		this.boxes.push(box);
 	}
 }
+
+BoxParser.SampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.rollSampleGroupEntry.prototype.parse = function(stream, length) {
+	this.roll_distance = stream.readInt16();
+}
+
+BoxParser.prolSampleGroupEntry.prototype.parse = BoxParser.rollSampleGroupEntry.prototype.parse;
+
+BoxParser.avssSampleGroupEntry.prototype.parse = function(stream, length) {
+	this.subSequenceIdentifier = stream.readUint16();
+	this.layerNumber = stream.readUint8();
+	var tmp_byte = stream.readUint8();
+	this.durationFlag = tmp_byte >> 7;
+	this.avgRateFlag = (tmp_byte >> 6) & 0x1;
+	if (this.durationFlag) {
+		this.duration = stream.readUint32();
+	}
+	if (this.avgRateFlag) {
+		this.accurateStatisticsFlag = stream.readUint8();
+		this.avgBitRate = stream.readUint16();
+		this.avgFrameRate = stream.readUint16();
+	}
+	this.dependency = [];
+	var numReferences = stream.readUint8();
+	for (var i = 0; i < numReferences; i++) {
+		var dependencyInfo = {};
+		this.dependency.push(dependencyInfo);
+		dependencyInfo.subSeqDirectionFlag = stream.readUint8();
+		dependencyInfo.layerNumber = stream.readUint8();
+		dependencyInfo.subSequenceIdentifier = stream.readUint16();
+	}
+}
+
+BoxParser.avllSampleGroupEntry.prototype.parse = function(stream, length) {
+	this.layerNumber = stream.readUint8();
+	this.accurateStatisticsFlag = stream.readUint8();
+	this.avgBitRate = stream.readUint16();
+	this.avgFrameRate = stream.readUint16();
+}
+
+BoxParser.syncSampleGroupEntry.prototype.parse = function(stream, length) {
+	var tmp_byte = stream.readUint8();
+	this.NAL_unit_type = tmp_byte & 0x3F;
+}
+
+BoxParser.tsclSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.tsasSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.stsaSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.scifSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.mvifSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.scnmSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.dtrtSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+
+BoxParser.viprSampleGroupEntry.prototype.parse = function(stream, length) {
+	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	this.data =  stream.readUint8Array(length);
+}
+

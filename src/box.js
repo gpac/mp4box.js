@@ -22,7 +22,7 @@ var BoxParser = {
 				  "elst", "dref", "url ", "urn ",
 				  "sbgp", "sgpd",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "mere",
-				  /* missing "stsd": special case full box and container */
+				  /* missing "stsd", "iref": special case full box and container */
 				],
 	containerBoxCodes : [ 
 		[ "moov", [ "trak" ] ],
@@ -46,6 +46,9 @@ var BoxParser = {
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
 		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] }
+	],
+	sampleGroupEntryCodes: [
+		"roll", "prol", "alst", "rap ", "tele", "avss", "avll", "sync", "tscl", "tsas", "stsa", "scif", "mvif", "scnm", "dtrt", "vipr"
 	],
 	initialize: function() {
 		var i, j;
@@ -107,6 +110,16 @@ var BoxParser = {
 				BoxParser[types[i]+"Box"].prototype = new BoxParser[prefix+"SampleEntry"]();
 			}
 		}
+		/* creating constructors for stsd entries  */
+		length = BoxParser.sampleGroupEntryCodes.length;
+		for (i = 0; i < length; i++) {
+			BoxParser[BoxParser.sampleGroupEntryCodes[i]+"SampleGroupEntry"] = (function (j) { 
+				return function(size) {
+					BoxParser.SampleGroupEntry.call(this, BoxParser.sampleGroupEntryCodes[j], size);
+				}
+			})(i);
+			BoxParser[BoxParser.sampleGroupEntryCodes[i]+"SampleGroupEntry"].prototype = new BoxParser.SampleGroupEntry();
+		}		
 	},
 	Box: function(_type, _size) {
 		this.type = _type;
@@ -127,6 +140,9 @@ var BoxParser = {
 		this.start = start;
 		this.fileStart = fileStart;
 		this.boxes = [];
+	},
+	SampleGroupEntry: function(type) {
+		this.grouping_type = type;
 	},
 	parseOneBox: function(stream, headerOnly) {
 		var box;
@@ -175,6 +191,7 @@ var BoxParser = {
 			if (BoxParser[type+"Box"]) {
 				box = new BoxParser[type+"Box"](size);		
 			} else {
+				Log.warn("BoxParser", "Unknown box type: "+type);
 				box = new BoxParser.Box(type, size);
 			}
 		}
