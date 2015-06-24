@@ -53,7 +53,8 @@ var BoxParser = {
 		[ "strk" ],
 		[ "sinf" ],
 		[ "rinf" ],
-		[ "schi" ]
+		[ "schi" ],
+		[ "trgr" ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
@@ -67,12 +68,14 @@ var BoxParser = {
 	sampleGroupEntryCodes: [
 		"roll", "prol", "alst", "rap ", "tele", "avss", "avll", "sync", "tscl", "tsas", "stsa", "scif", "mvif", "scnm", "dtrt", "vipr", "tele", "rash"
 	],
+	trackGroupTypes: [ "msrc" ],
 	initialize: function() {
 		var i, j;
 		var length;
 		BoxParser.FullBox.prototype = new BoxParser.Box();
 		BoxParser.ContainerBox.prototype = new BoxParser.Box();
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
+		BoxParser.TrackGroupTypeBox.prototype = new BoxParser.FullBox();
 		/* creating constructors for simple boxes */
 		length = BoxParser.boxCodes.length;
 		for (i=0; i<length; i++) {
@@ -137,6 +140,16 @@ var BoxParser = {
 			})(i);
 			BoxParser[BoxParser.sampleGroupEntryCodes[i]+"SampleGroupEntry"].prototype = new BoxParser.SampleGroupEntry();
 		}		
+		/* creating constructors for track groups  */
+		length = BoxParser.trackGroupTypes.length;
+		for (i = 0; i < length; i++) {
+			BoxParser[BoxParser.trackGroupTypes[i]+"Box"] = (function (j) { 
+				return function(size) {
+					BoxParser.TrackGroupTypeBox.call(this, BoxParser.trackGroupTypes[j], size);
+				}
+			})(i);
+			BoxParser[BoxParser.trackGroupTypes[i]+"Box"].prototype = new BoxParser.TrackGroupTypeBox();
+		}		
 	},
 	Box: function(_type, _size) {
 		this.type = _type;
@@ -160,6 +173,9 @@ var BoxParser = {
 	},
 	SampleGroupEntry: function(type) {
 		this.grouping_type = type;
+	},
+	TrackGroupTypeBox: function(type, size) {
+		BoxParser.FullBox.call(this, type, size);
 	},
 	parseOneBox: function(stream, headerOnly) {
 		var box;

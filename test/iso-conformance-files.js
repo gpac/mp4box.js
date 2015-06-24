@@ -37,5 +37,10 @@ var conformanceFiles = [
 	"ff-conformance/thefiles/pdin_example.3gp",
 	"ff-conformance/thefiles/rs_example.3gp",
 	"ff-conformance/thefiles/sg-tl-st.mp4",
-	"ff-conformance/thefiles/restricted.mp4"
+	"ff-conformance/thefiles/restricted.mp4",
+	"ff-conformance/thefiles/alst_hvc1.mp4",
+	"ff-conformance/thefiles/trgr_hvc1.mp4",
+	"ff-conformance/thefiles/aggr_hvc1.mp4",
+	"ff-conformance/thefiles/subs_slice_hvc1.mp4",
+	"ff-conformance/thefiles/subs_tile_hvc1.mp4",
 ];

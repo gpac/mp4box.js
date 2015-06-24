@@ -946,6 +946,12 @@ BoxParser.teleSampleGroupEntry.prototype.parse = function(stream, length) {
 	this.level_independently_decodable = tmp_byte >> 7;
 }
 
+BoxParser["rap SampleGroupEntry"].prototype.parse = function(stream, length) {
+	var tmp_byte = stream.readUint8();
+	this.num_leading_samples_known = tmp_byte >> 7;
+	this.num_leading_samples = tmp_byte & 0x7F;
+}
+
 BoxParser.rashSampleGroupEntry.prototype.parse = function(stream, length) {
 	this.operation_point_count = stream.readUint16();
 	if (length !== 2+(this.operation_point_count === 1?2:this.operation_point_count*6)+9) {
@@ -965,6 +971,23 @@ BoxParser.rashSampleGroupEntry.prototype.parse = function(stream, length) {
 		this.maximum_bitrate = stream.readUint32();
 		this.minimum_bitrate = stream.readUint32();
 		this.discard_priority = stream.readUint8();
+	}
+}
+
+BoxParser.alstSampleGroupEntry.prototype.parse = function(stream, length) {
+	var i;
+	var roll_count = stream.readUint16();
+	this.first_output_sample = stream.readUint16();
+	this.sample_offset = [];
+	for (i = 0; i < roll_count; i++) {
+		this.sample_offset[i] = stream.readUint32();
+	}
+	var remaining = length - 4 - 4*roll_count;
+	this.num_output_samples = [];
+	this.num_total_samples = [];
+	for (i = 0; i < remaining/4; i++) {
+		this.num_output_samples[i] = stream.readUint16();
+		this.num_total_samples[i] = stream.readUint16();
 	}
 }
 
@@ -1206,4 +1229,9 @@ BoxParser.padbBox.prototype.parse = function(stream) {
 	for (var i = 0; i < Math.floor((sample_count+1)/2); i++) {
 		this.padbits = stream.readUint8();
 	}
+}
+
+BoxParser.TrackGroupTypeBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.track_group_id = stream.readUint32();
 }
