@@ -47,7 +47,6 @@ ISOFile.prototype.parse = function() {
 						return;
 					}
 				} else {
-					Log.warn("ISOFile", "Cannot parse incomplete box");
 					return;
 				}
 			} else {

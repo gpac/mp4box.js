@@ -129,7 +129,7 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 	}
 	if (this.version === 1) {
 		this.extension_type = stream.readString(4);
-		Log.error("BoxParser", "Cannot parse extension type");
+		Log.warn("BoxParser", "Cannot parse extension type");
 		stream.seek(this.start+this.size);
 		return;
 	}

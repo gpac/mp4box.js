@@ -16,7 +16,7 @@ var conformanceFiles = [
 	"ff-conformance/thefiles/a2-foreman-QCIF-hinted.mp4",
 	"ff-conformance/thefiles/a4-tone-fragmented.mp4",
 	"ff-conformance/thefiles/a5-foreman-AVC.mp4",
-	//"ff-conformance/thefiles/a7-tone-oddities.mp4",
+	"ff-conformance/thefiles/a7-tone-oddities.mp4",
 	"ff-conformance/thefiles/a8-foreman_QCIF_edit.mp4",
 	"ff-conformance/thefiles/a9-aac-samplegroups-edit.mp4",
 	"ff-conformance/thefiles/f1.mp4",
@@ -36,5 +36,6 @@ var conformanceFiles = [
 	"ff-conformance/thefiles/mbms-fec.iso3",
 	"ff-conformance/thefiles/pdin_example.3gp",
 	"ff-conformance/thefiles/rs_example.3gp",
-	"ff-conformance/thefiles/sg-tl-st.mp4"
+	"ff-conformance/thefiles/sg-tl-st.mp4",
+	"ff-conformance/thefiles/restricted.mp4"
 ];

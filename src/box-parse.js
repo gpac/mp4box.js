@@ -6,7 +6,11 @@ BoxParser.Box.prototype.parse = function(stream) {
 	if (this.type != "mdat") {
 		this.data = stream.readUint8Array(this.size-this.hdr_size);
 	} else {
-		stream.seek(this.start+this.size);
+		if (this.size === 0) {
+			stream.seek(stream.byteLength);
+		} else {
+			stream.seek(this.start+this.size);
+		}
 	}
 }
 
@@ -91,7 +95,12 @@ BoxParser.MetadataSampleEntry.prototype.parse = function(stream) {
 	this.parseFooter(stream);
 }
 
-BoxParser.metxBox.prototype.parse = function(stream) {
+BoxParser.SystemSampleEntry.prototype.parse = function(stream) {
+	this.parseHeader(stream);
+	this.parseFooter(stream);
+}
+
+BoxParser.metxSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();
 	this.namespace = stream.readCString();
@@ -99,28 +108,28 @@ BoxParser.metxBox.prototype.parse = function(stream) {
 	this.parseFooter(stream);
 }
 
-BoxParser.mettBox.prototype.parse = function(stream) {
+BoxParser.mettSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();
 	this.mime_format = stream.readCString();
 	this.parseFooter(stream);
 }
 
-BoxParser.sbttBox.prototype.parse = function(stream) {
+BoxParser.sbttSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();
 	this.mime_format = stream.readCString();
 	this.parseFooter(stream);
 }
 
-BoxParser.stxtBox.prototype.parse = function(stream) {
+BoxParser.stxtSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();
 	this.mime_format = stream.readCString();
 	this.parseFooter(stream);
 }
 
-BoxParser.stppBox.prototype.parse = function(stream) {
+BoxParser.stppSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.namespace = stream.readCString();
 	this.schema_location = stream.readCString();
@@ -128,7 +137,7 @@ BoxParser.stppBox.prototype.parse = function(stream) {
 	this.parseFooter(stream);
 }
 
-BoxParser.tx3gBox.prototype.parse = function(stream) {
+BoxParser.tx3gSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.displayFlags = stream.readUint32();
 	this.horizontal_justification = stream.readInt8();
@@ -203,6 +212,15 @@ BoxParser.tkhdBox.prototype.parse = function(stream) {
 	this.height = stream.readUint32();
 }
 
+BoxParser.Box.prototype.parseLanguage = function(stream) {
+	this.language = stream.readUint16();
+	var chars = [];
+	chars[0] = (this.language>>10)&0x1F;
+	chars[1] = (this.language>>5)&0x1F;
+	chars[2] = (this.language)&0x1F;
+	this.languageString = String.fromCharCode(chars[0]+0x60, chars[1]+0x60, chars[2]+0x60);
+}
+
 BoxParser.mdhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.version == 1) {
@@ -216,12 +234,7 @@ BoxParser.mdhdBox.prototype.parse = function(stream) {
 		this.timescale = stream.readUint32();
 		this.duration = stream.readUint32();
 	}
-	this.language = stream.readUint16();
-	var chars = [];
-	chars[0] = (this.language>>10)&0x1F;
-	chars[1] = (this.language>>5)&0x1F;
-	chars[2] = (this.language)&0x1F;
-	this.languageString = String.fromCharCode(chars[0]+0x60, chars[1]+0x60, chars[2]+0x60);
+	this.parseLanguage(stream);
 	stream.readUint16();
 }
 
@@ -250,8 +263,8 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 	entryCount = stream.readUint32();
 	for (i = 1; i <= entryCount; i++) {
 		ret = BoxParser.parseOneBox(stream, true);
-		if (BoxParser[ret.type+"Box"]) {
-			box = new BoxParser[ret.type+"Box"](ret.size);
+		if (BoxParser[ret.type+"SampleEntry"]) {
+			box = new BoxParser[ret.type+"SampleEntry"](ret.size);
 			box.hdr_size = ret.hdr_size;
 			box.start = ret.start;
 			box.fileStart = ret.fileStart;
@@ -774,9 +787,9 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 	for (var i = 0; i < entry_count; i++) {
 		var entry;
 		if (BoxParser[this.grouping_type+"SampleGroupEntry"]) {
-			entry = new BoxParser[this.grouping_type+"SampleGroupEntry"]();	
+			entry = new BoxParser[this.grouping_type+"SampleGroupEntry"](this.grouping_type);	
 		}  else {
-			entry = new BoxParser.SampleGroupEntry();	
+			entry = new BoxParser.SampleGroupEntry(this.grouping_type);	
 		}
 		this.entries.push(entry);
 		if (this.version === 1) {
@@ -889,42 +902,308 @@ BoxParser.syncSampleGroupEntry.prototype.parse = function(stream, length) {
 }
 
 BoxParser.tsclSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
 BoxParser.tsasSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
 BoxParser.stsaSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
 BoxParser.scifSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
 BoxParser.mvifSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
 BoxParser.scnmSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
 BoxParser.dtrtSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
 BoxParser.viprSampleGroupEntry.prototype.parse = function(stream, length) {
-	Log.warn("BoxParser", "Unknown Sample Group type: "+this.grouping_type);
+	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
 	this.data =  stream.readUint8Array(length);
 }
 
+BoxParser.teleSampleGroupEntry.prototype.parse = function(stream, length) {
+	var tmp_byte = stream.readUint8();
+	this.level_independently_decodable = tmp_byte >> 7;
+}
+
+BoxParser.rashSampleGroupEntry.prototype.parse = function(stream, length) {
+	this.operation_point_count = stream.readUint16();
+	if (length !== 2+(this.operation_point_count === 1?2:this.operation_point_count*6)+9) {
+		Log.warn("BoxParser", "Mismatch in "+this.grouping_type+" sample group length");
+		this.data =  stream.readUint8Array(length-2);
+	} else {
+		if (this.operation_point_count === 1) {
+			this.target_rate_share = stream.readUint16();
+		} else {
+			this.target_rate_share = [];
+			this.available_bitrate = [];
+			for (var i = 0; i < this.operation_point_count; i++) {
+				this.available_bitrate[i] = stream.readUint32();
+				this.target_rate_share[i] = stream.readUint16();
+			}
+		}
+		this.maximum_bitrate = stream.readUint32();
+		this.minimum_bitrate = stream.readUint32();
+		this.discard_priority = stream.readUint8();
+	}
+}
+
+BoxParser.cprtBox.prototype.parse = function (stream) {
+	this.parseFullHeader(stream);
+	this.parseLanguage(stream);
+	this.notice = stream.readCString();
+	if (stream.position > this.start+this.size) {
+		Log.warn("BoxParser", "Parsed more than the size of the box (null-terminated string problem?)");
+		stream.seek(this.start+this.size);
+	}
+}
+
+BoxParser["rtp Box"].prototype.parse = function(stream) {
+	this.descriptionformat = stream.readString(4);
+	this.sdptext = stream.readString(this.size - this.hdr_size - 4);
+}
+
+BoxParser["sdp Box"].prototype.parse = function(stream) {
+	this.sdptext = stream.readString(this.size - this.hdr_size);
+}
+
+BoxParser.btrtBox.prototype.parse = function(stream) {
+	this.bufferSizeDB = stream.readUint32();
+	this.maxBitrate = stream.readUint32();
+	this.avgBitrate = stream.readUint32();
+}
+
+BoxParser.ssixBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.subsegments = [];
+	var subsegment_count = stream.readUint32();
+	for (var i = 0; i < subsegment_count; i++) {
+		var subsegment = {};
+		this.subsegments.push(subsegment);
+		subsegment.ranges = [];
+		var range_count = stream.readUint32();
+		for (var j = 0; j < range_count; j++) {
+			var range = {};
+			subsegment.ranges.push(range);
+			range.level = stream.readUint8();
+			range.range_size = stream.readUint24();
+		}
+	}
+}
+
+BoxParser.tfraBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.track_ID = stream.readUint32();
+	stream.readUint24();
+	var tmp_byte = stream.readUint8();
+	this.length_size_of_traf_num = (tmp_byte >> 4) & 0x3;
+	this.length_size_of_trun_num = (tmp_byte >> 2) & 0x3;
+	this.length_size_of_sample_num = (tmp_byte) & 0x3;
+	this.entries = [];
+	var number_of_entries = stream.readUint32();
+	for (var i = 0; i < number_of_entries; i++) {
+		if (this.version === 1) {
+			this.time = stream.readUint64();
+			this.moof_offset = stream.readUint64();
+		} else {
+			this.time = stream.readUint32();
+			this.moof_offset = stream.readUint32();
+		}
+		this.traf_number = stream["readUint"+(8*(this.length_size_of_traf_num+1))]();
+		this.trun_number = stream["readUint"+(8*(this.length_size_of_trun_num+1))]();
+		this.sample_number = stream["readUint"+(8*(this.length_size_of_sample_num+1))]();
+	}
+}
+
+BoxParser.mfroBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.size = stream.readUint32();
+}
+
+BoxParser.pdinBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	var count = (this.size - this.hdr_size)/8;
+	this.rate = [];
+	this.initial_delay = [];
+	for (var i = 0; i < count; i++) {
+		this.rate[i] = stream.readUint32();
+		this.initial_delay[i] = stream.readUint32();
+	}
+}
+
+BoxParser.tselBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.switch_group = stream.readUint32();
+	var count = (this.size - this.hdr_size - 4)/4;
+	this.attribute_list = [];
+	for (var i = 0; i < count; i++) {
+		this.attribute_list[i] = stream.readUint32();
+	}
+}
+
+BoxParser.trepBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.track_ID = stream.readUint32();
+	this.boxes = [];
+	while (stream.position < this.start+this.size) {
+		ret = BoxParser.parseOneBox(stream);
+		box = ret.box;
+		this.boxes.push(box);
+	}
+}
+
+BoxParser.levaBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	var count = stream.readUint8();
+	this.levels = [];
+	for (var i = 0; i < count; i++) {
+		var level = {};
+		this.levels[i] = level;
+		level.track_ID = stream.readUint32();
+		var tmp_byte = stream.readUint8();
+		level.padding_flag = tmp_byte >> 7;
+		level.assignment_type = tmp_byte & 0x7F;
+		switch (level.assignment_type) {
+			case 0:
+				level.grouping_type = stream.readUint32();
+				break;
+			case 1:
+				level.grouping_type = stream.readUint32();
+				level.grouping_type_parameter = stream.readUint32();
+				break;
+			case 2:
+				break;
+			case 3:
+				break;
+			case 4:
+				level.sub_track_id = stream.readUint32();
+				break;
+			default:
+				Log.warn("BoxParser", "Unknown leva assignement type");
+		}
+	}
+}
+
+BoxParser.striBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.switch_group = stream.readUint16();
+	this.alternate_group = stream.readUint16();
+	this.sub_track_id = stream.readUint32();
+	var count = (this.size - this.hdr_size - 8)/4;
+	this.attribute_list = [];
+	for (var i = 0; i < count; i++) {
+		this.attribute_list[i] = stream.readUint32();
+	}
+}
+
+BoxParser.stsgBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.grouping_type = stream.readUint32();
+	var count = stream.readUint16();
+	this.group_description_index = [];
+	for (var i = 0; i < count; i++) {
+		this.group_description_index[i] = stream.readUint32();
+	}
+}
+
+BoxParser.frmaBox.prototype.parse = function(stream) {
+	this.data_format = stream.readString(4);
+}
+
+BoxParser.schmBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	this.scheme_type = stream.readString(4);
+	this.scheme_version = stream.readUint32();
+	if (this.flags & 0x000001) {
+		this.scheme_uri = stream.readString(this.size - this.hdr_size - 8);
+	}
+}
+
+BoxParser.trpyBox.prototype.parse = function(stream) {
+	this.bytessent = stream.readUint64();
+}
+BoxParser.tpylBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
+BoxParser.dmedBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
+BoxParser.dimmBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
+BoxParser.drepBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
+
+BoxParser.numpBox.prototype.parse = function(stream) {
+	this.packetssent = stream.readUint64();
+}
+
+BoxParser.totlBox.prototype.parse = function(stream) {
+	this.bytessent = stream.readUint32();
+}
+BoxParser.tpayBox.prototype.parse = BoxParser.totlBox.prototype.parse;
+
+BoxParser.npckBox.prototype.parse = function(stream) {
+	this.packetssent = stream.readUint32();
+}
+
+BoxParser.maxrBox.prototype.parse = function(stream) {
+	this.period = stream.readUint32();
+	this.bytes = stream.readUint32();
+}
+
+BoxParser.tminBox.prototype.parse = function(stream) {
+	this.time = stream.readUint32();
+}
+BoxParser.tmaxBox.prototype.parse = BoxParser.tminBox.prototype.parse;
+BoxParser.dmaxBox.prototype.parse = BoxParser.tminBox.prototype.parse;
+
+BoxParser.pmaxBox.prototype.parse = function(stream) {
+	this.bytes = stream.readUint32();
+}
+
+BoxParser.paytBox.prototype.parse = function(stream) {
+	this.payloadID = stream.readUint32();
+	var count = stream.readUint8();
+	this.rtpmap_string = stream.readString(count);
+}
+
+BoxParser.stviBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	var tmp32 = stream.readUint32();
+	this.single_view_allowed = tmp32 & 0x3;
+	this.stereo_scheme = stream.readUint32();
+	var length = stream.readUint32();
+	this.stereo_indication_type = stream.readString(length);
+	var ret;
+	var box;
+	this.boxes = [];
+	while (stream.position < this.start+this.size) {
+		ret = BoxParser.parseOneBox(stream, false);
+		box = ret.box;
+		this.boxes.push(box);
+		this[box.type] = box;
+	}		
+}
+
+BoxParser.padbBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	var sample_count = stream.readUint32();
+	this.padbits = [];
+	for (var i = 0; i < Math.floor((sample_count+1)/2); i++) {
+		this.padbits = stream.readUint8();
+	}
+}

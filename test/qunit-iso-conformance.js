@@ -5,7 +5,7 @@ function makeBoxParsingTest(fileIndex) {
 			window.clearTimeout(timeout);
 			var file = new ISOFile(new MP4BoxStream(buffer, MP4BoxStream.BIG_ENDIAN));
 			file.parse();
-			assert.ok(true, "file"+conformanceFiles[fileIndex]+"parsed");
+			assert.ok(true, "file "+conformanceFiles[fileIndex]+" parsing");
 			QUnit.start();
 		};
 		getFile(conformanceFiles[fileIndex], callback);

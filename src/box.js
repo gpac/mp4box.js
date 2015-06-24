@@ -6,14 +6,14 @@ var BoxParser = {
 	ERR_NOT_ENOUGH_DATA : 0,
 	OK : 1,
 	boxCodes : [ 
-				 "mdat", 
+				 "mdat", "idat", "free", "skip",
 				 "avcC", "hvcC", "ftyp", "styp", 
 				 "payl", "vttC",
-				 "vmhd", "smhd", "hmhd", // full boxes not yet parsed
-				 "idat", "meco",
-				 "tref"
+				 "rtp ", "sdp ",
+				 "btrt", "frma",
+				 "trpy", "tpyl", "totl", "tpay", "dmed", "dimm", "drep", "nump", "npck", "maxr", "tmin", "tmax", "dmax", "pmax", "payt",
 			   ],
-	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "smhd", "hmhd", "nmhd", "url ", "urn ", 
+	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
 				  "esds", "subs",
@@ -22,7 +22,14 @@ var BoxParser = {
 				  "elst", "dref", "url ", "urn ",
 				  "sbgp", "sgpd",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "mere",
-				  /* missing "stsd", "iref": special case full box and container */
+				  "cprt",
+				  "iods",
+				  "ssix", "tfra", "mfro", "pdin", "tsel",
+				  "trep", "leva", "stri", "stsg",
+				  "schm", 
+				  "stvi", 
+				  "padb"
+				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
 		[ "moov", [ "trak" ] ],
@@ -37,7 +44,16 @@ var BoxParser = {
 		[ "traf", [ "trun" ] ],
 		[ "vttc" ], 
 		[ "tref" ],
-		[ "iref" ]
+		[ "iref" ],
+		[ "udta" ],
+		[ "mfra" ],
+		[ "meco" ],
+		[ "hnti" ],
+		[ "hinf" ],
+		[ "strk" ],
+		[ "sinf" ],
+		[ "rinf" ],
+		[ "schi" ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
@@ -45,10 +61,11 @@ var BoxParser = {
 		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos" ] },
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
-		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] }
+		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] },
+		{ prefix: "System", types: [ "mp4s"] }
 	],
 	sampleGroupEntryCodes: [
-		"roll", "prol", "alst", "rap ", "tele", "avss", "avll", "sync", "tscl", "tsas", "stsa", "scif", "mvif", "scnm", "dtrt", "vipr"
+		"roll", "prol", "alst", "rap ", "tele", "avss", "avll", "sync", "tscl", "tsas", "stsa", "scif", "mvif", "scnm", "dtrt", "vipr", "tele", "rash"
 	],
 	initialize: function() {
 		var i, j;
@@ -102,12 +119,12 @@ var BoxParser = {
 			BoxParser[prefix+"SampleEntry"] = function(type, size) { BoxParser.SampleEntry.call(this, type, size); };
 			BoxParser[prefix+"SampleEntry"].prototype = new BoxParser.SampleEntry();
 			for (i=0; i<nb_types; i++) {
-				BoxParser[types[i]+"Box"] = (function (k, l) { 
+				BoxParser[types[i]+"SampleEntry"] = (function (k, l) { 
 					return function(size) {
 						BoxParser[BoxParser.sampleEntryCodes[k].prefix+"SampleEntry"].call(this, BoxParser.sampleEntryCodes[k].types[l], size);
 					}
 				})(j, i);
-				BoxParser[types[i]+"Box"].prototype = new BoxParser[prefix+"SampleEntry"]();
+				BoxParser[types[i]+"SampleEntry"].prototype = new BoxParser[prefix+"SampleEntry"]();
 			}
 		}
 		/* creating constructors for stsd entries  */
@@ -148,6 +165,7 @@ var BoxParser = {
 		var box;
 		var start = stream.position;
 		var hdr_size = 0;
+		var uuid;
 		if (stream.byteLength - stream.position < 8) {
 			Log.debug("BoxParser", "Not enough data in stream to parse the type and size of the box");
 			return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
@@ -157,7 +175,7 @@ var BoxParser = {
 		Log.debug("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start+" in the current buffer ("+(stream.buffer.fileStart+start)+" in the file)");
 		hdr_size = 8;
 		if (type == "uuid") {
-			uuid = stream.readString(16);
+			uuid = stream.readUint8Array(16);
 			hdr_size += 16;
 		}
 		if (size == 1) {
@@ -170,7 +188,9 @@ var BoxParser = {
 			hdr_size += 8;
 		} else if (size === 0) {
 			/* box extends till the end of file */
-			throw "Unlimited box size not supported";
+			if (type !== "mdat") {
+				throw "Unlimited box size not supported";
+			}
 		}
 		
 		if (start + size > stream.byteLength ) {
@@ -191,8 +211,13 @@ var BoxParser = {
 			if (BoxParser[type+"Box"]) {
 				box = new BoxParser[type+"Box"](size);		
 			} else {
-				Log.warn("BoxParser", "Unknown box type: "+type);
+				if (type !== "uuid") {
+					Log.warn("BoxParser", "Unknown box type: "+type);
+				}
 				box = new BoxParser.Box(type, size);
+				if (uuid) {
+					box.uuid = uuid;
+				}
 			}
 		}
 		/* recording the position of the box in the input stream */
