@@ -162,7 +162,9 @@ BoxParser.ftypBox.prototype.parse = function(stream) {
 	}
 }
 
-BoxParser.stypBox.prototype.parse = BoxParser.ftypBox.prototype.parse;
+BoxParser.stypBox.prototype.parse = function(stream) {
+	BoxParser.ftypBox.prototype.parse.call(this, stream);
+}
 
 BoxParser.mvhdBox.prototype.parse = function(stream) {
 	this.flags = 0;
@@ -640,7 +642,9 @@ BoxParser.vttCBox.prototype.parse = function(stream) {
 	this.text = stream.readString(this.size - this.hdr_size);
 }
 
-BoxParser.paylBox.prototype.parse = BoxParser.vttCBox.prototype.parse;
+BoxParser.paylBox.prototype.parse = function(stream) {
+	this.text = stream.readString(this.size - this.hdr_size);
+}
 
 BoxParser.subsBox.prototype.parse = function(stream) {
 	var i,j;
@@ -862,7 +866,9 @@ BoxParser.rollSampleGroupEntry.prototype.parse = function(stream, length) {
 	this.roll_distance = stream.readInt16();
 }
 
-BoxParser.prolSampleGroupEntry.prototype.parse = BoxParser.rollSampleGroupEntry.prototype.parse;
+BoxParser.prolSampleGroupEntry.prototype.parse= function(stream, length) {
+	this.roll_distance = stream.readInt16();
+}
 
 BoxParser.avssSampleGroupEntry.prototype.parse = function(stream, length) {
 	this.subSequenceIdentifier = stream.readUint16();
@@ -1165,10 +1171,22 @@ BoxParser.schmBox.prototype.parse = function(stream) {
 BoxParser.trpyBox.prototype.parse = function(stream) {
 	this.bytessent = stream.readUint64();
 }
-BoxParser.tpylBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
-BoxParser.dmedBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
-BoxParser.dimmBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
-BoxParser.drepBox.prototype.parse = BoxParser.trpyBox.prototype.parse;
+
+BoxParser.tpylBox.prototype.parse = function(stream) {
+	this.bytessent = stream.readUint64();
+}
+
+BoxParser.dmedBox.prototype.parse = function(stream) {
+	this.bytessent = stream.readUint64();
+}
+
+BoxParser.dimmBox.prototype.parse = function(stream) {
+	this.bytessent = stream.readUint64();
+}
+
+BoxParser.drepBox.prototype.parse = function(stream) {
+	this.bytessent = stream.readUint64();
+}
 
 BoxParser.numpBox.prototype.parse = function(stream) {
 	this.packetssent = stream.readUint64();
@@ -1177,7 +1195,10 @@ BoxParser.numpBox.prototype.parse = function(stream) {
 BoxParser.totlBox.prototype.parse = function(stream) {
 	this.bytessent = stream.readUint32();
 }
-BoxParser.tpayBox.prototype.parse = BoxParser.totlBox.prototype.parse;
+
+BoxParser.tpayBox.prototype.parse = function(stream) {
+	this.bytessent = stream.readUint32();
+}
 
 BoxParser.npckBox.prototype.parse = function(stream) {
 	this.packetssent = stream.readUint32();
@@ -1191,8 +1212,14 @@ BoxParser.maxrBox.prototype.parse = function(stream) {
 BoxParser.tminBox.prototype.parse = function(stream) {
 	this.time = stream.readUint32();
 }
-BoxParser.tmaxBox.prototype.parse = BoxParser.tminBox.prototype.parse;
-BoxParser.dmaxBox.prototype.parse = BoxParser.tminBox.prototype.parse;
+
+BoxParser.tmaxBox.prototype.parse = function(stream) {
+	this.time = stream.readUint32();
+}
+
+BoxParser.dmaxBox.prototype.parse = function(stream) {
+	this.time = stream.readUint32();
+}
 
 BoxParser.pmaxBox.prototype.parse = function(stream) {
 	this.bytes = stream.readUint32();
@@ -1234,4 +1261,63 @@ BoxParser.padbBox.prototype.parse = function(stream) {
 BoxParser.TrackGroupTypeBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.track_group_id = stream.readUint32();
+}
+
+BoxParser.stdpBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	var count = (this.size - this.hdr_size)/2;
+	this.priority = [];
+	for (var i = 0; i < count; i++) {
+		this.priority[i] = stream.readUint16();
+	}
+}
+
+BoxParser.sdtpBox.prototype.parse = function(stream) {
+	var tmp_byte;
+	this.parseFullHeader(stream);
+	var count = (this.size - this.hdr_size);
+	this.is_leading = [];
+	this.sample_depends_on = [];
+	this.sample_is_depended_on = [];
+	this.sample_has_redundancy = [];
+	for (var i = 0; i < count; i++) {
+		tmp_byte = stream.readUint8();
+		this.is_leading[i] = tmp_byte >> 6;
+		this.sample_depends_on[i] = (tmp_byte >> 4) & 0x3;
+		this.sample_is_depended_on[i] = (tmp_byte >> 2) & 0x3;
+		this.sample_has_redundancy[i] = tmp_byte & 0x3;
+	}
+}
+
+BoxParser.saizBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	if (this.flags & 0x1) {
+		this.aux_info_type = stream.readUint32();
+		this.aux_info_type_parameter = stream.readUint32();
+	}
+	this.default_sample_info_size = stream.readUint8();
+	var count = stream.readUint32();
+	this.sample_info_size = [];
+	if (this.default_sample_info_size === 0) {	
+		for (var i = 0; i < count; i++) {
+			this.sample_info_size[i] = stream.readUint32();
+		}
+	}
+}
+
+BoxParser.saioBox.prototype.parse = function(stream) {
+	this.parseFullHeader(stream);
+	if (this.flags & 0x1) {
+		this.aux_info_type = stream.readUint32();
+		this.aux_info_type_parameter = stream.readUint32();
+	}
+	var count = stream.readUint32();
+	this.offset = [];
+	for (var i = 0; i < count; i++) {
+		if (this.version === 0) {
+			this.offset[i] = stream.readUint32();
+		} else {
+			this.offset[i] = stream.readUint64();
+		}
+	}
 }

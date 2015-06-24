@@ -28,7 +28,7 @@ var BoxParser = {
 				  "trep", "leva", "stri", "stsg",
 				  "schm", 
 				  "stvi", 
-				  "padb"
+				  "padb", "stdp", "sdtp", "saio", "saiz"
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -51,6 +51,7 @@ var BoxParser = {
 		[ "hnti" ],
 		[ "hinf" ],
 		[ "strk" ],
+		[ "strd" ],
 		[ "sinf" ],
 		[ "rinf" ],
 		[ "schi" ],
