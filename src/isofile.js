@@ -109,3 +109,7 @@ ISOFile._sweep = function(type, result, returnEarly) {
     ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
   }
 }
+
+if (typeof exports !== 'undefined') {
+	exports.ISOFile = ISOFile;	
+}

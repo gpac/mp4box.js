@@ -571,3 +571,7 @@ DataStream.prototype.readUint64 = function () {
 DataStream.prototype.readUint24 = function () {
 	return (this.readUint8()<<16)+(this.readUint8()<<8)+this.readUint8();
 }
+
+if (typeof exports !== 'undefined') {
+  exports.DataStream = DataStream;  
+}
