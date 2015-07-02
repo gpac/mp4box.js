@@ -19,7 +19,7 @@ module.exports = function(grunt) {
               'src/box.js',                       // core code for box definitions
               'src/box-codecs.js',                // core code for box definitions
               'src/box-parse.js',                 // basic box parsing code 
-              'src/parsing/*.js',                 // box-specific parsing code
+              'src/parsing/**/*.js',              // box-specific parsing code
               'src/box-write.js',                 // box writing code
               'src/box-unpack.js',                // box code for sample manipulation
               'src/text-mp4.js',                  // text-based track manipulations
@@ -87,7 +87,14 @@ module.exports = function(grunt) {
 	    }
   	},
   	jshint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js', '!test/lib/**/*.js' , '!test/mp4/**/*.js'],
+      files: [
+        'Gruntfile.js', 
+        'src/**/*.js', 
+        'test/**/*.js', 
+        // Exclude the following from lint 
+        '!test/lib/**/*.js', 
+        '!test/mp4/**/*.js'
+      ],
       options: {
         // options here to override JSHint defaults
     	eqeqeq: false,
