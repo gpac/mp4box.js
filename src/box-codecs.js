@@ -88,7 +88,7 @@ BoxParser.decimalToHex = function(d, padding) {
 	return hex;
 }
 
-BoxParser.avc1Box.prototype.getCodec = function() {
+BoxParser.avc1SampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.avcC) {
 		return baseCodec+"."+BoxParser.decimalToHex(this.avcC.AVCProfileIndication)+
@@ -99,7 +99,7 @@ BoxParser.avc1Box.prototype.getCodec = function() {
 	}
 }
 
-BoxParser.hvc1Box.prototype.getCodec = function() {
+BoxParser.hvc1SampleEntry.prototype.getCodec = function() {
 	var i;
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.hvcC) {
@@ -150,7 +150,7 @@ BoxParser.hvc1Box.prototype.getCodec = function() {
 	return baseCodec;
 }
 
-BoxParser.mp4aBox.prototype.getCodec = function() {
+BoxParser.mp4aSampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.esds && this.esds.esd) {
 		var oti = this.esds.esd.getOTI();

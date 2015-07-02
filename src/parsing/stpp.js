@@ -1,4 +1,4 @@
-BoxParser.stppBox.prototype.parse = function(stream) {
+BoxParser.stppSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.namespace = stream.readCString();
 	this.schema_location = stream.readCString();

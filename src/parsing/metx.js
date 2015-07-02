@@ -1,4 +1,4 @@
-BoxParser.metxBox.prototype.parse = function(stream) {
+BoxParser.metxSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();
 	this.namespace = stream.readCString();

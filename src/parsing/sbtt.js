@@ -1,4 +1,4 @@
-BoxParser.sbttBox.prototype.parse = function(stream) {
+BoxParser.sbttSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();
 	this.mime_format = stream.readCString();

@@ -1,4 +1,4 @@
-BoxParser.tx3gBox.prototype.parse = function(stream) {
+BoxParser.tx3gSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.displayFlags = stream.readUint32();
 	this.horizontal_justification = stream.readInt8();
