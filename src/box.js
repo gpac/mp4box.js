@@ -32,10 +32,9 @@ var BoxParser = {
 				  "trep", "leva", "stri", "stsg",
 				  "schm", 
 				  "stvi", 
-				  "padb", "stdp", "sdtp", "saio", "saiz"
-				  /* missing "stsd", "iref", : special case full box and container */
+				  "padb", "stdp", "sdtp", "saio", "saiz",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
-				  /* missing "stsd": special case full box and container */
+				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
 		[ "moov", [ "trak" ] ],
