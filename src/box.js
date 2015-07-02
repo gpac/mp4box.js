@@ -177,77 +177,7 @@ var BoxParser = {
 	},
 	TrackGroupTypeBox: function(type, size) {
 		BoxParser.FullBox.call(this, type, size);
-	},
-	parseOneBox: function(stream, headerOnly) {
-		var box;
-		var start = stream.position;
-		var hdr_size = 0;
-		var uuid;
-		if (stream.byteLength - stream.position < 8) {
-			Log.debug("BoxParser", "Not enough data in stream to parse the type and size of the box");
-			return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
-		}
-		var size = stream.readUint32();
-		var type = stream.readString(4);
-		Log.debug("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start+" in the current buffer ("+(stream.buffer.fileStart+start)+" in the file)");
-		hdr_size = 8;
-		if (type == "uuid") {
-			uuid = stream.readUint8Array(16);
-			hdr_size += 16;
-		}
-		if (size == 1) {
-			if (stream.byteLength - stream.position < 8) {
-				stream.seek(start);
-				Log.warn("BoxParser", "Not enough data in stream to parse the extended size of the \""+type+"\" box");
-				return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
-			}
-			size = stream.readUint64();
-			hdr_size += 8;
-		} else if (size === 0) {
-			/* box extends till the end of file */
-			if (type !== "mdat") {
-				throw "Unlimited box size not supported";
-			}
-		}
-		
-		if (start + size > stream.byteLength ) {
-			stream.seek(start);
-			Log.warn("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
-			return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size };
-		}
-		if (headerOnly) {
-			var ret;
-			ret = { code: BoxParser.OK, type: type, size: size, hdr_size: hdr_size, start: start, fileStart: 0 };
-			if (stream.getStartFilePosition) {
-				ret.fileStart = start + stream.getStartFilePosition();
-			} else {
-				ret.fileStart = start;
-			}
-			return ret;
-		} else {
-			if (BoxParser[type+"Box"]) {
-				box = new BoxParser[type+"Box"](size);		
-			} else {
-				if (type !== "uuid") {
-					Log.warn("BoxParser", "Unknown box type: "+type);
-				}
-				box = new BoxParser.Box(type, size);
-				if (uuid) {
-					box.uuid = uuid;
-				}
-			}
-		}
-		/* recording the position of the box in the input stream */
-		box.hdr_size = hdr_size;
-		box.start = start;
-		if (stream.getStartFilePosition) {
-			box.fileStart = start + stream.getStartFilePosition();
-		} else {
-			box.fileStart = start;
-		}
-		box.parse(stream);
-		return { code: BoxParser.OK, box: box, size: size };
-	},
+	}
 }
 
 BoxParser.initialize();
