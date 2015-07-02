@@ -12,6 +12,10 @@ var BoxParser = {
 				 "rtp ", "sdp ",
 				 "btrt", "frma",
 				 "trpy", "tpyl", "totl", "tpay", "dmed", "dimm", "drep", "nump", "npck", "maxr", "tmin", "tmax", "dmax", "pmax", "payt",
+				 "vmhd", "smhd", "hmhd", // full boxes not yet parsed
+				 "idat", "meco",
+				 "udta", "strk",
+				 "free", "skip"
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
@@ -30,6 +34,8 @@ var BoxParser = {
 				  "stvi", 
 				  "padb", "stdp", "sdtp", "saio", "saiz"
 				  /* missing "stsd", "iref", : special case full box and container */
+				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
+				  /* missing "stsd": special case full box and container */
 				],
 	containerBoxCodes : [ 
 		[ "moov", [ "trak" ] ],
