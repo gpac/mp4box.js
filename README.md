@@ -269,14 +269,14 @@ Each sample has the following structure:
 ```json
 {
 	"track_id":4,
-	"description": [Box],
+	"description": "[Box]",
 	"is_rap":true,
 	"timescale":1000,
 	"dts":0,
 	"cts":0,
 	"duration":1000,
 	"size":41,
-	"data": [ArrayBuffer]
+	"data": "[ArrayBuffer]"
 }
 ```
 
