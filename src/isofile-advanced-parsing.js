@@ -27,11 +27,10 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 		this.boxes.push(box);
 		this.mdats.push(box);			
 		box.hdr_size = ret.hdr_size;
-		box.fileStart = this.stream.getFilePosition();
 		this.stream.addUsedBytes(box.hdr_size);
 		
 		/* let's see if we have the end of the box in the other buffers */
-		found = this.stream.reposition(false, box.fileStart + box.size, this.discardMdatData);
+		found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
 		if (found) {
 			/* found the end of the box */
 			this.parsingMdat = null;
@@ -87,7 +86,7 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 				if (this.moovStartFound) {
 					this.nextParsePosition = this.stream.getEndFilePosition();
 				} else {
-					this.nextParsePosition = this.stream.getFilePosition() + ret.size;
+					this.nextParsePosition = this.stream.getPosition() + ret.size;
 				}
 			}
 			return false;
@@ -106,7 +105,7 @@ ISOFile.prototype.processIncompleteMdat = function () {
 	/* we are in the parsing of an incomplete mdat box */
 	box = this.parsingMdat;
 
-	found = this.stream.reposition(false, box.fileStart + box.size, this.discardMdatData);
+	found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
 	if (found) {
 		Log.debug("ISOFile", "Found 'mdat' end in buffered data");
 		/* the end of the mdat has been found */ 
@@ -126,12 +125,12 @@ ISOFile.prototype.restoreParsePosition = function() {
 	/*Log.debug("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
 		" ("+(this.stream.buffer.fileStart+this.lastBoxStartPosition)+" in the file)");*/
 	/* Reposition at the start position of the previous box not entirely parsed */
-	this.stream.seek(this.lastBoxStartPosition);	
+	this.stream.seek(this.lastBoxStartPosition, true, false);
 }
 
 ISOFile.prototype.saveParsePosition = function() {
 	/* remember the position of the box start in case we need to roll back (if the box is incomplete) */
-	this.lastBoxStartPosition = this.stream.position;	
+	this.lastBoxStartPosition = this.stream.getPosition();	
 }
 
 ISOFile.prototype.updateUsedBytes = function(box, ret) {

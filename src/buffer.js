@@ -1,9 +1,24 @@
+/**
+ * MultiBufferStream is a class that acts as a SimpleStream for parsing 
+ * It holds several, possibly non-contiguous ArrayBuffer objects, each with a fileStart property 
+ * containing the offset for the buffer data in an original/virtual file 
+ *
+ * It inherits also from DataStream for all read/write/alloc operations
+ */
+
+/**
+ * Constructor
+ */
 var MultiBufferStream = function() {
 	/* List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non overlapping */
 	this.buffers = [];	
 	this.bufferIndex = -1;
 }
 MultiBufferStream.prototype = new DataStream(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
+
+/************************************************************************************
+  Methods for the managnement of the buffers (insertion, removal, concatenation, ...)
+ ***********************************************************************************/
 
 MultiBufferStream.prototype.initialized = function() {
 	var firstBuffer;
@@ -28,7 +43,12 @@ MultiBufferStream.prototype.initialized = function() {
 	}			
 }
 
-/* helper functions to enable calling "open" with additional buffers */
+/**
+ * helper functions to concatenate two ArrayBuffer objects
+ * @param  {ArrayBuffer} buffer1 
+ * @param  {ArrayBuffer} buffer2 
+ * @return {ArrayBuffer} the concatenation of buffer1 and buffer2 in that order
+ */
 ArrayBuffer.concat = function(buffer1, buffer2) {
   Log.debug("ArrayBuffer", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
   var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
@@ -37,7 +57,13 @@ ArrayBuffer.concat = function(buffer1, buffer2) {
   return tmp.buffer;
 };
 
-/* Reduces the size of a given buffer */
+/**
+ * Reduces the size of a given buffer, but taking the part between offset and offset+newlength
+ * @param  {ArrayBuffer} buffer    
+ * @param  {Number}      offset    the start of new buffer
+ * @param  {Number}      newLength the length of the new buffer
+ * @return {ArrayBuffer}           the new buffer
+ */
 MultiBufferStream.prototype.reduceBuffer = function(buffer, offset, newLength) {
 	var smallB;
 	smallB = new Uint8Array(newLength);
@@ -47,10 +73,12 @@ MultiBufferStream.prototype.reduceBuffer = function(buffer, offset, newLength) {
 	return smallB.buffer;	
 }
 
-/* insert the new buffer in the sorted list of buffers, 
-   making sure, it is not overlapping with existing ones (possibly reducing its size).
-   if the new buffer overrides/replaces the 0-th buffer (for instance because it is bigger), 
-   updates the DataStream buffer for parsing */
+/**
+ * Inserts the new buffer in the sorted list of buffers,
+ *  making sure, it is not overlapping with existing ones (possibly reducing its size).
+ *  if the new buffer overrides/replaces the 0-th buffer (for instance because it is bigger), 
+ *  updates the DataStream buffer for parsing 
+*/
 MultiBufferStream.prototype.insertBuffer = function(ab) {	
 	var to_add = true;
 	/* TODO: improve insertion if many buffers */
@@ -116,7 +144,10 @@ MultiBufferStream.prototype.insertBuffer = function(ab) {
 	}
 }
 
-
+/**
+ * Displays the status of the buffers (number and used bytes)
+ * @param  {Object} info callback method for display
+ */
 MultiBufferStream.prototype.logBufferLevel = function(info) {
 	var i;
 	var buffer;
@@ -193,30 +224,20 @@ MultiBufferStream.prototype.mergeNextBuffer = function() {
 	}
 }
 
-MultiBufferStream.prototype.seek = function(pos) {
-	this.reposition(true, pos, false);
-}
 
-/* Searches for the buffer containing the given file position:
-  - if found, repositions the parsing from there and returns true 
-  - if not found, does not change anything and returns false */
-MultiBufferStream.prototype.reposition = function(fromStart, filePosition, markAsUsed) {
-	var index;
-	index = this.findPosition(fromStart, filePosition, markAsUsed);
-	if (index !== -1) {
-		this.buffer = this.buffers[index];
-		this.bufferIndex = index;
-		this.position = filePosition - this.buffer.fileStart;
-		Log.debug("MultiBufferStream", "Repositioning parser at buffer position: "+this.position);
-		return true;
-	} else {
-		Log.debug("MultiBufferStream", "Position "+filePosition+" not found in buffered data");
-		return false;
-	}
-}
+/*************************************************************************
+  Seek-related functions
+ *************************************************************************/
 
-/* Searches for the buffer containing the given file position
-   Returns the index of the buffer (-1 if not found) */
+/**
+ * Finds the buffer that holds the given file position
+ * @param  {Boolean} fromStart    indicates if the search should start from the current buffer (false) 
+ *                                or from the first buffer (true)
+ * @param  {Number}  filePosition position in the file to seek to
+ * @param  {Boolean} markAsUsed   indicates if the bytes in between the current position and the seek position 
+ *                                should be marked as used for garbage collection
+ * @return {Number}               the index of the buffer holding the seeked file position, -1 if not found.
+ */
 MultiBufferStream.prototype.findPosition = function(fromStart, filePosition, markAsUsed) {
 	var i;
 	var abuffer = null;
@@ -261,6 +282,13 @@ MultiBufferStream.prototype.findPosition = function(fromStart, filePosition, mar
 	}
 }
 
+/**
+ * Finds the largest file position contained in a buffer or in the next buffers if they are contiguous (no gap)
+ * starting from the given buffer index or from the current buffer if the index is not given
+ *
+ * @param  {Number} inputindex Index of the buffer to start from
+ * @return {Number}            The largest file position found in the buffers
+ */
 MultiBufferStream.prototype.findEndContiguousBuf = function(inputindex) {
 	var i;
 	var currentBuf;
@@ -282,32 +310,12 @@ MultiBufferStream.prototype.findEndContiguousBuf = function(inputindex) {
 	return currentBuf.fileStart + currentBuf.byteLength;
 }
 
-MultiBufferStream.prototype.getPosition = function() {
-	return this.position;
-}
-
-MultiBufferStream.prototype.addUsedBytes = function(nbBytes) {
-	this.buffer.usedBytes += nbBytes;
-	this.logBufferLevel();
-}
-
-MultiBufferStream.prototype.setAllUsedBytes = function() {
-	this.buffer.usedBytes = this.buffer.byteLength;
-	this.logBufferLevel();
-}
-
-MultiBufferStream.prototype.getFilePosition = function() {
-	return this.buffer.fileStart + this.position;
-}
-
-MultiBufferStream.prototype.getStartFilePosition = function() {
-	return this.buffer.fileStart;
-}
-
-MultiBufferStream.prototype.getEndFilePosition = function() {
-	return this.buffer.fileStart + this.buffer.byteLength;
-}
-
+/**
+ * Returns the largest file position contained in the buffers, larger than the given position
+ * @param  {Number} pos the file position to start from
+ * @return {Number}     the largest position in the current buffer or in the buffer and the next contiguous 
+ *                      buffer that holds the given position
+ */
 MultiBufferStream.prototype.getEndFilePositionAfter = function(pos) {
 	var index = this.findPosition(true, pos, false);
 	if (index !== -1) {
@@ -316,3 +324,81 @@ MultiBufferStream.prototype.getEndFilePositionAfter = function(pos) {
 		return pos;
 	}
 }
+
+MultiBufferStream.prototype.getEndFilePosition = function() {
+	if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
+		throw "Error accessing position in the MultiBufferStream";
+	}
+	return this.buffers[this.bufferIndex].fileStart+this.byteLength;
+}
+
+/*************************************************************************
+  Garbage collection related functions
+ *************************************************************************/
+
+/**
+ * Marks a given number of bytes as used in the current buffer for garbage collection
+ * @param {Number} nbBytes 
+ */
+MultiBufferStream.prototype.addUsedBytes = function(nbBytes) {
+	this.buffer.usedBytes += nbBytes;
+	this.logBufferLevel();
+}
+
+/**
+ * Marks the entire current buffer as used, ready for garbage collection
+ */
+MultiBufferStream.prototype.setAllUsedBytes = function() {
+	this.buffer.usedBytes = this.buffer.byteLength;
+	this.logBufferLevel();
+}
+
+/*************************************************************************
+  Common API between MultiBufferStream and SimpleStream
+ *************************************************************************/
+
+/**
+ * Tries to seek to a given file position
+ * if possible, repositions the parsing from there and returns true 
+ * if not possible, does not change anything and returns false 
+ * @param  {Number}  filePosition position in the file to seek to
+ * @param  {Boolean} fromStart    indicates if the search should start from the current buffer (false) 
+ *                                or from the first buffer (true)
+ * @param  {Boolean} markAsUsed   indicates if the bytes in between the current position and the seek position 
+ *                                should be marked as used for garbage collection
+ * @return {Boolean}              true if the seek succeeded, false otherwise
+ */
+MultiBufferStream.prototype.seek = function(filePosition, fromStart, markAsUsed) {
+	var index;
+	index = this.findPosition(fromStart, filePosition, markAsUsed);
+	if (index !== -1) {
+		this.buffer = this.buffers[index];
+		this.bufferIndex = index;
+		this.position = filePosition - this.buffer.fileStart;
+		Log.debug("MultiBufferStream", "Repositioning parser at buffer position: "+this.position);
+		return true;
+	} else {
+		Log.debug("MultiBufferStream", "Position "+filePosition+" not found in buffered data");
+		return false;
+	}
+}
+
+/**
+ * Returns the current position in the file
+ * @return {Number} the position in the file
+ */
+MultiBufferStream.prototype.getPosition = function() {
+	if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
+		throw "Error accessing position in the MultiBufferStream";
+	}
+	return this.buffers[this.bufferIndex].fileStart+this.position;
+}
+
+/**
+ * Returns the length of the current buffer
+ * @return {Number} the length of the current buffer
+ */
+MultiBufferStream.prototype.getLength = function() {
+	return this.byteLength;
+}
+

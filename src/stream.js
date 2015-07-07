@@ -1,4 +1,4 @@
-var MP4BoxStream = function(arrayBuffer, endianness) {
+var MP4BoxStream = function(arrayBuffer) {
   if (arrayBuffer instanceof ArrayBuffer) {
     this.buffer = arrayBuffer;
     this.uint8 = new Uint8Array(arrayBuffer);
@@ -6,32 +6,27 @@ var MP4BoxStream = function(arrayBuffer, endianness) {
     throw ("Needs an array buffer");
   }
   this.position = 0;
-  this.endianness = endianness == null ? MP4BoxStream.LITTLE_ENDIAN : endianness;
 };
 
-/**
-  Big-endian const to use as default endianness.
-  @type {boolean}
-  */
-MP4BoxStream.BIG_ENDIAN = false;
+/*************************************************************************
+  Common API between MultiBufferStream and SimpleStream
+ *************************************************************************/
+MP4BoxStream.prototype.getPosition = function() {
+  return this.position;
+}
 
-/**
-  Little-endian const to use as default endianness.
-  @type {boolean}
-  */
-MP4BoxStream.LITTLE_ENDIAN = true;
-
-MP4BoxStream.prototype = {};
-
-Object.defineProperty(MP4BoxStream.prototype, 'byteLength',
-  { get: function() {
-    return this.buffer.byteLength;
-  }});
+MP4BoxStream.prototype.getLength = function() {
+  return this.buffer.byteLength;
+}
 
 MP4BoxStream.prototype.seek = function (pos) {
   var npos = Math.max(0, Math.min(this.uint8.length, pos));
   this.position = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
 }
+
+/*************************************************************************
+  Read methods, simimar to DataStream but simpler
+ *************************************************************************/
 
 MP4BoxStream.prototype.readUint8 = function() {
   var u8;

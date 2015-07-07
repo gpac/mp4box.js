@@ -61,12 +61,6 @@ ISOFile.prototype.parse = function(_parseForWrite) {
 				switch (box.type) {
 					case "mdat":
 						this.mdats.push(box);
-						/* remember the position in the file of this box for comparison with sample offsets */
-						if (this.stream.getStartFilePosition) {
-							box.fileStart = this.stream.getStartFilePosition() + box.start;
-						} else {
-							box.fileStart = box.start;
-						}
 						break;
 					case "moof":
 						this.moofs.push(box);
