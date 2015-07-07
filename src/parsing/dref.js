@@ -1,5 +1,6 @@
 BoxParser.drefBox.prototype.parse = function(stream) {
 	var ret;
+	var box;
 	this.parseFullHeader(stream);
 	this.entries = [];
 	var entry_count = stream.readUint32();
