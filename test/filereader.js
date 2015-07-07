@@ -154,7 +154,7 @@ function parseFile(file) {
     var readBlock  = null;
  	var startDate  = new Date();
 	
-	mp4box 	   = new MP4Box(false);
+	mp4box 	   = new MP4Box(false, false);
 
 	mp4box.onError = function(e) { 
 		console.log("mp4box failed to parse data."); 
@@ -202,6 +202,7 @@ function flattenItemInfo(meta) {
 	var items = [];
 	var i, j;
 	var item;
+	if (meta.iinf === undefined) return;
 	for (i = 0; i < meta.iinf.item_infos.length; i++) {
 		item = {};
 		item.id = meta.iinf.item_infos[i].item_ID;
@@ -263,6 +264,8 @@ function flattenItemInfo(meta) {
 }
 
 function buildItemTable(meta) {
+	if (meta === null || meta === undefined) return;
+	if (meta.hdlr === undefined) return;
 	var html;
 	var i, j;
 	html = "<table>";
