@@ -33,7 +33,7 @@ function drop(e) {
 }
 
 function httpload(url) {	
-	mp4box 	   = new MP4Box(false);
+	mp4box 	   = new MP4Box(false, false);
 	var downloader = new Downloader();
 	var startDate = new Date();
 	downloader.setCallback(

@@ -2,11 +2,13 @@
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-var MP4Box = function (_keepMdatData) {
+var MP4Box = function (_keepMdatData, _parseForWrite) {
 	/* MultiBufferStream to parse chunked file data */
 	this.inputStream = new MultiBufferStream();
 	/* Boolean indicating if bytes containing media data should be kept in memory */
 	this.keepMdatData = (_keepMdatData !== undefined ? _keepMdatData : true);
+	/* Boolean indicating if boxes need to be parsed for writing */
+	this.parseForWrite = (_parseForWrite !== undefined ? _parseForWrite : true);
 	/* ISOFile object containing the parsed boxes */
 	this.inputIsoFile = new ISOFile(this.inputStream);
 	this.inputIsoFile.discardMdatData = (this.keepMdatData ? false : true);
@@ -276,7 +278,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	}
 
 	/* Parse whatever is in the existing buffers */
-	this.inputIsoFile.parse();
+	this.inputIsoFile.parse(this.parseForWrite);
 
 	/* Check if the moovStart callback needs to be called */
 	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
@@ -341,6 +343,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 }
 
 MP4Box.prototype.getInfo = function() {
+	var i, j;
 	var movie = {};
 	var trak;
 	var track;
@@ -447,6 +450,7 @@ MP4Box.prototype.initializeSegmentation = function() {
 	var box;
 	var initSegs;
 	var trak;
+	var seg;
 	if (this.onSegment === null) {
 		Log.warn("MP4Box", "No segmentation callback set!");
 	}

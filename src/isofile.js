@@ -17,10 +17,13 @@ var ISOFile = function (stream) {
 	this.moovStartFound = false;
 }
 
-ISOFile.prototype.parse = function() {
+ISOFile.prototype.parse = function(_parseForWrite) {
 	var found;
 	var ret;
 	var box;
+	var parseBoxHeadersOnly = false;
+	/* TODO: remove persistent change to BoxParser (constructor, variable) */
+	BoxParser.parseForWrite = (_parseForWrite === undefined ? false : _parseForWrite);
 
 	if (this.restoreParsePosition)	{
 		this.restoreParsePosition();
@@ -38,7 +41,7 @@ ISOFile.prototype.parse = function() {
 			if (this.saveParsePosition)	{
 				this.saveParsePosition();
 			}
-			ret = BoxParser.parseOneBox(this.stream);
+			ret = BoxParser.parseOneBox(this.stream, parseBoxHeadersOnly);
 			if (ret.code === BoxParser.ERR_NOT_ENOUGH_DATA) {		
 				if (this.processIncompleteBox) {
 					if (this.processIncompleteBox(ret)) {

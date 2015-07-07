@@ -50,7 +50,13 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 		return ret;
 	} else {
 		if (BoxParser[type+"Box"]) {
-			box = new BoxParser[type+"Box"](size);		
+			if (BoxParser.parseForWrite && BoxParser[type+"Box"].prototype.write === BoxParser.Box.prototype.write &&
+				type !== "mdat" && type !== "skip" && type != "free") {
+				Log.warn("BoxParser", type+" box writing not yet implemented, forcing default parsing");
+				box = new BoxParser.Box(type, size);
+			} else {
+				box = new BoxParser[type+"Box"](size);		
+			}
 		} else {
 			if (type !== "uuid") {
 				Log.warn("BoxParser", "Unknown box type: "+type);
