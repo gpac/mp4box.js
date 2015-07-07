@@ -427,8 +427,6 @@ DataStream.prototype.readFloat64 = function(e) {
   return v;
 };
 
-
-
 /**
   Native endianness. Either DataStream.BIG_ENDIAN or DataStream.LITTLE_ENDIAN
   depending on the platform endianness.
