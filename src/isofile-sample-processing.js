@@ -41,7 +41,7 @@ ISOFile.prototype.buildSampleLists = function() {
 	var i, j, k;
 	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs;
 	var chunk_run_index, chunk_index, last_chunk_in_run, offset_in_chunk, last_sample_in_chunk;
-	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index;
+	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index, subs_entry_index, last_subs_sample_index;
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
 		trak.samples = [];
@@ -178,6 +178,7 @@ ISOFile.prototype.updateSampleLists = function() {
 	var last_run_position;
 	var box, moof, traf, trak, trex;
 	var sample;
+	var sample_flags;
 	
 	if (this.moov === undefined) {
 		return;

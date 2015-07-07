@@ -14,6 +14,8 @@ ISOFile.prototype.discardMdatData = false;
 ISOFile.prototype.processIncompleteBox = function(ret) {
 	var box;
 	var merged;
+	var found;
+	
 	/* we did not have enough bytes in the current buffer to parse the entire box */
 	if (ret.type === "mdat") { 
 		/* we had enough bytes to get its type and size and it's an 'mdat' */
@@ -98,6 +100,9 @@ ISOFile.prototype.hasIncompleteMdat = function () {
 }
 
 ISOFile.prototype.processIncompleteMdat = function () {
+	var box;
+	var found;
+	
 	/* we are in the parsing of an incomplete mdat box */
 	box = this.parsingMdat;
 
@@ -126,7 +131,7 @@ ISOFile.prototype.restoreParsePosition = function() {
 
 ISOFile.prototype.saveParsePosition = function() {
 	/* remember the position of the box start in case we need to roll back (if the box is incomplete) */
-	this.lastBoxStartPosition = this.stream.getPosition();	
+	this.lastBoxStartPosition = this.stream.position;	
 }
 
 ISOFile.prototype.updateUsedBytes = function(box, ret) {

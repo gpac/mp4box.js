@@ -23,6 +23,7 @@ var XMLSubtitlein4Parser = function() {
 
 XMLSubtitlein4Parser.prototype.parseSample = function(sample) {
 	var res = {};	
+	var i;
 	res.resources = [];
 	var stream = new DataStream(sample.data, 0, DataStream.BIG_ENDIAN);
 	if (!sample.subsamples || sample.subsamples.length === 0) {

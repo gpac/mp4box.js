@@ -4,6 +4,7 @@ BoxParser.stsdBox = function(size) {
 };
 BoxParser.stsdBox.prototype = new BoxParser.FullBox();
 BoxParser.stsdBox.prototype.parse = function(stream) {
+	var i;
 	var ret;
 	var entryCount;
 	var box;

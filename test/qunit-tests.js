@@ -872,7 +872,6 @@ QUnit.asyncTest( "Seek in the past", function( assert ) {
 		// setting extraction option and then seeking and calling sample processing 
 		seekStep = 0;
 		mp4box.setExtractionOptions(track_id, null, { nbSamples: 1, rapAlignement: true } );
-		doExtraction = true;
 		mp4box.seek(seekTime0, true); // find preceeding rap
 		mp4box.start();
 
@@ -967,6 +966,7 @@ QUnit.asyncTest( "Long Segmentation", function( assert ) {
 	var size = 5000000; //1MB
 	var nbFragSamples = 10000;
 	var lastSample;
+	var track_id;
 	Log.setLogLevel(Log.i);
 	function getNext() {
 		getFileRange(testFiles[index].url, start, start+size-1, function (buffer) {

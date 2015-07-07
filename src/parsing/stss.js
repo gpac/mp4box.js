@@ -1,4 +1,5 @@
 BoxParser.stssBox.prototype.parse = function(stream) {
+	var i;
 	var entry_count;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();

@@ -1,5 +1,5 @@
 BoxParser.hvcCBox.prototype.parse = function(stream) {
-	var i;
+	var i, j;
 	var nb_nalus;
 	var length;
 	var tmp_byte;
@@ -24,14 +24,14 @@ BoxParser.hvcCBox.prototype.parse = function(stream) {
 	this.lengthSizeMinusOne = (tmp_byte & 0X3);
 
 	this.nalu_arrays = [];
-	numOfArrays = stream.readUint8();
+	var numOfArrays = stream.readUint8();
 	for (i = 0; i < numOfArrays; i++) {
 		var nalu_array = [];
 		this.nalu_arrays.push(nalu_array);
 		tmp_byte = stream.readUint8()
 		nalu_array.completeness = (tmp_byte & 0x80) >> 7;
 		nalu_array.nalu_type = tmp_byte & 0x3F;
-		numNalus = stream.readUint16();
+		var numNalus = stream.readUint16();
 		for (j = 0; j < numNalus; j++) {
 			var nalu = {}
 			nalu_array.push(nalu);
