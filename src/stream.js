@@ -28,6 +28,10 @@ MP4BoxStream.prototype.seek = function (pos) {
   this.position = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
 }
 
+MP4BoxStream.prototype.isEos = function () {
+  return this.getPosition() >= this.getEndPosition();
+}
+
 /*************************************************************************
   Read methods, simimar to DataStream but simpler
  *************************************************************************/
