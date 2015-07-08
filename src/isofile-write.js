@@ -42,6 +42,7 @@ ISOFile.prototype.writeInitializationSegment = function(outstream) {
 		if (this.moov.traks[i].ignore) continue;
 		trex = new BoxParser.trexBox();
 		this.moov.mvex.boxes.push(trex);
+		this.moov.mvex.trexs.push(trex);
 		trex.track_id = this.moov.traks[i].tkhd.track_id;
 		trex.default_sample_description_index = 1;
 		trex.default_sample_duration = (this.moov.traks[i].samples.length>0 ? this.moov.traks[i].samples[0].duration: 0);
