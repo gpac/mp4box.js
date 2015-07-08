@@ -26,7 +26,9 @@ ISOFile.prototype.parse = function(_parseForWrite) {
 	BoxParser.parseForWrite = (_parseForWrite === undefined ? false : _parseForWrite);
 
 	if (this.restoreParsePosition)	{
-		this.restoreParsePosition();
+		if (!this.restoreParsePosition()) {
+			return;
+		}
 	}
 
 	while (true) {
