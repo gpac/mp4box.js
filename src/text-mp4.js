@@ -7,10 +7,10 @@ var VTTin4Parser = function() {
 
 VTTin4Parser.prototype.parseSample = function(data) {
 	var cues, cue;
-	var stream = new DataStream(data, 0, DataStream.BIG_ENDIAN);
+	var stream = new MP4BoxStream(data.buffer);
 	cues = [];
-	while (!stream.isEof()) {
-		cue = BoxParser.parseOneBox(stream);
+	while (!stream.isEos()) {
+		cue = BoxParser.parseOneBox(stream, false);
 		if (cue.code === BoxParser.OK && cue.box.type === "vttc") {
 			cues.push(cue.box);
 		}		
@@ -25,7 +25,7 @@ XMLSubtitlein4Parser.prototype.parseSample = function(sample) {
 	var res = {};	
 	var i;
 	res.resources = [];
-	var stream = new DataStream(sample.data, 0, DataStream.BIG_ENDIAN);
+	var stream = new MP4BoxStream(sample.data.buffer);
 	if (!sample.subsamples || sample.subsamples.length === 0) {
 		res.documentString = stream.readString(sample.data.length);
 	} else {
@@ -45,7 +45,7 @@ var Textin4Parser = function() {
 
 Textin4Parser.prototype.parseSample = function(sample) {
 	var textString;
-	var stream = new DataStream(sample.data, 0, DataStream.BIG_ENDIAN);
+	var stream = new MP4BoxStream(sample.data.buffer);
 	textString = stream.readString(sample.data.length);
 	return textString;
 }
