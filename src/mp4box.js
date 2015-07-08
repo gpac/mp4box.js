@@ -580,7 +580,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 			/* TODO: Should wait until append operations are done */
 			seek_info.offset = this.inputStream.getEndFilePositionAfter(seek_info.offset);
 		}
-		Log.info("MP4Box", "Adjusted (post-buffer) seek position of "+seek_info.offset);
+		Log.info("MP4Box", "Adjusted seek position (after checking data already in buffer): "+seek_info.offset);
 		return seek_info;
 	}
 }
