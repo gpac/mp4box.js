@@ -60,8 +60,8 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 			}
 		}
 	}
-	/* recording the position of the box in the input stream */
 	box.hdr_size = hdr_size;
+	/* recording the position of the box in the input stream */
 	box.start = start;
 	box.parse(stream);
 	return { code: BoxParser.OK, box: box, size: size };
