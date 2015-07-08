@@ -82,10 +82,8 @@ function setUrl(url) {
 function toggleDownloadMode(event) {
 	var checkedBox = event.target;
 	if (checkedBox.checked) {
-		dlTimeoutDiv.style.display = "none";
 		downloader.setRealTime(true);
 	} else {
-		dlTimeoutDiv.style.display = "inline";
 		downloader.setRealTime(false);
 	}
 }
@@ -486,9 +484,6 @@ function load() {
 	mp4box.onReady = function (info) {
 		Log.info("Application", "Movie information received");
 		movieInfo = info;
-		if (!autoplay) {
-			stop();
-		}
 		if (info.isFragmented) {
 			ms.duration = info.fragment_duration/info.timescale;
 		} else {
@@ -496,6 +491,7 @@ function load() {
 		}
 		displayMovieInfo(info);
 		addSourceBufferListener(info);
+		stop();
 		if (autoplay) {
 			initializeAllSourceBuffers();
 		} else {
@@ -642,7 +638,9 @@ function computeWaitingTimeFromBuffer(v) {
 			}
 		}
 	}
-	
+	if (minEndRange === Infinity) {
+		minEndRange = 0;
+	}
 	duration = minEndRange - maxStartRange;
 	ratio = (currentTime - maxStartRange)/duration;
 	Log.info("Demo", "Playback position ("+Log.getDurationString(currentTime)+") in current buffer ["+Log.getDurationString(maxStartRange)+","+Log.getDurationString(minEndRange)+"]: "+Math.floor(ratio*100)+"%");
