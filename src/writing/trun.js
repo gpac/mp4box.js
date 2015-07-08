@@ -22,7 +22,7 @@ BoxParser.trunBox.prototype.write = function(stream) {
 	this.writeHeader(stream);
 	stream.writeUint32(this.sample_count);
 	if (this.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) {
-		this.data_offset_position = stream.position;
+		this.data_offset_position = stream.getPosition();
 		stream.writeInt32(this.data_offset); //signed
 	}
 	if (this.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG) {

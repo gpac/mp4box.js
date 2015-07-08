@@ -16,10 +16,9 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 			box = new BoxParser[ret.type+"SampleEntry"](ret.size);
 			box.hdr_size = ret.hdr_size;
 			box.start = ret.start;
-			box.fileStart = ret.fileStart;
 		} else {
 			Log.warn("BoxParser", "Unknown sample entry type: "+ret.type);
-			box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start, ret.fileStart);
+			box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start);
 		}
 		box.parse(stream);
 		this.entries.push(box);

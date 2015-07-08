@@ -29,7 +29,7 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 			this.item_uri_type = stream.readCString();
 		}
 	}
-	if (stream.position > this.start+this.size) {
+	if (stream.getPosition() > this.start+this.size) {
 		Log.warn("BoxParser", "Parsed more than the size of the box (null-terminated string problem?)");
 		stream.seek(this.start+this.size);
 	}

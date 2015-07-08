@@ -7,11 +7,11 @@ BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 	if (this.size > MAX_SIZE) {
 		this.size += 8;
 	}
-	Log.debug("BoxWriter", "Writing box "+this.type+" of size: "+this.size+" at position "+stream.position+(msg || ""));
+	Log.debug("BoxWriter", "Writing box "+this.type+" of size: "+this.size+" at position "+stream.getPosition()+(msg || ""));
 	if (this.size > MAX_SIZE) {
 		stream.writeUint32(1);
 	} else {
-		this.sizePosition = stream.position;
+		this.sizePosition = stream.getPosition();
 		stream.writeUint32(this.size);
 	}
 	stream.writeString(this.type, null, 4);

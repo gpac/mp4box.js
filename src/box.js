@@ -170,11 +170,10 @@ var BoxParser = {
 		BoxParser.Box.call(this, type, size);
 		this.boxes = [];
 	},
-	SampleEntry: function(type, size, hdr_size, start, fileStart) {
+	SampleEntry: function(type, size, hdr_size, start) {
 		BoxParser.Box.call(this, type, size);	
 		this.hdr_size = hdr_size;
 		this.start = start;
-		this.fileStart = fileStart;
 		this.boxes = [];
 	},
 	SampleGroupEntry: function(type) {

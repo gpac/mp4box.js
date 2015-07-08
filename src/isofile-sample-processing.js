@@ -258,12 +258,12 @@ ISOFile.prototype.updateSampleLists = function() {
 						if (!bdop) {
 							if (!dbim) {
 								if (j === 0) { // the first track in the movie fragment
-									bdo = moof.fileStart; // the position of the first byte of the enclosing Movie Fragment Box
+									bdo = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
 								} else {
 									bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
 								}
 							} else {
-								bdo = moof.fileStart;
+								bdo = moof.start;
 							}
 						} else {
 							bdo = traf.tfhd.base_data_offset;

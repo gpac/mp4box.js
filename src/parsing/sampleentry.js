@@ -11,7 +11,7 @@ BoxParser.SampleEntry.prototype.parse = function(stream) {
 BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	var ret;
 	var box;
-	while (stream.position < this.start+this.size) {
+	while (stream.getPosition() < this.start+this.size) {
 		ret = BoxParser.parseOneBox(stream, false);
 		box = ret.box;
 		this.boxes.push(box);

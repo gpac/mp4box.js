@@ -1,8 +1,7 @@
-BoxParser.SingleItemTypeReferenceBox = function(type, size, hdr_size, start, fileStart) {
+BoxParser.SingleItemTypeReferenceBox = function(type, size, hdr_size, start) {
 	BoxParser.Box.call(this, type, size);
 	this.hdr_size = hdr_size;
 	this.start = start;
-	this.fileStart = fileStart;
 }
 BoxParser.SingleItemTypeReferenceBox.prototype = new BoxParser.Box();
 BoxParser.SingleItemTypeReferenceBox.prototype.parse = function(stream) {

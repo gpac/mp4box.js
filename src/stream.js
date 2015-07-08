@@ -15,6 +15,10 @@ MP4BoxStream.prototype.getPosition = function() {
   return this.position;
 }
 
+MP4BoxStream.prototype.getEndPosition = function() {
+  return this.buffer.byteLength;
+}
+
 MP4BoxStream.prototype.getLength = function() {
   return this.buffer.byteLength;
 }

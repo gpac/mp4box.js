@@ -23,6 +23,10 @@ var DataStream = function(arrayBuffer, byteOffset, endianness) {
 };
 DataStream.prototype = {};
 
+DataStream.prototype.getPosition = function() {
+  return this.position;
+}
+
 /**
   Internal function to resize the DataStream buffer when required.
   @param {number} extra Number of bytes to add to the buffer allocation.

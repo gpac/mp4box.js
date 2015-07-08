@@ -1,8 +1,7 @@
-BoxParser.TrackReferenceTypeBox = function(type, size, hdr_size, start, fileStart) {
+BoxParser.TrackReferenceTypeBox = function(type, size, hdr_size, start) {
 	BoxParser.Box.call(this, type, size);
 	this.hdr_size = hdr_size;
 	this.start = start;
-	this.fileStart = fileStart;
 }
 BoxParser.TrackReferenceTypeBox.prototype = new BoxParser.Box();
 BoxParser.TrackReferenceTypeBox.prototype.parse = function(stream) {

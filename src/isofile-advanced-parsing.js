@@ -26,6 +26,7 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 		this.parsingMdat = box;
 		this.boxes.push(box);
 		this.mdats.push(box);			
+		box.start = ret.start;
 		box.hdr_size = ret.hdr_size;
 		this.stream.addUsedBytes(box.hdr_size);
 		
@@ -43,7 +44,7 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 				/* moov not find yet, 
 				   the file probably has 'mdat' at the beginning, and 'moov' at the end, 
 				   indicate that the downloader should not try to download those bytes now */
-				this.nextParsePosition = box.fileStart + box.size;
+				this.nextParsePosition = box.start + box.size;
 			} else {
 				/* we have the start of the moov box, 
 				   the next bytes should try to complete the current 'mdat' */
@@ -70,7 +71,7 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 			/* The next buffer was contiguous, the merging succeeded,
 			   we can now continue parsing, 
 			   the next best position to parse is at the end of this new buffer */
-			this.nextParsePosition = this.stream.getEndFilePosition();
+			this.nextParsePosition = this.stream.getEndPosition();
 			return true;
 		} else {
 			/* we cannot concatenate existing buffers because they are not contiguous or because there is no additional buffer */
@@ -78,13 +79,13 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 			if (!ret.type) {
 				/* There were not enough bytes in the buffer to parse the box type and length,
 				   the next fetch should retrieve those missing bytes, i.e. the next bytes after this buffer */
-				this.nextParsePosition = this.stream.getEndFilePosition();
+				this.nextParsePosition = this.stream.getEndPosition();
 			} else {
 				/* we had enough bytes to parse size and type of the incomplete box
 				   if we haven't found yet the moov box, skip this one and try the next one 
 				   if we have found the moov box, let's continue linear parsing */
 				if (this.moovStartFound) {
-					this.nextParsePosition = this.stream.getEndFilePosition();
+					this.nextParsePosition = this.stream.getEndPosition();
 				} else {
 					this.nextParsePosition = this.stream.getPosition() + ret.size;
 				}
@@ -122,8 +123,6 @@ ISOFile.prototype.processIncompleteMdat = function () {
 }
 
 ISOFile.prototype.restoreParsePosition = function() {
-	/*Log.debug("ISOFile","Starting parsing with buffer #"+this.stream.bufferIndex+" (fileStart: "+this.stream.buffer.fileStart+" - Length: "+this.stream.buffer.byteLength+") from position "+this.lastBoxStartPosition+
-		" ("+(this.stream.buffer.fileStart+this.lastBoxStartPosition)+" in the file)");*/
 	/* Reposition at the start position of the previous box not entirely parsed */
 	this.stream.seek(this.lastBoxStartPosition, true, false);
 }

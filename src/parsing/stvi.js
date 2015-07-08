@@ -8,7 +8,7 @@ BoxParser.stviBox.prototype.parse = function(stream) {
 	var ret;
 	var box;
 	this.boxes = [];
-	while (stream.position < this.start+this.size) {
+	while (stream.getPosition() < this.start+this.size) {
 		ret = BoxParser.parseOneBox(stream, false);
 		box = ret.box;
 		this.boxes.push(box);

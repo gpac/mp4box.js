@@ -325,13 +325,6 @@ MultiBufferStream.prototype.getEndFilePositionAfter = function(pos) {
 	}
 }
 
-MultiBufferStream.prototype.getEndFilePosition = function() {
-	if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
-		throw "Error accessing position in the MultiBufferStream";
-	}
-	return this.buffers[this.bufferIndex].fileStart+this.byteLength;
-}
-
 /*************************************************************************
   Garbage collection related functions
  *************************************************************************/
@@ -400,5 +393,12 @@ MultiBufferStream.prototype.getPosition = function() {
  */
 MultiBufferStream.prototype.getLength = function() {
 	return this.byteLength;
+}
+
+MultiBufferStream.prototype.getEndPosition = function() {
+	if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
+		throw "Error accessing position in the MultiBufferStream";
+	}
+	return this.buffers[this.bufferIndex].fileStart+this.byteLength;
 }
 
