@@ -8,7 +8,7 @@ BoxParser.iinfBox.prototype.parse = function(stream) {
 	}
 	this.item_infos = [];
 	for (var i = 0; i < this.entry_count; i++) {
-		ret = BoxParser.parseOneBox(stream);
+		ret = BoxParser.parseOneBox(stream, false);
 		if (ret.box.type !== "infe") {
 			Log.error("BoxParser", "Expected 'infe' box, got "+ret.box.type);
 		}

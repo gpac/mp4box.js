@@ -89,7 +89,7 @@ BoxParser.ContainerBox.prototype.parse = function(stream) {
 	var ret;
 	var box;
 	while (stream.getPosition() < this.start+this.size) {
-		ret = BoxParser.parseOneBox(stream);
+		ret = BoxParser.parseOneBox(stream, false);
 		box = ret.box;
 		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
 		this.boxes.push(box);
