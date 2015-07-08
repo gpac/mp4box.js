@@ -303,8 +303,11 @@ function resetMediaSource() {
 
 function onSourceClose(e) {
 	var ms = e.target;
-	Log.error("MSE", "Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
-	Log.debug("MSE", ms);
+	if (ms.video.error) {
+		Log.error("MSE", "Source closed, video error: "+ ms.video.error.code);		
+	} else {
+		Log.info("MSE", "Source closed, no error");
+	}
 }
 
 function onSourceOpen(e) {
