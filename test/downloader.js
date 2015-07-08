@@ -121,7 +121,7 @@ Downloader.prototype.getFile = function() {
 				}
 				if (dl.setDownloadTimeoutCallback) dl.setDownloadTimeoutCallback(timeoutDuration);
 				Log.info("Downloader", "Next download scheduled in "+Math.floor(timeoutDuration)+ ' ms.');
-				window.setTimeout(dl.getFile.bind(dl), timeoutDuration);
+				dl.timeoutID = window.setTimeout(dl.getFile.bind(dl), timeoutDuration);
 			} else {
 				/* end of file */
 				dl.isActive = false;
@@ -154,5 +154,9 @@ Downloader.prototype.resume = function() {
 Downloader.prototype.stop = function() {
 	Log.info("Downloader", "Stopping file download");
 	this.isActive = false;
+	if (this.timeoutID) {
+		window.clearTimeout(this.timeoutID);
+		delete this.timeoutID;
+	}
 	return this;
 }
