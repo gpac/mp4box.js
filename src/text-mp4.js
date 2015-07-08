@@ -9,6 +9,7 @@ VTTin4Parser.prototype.parseSample = function(data) {
 	var cues, cue;
 	var stream = new MP4BoxStream(data.buffer);
 	cues = [];
+	BoxParser.parseForWrite = false;
 	while (!stream.isEos()) {
 		cue = BoxParser.parseOneBox(stream, false);
 		if (cue.code === BoxParser.OK && cue.box.type === "vttc") {
