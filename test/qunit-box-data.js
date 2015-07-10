@@ -20,7 +20,7 @@ var boxtests = [
 		boxname: "sidx",
 		data: {
 			type: "sidx",
-			size: 140,
+			size: 152,
 			flags: 0,
 			version: 0,
 			reference_ID: 1,
@@ -30,7 +30,7 @@ var boxtests = [
 			references: [
 				{ 
 					reference_type: 0,
-					reference_size: 776279,
+					referenced_size: 776279,
 					subsegment_duration: 224,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -38,7 +38,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 298018,
+					referenced_size: 298018,
 					subsegment_duration: 110,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -46,7 +46,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 151055,
+					referenced_size: 151055,
 					subsegment_duration: 62,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -54,7 +54,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 583055,
+					referenced_size: 583055,
 					subsegment_duration: 130,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -62,7 +62,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 310294,
+					referenced_size: 310294,
 					subsegment_duration: 45,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -70,7 +70,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 353217,
+					referenced_size: 353217,
 					subsegment_duration: 50,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -78,7 +78,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 229078,
+					referenced_size: 229078,
 					subsegment_duration: 37,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -86,7 +86,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 685457,
+					referenced_size: 685457,
 					subsegment_duration: 114,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -94,7 +94,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 746586,
+					referenced_size: 746586,
 					subsegment_duration: 250,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -102,7 +102,7 @@ var boxtests = [
 				},
 				{ 
 					reference_type: 0,
-					reference_size: 228474,
+					referenced_size: 228474,
 					subsegment_duration: 231,
 					starts_with_SAP: 1,
 					SAP_type: 1,
@@ -118,7 +118,7 @@ var boxtests = [
 		boxname: "emsg",
 		data: {
 			type: "emsg",
-			size: 482,
+			size: 494,
 			flags:	0,
 			version:	0,
 			scheme_id_uri:	"urn:mpeg:dash:event:2012",

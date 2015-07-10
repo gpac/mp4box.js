@@ -2,13 +2,16 @@
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-var MP4Box = function () {
-	/* DataStream object used to parse the boxes */
-	this.inputStream = null;
-	/* List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non overlapping */
-	this.nextBuffers = [];	
+var MP4Box = function (_keepMdatData, _parseForWrite) {
+	/* MultiBufferStream to parse chunked file data */
+	this.inputStream = new MultiBufferStream();
+	/* Boolean indicating if bytes containing media data should be kept in memory */
+	this.keepMdatData = (_keepMdatData !== undefined ? _keepMdatData : true);
+	/* Boolean indicating if boxes need to be parsed for writing */
+	this.parseForWrite = (_parseForWrite !== undefined ? _parseForWrite : true);
 	/* ISOFile object containing the parsed boxes */
-	this.inputIsoFile = new ISOFile();
+	this.inputIsoFile = new ISOFile(this.inputStream);
+	this.inputIsoFile.discardMdatData = (this.keepMdatData ? false : true);
 	/* Callback called when the moov parsing starts */
 	this.onMoovStart = null;
 	/* Boolean keeping track of the call to onMoovStart, to avoid double calls */
@@ -29,8 +32,10 @@ var MP4Box = function () {
 	this.fragmentedTracks = [];
 	/* Array of Track objects for which extraction of samples is requested */
 	this.extractedTracks = [];
+	/* Boolean indicating that fragmention is ready */
+	this.isFragmentationInitialized = false;
 	/* Boolean indicating that fragmented has started */
-	this.isFragmentationStarted = false;
+	this.sampleProcessingStarted = false;
 	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
 }
@@ -136,10 +141,11 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	var trak = this.inputIsoFile.getTrackById(track_id);
 	var sample = this.inputIsoFile.getSample(trak, sampleNumber);
 	if (sample == null) {
+		sample = trak.samples[sampleNumber];
 		if (this.nextSeekPosition) {
-			this.nextSeekPosition = Math.min(trak.samples[sampleNumber].offset,this.nextSeekPosition);
+			this.nextSeekPosition = Math.min(sample.offset+sample.alreadyRead,this.nextSeekPosition);
 		} else {
-			this.nextSeekPosition = trak.samples[sampleNumber].offset;
+			this.nextSeekPosition = trak.samples[sampleNumber].offset+sample.alreadyRead;
 		}
 		return null;
 	}
@@ -152,7 +158,7 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 
 	/* adjusting the data_offset now that the moof size is known*/
 	moof.trun.data_offset = moof.size+8; //8 is mdat header
-	Log.d("BoxWriter", "Adjusting data_offset with new value "+moof.trun.data_offset);
+	Log.debug("MP4Box", "Adjusting data_offset with new value "+moof.trun.data_offset);
 	stream.adjustUint32(moof.trun.data_offset_position, moof.trun.data_offset);
 		
 	var mdat = new BoxParser.mdatBox();
@@ -161,108 +167,22 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 	return stream;
 }
 
-/* helper functions to enable calling "open" with additional buffers */
-ArrayBuffer.concat = function(buffer1, buffer2) {
-  Log.d("ArrayBuffer", "Trying to create a new buffer of size: "+(buffer1.byteLength + buffer2.byteLength));
-  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-  tmp.set(new Uint8Array(buffer1), 0);
-  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-  return tmp.buffer;
-};
-
-/* Reduces the size of a given buffer */
-MP4Box.prototype.reduceBuffer = function(buffer, offset, newLength) {
-	var smallB;
-	smallB = new Uint8Array(newLength);
-	smallB.set(new Uint8Array(buffer, offset, newLength));
-	smallB.buffer.fileStart = buffer.fileStart+offset;
-	smallB.buffer.usedBytes = 0;
-	return smallB.buffer;	
-}
-
-/* insert the new buffer in the sorted list of buffers (nextBuffers), 
-   making sure, it is not overlapping with existing ones (possibly reducing its size).
-   if the new buffer overrides/replaces the 0-th buffer (for instance because it is bigger), 
-   updates the DataStream buffer for parsing */
-MP4Box.prototype.insertBuffer = function(ab) {	
-	var to_add = true;
-	/* TODO: improve insertion if many buffers */
-	for (var i = 0; i < this.nextBuffers.length; i++) {
-		var b = this.nextBuffers[i];
-		if (ab.fileStart <= b.fileStart) {
-			/* the insertion position is found */
-			if (ab.fileStart === b.fileStart) {
-				/* The new buffer overlaps with an existing buffer */
-				if (ab.byteLength >  b.byteLength) {
-					/* the new buffer is bigger than the existing one
-					   remove the existing buffer and try again to insert 
-					   the new buffer to check overlap with the next ones */
-					this.nextBuffers.splice(i, 1);
-					i--; 
-					continue;
-				} else {
-					/* the new buffer is smaller than the existing one, just drop it */
-					Log.w("MP4Box", "Buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+") already appended, ignoring");
-				}
-			} else {
-				/* The beginning of the new buffer is not overlapping with an existing buffer
-				   let's check the end of it */
-				if (ab.fileStart + ab.byteLength <= b.fileStart) {
-					/* no overlap, we can add it as is */
-				} else {
-					/* There is some overlap, cut the new buffer short, and add it*/
-					ab = this.reduceBuffer(ab, 0, b.fileStart - ab.fileStart);
-				}
-				Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
-				this.nextBuffers.splice(i, 0, ab);
-				/* if this new buffer is inserted in the first place in the list of the buffer, 
-				   and the DataStream is initialized, make it the buffer used for parsing */
-				if (i === 0 && this.inputStream !== null) {
-					this.inputStream.buffer = ab;
-				}
-			}
-			to_add = false;
-			break;
-		} else if (ab.fileStart < b.fileStart + b.byteLength) {
-			/* the new buffer overlaps its beginning with the end of the current buffer */
-			var offset = b.fileStart + b.byteLength - ab.fileStart;
-			var newLength = ab.byteLength - offset;
-			if (newLength > 0) {
-				/* the new buffer is bigger than the current overlap, drop the overlapping part and try again inserting the remaining buffer */
-				ab = this.reduceBuffer(ab, offset, newLength);
-			} else {
-				/* the content of the new buffer is entirely contained in the existing buffer, drop it entirely */
-				to_add = false;
-				break;
-			}
-		}
-	}
-	/* if the buffer has not been added, we can add it at the end */
-	if (to_add) {
-		Log.d("MP4Box", "Appending new buffer (fileStart: "+ab.fileStart+" - Length: "+ab.byteLength+")");
-		this.nextBuffers.push(ab);
-		/* if this new buffer is inserted in the first place in the list of the buffer, 
-		   and the DataStream is initialized, make it the buffer used for parsing */
-		if (i === 0 && this.inputStream !== null) {
-			this.inputStream.buffer = ab;
-		}
-	}
-}
-
 MP4Box.prototype.processSamples = function() {
 	var i;
 	var trak;
+	if (!this.sampleProcessingStarted) return;
+
 	/* For each track marked for fragmentation, 
 	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) 
 	   and create a fragment with it */
-	if (this.isFragmentationStarted && this.onSegment !== null) {
+	if (this.isFragmentationInitialized && this.onSegment !== null) {
 		for (i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
 			trak = fragTrak.trak;
-			while (trak.nextSample < trak.samples.length) {				
+			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {				
 				/* The sample information is there (either because the file is not fragmented and this is not the last sample, 
 				or because the file is fragmented and the moof for that sample has been received */
-				Log.d("MP4Box", "Creating media fragment on track #"+fragTrak.id +" for sample "+trak.nextSample); 
+				Log.debug("MP4Box", "Creating media fragment on track #"+fragTrak.id +" for sample "+trak.nextSample); 
 				var result = this.createFragment(this.inputIsoFile, fragTrak.id, trak.nextSample, fragTrak.segmentStream);
 				if (result) {
 					fragTrak.segmentStream = result;
@@ -274,7 +194,8 @@ MP4Box.prototype.processSamples = function() {
 				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
 				if (trak.nextSample % fragTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
-					Log.i("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+(trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]"); 
+					Log.info("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+Math.max(0,trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]"); 
+					Log.info("MP4Box", "Sample data size in memory: "+this.inputIsoFile.getAllocatedSampleDataSize()); 			
 					if (this.onSegment) {
 						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample);
 					}
@@ -295,8 +216,8 @@ MP4Box.prototype.processSamples = function() {
 		for (i = 0; i < this.extractedTracks.length; i++) {
 			var extractTrak = this.extractedTracks[i];
 			trak = extractTrak.trak;
-			while (trak.nextSample < trak.samples.length) {				
-				Log.d("MP4Box", "Exporting on track #"+extractTrak.id +" sample #"+trak.nextSample);
+			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {				
+				Log.debug("MP4Box", "Exporting on track #"+extractTrak.id +" sample #"+trak.nextSample);
 				var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
 				if (sample) {
 					trak.nextSample++;
@@ -305,7 +226,7 @@ MP4Box.prototype.processSamples = function() {
 					return;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
-					Log.d("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
+					Log.debug("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
 					if (this.onSamples) {
 						this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
 					}
@@ -320,11 +241,7 @@ MP4Box.prototype.processSamples = function() {
 	}
 }
 
-/* Processes a new ArrayBuffer (with a fileStart property)
-   Returns the next expected file position, or undefined if not ready to parse */
-MP4Box.prototype.appendBuffer = function(ab) {
-	var nextFileStart;
-	var firstBuffer;
+MP4Box.prototype.checkBuffer = function (ab) {
 	if (ab === null || ab === undefined) {
 		throw("Buffer must be defined and non empty");
 	}	
@@ -332,38 +249,36 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		throw("Buffer must have a fileStart property");
 	}	
 	if (ab.byteLength === 0) {
-		Log.w("MP4Box", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
-		return;
+		Log.warn("MP4Box", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
+		this.inputStream.logBufferLevel();
+		return false;
 	}
+	Log.info("MP4Box", "Processing buffer (fileStart: "+ab.fileStart+")");
+
 	/* mark the bytes in the buffer as not being used yet */
 	ab.usedBytes = 0;
-	this.insertBuffer(ab);
+	this.inputStream.insertBuffer(ab);
+	this.inputStream.logBufferLevel();
 
-	/* We create the DataStream object only when we have the first bytes of the file */
-	if (!this.inputStream) { 
-		if (this.nextBuffers.length > 0) {
-			firstBuffer = this.nextBuffers[0];
-			if (firstBuffer.fileStart === 0) {
-				this.inputStream = new DataStream(firstBuffer, 0, DataStream.BIG_ENDIAN);	
-				this.inputStream.nextBuffers = this.nextBuffers;
-				this.inputStream.bufferIndex = 0;
-			} else {
-				Log.w("MP4Box", "The first buffer should have a fileStart of 0");
-				return;
-			}
-		} else {
-			Log.w("MP4Box", "No buffer to start parsing from");
+	if (!this.inputStream.initialized()) {
+		Log.warn("MP4Box", "Not ready to start parsing");
+		return false;
+	}
+	return true;
+}
+
+/* Processes a new ArrayBuffer (with a fileStart property)
+   Returns the next expected file position, or undefined if not ready to parse */
+MP4Box.prototype.appendBuffer = function(ab) {
+	var nextFileStart;
+	if (this.checkBuffer) {
+		if (!this.checkBuffer(ab)) {
 			return;
-		}		
-	} 
-
-	/* Initialize the ISOFile object if not yet created */
-	if (!this.inputIsoFile.stream) {
-		this.inputIsoFile.stream = this.inputStream;
+		}
 	}
 
 	/* Parse whatever is in the existing buffers */
-	this.inputIsoFile.parse();
+	this.inputIsoFile.parse(this.parseForWrite);
 
 	/* Check if the moovStart callback needs to be called */
 	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
@@ -374,25 +289,28 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	if (this.inputIsoFile.moov) {
 		/* A moov box has been entirely parsed */
 		
-		/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
-		if (!this.sampleListBuilt) {
-			this.inputIsoFile.buildSampleLists();
-			this.sampleListBuilt = true;
-		} 
+		if (this.processSamples) {
+			/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
+			if (!this.sampleListBuilt) {
+				this.inputIsoFile.buildSampleLists();
+				this.sampleListBuilt = true;
+			} 
 
-		/* We update the sample information if there are any new moof boxes */
-		this.inputIsoFile.updateSampleLists();
+			/* We update the sample information if there are any new moof boxes */
+			this.inputIsoFile.updateSampleLists();
+		}
 		
 		/* If the application needs to be informed that the 'moov' has been found, 
 		   we create the information object and callback the application */
 		if (this.onReady && !this.readySent) {
-			var info = this.getInfo();
 			this.readySent = true;
-			this.onReady(info);
+			this.onReady(this.getInfo());
 		}
 
-		/* See if any sample extraction or segment creation needs to be done with the available samples */
-		this.processSamples();
+		if (this.processSamples) {
+			/* See if any sample extraction or segment creation needs to be done with the available samples */
+			this.processSamples();
+		}
 
 		/* Inform about the best range to fetch next */
 		if (this.nextSeekPosition) {
@@ -401,25 +319,31 @@ MP4Box.prototype.appendBuffer = function(ab) {
 		} else {
 			nextFileStart = this.inputIsoFile.nextParsePosition;
 		}		
-		var index = this.inputIsoFile.findPosition(true, nextFileStart);
-		if (index !== -1) {
-			nextFileStart = this.inputIsoFile.findEndContiguousBuf(index);
+		if (this.inputStream.getEndFilePositionAfter) {
+			nextFileStart = this.inputStream.getEndFilePositionAfter(nextFileStart);
 		}
-		Log.i("MP4Box", "Next buffer to fetch should have a fileStart position of "+nextFileStart);
-		return nextFileStart;
 	} else {
 		if (this.inputIsoFile !== null) {
 			/* moov has not been parsed but the first buffer was received, 
 			   the next fetch should probably be the next box start */
-			return this.inputIsoFile.nextParsePosition;
+			nextFileStart = this.inputIsoFile.nextParsePosition;
 		} else {
 			/* No valid buffer has been parsed yet, we cannot know what to parse next */
-			return 0;
+			nextFileStart = 0;
 		}
 	}	
+	if (this.inputStream.cleanBuffers) {
+		Log.info("MP4Box", "Done processing buffer (fileStart: "+ab.fileStart+") - next buffer to fetch should have a fileStart position of "+nextFileStart);
+		this.inputStream.logBufferLevel();
+		this.inputStream.cleanBuffers();
+		this.inputStream.logBufferLevel(true);
+		Log.info("MP4Box", "Sample data size in memory: "+this.inputIsoFile.getAllocatedSampleDataSize()); 			
+	}
+	return nextFileStart;
 }
 
 MP4Box.prototype.getInfo = function() {
+	var i, j;
 	var movie = {};
 	var trak;
 	var track;
@@ -526,11 +450,12 @@ MP4Box.prototype.initializeSegmentation = function() {
 	var box;
 	var initSegs;
 	var trak;
+	var seg;
 	if (this.onSegment === null) {
-		Log.w("MP4Box", "No segmentation callback set!");
+		Log.warn("MP4Box", "No segmentation callback set!");
 	}
-	if (!this.isFragmentationStarted) {
-		this.isFragmentationStarted = true;		
+	if (!this.isFragmentationInitialized) {
+		this.isFragmentationInitialized = true;		
 		this.nextMoofNumber = 0;
 		this.inputIsoFile.resetTables();
 	}	
@@ -571,15 +496,17 @@ MP4Box.prototype.releaseUsedSamples = function (id, sampleNum) {
 	for (var i = trak.lastValidSample; i < sampleNum; i++) {
 		size+=this.inputIsoFile.releaseSample(trak, i);
 	}
-	Log.d("MP4Box", "Track #"+id+" released samples up to "+sampleNum+" (total size: "+size+", remaining: "+this.inputIsoFile.samplesDataSize+")");
+	Log.info("MP4Box", "Track #"+id+" released samples up to "+sampleNum+" (released size: "+size+", remaining: "+this.inputIsoFile.samplesDataSize+")");
 	trak.lastValidSample = sampleNum;
 }
 
 /* Called by the application to flush the remaining samples, once the download is finished */
 MP4Box.prototype.flush = function() {
-	Log.i("MP4Box", "Flushing remaining samples");
+	Log.info("MP4Box", "Flushing remaining samples");
 	this.inputIsoFile.updateSampleLists();
 	this.processSamples();
+	this.inputStream.cleanBuffers();
+	this.inputStream.logBufferLevel(true);
 }
 
 /* Finds the byte offset for a given time on a given track
@@ -587,38 +514,40 @@ MP4Box.prototype.flush = function() {
 MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 	var j;
 	var sample;
-	var rap_offset = Infinity;
-	var rap_time = 0;
 	var seek_offset = Infinity;
 	var rap_seek_sample_num = 0;
 	var seek_sample_num = 0;
 	var timescale;
+	
+	if (trak.samples.length === 0) {
+		Log.info("MP4Box", "No sample in track, cannot seek! Using time "+Log.getDurationString(0, 1) +" and offset: "+0);
+		return { offset: 0, time: 0 };
+	} 
+
 	for (j = 0; j < trak.samples.length; j++) {
 		sample = trak.samples[j];
 		if (j === 0) {
-			seek_offset = sample.offset;
 			seek_sample_num = 0;
 			timescale = sample.timescale;
 		} else if (sample.cts > time * sample.timescale) {
-			seek_offset = trak.samples[j-1].offset;
 			seek_sample_num = j-1;
 			break;
 		} 
 		if (useRap && sample.is_rap) {
-			rap_offset = sample.offset;
-			rap_time = sample.cts;
 			rap_seek_sample_num = j;
 		}
 	}
 	if (useRap) {
-		trak.nextSample = rap_seek_sample_num;
-		Log.i("MP4Box", "Seeking to RAP sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(rap_time, timescale) +" and offset: "+rap_offset);
-		return { offset: rap_offset, time: rap_time/timescale };
-	} else {
-		trak.nextSample = seek_sample_num;
-		Log.i("MP4Box", "Seeking to non-RAP sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(time)+" and offset: "+rap_offset);
-		return { offset: seek_offset, time: time };
+		seek_sample_num = rap_seek_sample_num;
 	}
+	time = trak.samples[seek_sample_num].cts;
+	trak.nextSample = seek_sample_num;
+	while (trak.samples[seek_sample_num].alreadyRead === trak.samples[seek_sample_num].size) {
+		seek_sample_num++;
+	}
+	seek_offset = trak.samples[seek_sample_num].offset+trak.samples[seek_sample_num].alreadyRead;
+	Log.info("MP4Box", "Seeking to "+(useRap ? "RAP": "")+" sample #"+trak.nextSample+" on track "+trak.tkhd.track_id+", time "+Log.getDurationString(time, timescale) +" and offset: "+seek_offset);
+	return { offset: seek_offset, time: time/timescale };
 }
 
 /* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
@@ -641,17 +570,17 @@ MP4Box.prototype.seek = function(time, useRap) {
 				seek_info.time = trak_seek_info.time;
 			}
 		}
-		Log.i("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
+		Log.info("MP4Box", "Seeking at time "+Log.getDurationString(seek_info.time, 1)+" needs a buffer with a fileStart position of "+seek_info.offset);
 		if (seek_info.offset === Infinity) {
 			/* No sample info, in all tracks, cannot seek */
 			seek_info = { offset: this.inputIsoFile.nextParsePosition, time: 0 };
 		} else {
-			var index = this.inputIsoFile.findPosition(true, seek_info.offset);
-			if (index !== -1) {
-				seek_info.offset = this.inputIsoFile.findEndContiguousBuf(index);
-			}
+			/* check if the seek position is already in some buffer and
+			 in that case return the end of that buffer (or of the last contiguous buffer) */
+			/* TODO: Should wait until append operations are done */
+			seek_info.offset = this.inputStream.getEndFilePositionAfter(seek_info.offset);
 		}
-		Log.i("MP4Box", "Adjusted (post-buffer) seek position of "+seek_info.offset);
+		Log.info("MP4Box", "Adjusted seek position (after checking data already in buffer): "+seek_info.offset);
 		return seek_info;
 	}
 }
@@ -669,6 +598,15 @@ MP4Box.prototype.getTrackSample = function(track_id, number) {
 	var track = this.inputIsoFile.getTrackById(track_id);
 	var sample = this.inputIsoFile.getSample(track, number);
 	return sample;	
+}
+
+MP4Box.prototype.start = function() {
+	this.sampleProcessingStarted = true;
+	this.processSamples();
+}
+
+MP4Box.prototype.stop = function() {
+	this.sampleProcessingStarted = false;
 }
 
 if (typeof exports !== 'undefined') {

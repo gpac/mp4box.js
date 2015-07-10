@@ -17,7 +17,7 @@ API
 ===
 
 ###Getting Information###
-Similar to `MP4Box -info file.mp4`, MP4Box.js can provide general information about the file (duration, number and types of tracks ...). Create an MP4Box object, set the `onReady` callback and provide data in the form of ArrayBuffer objects. MP4Box.js supports progressive parsing. You can provide small buffers at a time, the callback will be called when the 'moov' box is parsed.
+Similar to `MP4Box -info file.mp4`, MP4Box.js can provide general information about the file (duration, number and types of tracks ...). For that, create an MP4Box object, set the `onReady` callback and provide data in the form of ArrayBuffer objects. MP4Box.js supports progressive parsing. You can provide small buffers at a time, the callback will be called when the 'moov' box is parsed.
 
 ```javascript
 var MP4Box = require('mp4box').MP4Box; // Or whatever import method you prefer.
@@ -159,6 +159,12 @@ ab.fileStart = 0;
 mp4box.appendBuffer(ab);
 ```
 
+####start()####
+Indicates that sample processing can start (segmentation or extraction). Sample data already received will be processed and new buffer append operation will trigger sample processing as well.
+
+####stop()####
+Indicates that sample processing is stopped. Buffer append operations will not trigger calls to onSamples or onSegment.
+
 ####flush()####
 Indicates that no more data will be received and that all remaining samples should be flushed in the segmentation or extraction process.
 
@@ -171,6 +177,7 @@ mp4box.onReady = function(info) {
   mp4box.onSegment = function (id, user, buffer) {}
   mp4box.setSegmentOptions(info.tracks[0].id, sb, options);  
   var initSegs = mp4box.initializeSegmentation();  
+  mp4box.start();
   ...
 };
 ```
@@ -230,6 +237,7 @@ mp4box.onReady = function(info) {
   var texttrack = v.addTextTrack("metadata", "Text track for extraction of track "+info.tracks[0].id);
   mp4box.onSamples = function (id, user, samples) {}
   mp4box.setExtractionsOptions(info.tracks[0].id, texttrack, options);  
+  mp4box.start();
   ...
 };
 ```
@@ -262,14 +270,14 @@ Each sample has the following structure:
 ```json
 {
 	"track_id":4,
-	"description": [Box],
+	"description": "[Box]",
 	"is_rap":true,
 	"timescale":1000,
 	"dts":0,
 	"cts":0,
 	"duration":1000,
 	"size":41,
-	"data": [ArrayBuffer]
+	"data": "[ArrayBuffer]"
 }
 ```
 
@@ -278,28 +286,35 @@ Indicates that the next samples to process (for extraction or segmentation) star
 ```javascript
 mp4box.seek(10, true);
 ```
+####releaseUsedSamples(id, sampleNumber)####
+Releases the memory allocated for sample data for the given track id, up to (but excluding) the given sample number.
+```
+mp4box.releaseUsedSamples(1, 250);
+```
+
+Build
+=======
+`MP4Box.js` implements many features (parsing of many types of boxes, writing of boxes, sample processing, on-the-fly fragmentation ...). All these features may not be needed in all applications. In order to allow for a flexible configuration of the features, and to reduce the size of the final library, `MP4Box.js` is split in many files and uses the [Grunt](http://gruntjs.com/) system to compile a set of selected features into a single file. Currently, `MP4Box.js` comes in two flavors:
+  - all: includes all the features
+  - simple: allows for parsing of boxes only (no writing, no sample processing) and only of some boxes (not all). You can configure which box you want by adding the file in the [Gruntfile.js](Gruntfile.js) `concat:simple` task.
+
+Grunt builds the versions of the single-file library in the  ```dist``` folder, minified (```mp4box.all.min.js```,```mp4box.simple.min.js```) or not (```mp4box.all.js```,```mp4box.simple.js```).
 
 Dependencies
 =======
-This code uses [DataStream.js](https://github.com/kig/DataStream.js), with some modifications for Uint24 and Uint64 types.
+In this ```all``` version, this code uses [DataStream.js](https://github.com/kig/DataStream.js), with some modifications for Uint24 and Uint64 types. In the ```simple``` version, there are no external dependencies.
 
 Browser Usage
 =======
 
-There is currently no build system. In order to use the `MP4Box.js` in a browser, you need to include all files as follows.
+In order to use the `MP4Box.js` in a browser, use grunt to build a single-file library (see above) or use a pre-built version from the [demo](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/) page.
 
 ```html
 <html>
 <head>
   <meta charset="utf-8">
   <title>MP4Box.js in the browser</title>
-  <script src="log.js"></script>
-  <script src="DataStream.js"></script>
-  <script src="descriptor.js"></script>
-  <script src="box.js"></script>
-  <script src="text-mp4.js"></script>
-  <script src="isofile.js"></script>
-  <script src="mp4box.js"></script>
+  <script src="mp4box.all.min.js"></script>
 </head>
 <body>
 ...
@@ -307,3 +322,6 @@ There is currently no build system. In order to use the `MP4Box.js` in a browser
 </html>
 ```
 
+Contributing
+=======
+If your favorite box is not parsed by MP4Box, you can easily contribute. Each box parsing code is stored in a separate file whose name is the 4CC of the box type. For instance, the parsing of the ```ctts``` box is located in [ctts.js](src/parsing/ctts.js).

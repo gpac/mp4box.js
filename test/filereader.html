@@ -14,7 +14,7 @@
   		<script src="lib/fancytree/jquery.fancytree-all.min.js" type="text/javascript"></script>
 
         <link rel="stylesheet" href="style.css" />
-		<script src="../dist/mp4box.simple.min.js"></script>
+		<script src="../dist/mp4box.all.js"></script>
 		<script src="sample-urls.js"></script>
 		<script src="filereader.js"></script>
 		<script src="downloader.js"></script>
@@ -84,6 +84,13 @@
 		  </div>
 		</div>
 		<div id="progressbar"><div id="progress-label" style="text-align: center;">0%</div></div>
+		<div id="resulttabs">
+		  <ul>
+		    <li><a href="#boxview">Box View</a></li>
+		    <li><a href="#sampleview">Sample View</a></li>
+		    <li><a href="#itemview">Item View</a></li>
+		  </ul>
+		<div id="boxview">
 		<table>
 		<thead>
 		<tr>
@@ -104,5 +111,11 @@
 		</tr>
 		</tbody>
 		</table>
+		</div>
+		<div id="sampleview">
+		</div>
+		<div id="itemview">
+		</div>
+		</div>
 	</body>
 </html>
