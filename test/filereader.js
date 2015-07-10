@@ -36,12 +36,13 @@ function httpload(url) {
 	mp4box 	   = new MP4Box(false, false);
 	var downloader = new Downloader();
 	var startDate = new Date();
+	var nextStart = 0;
 	downloader.setCallback(
 		function (response, end, error) { 
-			var nextStart = 0;
 			if (response) {
 				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
-				nextStart = mp4box.appendBuffer(response);
+				mp4box.appendBuffer(response);
+				nextStart += chunkSize;
 				
 			}
 			if (end) {
