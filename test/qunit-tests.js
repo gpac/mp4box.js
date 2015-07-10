@@ -31,7 +31,7 @@ QUnit.asyncTest( "Moov-last", function( assert ) {
 		getFileRange(testFiles[index].url, 1024*1024, 2*1024*1024-1, function (buffer) {
 			mp4box.appendBuffer(buffer);
 			assert.equal(mp4box.inputIsoFile.getAllocatedSampleDataSize(), 0, "All sample bytes are released");
-			assert.equal(mp4box.inputStream.buffers.length, 0, "All buffers are released");
+			assert.equal(mp4box.inputStream.buffers.length, 0, "All buffers have been freed");
 			QUnit.start();
 		});			
 	});
@@ -1112,7 +1112,7 @@ QUnit.asyncTest( "moov-first, parsed, append a non-contiguous buffer", function(
 		getFileRange(testFiles[index].url, testFiles[index].moovEnd+100, testFiles[index].moovEnd+1000, function (buffer) {
 			window.clearTimeout(timeout);
 			var nextFileStart = mp4box.appendBuffer(buffer);
-			assert.equal(nextFileStart, testFiles[index].moovEnd+100, "next parsing position should be immediately after the moov");
+			assert.equal(nextFileStart, testFiles[index].moovEnd+1, "next parsing position should be immediately after the moov");
 			QUnit.start();
 		});
 	});
@@ -1127,7 +1127,8 @@ QUnit.asyncTest( "Moov-last, parsed, append buffer not starting at mdat start", 
 	getFileRange(testFiles[index].url, 0, testFiles[index].mdatStart+8-1, function (buffer) {
 		nextStart = mp4box.appendBuffer(buffer);
 		assert.equal(nextStart, testFiles[index].mdatStart+testFiles[index].mdatSize, "next parsing position should be after mdat");
-		getFileRange(testFiles[index].url, nextStart, nextStart+testFiles[index].moovSize-1, function (buffer) {
+		// fetching the moov box
+		getFileRange(testFiles[index].url, testFiles[index].mdatStart+testFiles[index].mdatSize, nextStart+testFiles[index].moovSize-1, function (buffer) {
 			window.clearTimeout(timeout);
 			nextStart = mp4box.appendBuffer(buffer);
 			assert.equal(nextStart, testFiles[index].mdatStart+testFiles[index].mdatSize+testFiles[index].moovSize, "Next parse position should be after moov");

@@ -29,8 +29,10 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 		box.start = ret.start;
 		box.hdr_size = ret.hdr_size;
 		this.stream.addUsedBytes(box.hdr_size);
-		
-		/* let's see if we have the end of the box in the other buffers */
+
+		/* indicate that the parsing should start from the end of the box */
+		this.lastBoxStartPosition = box.start + box.size;
+ 		/* let's see if we have the end of the box in the other buffers */
 		found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
 		if (found) {
 			/* found the end of the box */
