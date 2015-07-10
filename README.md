@@ -3,7 +3,7 @@ MP4Box.js
 
 [![Build Status](https://travis-ci.org/gpac/mp4box.js.svg?branch=master)](https://travis-ci.org/gpac/mp4box.js)
 
-JavaScript library to process MP4 files in the browser, with support for progressive parsing. 
+JavaScript library to process MP4 files in the browser (and in NodeJS), with support for progressive parsing. 
 Inspired by the [MP4Box](http://gpac.wp.mines-telecom.fr/mp4box/) tool from the [GPAC](http://gpac.wp.mines-telecom.fr) project. 
 It can be used to:
 - [get information about an MP4 file](#getting-information), 
@@ -320,6 +320,10 @@ In order to use the `MP4Box.js` in a browser, use grunt to build a single-file l
 </body>
 </html>
 ```
+
+Node Usage
+=======
+MP4Box.js can be used in Node.js. See for example the [info.js](test/node/info.js) example.
 
 Contributing
 =======
