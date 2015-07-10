@@ -11,6 +11,7 @@ module.exports = function(grunt) {
       },
       all: {
         src: ['src/log.js',                       // logging system
+              'src/stream.js',                    // simple stream parser
               'src/DataStream.js',                // bit/byte/string read operations
               'src/DataStream-write.js',          // bit/byte/string write operations
               'src/DataStream-map.js',            // bit/byte/string other operations
@@ -37,7 +38,7 @@ module.exports = function(grunt) {
               'src/stream.js',  
               'src/box.js',         
               'src/box-parse.js',   
-              'src/parsing/emsg.js',               // box-specific parsing code
+              'src/parsing/emsg.js',               
               'src/parsing/styp.js',
               'src/parsing/ftyp.js',
               'src/parsing/mdhd.js',
@@ -125,11 +126,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-karma');
 
-  grunt.registerTask('test', ['connect', 'qunit']);
-
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
-
   grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
+  grunt.registerTask('test', ['default', 'karma']);
 
 };
