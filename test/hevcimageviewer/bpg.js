@@ -8,7 +8,7 @@ var imagesBuffer = [];
 
 // Construct a BPG from a a BGP bitstream
 var BPG = function(bitStream) {
-
+    var i, j;
 	if (bitStream === undefined)
 		return this;
 	else {
@@ -42,7 +42,7 @@ var BPG = function(bitStream) {
 	        this.dummy_byte = [];
 	        this.extension_tag_data_byte = [];
             var extensionBytesRead, animationBytesRead;
-	        for (var i = 0; i < this.extension_data_length; i += extensionBytesRead + j) {
+	        for (i = 0; i < this.extension_data_length; i += extensionBytesRead + j) {
                 extensionBytesRead = bitStream.dataView._offset;
 		        this.extension_tag[i] = bitStream.ue7nToNum();
 		        this.extension_tag_length[i] = bitStream.ue7nToNum();
@@ -56,13 +56,13 @@ var BPG = function(bitStream) {
 				    this.frame_period_den[i] = bitStream.ue7nToNum();
 				    this.dummy_byte[i] = [];  
                     animationBytesRead = bitStream.dataView._offset - animationBytesRead;
-				    for (var j = animationBytesRead; j < this.extension_tag_length[i]; j++)
+				    for (j = animationBytesRead; j < this.extension_tag_length[i]; j++)
 				        this.dummy_byte[i][j] = bitStream.dataView.getUnsigned(8);
 				    // animation_control_extension
 			    }
 		        else {
 		            this.extension_tag_data_byte[i] = [];
-		            for(var j = 0; j < this.extension_tag_length[i]; j++)
+		            for(j = 0; j < this.extension_tag_length[i]; j++)
 		                this.extension_tag_data_byte[i][j] = bitStream.dataView.getUnsigned(8);
 		        }
 		    }
@@ -78,7 +78,7 @@ var BPG = function(bitStream) {
 	    this.readHEVCHeader(this.header, bitStream);
 	    
 	    this.hevc_data_byte = [];
-	    for (var i = 0; bitStream.dataView._offset < bitStream.dataView.byteLength; i++) {
+	    for (i = 0; bitStream.dataView._offset < bitStream.dataView.byteLength; i++) {
 	        this.hevc_data_byte[i] = bitStream.dataView.getUnsigned(8);
 	    }
 	}
@@ -132,7 +132,8 @@ BPG.prototype.readHEVCHeader = function(header, bitStream) {
 
 // Write the header fields in a BitStream
 BPG.prototype.writeHEVCHeader = function(header, bitStream) {
-	var arrayBufferHeader = new ArrayBuffer(header.hevc_header_length);
+	var i;
+    var arrayBufferHeader = new ArrayBuffer(header.hevc_header_length);
     var bitStreamHeaderWrite = new BitStream(arrayBufferHeader);
     var bitStreamHeaderRead = new BitStream(arrayBufferHeader);
 
@@ -175,12 +176,13 @@ BPG.prototype.writeHEVCHeader = function(header, bitStream) {
 
     // Write the length followed by the header data
     bitStream.numToue7n(bitStreamHeaderWrite.dataView._offset);
-    for (var i = 0; i < bitStreamHeaderWrite.dataView._offset; i++)
+    for (i = 0; i < bitStreamHeaderWrite.dataView._offset; i++)
     	bitStream.dataView.writeUnsigned(bitStreamHeaderRead.dataView.getUnsigned(8), 8);
 }
 
 //  Write the BPG in a BitStream
 BPG.prototype.toBitStream = function() {
+    var i, j;
     var arrayBuffer = new ArrayBuffer(this.file_size);
     var bitStreamWrite = new BitStream(arrayBuffer);
     var bitStreamRead = new BitStream(arrayBuffer);
@@ -206,7 +208,7 @@ BPG.prototype.toBitStream = function() {
     	bitStreamWrite.numToue7n(this.extension_data_length);
 
         var extensionBytesWritten, animationBytesWritten;
-	    for (var i = 0; i < this.extension_data_length; i += extensionBytesWritten + j) {
+	    for (i = 0; i < this.extension_data_length; i += extensionBytesWritten + j) {
             extensionBytesWritten = bitStreamWrite.dataView._offset;
 	    	bitStreamWrite.numToue7n(this.extension_tag[i]);
 	        bitStreamWrite.numToue7n(this.extension_tag_length[i]);
@@ -218,11 +220,11 @@ BPG.prototype.toBitStream = function() {
 	            bitStreamWrite.numToue7n(this.frame_period_num[i]);	
 	            bitStreamWrite.numToue7n(this.frame_period_den[i]);	
                 animationBytesWritten = bitStreamWrite.dataView._offset - animationBytesWritten;
-			    for (var j = animationBytesWritten; j < this.extension_tag_length[i]; j++)
+			    for (j = animationBytesWritten; j < this.extension_tag_length[i]; j++)
 			    	bitStreamWrite.dataView.writeUnsigned(this.dummy_byte[i][j], 8);
 			}
 	        else
-	            for(var j = 0; j < this.extension_tag_length[i]; j++)
+	            for(j = 0; j < this.extension_tag_length[i]; j++)
 	            	bitStreamWrite.dataView.writeUnsigned(this.extension_tag_data_byte[i][j], 8);
 	    }
     }
@@ -232,14 +234,14 @@ BPG.prototype.toBitStream = function() {
 
     this.writeHEVCHeader(this.header, bitStreamWrite);
     
-    for (var i = 0; i < this.hevc_data_byte.length; i++)
+    for (i = 0; i < this.hevc_data_byte.length; i++)
     	bitStreamWrite.dataView.writeUnsigned(this.hevc_data_byte[i], 8);
 
     // Final BitStream to write the right amount of data
     var arrayBufferFinal = new ArrayBuffer(bitStreamWrite.dataView._offset);
     var bitStreamFinal = new BitStream(arrayBufferFinal);
 
-    for (var i = 0; i < bitStreamWrite.dataView._offset; i++)
+    for (i = 0; i < bitStreamWrite.dataView._offset; i++)
         bitStreamFinal.dataView.writeUnsigned(bitStreamRead.dataView.getUnsigned(8), 8);
 
     return bitStreamFinal;
@@ -252,13 +254,15 @@ BPG.prototype.show = function(isThumbnail) {
     var thumbnail;
     var bpg = this;
     var imageRead;
+    var dts;
 
     console.log("Showing BPG");
 
     var bitStream = this.toBitStream();
 
-    if (this.dts !== undefined)
-        var dts = this.dts;
+    if (this.dts !== undefined) {
+        dts = this.dts;
+    }
 
     if (bitStream) {
 

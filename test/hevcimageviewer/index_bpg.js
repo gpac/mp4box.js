@@ -162,7 +162,7 @@ function loadVideoFileHttpUrl(url) {
 
 // HTTP URL video
 function loadImageFileHttpUrl(url) {
-	var url = document.getElementById('urlInput').value;
+	url = document.getElementById('urlInput').value;
 
 	if (url) {
 		downloader = new Downloader();

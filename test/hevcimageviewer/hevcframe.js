@@ -21,7 +21,7 @@ var HEVCFrame = function() {
 
 // Function that reads the SPS NAL Unit of a MP4(HEVC), decode and stock them in a structure
 HEVCFrame.prototype.readSPS = function (nalu) {
-
+	var i, j;
 	// Remove Emulation Bytes of the NALU
 	var parsedNalu = this.removeEmulationBytes(nalu);
 
@@ -57,7 +57,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 
 		var sub_layer_profile_present_flag = [];
 		var sub_layer_level_present_flag = [];
-		for (var i = 0; i < sps_max_sub_layers_minus1; i++) {
+		for (i = 0; i < sps_max_sub_layers_minus1; i++) {
 			// sub_layer_profile_present_flag[i] u(1)
 			sub_layer_profile_present_flag[i] = bitStreamRead.dataView.getUnsigned(1);
 			// sub_layer_level_present_flag[i] u(1)
@@ -65,13 +65,13 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 		}
 
 		if (sps_max_sub_layers_minus1 > 0) {
-			for (var i = sps_max_sub_layers_minus1; i < 8; i++) {
+			for (i = sps_max_sub_layers_minus1; i < 8; i++) {
 				// reserved_zero_2bits[i] u(2)
 				bitStreamRead.dataView.getUnsigned(2);		
 			}
 		}
 
-		for (var i = 0; i < sps_max_sub_layers_minus1; i++ ) {
+		for (i = 0; i < sps_max_sub_layers_minus1; i++ ) {
 			if (sub_layer_profile_present_flag[i]) {
 				/* sub_layer_profile_space[i] u(2), sub_layer_tier_flag[i] u(1),
 				sub_layer_profile_idc[i] u(5), sub_layer_profile_compatibility_flag[i] u(32),
@@ -129,7 +129,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 		var log2_max_pic_order_cnt_lsb_minus4 = bitStreamRead.expGolombToNum();
 		// sps_sub_layer_ordering_info_present_flag u(1)
 		var sps_sub_layer_ordering_info_present_flag = bitStreamRead.dataView.getUnsigned(1);
-		for(var i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1; i <= sps_max_sub_layers_minus1; i++) {
+		for(i = sps_sub_layer_ordering_info_present_flag ? 0 : sps_max_sub_layers_minus1; i <= sps_max_sub_layers_minus1; i++) {
 			// sps_max_dec_pic_buffering_minus1[i] ue(v)
 			bitStreamRead.expGolombToNum();
 			// sps_max_num_reorder_pics[i] ue(v) 
@@ -253,7 +253,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 				var deltaRPS = (1 - (delta_rps_sign << 1)) * (abs_delta_rps_minus1 + 1);
 				
 				var num_delta_pocs = num_negative_pics[ref_i] + num_positive_pics[ref_i];
-				for (var j = 0; j <= num_delta_pocs; j++) {
+				for (j = 0; j <= num_delta_pocs; j++) {
 					// used_by_curr_pic_flag u(1)
 					var used_by_curr_pic_flag =	bitStreamRead.dataView.getUnsigned(1);
 					var ref_idc = used_by_curr_pic_flag ? 1 : 0;
@@ -291,7 +291,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 				// num_positive_pics ue(v)
 				num_positive_pics[i] = bitStreamRead.expGolombToNum();
 				delta_poc[i] = [];
-				for (var j = 0; j < num_negative_pics[i]; j++) {
+				for (j = 0; j < num_negative_pics[i]; j++) {
 					// delta_poc_s0_minus1 ue(v)
 					delta_poc_s0_minus1 = bitStreamRead.expGolombToNum();
 					poc = prev - delta_poc_s0_minus1 - 1;
@@ -300,7 +300,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 					// used_by_curr_pic_s0_flag u(1)
 					bitStreamRead.dataView.getUnsigned(1);
 				}
-				for (var j = 0; j < num_positive_pics[i]; j++) {
+				for (j = 0; j < num_positive_pics[i]; j++) {
 					// delta_poc_s1_minus1 ue(v)
 					delta_poc_s1_minus1 = bitStreamRead.expGolombToNum();
 					poc = prev - delta_poc_s1_minus1 - 1;
@@ -319,7 +319,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 		if (long_term_ref_pics_present_flag) {
 			// num_long_term_ref_pics_sps ue(v)
 			var num_long_term_ref_pics_sps = bitStreamRead.expGolombToNum();
-			for (var i = 0; i < num_long_term_ref_pics_sps; i++) {
+			for (i = 0; i < num_long_term_ref_pics_sps; i++) {
 				// lt_ref_pic_poc_lsb_sps[i] u(v)
 				bitStreamRead.dataView.getUnsigned(log2_max_pic_order_cnt_lsb_minus4 + 4);
 				// used_by_curr_pic_lt_sps_flag u(1)
@@ -433,7 +433,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 					var fixed_pic_rate_within_cvs_flag;
 					var low_delay_hrd_flag;
 					var cpb_cnt_minus1;
-					for (var i = 0; i <= sps_max_sub_layers_minus1; i++) {
+					for (i = 0; i <= sps_max_sub_layers_minus1; i++) {
 						fixed_pic_rate_within_cvs_flag = 1;
 						low_delay_hrd_flag = 0;
 						cpb_cnt_minus1 = 0;
@@ -454,7 +454,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 						if (nal_hrd_parameters_present_flag) {
 							//*********** sub_layer_hrd_parameters(i)
 
-							for (var i = 0; i <= cpb_cnt_minus1; i++) {
+							for (j = 0; j <= cpb_cnt_minus1; j++) {
 								// bit_rate_value_minus1[i] ue(v)
 								bitStreamRead.expGolombToNum();
 								// cpb_size_value_minus1[i] ue(v)
@@ -474,7 +474,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 						if (vcl_hrd_parameters_present_flag) {
 							//*********** sub_layer_hrd_parameters(i)
 							
-							for (var i = 0; i <= cpb_cnt_minus1; i++) {
+							for (j = 0; j <= cpb_cnt_minus1; j++) {
 								// bit_rate_value_minus1[i] ue(v)
 								bitStreamRead.expGolombToNum();
 								// cpb_size_value_minus1[i] ue(v)
@@ -592,7 +592,7 @@ HEVCFrame.prototype.removeEmulationBytes = function(nalu) {
 HEVCFrame.prototype.readData = function(data, headerLength) {
 	var arrayBuffer = new ArrayBuffer(data.length);
 	var parsedData = new Uint8Array(arrayBuffer);
-	var naluLength = 0;; // Length of each NALU
+	var naluLength = 0; // Length of each NALU
 	var i /* data iterator */, j /* parsedData iterator */, k /* NALU iterator */, l;
 	for (i = 0, j = 0, k = 0; i < data.length; i++, j++, k++) {
 		if (k === naluLength) {
@@ -680,10 +680,11 @@ HEVCFrame.prototype.toBPG = function(fileSize, dts) {
     // PPS, VCL and SEI
     bpg.hevc_data_byte = [];
     var j = 0;
-    for (var i = 0; i < this.PPS.length; i++, j++) {
+    var i;
+    for (i = 0; i < this.PPS.length; i++, j++) {
         bpg.hevc_data_byte[j] = this.PPS[i];
     }
-    for (var i = 0; i < this.data.length; i++, j++) {
+    for (i = 0; i < this.data.length; i++, j++) {
         bpg.hevc_data_byte[j] = this.data[i];
     }
 

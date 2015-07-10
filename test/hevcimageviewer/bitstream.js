@@ -53,7 +53,7 @@ BitStream.prototype.expGolombToNum = function(numBits) {
         oldPos = this.dataView.tell();
         read = this.dataView.getUnsigned(8);
         this.dataView.seek(oldPos);
-        if (read != 0) break;
+        if (read !== 0) break;
         //check whether we still have bits once the peek is done since we may have less than 8 bits available
         try {
             this.dataView.getUnsigned(8);
