@@ -23,7 +23,6 @@ var totalDuration;
 var stopProcess = false;
 var stopButton;
 
-
 // Setup MP4Box
 function setMP4Box() {
 
@@ -349,4 +348,13 @@ window.onload = function() {
 	});
 
 	$("#popup").hide();
+
+	var urlSelector = document.getElementById('urlSelector');
+	urlSelector.selectedIndex = -1;
+
+	buildUrlList(urlSelector);
+}
+
+function setUrl(url) {
+	document.getElementById('urlInput').value = url;
 }

@@ -18,6 +18,7 @@
         <script src="bpg.js"></script>
         <script src="hevcframe.js"></script>
         <script src="index_bpg.js"></script>
+        <script src="sample_urls.js"></script>
     </head>
 
     <body>
@@ -29,28 +30,21 @@
                 <ul>
                     <li><a href="#tabs-1">File upload</a></li>
                     <li><a href="#tabs-2">HTTP URL input</a></li>
-                    <!-- <li><a href="#tabs-3">List examples</a></li> -->
                 </ul>
                 <div id="tabs-1">
-                    <legend>Select a HEVC(MP4) / BPG file</legend>
+                    <legend>Select an MP4-HEVC or BPG file</legend>
                     </br>
                     <input type="file" id="fileInput" onchange="loadFromFile();">
                 </div>
                 <div id="tabs-2">
-                    <legend>Insert a HEVC(MP4) / BPG HTTP URL</legend>
+                    <legend>Select or enter an HTTP URL to an MP4-HEVC or BPG resource</legend>
                     </br>
                     <label for="urlInput">Enter URL:</label>
+                    <select id="urlSelector" onchange="setUrl(this.value);" onfocus="this.selectedIndex = -1;">
+                    </select>
                     <input type="url" id="urlInput">
                     <button onclick="loadFromHttpUrl();">Load</button>
                 </div>
-                <!-- <div id="tabs-3">
-                    <legend>BPG extraction from video file examples</legend>
-                    </br>
-                    <legend>Select example:</legend>
-                    <select id="urlSelector">
-                    </select>
-                    <button onclick="loadFromHttpUrlList();">Load</button>
-                </div> -->
             </div>
             <div id="progressbar">
                 <div id="progressLabel">
