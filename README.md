@@ -158,6 +158,12 @@ ab.fileStart = 0;
 mp4box.appendBuffer(ab);
 ```
 
+####start()####
+Indicates that sample processing can start (segmentation or extraction). Sample data already received will be processed and new buffer append operation will trigger sample processing as well.
+
+####stop()####
+Indicates that sample processing is stopped. Buffer append operations will not trigger calls to onSamples or onSegment.
+
 ####flush()####
 Indicates that no more data will be received and that all remaining samples should be flushed in the segmentation or extraction process.
 
