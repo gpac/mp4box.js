@@ -41,7 +41,6 @@ button {
 	text-align: center;
 }
 
-<<<<<<< HEAD
 #stopButton {
 	cursor: pointer;
 	vertical-align: middle;
@@ -70,11 +69,10 @@ button {
   	text-align: center;
   	width: 100%;
 }
-=======
+
 #v {
   margin-left: auto;
   margin-right: auto;
   width: 100%;
   border: 1px solid black;
 }
->>>>>>> master
