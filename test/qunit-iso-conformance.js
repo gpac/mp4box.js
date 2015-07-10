@@ -3,7 +3,9 @@ function makeBoxParsingTest(fileIndex) {
 		var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 		var callback = function (buffer) {
 			window.clearTimeout(timeout);
-			var file = new ISOFile(new MP4BoxStream(buffer, MP4BoxStream.BIG_ENDIAN));
+			var mbs = new MultiBufferStream();
+			var file = new ISOFile(mbs);
+			mbs.insertBuffer(buffer);
 			file.parse();
 			assert.ok(true, "file "+conformanceFiles[fileIndex]+" parsing");
 			QUnit.start();

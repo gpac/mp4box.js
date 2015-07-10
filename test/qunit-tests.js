@@ -37,7 +37,7 @@ QUnit.asyncTest( "Moov-last", function( assert ) {
 	});
 });
 
-QUnit.module("Advanced chunk parsing");
+QUnit.module("Advanced chunk parsing: non-overlapping");
 QUnit.test( "appending invalid buffer", function( assert ) {
 	var mp4box = new MP4Box();
 	assert.throws(function() { mp4box.appendBuffer(null) }, "Exception thrown because of null buffer");
@@ -136,6 +136,60 @@ QUnit.asyncTest( "appending 2 non-overlapping chunks (mid-mdat cut, out-of-order
 	});
 });
 
+QUnit.asyncTest( "appending 3 non-overlapping chunks (mid-moov cut, order: 1 3 2)", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
+	var mp4box = new MP4Box();
+	mp4box.onReady = function(info) { 
+		window.clearTimeout(timeout);
+		assert.ok(true, "moov found!" );
+		//assert.equal(mp4box.nextBuffers.length, 1, "1 buffer remaining" );
+		if (testFiles[index].info) {
+			assert.deepEqual(info, testFiles[index].info, "Movie information is correct");
+		}
+		QUnit.start();
+	}
+
+	getFileRange(testFiles[index].url, 0, 24999, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		getFileRange(testFiles[index].url, 50000, Infinity, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			getFileRange(testFiles[index].url, 25000, 49999, function (buffer) {
+				mp4box.appendBuffer(buffer);
+			});
+		});
+	});
+});
+
+QUnit.asyncTest( "appending 3 non-overlapping chunks (mid-mdat cut, order: 1 3 2)", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
+	var mp4box = new MP4Box();
+	QUnit.stop();
+	mp4box.onReady = function(info) { 
+		window.clearTimeout(timeout);
+		assert.ok(true, "moov found!" );
+		//assert.equal(mp4box.nextBuffers.length, 1, "1 buffer remaining" );
+		if (testFiles[index].info) {
+			assert.deepEqual(info, testFiles[index].info, "Movie information is correct");
+		}
+		QUnit.start();
+	}
+
+	getFileRange(testFiles[index].url, 0, 79999, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		getFileRange(testFiles[index].url, 100000, Infinity, function (buffer) {
+			mp4box.appendBuffer(buffer);
+			getFileRange(testFiles[index].url, 80000, 99999, function (buffer) {
+				mp4box.appendBuffer(buffer);
+				//assert.equal(mp4box.nextBuffers.length, 3, "3 buffer remaining" );
+				QUnit.start();
+			});
+		});
+	});
+});
+
+QUnit.module("Advanced chunk parsing: overlapping buffers");
 QUnit.asyncTest( "appending 2 overlapping chunks (mid-moov cut, in order: 1 2)", function( assert ) {
 	var index = 0;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
@@ -228,59 +282,6 @@ QUnit.asyncTest( "appending 2 overlapping chunks (mid-mdat cut, out of order: 2 
 		mp4box.appendBuffer(buffer);
 		getFileRange(testFiles[index].url, 0, 89999, function (buffer) {
 			mp4box.appendBuffer(buffer);
-		});
-	});
-});
-
-QUnit.asyncTest( "appending 3 non-overlapping chunks (mid-moov cut, order: 1 3 2)", function( assert ) {
-	var index = 0;
-	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
-	var mp4box = new MP4Box();
-	mp4box.onReady = function(info) { 
-		window.clearTimeout(timeout);
-		assert.ok(true, "moov found!" );
-		//assert.equal(mp4box.nextBuffers.length, 1, "1 buffer remaining" );
-		if (testFiles[index].info) {
-			assert.deepEqual(info, testFiles[index].info, "Movie information is correct");
-		}
-		QUnit.start();
-	}
-
-	getFileRange(testFiles[index].url, 0, 24999, function (buffer) {
-		mp4box.appendBuffer(buffer);
-		getFileRange(testFiles[index].url, 50000, Infinity, function (buffer) {
-			mp4box.appendBuffer(buffer);
-			getFileRange(testFiles[index].url, 25000, 49999, function (buffer) {
-				mp4box.appendBuffer(buffer);
-			});
-		});
-	});
-});
-
-QUnit.asyncTest( "appending 3 non-overlapping chunks (mid-mdat cut, order: 1 3 2)", function( assert ) {
-	var index = 0;
-	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
-	var mp4box = new MP4Box();
-	QUnit.stop();
-	mp4box.onReady = function(info) { 
-		window.clearTimeout(timeout);
-		assert.ok(true, "moov found!" );
-		//assert.equal(mp4box.nextBuffers.length, 1, "1 buffer remaining" );
-		if (testFiles[index].info) {
-			assert.deepEqual(info, testFiles[index].info, "Movie information is correct");
-		}
-		QUnit.start();
-	}
-
-	getFileRange(testFiles[index].url, 0, 79999, function (buffer) {
-		mp4box.appendBuffer(buffer);
-		getFileRange(testFiles[index].url, 100000, Infinity, function (buffer) {
-			mp4box.appendBuffer(buffer);
-			getFileRange(testFiles[index].url, 80000, 99999, function (buffer) {
-				mp4box.appendBuffer(buffer);
-				//assert.equal(mp4box.nextBuffers.length, 3, "3 buffer remaining" );
-				QUnit.start();
-			});
 		});
 	});
 });
@@ -518,19 +519,6 @@ QUnit.asyncTest( "appending a buffer overlapping more than one existing buffer",
 	});
 });
 
-QUnit.asyncTest( "appending only one buffer with fileStart different from zero should not reach onReady", function( assert ) {
-	var index = 0;
-	var mp4box = new MP4Box();
-	QUnit.expect(0);
-	mp4box.onReady = function(info) { 
-		assert.ok(false, "moov found!" );
-	}
-	getFileRange(testFiles[index].url, 25000, 49999, function (buffer) {
-		mp4box.appendBuffer(buffer);
-		QUnit.start();
-	});
-});
-
 QUnit.asyncTest( "appending an overlapping smaller buffer", function( assert ) {
 	var index = 0;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
@@ -590,6 +578,20 @@ QUnit.asyncTest( "appending many overlapping buffers", function( assert ) {
 				});
 			});
 		});
+	});
+});
+
+QUnit.module("Advanced chunk parsing: misc");
+QUnit.asyncTest( "appending only one buffer with fileStart different from zero should not reach onReady", function( assert ) {
+	var index = 0;
+	var mp4box = new MP4Box();
+	QUnit.expect(0);
+	mp4box.onReady = function(info) { 
+		assert.ok(false, "moov found!" );
+	}
+	getFileRange(testFiles[index].url, 25000, 49999, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		QUnit.start();
 	});
 });
 
@@ -1101,25 +1103,35 @@ QUnit.asyncTest( "issue #16 (Peersm)", function( assert ) {
 	});
 });
 
-/* Not yet tested:
- - error on extraction/segmentation settings before onReady
- - onMoovStart event (partial parsing & entire parsing)
- - seek
- - flush
- - track ref
- - segment from fragmentation
- - release samples
- - release buffers
- - extract VTT samples
- - mp4 features
-   - edit list
- - boxes:
-   - uuid
-   - large box
-   - version 1: mvhd, tkhd, mdhd, hdlr, ctts, stss, stsh, co64, stsc, stsz, mehd, subs
-   - cslg, stsh, co64
- - descriptors:
-  - large desc
-  - unknown desc
-  - depends, url, ocr
- */
+QUnit.asyncTest( "moov-first, parsed, append a non-contiguous buffer", function( assert ) {
+	var index = 0;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
+	var mp4box = new MP4Box();
+	getFileRange(testFiles[index].url, 0, testFiles[index].moovEnd, function (buffer) {
+		mp4box.appendBuffer(buffer);
+		getFileRange(testFiles[index].url, testFiles[index].moovEnd+100, testFiles[index].moovEnd+1000, function (buffer) {
+			window.clearTimeout(timeout);
+			var nextFileStart = mp4box.appendBuffer(buffer);
+			assert.equal(nextFileStart, testFiles[index].moovEnd+100, "next parsing position should be immediately after the moov");
+			QUnit.start();
+		});
+	});
+});
+
+QUnit.asyncTest( "Moov-last, parsed, append buffer not starting at mdat start", function( assert ) {
+	var index = 9;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
+	var mp4box = new MP4Box(false);
+	var nextStart;
+	/* fetching first enough to know the size of mdat to skip */
+	getFileRange(testFiles[index].url, 0, testFiles[index].mdatStart+8-1, function (buffer) {
+		nextStart = mp4box.appendBuffer(buffer);
+		assert.equal(nextStart, testFiles[index].mdatStart+testFiles[index].mdatSize, "next parsing position should be after mdat");
+		getFileRange(testFiles[index].url, nextStart, nextStart+testFiles[index].moovSize-1, function (buffer) {
+			window.clearTimeout(timeout);
+			nextStart = mp4box.appendBuffer(buffer);
+			assert.equal(nextStart, testFiles[index].mdatStart+testFiles[index].mdatSize+testFiles[index].moovSize, "Next parse position should be after moov");
+			QUnit.start();
+		});			
+	});
+});
