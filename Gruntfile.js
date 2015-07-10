@@ -4,22 +4,72 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       options: {
-        separator: ';'
+        separator: '',
+        process: function(src, filepath) {
+          return '// file:' + filepath + '\n' + src;
+        }
       },
-      dist: {
-        src: ['src/**/*.js'],
-        dest: 'dist/<%= pkg.name %>.js'
-      }
+      all: {
+        src: ['src/log.js',                       // logging system
+              'src/stream.js',                    // simple stream parser
+              'src/DataStream.js',                // bit/byte/string read operations
+              'src/DataStream-write.js',          // bit/byte/string write operations
+              'src/DataStream-map.js',            // bit/byte/string other operations
+              'src/buffer.js',                    // multi-buffer datastream
+              'src/descriptor.js',                // MPEG-4 descriptor parsing
+              'src/box.js',                       // core code for box definitions
+              'src/box-codecs.js',                // core code for box definitions
+              'src/box-parse.js',                 // basic box parsing code 
+              'src/parsing/**/*.js',              // box-specific parsing code
+              'src/box-write.js',                 // box writing code
+              'src/writing/**/*.js',              // box-specific writing code
+              'src/box-unpack.js',                // box code for sample manipulation
+              'src/text-mp4.js',                  // text-based track manipulations
+              'src/isofile.js',                   // basic file level operations (parse, get boxes)
+              'src/isofile-advanced-parsing.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
+              'src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
+              'src/isofile-write.js',             // file level write operations (segment creation ...)
+              'src/mp4box.js'                     // application level operations (data append, sample extraction, segmentation, ...)
+        ],
+        dest: 'dist/<%= pkg.name %>.all.js'
+      },
+      simple: {
+        src: ['src/log-simple.js',         
+              'src/stream.js',  
+              'src/box.js',         
+              'src/box-parse.js',   
+              'src/parsing/emsg.js',               
+              'src/parsing/styp.js',
+              'src/parsing/ftyp.js',
+              'src/parsing/mdhd.js',
+              'src/parsing/mfhd.js',
+              'src/parsing/mvhd.js',
+              'src/parsing/sidx.js',
+              'src/parsing/ssix.js',
+              'src/parsing/tkhd.js',
+              'src/parsing/tfhd.js',
+              'src/parsing/tfdt.js',
+              'src/parsing/trun.js',
+              'src/isofile.js'      
+        ],
+        dest: 'dist/<%= pkg.name %>.simple.js'
+      },
     },
     uglify: {
       options: {
-        banner: '/*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
+        banner: '/*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n',
+        sourceMap: true
       },
-      dist: {
+      all: {
         files: {
-          'dist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
+          'dist/<%= pkg.name %>.all.min.js': ['<%= concat.all.dest %>']
         }
-      }
+      },
+      simple: {
+        files: {
+          'dist/<%= pkg.name %>.simple.min.js': ['<%= concat.simple.dest %>']
+        }
+      },
     },
     qunit: {
 		all: {
@@ -39,7 +89,14 @@ module.exports = function(grunt) {
 	    }
   	},
   	jshint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js', '!test/lib/**/*.js'],
+      files: [
+        'Gruntfile.js', 
+        'src/**/*.js', 
+        'test/**/*.js', 
+        // Exclude the following from lint 
+        '!test/lib/**/*.js', 
+        '!test/mp4/**/*.js'
+      ],
       options: {
         // options here to override JSHint defaults
     	eqeqeq: false,
@@ -52,7 +109,12 @@ module.exports = function(grunt) {
     },
     watch: {
       files: ['<%= jshint.files %>'],
-      tasks: ['jshint', 'connect', 'qunit']
+      tasks: ['default']
+    },
+    karma: {
+      unit: {
+        configFile: 'karma.conf.js'
+      }
     }
   });
 
@@ -62,9 +124,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-karma');
 
-  grunt.registerTask('test', ['jshint', 'connect', 'qunit']);
-
-  grunt.registerTask('default', [ 'jshint', 'concat', 'uglify']);
+  grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
+  grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
+  grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
+  grunt.registerTask('test', ['default', 'karma']);
 
 };

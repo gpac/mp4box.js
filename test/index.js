@@ -1,5 +1,5 @@
 /* Setting the level of logs (error, warning, info, debug) */
-Log.setLogLevel(Log.i);
+Log.setLogLevel(Log.info);
 
 /* The main object processing the mp4 files */
 var mp4box;
@@ -8,6 +8,7 @@ var movieInfo;
 
 /* object responsible for file downloading */
 var downloader = new Downloader();
+downloader.setDownloadTimeoutCallback = setDownloadTimeout;
 
 /* the HTML5 video element */
 var video;
@@ -17,9 +18,11 @@ var autoplay = false;
 var startButton, loadButton, initButton, initAllButton, playButton;
 var urlInput, chunkTimeoutInput, chunkSizeInput;
 var infoDiv, dlTimeoutDiv;
-var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel;
+var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel, extractionSizeLabel;
 var urlSelector;
 var saveChecked;
+var progressbar;
+var progresslabel;
 
 window.onload = function () {
 	video = document.getElementById('v');
@@ -30,24 +33,42 @@ window.onload = function () {
 	initAllButton = document.getElementById("initAllButton");
 	urlInput = document.getElementById('url');
 	chunkTimeoutInput = document.getElementById('chunk_speed_range');
-	chunkSizeInput = document.getElementById("segment_size_range");
+	chunkSizeInput = document.getElementById("chunk_size_range");
 	infoDiv = document.getElementById('infoDiv');
 	dlTimeoutDiv = document.getElementById('dlTimeout');
 	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');	
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
 	segmentSizeLabel = document.querySelector('#segment_size_range_out');
+	extractionSizeLabel = document.querySelector('#extraction_size_range_out');
 	playbackRateLabel = document.querySelector('#playback_rate_range_out');
 	chunkDownloadBitRate = document.querySelector('#chunk_dl_rate');
 	urlSelector = document.getElementById('urlSelector');
 	urlSelector.selectedIndex = -1;
 	saveChecked = document.getElementById("saveChecked");
-	
+
+	$("#tabs").tabs();
+	progressbar = $('#progressbar');
+	progresslabel = $('#progress-label');
+	progressbar.progressbar({ 
+		value: 0, 
+		change: function() {
+           progresslabel.text( 
+              "Download in progress: " + progressbar.progressbar( "value" ) + "%" );
+        },
+        complete: function() {
+           progresslabel.text( "Download Completed!" );
+        }
+    });
+
+	buildUrlList(urlSelector);
+
 	video.addEventListener("seeking", onSeeking);
 	reset();	
 }
 
 /* GUI-related callback functions */
 function setUrl(url) {
+	reset();
 	urlInput.value = url;
 	if (urlInput.value !== "") {
 		loadButton.disabled = false;
@@ -61,10 +82,8 @@ function setUrl(url) {
 function toggleDownloadMode(event) {
 	var checkedBox = event.target;
 	if (checkedBox.checked) {
-		dlTimeoutDiv.style.display = "none";
 		downloader.setRealTime(true);
 	} else {
-		dlTimeoutDiv.style.display = "inline";
 		downloader.setRealTime(false);
 	}
 }
@@ -86,6 +105,10 @@ function setDownloadChunkSize(value) {
 
 function setSegmentSize(value) {
 	segmentSizeLabel.value = value;
+}
+
+function setExtractionSize(value) {
+	extractionSizeLabel.value = value;
 }
 
 function setPlaybackRate(value) {
@@ -269,19 +292,26 @@ function resetMediaSource() {
 	mediaSource.addEventListener("sourceopen", onSourceOpen);
 	mediaSource.addEventListener("sourceclose", onSourceClose);
 	video.src = window.URL.createObjectURL(mediaSource);
-	/* TODO: remove Text tracks */
+	/* TODO: cannot remove Text tracks! Turning them off for now*/
+	for (var i = 0; i < video.textTracks.length; i++) {
+		var tt = video.textTracks[i];
+		tt.mode = "disabled";
+	}
 }
 
 function onSourceClose(e) {
 	var ms = e.target;
-	Log.e("MSE", "Source closed, video error: "+ (ms.video.error ? ms.video.error.code : "(none)"));
-	Log.d("MSE", ms);
+	if (ms.video.error) {
+		Log.error("MSE", "Source closed, video error: "+ ms.video.error.code);		
+	} else {
+		Log.info("MSE", "Source closed, no error");
+	}
 }
 
 function onSourceOpen(e) {
 	var ms = e.target;
-	Log.i("MSE", "Source opened");
-	Log.d("MSE", ms);
+	Log.info("MSE", "Source opened");
+	Log.debug("MSE", ms);
 	urlSelector.disabled = false;
 }
 
@@ -289,7 +319,7 @@ function updateBufferedString(sb, string) {
 	var rangeString;
 	if (sb.ms.readyState === "open") {
 		rangeString = Log.printRanges(sb.buffered);
-		Log.i("MSE - SourceBuffer #"+sb.id, string+", updating: "+sb.updating+", currentTime: "+Log.getDurationString(video.currentTime, 1)+", buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
+		Log.info("MSE - SourceBuffer #"+sb.id, string+", updating: "+sb.updating+", currentTime: "+Log.getDurationString(video.currentTime, 1)+", buffered: "+rangeString+", pending: "+sb.pendingAppends.length);
 		if (sb.bufferTd === undefined) {
 			sb.bufferTd = document.getElementById("buffer"+sb.id);
 		}
@@ -303,26 +333,29 @@ function onInitAppended(e) {
 		updateBufferedString(sb, "Init segment append ended");
 		sb.sampleNum = 0;
 		sb.removeEventListener('updateend', onInitAppended);
-		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true));
+		sb.addEventListener('updateend', onUpdateEnd.bind(sb, true, true));
 		/* In case there are already pending buffers we call onUpdateEnd to start appending them*/
-		onUpdateEnd.call(sb, false);
-		if (autoplay) {
+		onUpdateEnd.call(sb, false, true);
+		sb.ms.pendingInits--;
+		if (autoplay && sb.ms.pendingInits === 0) {
 			start();
 		}
 	}
 }
 
-function onUpdateEnd(isNotInit) {
-	if (isNotInit === true) {
-		updateBufferedString(this, "Update ended");
-	}
-	if (this.sampleNum) {
-		mp4box.releaseUsedSamples(this.id, this.sampleNum);
-		delete this.sampleNum;
+function onUpdateEnd(isNotInit, isEndOfAppend) {
+	if (isEndOfAppend === true) {
+		if (isNotInit === true) {
+			updateBufferedString(this, "Update ended");
+		}
+		if (this.sampleNum) {
+			mp4box.releaseUsedSamples(this.id, this.sampleNum);
+			delete this.sampleNum;
+		}
 	}
 	if (this.ms.readyState === "open" && this.updating === false && this.pendingAppends.length > 0) {
 		var obj = this.pendingAppends.shift();
-		Log.i("MSE - SourceBuffer #"+this.id, "Appending new buffer, pending: "+this.pendingAppends.length);
+		Log.info("MSE - SourceBuffer #"+this.id, "Appending new buffer, pending: "+this.pendingAppends.length);
 		this.sampleNum = obj.sampleNum;
 		this.appendBuffer(obj.buffer);
 	}
@@ -333,23 +366,28 @@ function addBuffer(video, track_id, codec) {
 	var ms = video.ms;
 	var mime = 'video/mp4; codecs=\"'+codec+'\"';
 	if (MediaSource.isTypeSupported(mime)) {
-		Log.i("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
-		sb = ms.addSourceBuffer(mime);
-		sb.ms = ms;
-		sb.id = track_id;
-		mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
-		sb.pendingAppends = [];
+		try {
+			Log.info("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
+			sb = ms.addSourceBuffer(mime);
+			sb.ms = ms;
+			sb.id = track_id;
+			mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
+			sb.pendingAppends = [];
+		} catch (e) {
+			Log.error("MSE - SourceBuffer #"+track_id,"Cannot create buffer with type '"+mime+"'" + e);
+		}
 	} else {
-		Log.w("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
+		Log.warn("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 		var textrack = video.addTextTrack("subtitles", "Text track for track "+track_id);
-		mp4box.setExtractionOptions(track_id, textrack, { nbSamples: 1 });
+		textrack.mode = "showing";
+		mp4box.setExtractionOptions(track_id, textrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 	}
 }
 
 function removeBuffer(video, track_id) {
 	var sb;
 	var ms = video.ms;
-	Log.i("MSE - SourceBuffer #"+track_id,"Removing buffer");
+	Log.info("MSE - SourceBuffer #"+track_id,"Removing buffer");
 	mp4box.unsetSegmentOptions(track_id);
 	for (var i = 0; i < ms.sourceBuffers.length; i++) {
 		sb = ms.sourceBuffers[i];
@@ -376,8 +414,10 @@ function addSourceBufferListener(info) {
 				if (check.checked) { 
 					addBuffer(video, track_id, codec);
 					initButton.disabled = false;
+					initAllButton.disabled = true;
 				} else {
 					initButton.disabled = removeBuffer(video, track_id);
+					initAllButton.disabled = initButton.disabled;
 				}
 			};
 		})(track.id, track.codec));
@@ -391,9 +431,6 @@ function initializeAllSourceBuffers() {
 			var track = info.tracks[i];
 			addBuffer(video, track.id, track.codec);
 		}
-		initAllButton.disabled = true;
-		initButton.disabled = true;
-		startButton.disabled = false;
 		initializeSourceBuffers();
 	}
 }
@@ -402,15 +439,18 @@ function initializeSourceBuffers() {
 	var initSegs = mp4box.initializeSegmentation();
 	for (var i = 0; i < initSegs.length; i++) {
 		var sb = initSegs[i].user;
+		if (i === 0) {
+			sb.ms.pendingInits = 0;
+		}
 		sb.addEventListener("updateend", onInitAppended);
-		Log.i("MSE - SourceBuffer #"+sb.id,"Appending initialization data");
+		Log.info("MSE - SourceBuffer #"+sb.id,"Appending initialization data");
 		sb.appendBuffer(initSegs[i].buffer);
 		saveBuffer(initSegs[i].buffer, 'track-'+initSegs[i].id+'-init.mp4');
 		sb.segmentIndex = 0;
+		sb.ms.pendingInits++;
 	}
 	initAllButton.disabled = true;	
 	initButton.disabled = true;
-	startButton.disabled = false;
 }
 
 /* main player functions */
@@ -422,6 +462,15 @@ function reset() {
 	resetDisplay();
 }
 
+function resetCues() {
+	for (var i = 0; i < video.textTracks.length; i++) {
+		var texttrack = video.textTracks[i];
+		while (texttrack.cues.length > 0) {
+			texttrack.removeCue(texttrack.cues[0]);
+		}
+	}
+} 
+
 function load() {
 	var ms = video.ms;
 	if (ms.readyState !== "open") {
@@ -430,12 +479,11 @@ function load() {
 
 	mp4box = new MP4Box();
 	mp4box.onMoovStart = function () {
-		Log.i("Application", "Starting to parse movie information");
+		Log.info("Application", "Starting to parse movie information");
 	}
 	mp4box.onReady = function (info) {
-		Log.i("Application", "Movie information received");
+		Log.info("Application", "Movie information received");
 		movieInfo = info;
-		stop();
 		if (info.isFragmented) {
 			ms.duration = info.fragment_duration/info.timescale;
 		} else {
@@ -443,6 +491,7 @@ function load() {
 		}
 		displayMovieInfo(info);
 		addSourceBufferListener(info);
+		stop();
 		if (autoplay) {
 			initializeAllSourceBuffers();
 		} else {
@@ -454,12 +503,12 @@ function load() {
 		saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
 		sb.segmentIndex++;
 		sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
-		Log.i("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
-		onUpdateEnd.call(sb, true);
+		Log.info("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
+		onUpdateEnd.call(sb, true, false);
 	}
 	mp4box.onSamples = function (id, user, samples) {	
 		var texttrack = user;
-		Log.i("TextTrack #"+id,"Received "+samples.length+" new sample(s)");
+		Log.info("TextTrack #"+id,"Received "+samples.length+" new sample(s)");
 		for (var j = 0; j < samples.length; j++) {
 			var sample = samples[j];
 			if (sample.description.type === "wvtt") {
@@ -492,12 +541,16 @@ function load() {
 
 	downloader.setCallback(
 		function (response, end, error) { 
+			var nextStart = 0;
 			if (response) {
-				var nextStart = mp4box.appendBuffer(response);
-				downloader.setChunkStart(nextStart); 
+				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
+				nextStart = mp4box.appendBuffer(response);
 			}
 			if (end) {
+				progressbar.progressbar({ value: 100 });
 				mp4box.flush();
+			} else {
+				downloader.setChunkStart(nextStart); 			
 			}
 			if (error) {
 				reset();
@@ -518,6 +571,7 @@ function start() {
 	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
 	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
 	downloader.resume();
+	mp4box.start();
 }		
 
 function stop() {
@@ -531,6 +585,7 @@ function stop() {
 function play() {
 	playButton.disabled = true;
 	autoplay = true;
+	video.play();
 	load();
 }
 
@@ -546,9 +601,10 @@ function onSeeking(e) {
 			}
 		}
 		/* Chrome fires twice the seeking event with the same value */
-		Log.i("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
-		seek_info = mp4box.seek(video.currentTime, true);
+		Log.info("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
 		downloader.stop();
+		resetCues();
+		seek_info = mp4box.seek(video.currentTime, true);
 		downloader.setChunkStart(seek_info.offset);
 		downloader.resume();
 		startButton.disabled = true;
@@ -571,7 +627,7 @@ function computeWaitingTimeFromBuffer(v) {
 	/* computing the intersection of the buffered values of all active sourcebuffers around the current time, 
 	   may already be done by the browser when calling video.buffered (to be checked: TODO) */
 	for (var i = 0; i < ms.activeSourceBuffers.length; i++) {
-		sb = ms.activeSourceBuffers.item(i);
+		sb = ms.activeSourceBuffers[i];
 		for (var j = 0; j < sb.buffered.length; j++) {
 			startRange = sb.buffered.start(j);
 			endRange = sb.buffered.end(j);
@@ -582,19 +638,21 @@ function computeWaitingTimeFromBuffer(v) {
 			}
 		}
 	}
-	
+	if (minEndRange === Infinity) {
+		minEndRange = 0;
+	}
 	duration = minEndRange - maxStartRange;
 	ratio = (currentTime - maxStartRange)/duration;
-	Log.i("Demo", "Playback position ("+Log.getDurationString(currentTime)+") in current buffer ["+Log.getDurationString(maxStartRange)+","+Log.getDurationString(minEndRange)+"]: "+Math.floor(ratio*100)+"%");
+	Log.info("Demo", "Playback position ("+Log.getDurationString(currentTime)+") in current buffer ["+Log.getDurationString(maxStartRange)+","+Log.getDurationString(minEndRange)+"]: "+Math.floor(ratio*100)+"%");
 	if (ratio >= 3/(playbackRate+3)) {
-		Log.i("Demo", "Downloading immediately new data!");
+		Log.info("Demo", "Downloading immediately new data!");
 		/* when the currentTime of the video is at more than 3/4 of the buffered range (for a playback rate of 1), 
 		   immediately fetch a new buffer */
 		return 1; /* return 1 ms (instead of 0) to be able to compute a non-infinite bitrate value */
 	} else {
 		/* if not, wait for half (at playback rate of 1) of the remaining time in the buffer */
 		wait = 1000*(minEndRange - currentTime)/(2*playbackRate);
-		Log.i("Demo", "Waiting for "+Log.getDurationString(wait,1000)+" s for the next download");
+		Log.info("Demo", "Waiting for "+Log.getDurationString(wait,1000)+" s for the next download");
 		return wait;
 	}
 }

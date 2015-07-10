@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<meta charset="UTF-8">
+		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
+		
+		<!-- Include basic JQuery and JQuery UI files -->
+		<script src="lib/jquery/jquery.js"></script>		
+  		<link href="lib/jquery-ui/jquery-ui.min.css" rel="stylesheet" type="text/css">
+		<script src="lib/jquery-ui/jquery-ui.min.js"></script>		
+		
+		<!-- Include JQuery-based Fancytree skin, library, and extensions -->
+  		<link href="lib/fancytree/ui.fancytree.min.css" rel="stylesheet" type="text/css">
+  		<script src="lib/fancytree/jquery.fancytree-all.min.js" type="text/javascript"></script>
+
+        <link rel="stylesheet" href="style.css" />
+		<script src="../dist/mp4box.all.js"></script>
+		<script src="sample-urls.js"></script>
+		<script src="filereader.js"></script>
+		<script src="downloader.js"></script>
+		<style type="text/css">
+		.box{
+			background-color:gray;
+			height:200px;
+			width:250px;
+			margin-top:120px;
+			margin-left:500px;
+			border:1px ridge #aaa;
+			-moz-box-shadow: 10px 10px 10px #212121;
+			-webkit-box-shadow: 10px 10px 10px #212121;
+			box-shadow: 10px 10px 10px #212121;
+		}
+
+		table, td, th {
+			text-align: left;
+			vertical-align: text-top;
+			border-spacing: 0;
+			border: 0;
+			border-collapse: collapse;
+		}
+
+		td:first-child { width: 20%; }
+		
+		ul.fancytree-container {
+		  height: 50vh;
+		  overflow: auto;
+		  position: relative;
+		}
+		
+		</style>
+    </head>
+	<body>
+		<!-- GitHub Fork Me Ribbon -->
+	    <a href="https://github.com/gpac/mp4box.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub" ></a>
+		<!-- GitHub Stat Buttons -->
+		<div style="position: absolute; top: 10px; right: 150px; border: 0;" >
+			<a class="github-button" href="https://github.com/gpac/mp4box.js" data-style="mega" data-count-href="/gpac/mp4box.js/stargazers" data-count-api="/repos/gpac/mp4box.js#stargazers_count">Star</a>
+			<a class="github-button" href="https://github.com/gpac/mp4box.js/fork" data-style="mega" data-count-href="/gpac/mp4box.js/network" data-count-api="/repos/gpac/mp4box.js#forks_count">Fork</a>
+			<a class="github-button" href="https://github.com/gpac/mp4box.js" data-style="mega" data-count-href="/gpac/mp4box.js/watchers" data-count-api="/repos/gpac/mp4box.js#subscribers_count">Watch</a>
+			<script async defer id="github-bjs" src="https://buttons.github.io/buttons.js"></script>
+		</div>
+
+		<h2>MP4Box.js</h2>
+		<h3>ISOBMFF Box Structure Viewer (see also <a href="./">File Player</a>)</h3>
+		<div id="tabs">
+		  <ul>
+		    <li><a href="#tabs-1">File loading</a></li>
+		    <li><a href="#tabs-2">HTTP URL loading</a></li>
+		    <li><a href="#tabs-3">Sample examples</a></li>
+		  </ul>
+		  <div id="tabs-1">
+			<input type='file' id='fileinput' onchange='drop()'>
+		  </div>
+		  <div id="tabs-2">
+		    <label for="urlinput">Enter URL:</label>
+		    <input type='url' name='urlinput' id='urlinput'>
+		    <button onclick='httploadFromUrl()'>Load</button>
+		  </div>
+		  <div id="tabs-3">
+			<legend>Select Example:</legend>
+			<select id="urlSelector">
+			</select>
+		    <button onclick='httploadFromList()'>Load</button>
+		  </div>
+		</div>
+		<div id="progressbar"><div id="progress-label" style="text-align: center;">0%</div></div>
+		<div id="resulttabs">
+		  <ul>
+		    <li><a href="#boxview">Box View</a></li>
+		    <li><a href="#sampleview">Sample View</a></li>
+		    <li><a href="#itemview">Item View</a></li>
+		  </ul>
+		<div id="boxview">
+		<table>
+		<thead>
+		<tr>
+		<th>Box Tree View</th>
+		<th>Box Property View</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td style="width: 30%">
+		<div id="boxtree">
+		</div>
+		</td>
+		<td>
+		<div id="boxtable">
+		</div>
+		</td>
+		</tr>
+		</tbody>
+		</table>
+		</div>
+		<div id="sampleview">
+		</div>
+		<div id="itemview">
+		</div>
+		</div>
+	</body>
+</html>
