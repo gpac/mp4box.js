@@ -236,6 +236,7 @@ mp4box.onReady = function(info) {
   var texttrack = v.addTextTrack("metadata", "Text track for extraction of track "+info.tracks[0].id);
   mp4box.onSamples = function (id, user, samples) {}
   mp4box.setExtractionsOptions(info.tracks[0].id, texttrack, options);  
+  mp4box.start();
   ...
 };
 ```
