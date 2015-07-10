@@ -285,6 +285,11 @@ Indicates that the next samples to process (for extraction or segmentation) star
 ```javascript
 mp4box.seek(10, true);
 ```
+####releaseUsedSamples(id, sampleNumber)####
+Releases the memory allocated for sample data for the given track id, up to (but excluding) the given sample number.
+```
+mp4box.releaseUsedSamples(1, 250);
+```
 
 Dependencies
 =======
