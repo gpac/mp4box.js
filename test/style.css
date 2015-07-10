@@ -76,3 +76,23 @@ button {
   width: 100%;
   border: 1px solid black;
 }
+
+table {
+   width: 100%;
+   margin: 0 0 10px 0;
+   background: #FFFFFF;
+   border: 1px solid #333333;
+   border-collapse: collapse;
+   font-size: 100%;
+}
+
+td, th {
+   border-bottom: 1px solid #333333;
+   padding: 2px 2px;
+   text-align: left;
+}
+
+th {
+   background: #EEEEEE;
+   text-align: center;
+}
