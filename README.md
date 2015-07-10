@@ -170,6 +170,7 @@ mp4box.onReady = function(info) {
   mp4box.onSegment = function (id, user, buffer) {}
   mp4box.setSegmentOptions(info.tracks[0].id, sb, options);  
   var initSegs = mp4box.initializeSegmentation();  
+  mp4box.start();
   ...
 };
 ```
