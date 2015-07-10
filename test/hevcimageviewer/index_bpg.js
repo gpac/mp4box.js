@@ -47,6 +47,7 @@ function setMP4Box() {
 				progressLabel.show();
 			}
 		}
+		mp4box.start();
 		if (!isHEVC)
 			throw("index_bpg.setMP4Box(): Not a HEVC movie file.");
 	}
@@ -130,7 +131,7 @@ function loadVideoFileHttpUrl(url) {
 	progressBar.progressbar({ value: 0 });
 
 	if (url) {
-		mp4box = new MP4Box();
+		mp4box = new MP4Box(false, false);
 		setMP4Box();
 
 		downloader = new Downloader();
@@ -220,7 +221,7 @@ function loadVideoFileUpload(file) {
 	timeline.innerHTML = "";
 	progressBar.progressbar({ value: 0 });
 	
-	mp4box = new MP4Box();
+	mp4box = new MP4Box(false, false);
 	setMP4Box();
 
    	var onparsedbuffer = function(mp4box, buffer) {
