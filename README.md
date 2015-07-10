@@ -320,3 +320,7 @@ In order to use the `MP4Box.js` in a browser, use grunt to build a single-file l
 </body>
 </html>
 ```
+
+Contributing
+=======
+If your favorite box is not parsed by MP4Box, you can easily contribute. Each box parsing code is stored in a separate file whose name is the 4CC of the box type. For instance, the parsing of the ```ctts``` box is located in [ctts.js](src/parsing/ctts.js).
