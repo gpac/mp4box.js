@@ -6,7 +6,7 @@ MP4Box.js
 JavaScript library to process MP4 files in the browser, with support for progressive parsing. 
 Inspired by the [MP4Box](http://gpac.wp.mines-telecom.fr/mp4box/) tool from the [GPAC](http://gpac.wp.mines-telecom.fr) project. 
 It can be used to:
-- [get information about an MP4 file] (#getting-information), 
+- [get information about an MP4 file](#getting-information), 
 - [segment](#segmentation) an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - [extract](#extraction) samples from an MP4 to create TextTracks.
 - more to come.
@@ -306,7 +306,6 @@ In this ```all``` version, this code uses [DataStream.js](https://github.com/kig
 
 Browser Usage
 =======
-
 In order to use the `MP4Box.js` in a browser, use grunt to build a single-file library (see above) or use a pre-built version from the [demo](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/) page.
 
 ```html
