@@ -54,11 +54,7 @@ MP4BoxStream.prototype.readUint16 = function() {
     this.position++;
     u8_2 = this.uint8[this.position];
     this.position++;
-    if (this.endianness === MP4BoxStream.LITTLE_ENDIAN) {
-      u16 = u8_2 << 8 | u8_1;
-    } else {
-      u16 = u8_1 << 8 | u8_2;
-    }
+    u16 = u8_1 << 8 | u8_2;
     return u16;
   } else {
     throw ("Not enough bytes in buffer");
