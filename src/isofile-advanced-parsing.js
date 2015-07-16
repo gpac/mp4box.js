@@ -126,7 +126,7 @@ ISOFile.prototype.processIncompleteMdat = function () {
 
 ISOFile.prototype.restoreParsePosition = function() {
 	/* Reposition at the start position of the previous box not entirely parsed */
-	return this.stream.seek(this.lastBoxStartPosition, true, false);
+	return this.stream.seek(this.lastBoxStartPosition, true, this.discardMdatData);
 }
 
 ISOFile.prototype.saveParsePosition = function() {
