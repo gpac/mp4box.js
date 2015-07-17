@@ -38,6 +38,8 @@ var MP4Box = function (_keepMdatData, _parseForWrite) {
 	this.sampleProcessingStarted = false;
 	/* Number of the next 'moof' to generate when fragmenting */
 	this.nextMoofNumber = 0;
+	/* Boolean indicating if the initial list of items has been produced */
+	this.itemListBuilt = false;
 }
 
 MP4Box.prototype.setSegmentOptions = function(id, user, options) {
@@ -332,6 +334,13 @@ MP4Box.prototype.appendBuffer = function(ab) {
 			nextFileStart = 0;
 		}
 	}	
+	if (this.inputIsoFile.meta) {
+		if (this.inputIsoFile.flattenItemInfo && !this.itemListBuilt) {
+			this.inputIsoFile.flattenItemInfo();
+			this.itemListBuilt = true;
+		}
+	}
+
 	if (this.inputStream.cleanBuffers) {
 		Log.info("MP4Box", "Done processing buffer (fileStart: "+ab.fileStart+") - next buffer to fetch should have a fileStart position of "+nextFileStart);
 		this.inputStream.logBufferLevel();
