@@ -350,6 +350,7 @@ ISOFile.prototype.getSample = function(trak, sampleNum) {
 			/* update the number of bytes used in this buffer and check if it needs to be removed */
 			buffer.usedBytes += lengthAfterStart;
 			this.stream.logBufferLevel();
+			return null;
 		}
 	} else {
 		return null;
