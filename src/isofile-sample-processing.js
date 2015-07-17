@@ -299,7 +299,6 @@ ISOFile.prototype.updateSampleLists = function() {
  */
 ISOFile.prototype.getSample = function(trak, sampleNum) {	
 	var buffer;
-	var i;
 	var sample = trak.samples[sampleNum];
 	
 	if (!this.moov) {
