@@ -45,11 +45,13 @@ ISOFile.prototype.flattenItemInfo = function() {
 					break;
 				}
 			} else {
-				item.extents = []
+				item.extents = [];
+				item.size = 0;
 				for (j = 0; j < itemloc.extents.length; j++) {
 					item.extents[j] = {};
 					item.extents[j].offset = itemloc.extents[j].extent_offset + itemloc.base_offset;
 					item.extents[j].length = itemloc.extents[j].extent_length;
+					item.size += item.extents[j].length;
 				}
 			}
 		}
@@ -64,6 +66,94 @@ ISOFile.prototype.flattenItemInfo = function() {
 				items[ref.from_item_ID].ref_to.push({type: ref.type, id: ref.references[j]});
 			}
 		}
+	}
+}
+
+ISOFile.prototype.getItem = function(item_id) {	
+	var buffer;
+	var item;
+	
+	if (!this.meta) {
+		return null;
+	}
+
+ 	item = this.items[item_id];
+	if (!item.data && item.size) {
+		/* Not yet fetched */
+		item.data = new Uint8Array(item.size);
+		item.alreadyRead = 0;
+		this.itemsDataSize += sample.size;
+		Log.debug("ISOFile", "Allocating item #"+item_id+" of size "+item.size+" (total: "+this.itemsDataSize+")");
+	} else if (item.alreadyRead === item.size) {
+		/* Already fetched entirely */
+		return item;
+	}
+
+	/* The item has only been partially fetched, we need to check in all buffers to find the remaining extents*/
+	
+	for (var i = 0; i < item.extents.length; i++) {
+		var extent = item.extents[i];
+		if (extent.alreadyRead === extent.length) {
+			continue;
+		} else {
+			var index =	this.stream.findPosition(true, extent.offset + extent.alreadyRead, false);
+			if (index > -1) {
+				buffer = this.stream.buffers[index];
+				var lengthAfterStart = buffer.byteLength - (extent.offset + extent.alreadyRead - buffer.fileStart);
+				if (extent.length - extent.alreadyRead <= lengthAfterStart) {
+					/* the (rest of the) extent is entirely contained in this buffer */
+
+					Log.debug("ISOFile","Getting item #"+item_id+" extent #"+i+" data (alreadyRead: "+extent.alreadyRead+
+						" offset: "+(extent.offset+extent.alreadyRead - buffer.fileStart)+" read size: "+(extent.length - extent.alreadyRead)+
+						" full extent size: "+extent.length+" full item size: "+item.size+")");
+
+					DataStream.memcpy(item.data.buffer, item.alreadyRead, 
+					                  buffer, extent.offset+extent.alreadyRead - buffer.fileStart, extent.length - extent.alreadyRead);
+
+					/* update the number of bytes used in this buffer and check if it needs to be removed */
+					buffer.usedBytes += extent.length - extent.alreadyRead;
+					this.stream.logBufferLevel();
+
+					extent.alreadyRead = extent.length;
+					item.alreadyRead += extent.length;
+				} else {
+					/* the sample does not end in this buffer */				
+					
+					Log.debug("ISOFile","Getting item #"+item_id+" extent #"+i+" partial data (alreadyRead: "+extent.alreadyRead+" offset: "+
+						(extent.offset+extent.alreadyRead - buffer.fileStart)+" read size: "+lengthAfterStart+
+						" full extent size: "+extent.length+" full item size: "+item.size+")");
+					
+					DataStream.memcpy(item.data.buffer, item.alreadyRead, 
+					                  buffer, extent.offset+extent.alreadyRead - buffer.fileStart, lengthAfterStart);
+					extent.alreadyRead += lengthAfterStart;
+					item.alreadyRead += lengthAfterStart;
+
+					/* update the number of bytes used in this buffer and check if it needs to be removed */
+					buffer.usedBytes += lengthAfterStart;
+					this.stream.logBufferLevel();
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}
+	}
+}
+
+/* Release the memory used to store the data of the item */
+ISOFile.prototype.releaseItem = function(item_id) {	
+	var item = this.items[item_id];
+	if (item.data) {
+		this.itemsDataSize -= item.size;
+		item.data = null;
+		item.alreadyRead = 0;
+		for (var i = 0; i < item.extents.length; i++) {
+			var extent = item.extents[i];
+			extent.alreadyRead = 0;
+		}
+		return item.size;
+	} else {
+		return 0;
 	}
 }
 
