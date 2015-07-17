@@ -339,6 +339,9 @@ MP4Box.prototype.appendBuffer = function(ab) {
 			this.inputIsoFile.flattenItemInfo();
 			this.itemListBuilt = true;
 		}
+		if (this.inputIsoFile.processItems) {
+			this.inputIsoFile.processItems(this.onItem);
+		}
 	}
 
 	if (this.inputStream.cleanBuffers) {

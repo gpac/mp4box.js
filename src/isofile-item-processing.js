@@ -1,4 +1,6 @@
 ISOFile.prototype.items = [];
+/* size of the buffers allocated for samples */
+ISOFile.prototype.itemsDataSize = 0;
 
 ISOFile.prototype.flattenItemInfo = function() {	
 	var items = this.items;
@@ -51,6 +53,7 @@ ISOFile.prototype.flattenItemInfo = function() {
 					item.extents[j] = {};
 					item.extents[j].offset = itemloc.extents[j].extent_offset + itemloc.base_offset;
 					item.extents[j].length = itemloc.extents[j].extent_length;
+					item.extents[j].alreadyRead = 0;
 					item.size += item.extents[j].length;
 				}
 			}
@@ -82,7 +85,7 @@ ISOFile.prototype.getItem = function(item_id) {
 		/* Not yet fetched */
 		item.data = new Uint8Array(item.size);
 		item.alreadyRead = 0;
-		this.itemsDataSize += sample.size;
+		this.itemsDataSize += item.size;
 		Log.debug("ISOFile", "Allocating item #"+item_id+" of size "+item.size+" (total: "+this.itemsDataSize+")");
 	} else if (item.alreadyRead === item.size) {
 		/* Already fetched entirely */
@@ -138,6 +141,12 @@ ISOFile.prototype.getItem = function(item_id) {
 			}
 		}
 	}
+	if (item.alreadyRead === item.size) {
+		/* fetched entirely */
+		return item;
+	} else {
+		return null;
+	}
 }
 
 /* Release the memory used to store the data of the item */
@@ -157,3 +166,13 @@ ISOFile.prototype.releaseItem = function(item_id) {
 	}
 }
 
+
+ISOFile.prototype.processItems = function(callback) {
+	for(var i in this.items) {
+		var item = this.items[i];
+		this.getItem(item.id);
+		if (callback) {
+			callback(item);
+		}
+	}
+}
