@@ -186,3 +186,20 @@ ISOFile.prototype.hasItem = function(name) {
 	}
 	return -1;
 }
+
+ISOFile.prototype.getMetaHandler = function() {
+	if (!this.meta) {
+		return null;
+	} else {
+		return this.meta.hdlr;		
+	}
+}
+
+ISOFile.prototype.getPrimaryItem = function() {
+	if (!this.meta || !this.meta.pitm) {
+		return null;
+	} else {
+		return this.getItem(this.meta.pitm.item_id);
+	}
+}
+
