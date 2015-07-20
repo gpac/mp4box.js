@@ -217,7 +217,7 @@ function buildItemTable(items) {
 	html += "<tbody>";
 	for (i in items) {
 		var item = items[i];
-		html += "<tr>";
+		html += "<tr onclick='displayItemContent("+item.id+");'>";
 		html += "<td>"+item.id+"</td>";
 		html += "<td>"+(item.name ? item.name: "")+"</td>";
 		html += "<td>"+(item.type === "mime" ? item.content_type : item.type)+"</td>";
@@ -284,4 +284,20 @@ window.onload = function () {
 	if (window.location.search) {
 		httpload(window.location.search.substring(1));
 	}
+}
+
+function displayItemContent(id) {
+	var string;
+	var item = mp4box.inputIsoFile.getItem(id);	
+	console.log("Item "+id+", content:");
+	switch (item.content_type) {
+		case "text/html":
+			string = (new MP4BoxStream(item.data.buffer)).readString(item.data.length);
+			console.log(string);
+			break;
+		default:
+			console.log("Cannot display binary data");
+
+	}
+	mp4box.inputIsoFile.releaseItem(id);
 }
