@@ -5,25 +5,25 @@ node_js:
 before_script:
 - npm install -g grunt-cli
 deploy:
+  matrix:
   - provider: releases
     api_key:
       secure: FJF3zi4Rk+sHkBsRyNF7IanjGgcQvRX87Mvykp6Afd8t/B+WeDfbxGrqyyHjANgDcUSquFoJZlIt8lQ+Jy8V0rog9M1be+HpENOHOnyYnnrTrgL+ZodZrYJ5Mfbjdd451MTZCcxAFGyCxBvYz/pUWA0wDq9/7WFmF0hGVWevAio=
     file:
-      - "dist/mp4box.all.js"
-      - "dist/mp4box.all.min.js"
-      - "dist/mp4box.all.min.js.map"
-      - "dist/mp4box.simple.js"
-      - "dist/mp4box.simple.min.js"
-      - "dist/mp4box.simple.min.js.map"
+    - dist/mp4box.all.js
+    - dist/mp4box.all.min.js
+    - dist/mp4box.all.min.js.map
+    - dist/mp4box.simple.js
+    - dist/mp4box.simple.min.js
+    - dist/mp4box.simple.min.js.map
     skip_cleanup: true
     on:
       tags: true
   - provider: npm
     email: cyril.concolato@telecom-paristech.fr
     api_key:
-      secure: qTl7aGhCluOqP86UjXysRU8jYU84ZtByBtslQMg+2CsrxS3KKKQyAMgFMgriGzjq9ZG7sZd9VF3MwDQfz0T/1kSJTIXVKRMUHihq5gGoVKxQp+uDfRsRCXDh7TtAxY7yI3ObHRUp8blM9HBbz0gabIuNtmb8FrHDJNGliiaDx5U=
+      secure: g90CbRmP0bsE5btpsSZkdrMGEI1QlRrs2rIFQy/KAQXrfp0qml5UqZKHgqvbry1r8KkLk/pUGRP2VIfkZy1EVqg1TWqO/IWmky6b8R1tpiPAJEgr0GRtoMGnIlCE0jgFm3jbLZ+nuH8PYsp/bWyhxtk+zlEa0kMBE5tzDsYZj/M=
     skip_cleanup: true
     on:
       tags: true
-
 
