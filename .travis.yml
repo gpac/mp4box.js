@@ -21,7 +21,7 @@ deploy:
   - provider: npm
     email: cyril.concolato@telecom-paristech.fr
     api_key:
-      secure: g90CbRmP0bsE5btpsSZkdrMGEI1QlRrs2rIFQy/KAQXrfp0qml5UqZKHgqvbry1r8KkLk/pUGRP2VIfkZy1EVqg1TWqO/IWmky6b8R1tpiPAJEgr0GRtoMGnIlCE0jgFm3jbLZ+nuH8PYsp/bWyhxtk+zlEa0kMBE5tzDsYZj/M=
+      secure: "qT37keNDM4h+9o7XvnCKDF/Hxt+zAcUtaqI78EHu77J22tWKFW45MJw8iL6yyJCit7kRyYAd/YSgk1LwwdJQwlWmuDIYYiF27NfGeLD+md1OlaPztUNhO9h6mm1jjSSYhhMEf3p2ugNmFih2EkXvodYcvhEpJyAMAeSU4jdmtGk="
     skip_cleanup: true
     on:
       tags: true
