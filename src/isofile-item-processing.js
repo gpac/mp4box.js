@@ -176,3 +176,13 @@ ISOFile.prototype.processItems = function(callback) {
 		}
 	}
 }
+
+ISOFile.prototype.hasItem = function(name) {
+	for(var i in this.items) {
+		var item = this.items[i];
+		if (item.name === name) {
+			return item.id;
+		}
+	}
+	return -1;
+}
