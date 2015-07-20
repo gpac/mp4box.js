@@ -11,8 +11,10 @@ deploy:
   file: 
     - "dist/mp4box.all.js"
     - "dist/mp4box.all.min.js"
+    - "dist/mp4box.all.min.js.map"
     - "dist/mp4box.simple.js"
     - "dist/mp4box.simple.min.js"
+    - "dist/mp4box.simple.min.js.map"
   skip_cleanup: true
   on:
     tags: true
