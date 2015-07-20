@@ -292,6 +292,8 @@ function displayItemContent(id) {
 	console.log("Item "+id+", content:");
 	switch (item.content_type) {
 		case "text/html":
+		case "text/css":
+		case "application/ecmascript":
 			string = (new MP4BoxStream(item.data.buffer)).readString(item.data.length);
 			console.log(string);
 			break;
