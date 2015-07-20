@@ -5,17 +5,16 @@ node_js:
 before_script:
 - npm install -g grunt-cli
 deploy:
-  matrix:
   - provider: releases
     api_key:
       secure: FJF3zi4Rk+sHkBsRyNF7IanjGgcQvRX87Mvykp6Afd8t/B+WeDfbxGrqyyHjANgDcUSquFoJZlIt8lQ+Jy8V0rog9M1be+HpENOHOnyYnnrTrgL+ZodZrYJ5Mfbjdd451MTZCcxAFGyCxBvYz/pUWA0wDq9/7WFmF0hGVWevAio=
     file:
-    - dist/mp4box.all.js
-    - dist/mp4box.all.min.js
-    - dist/mp4box.all.min.js.map
-    - dist/mp4box.simple.js
-    - dist/mp4box.simple.min.js
-    - dist/mp4box.simple.min.js.map
+      - dist/mp4box.all.js
+      - dist/mp4box.all.min.js
+      - dist/mp4box.all.min.js.map
+      - dist/mp4box.simple.js
+      - dist/mp4box.simple.min.js
+      - dist/mp4box.simple.min.js.map
     skip_cleanup: true
     on:
       tags: true
