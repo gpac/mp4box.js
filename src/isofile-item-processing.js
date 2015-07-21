@@ -191,7 +191,7 @@ ISOFile.prototype.getMetaHandler = function() {
 	if (!this.meta) {
 		return null;
 	} else {
-		return this.meta.hdlr;		
+		return this.meta.hdlr.handler;		
 	}
 }
 
