@@ -225,7 +225,7 @@ MP4Box.prototype.processSamples = function() {
 					trak.nextSample++;
 					extractTrak.samples.push(sample);
 				} else {
-					return;
+					break;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
 					Log.debug("MP4Box", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
