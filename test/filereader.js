@@ -32,11 +32,66 @@ function drop(e) {
 	}
 }
 
+function initialize() {
+	mp4box 	   = new MP4Box(false, false);	
+}
+
+function parseFile(file) {
+    var fileSize   = file.size;
+    var offset     = 0;
+    var self       = this; // we need a reference to the current object
+    var readBlock  = null;
+ 	var startDate  = new Date();
+	
+	initialize();
+
+	mp4box.onError = function(e) { 
+		console.log("mp4box failed to parse data."); 
+	};
+
+    var onparsedbuffer = function(mp4box, buffer) {
+    	console.log("Appending buffer with offset "+offset);
+		buffer.fileStart = offset;
+    	mp4box.appendBuffer(buffer);	
+	}
+
+	var onBlockRead = function(evt) {
+        if (evt.target.error == null) {
+            onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
+            offset += evt.target.result.byteLength;
+			progressbar.progressbar({ value: Math.ceil(100*offset/fileSize) });
+        } else {
+            console.log("Read error: " + evt.target.error);
+            return;
+        }
+        if (offset >= fileSize) {
+			progressbar.progressbar({ value: 100 });
+            console.log("Done reading file ("+fileSize+ " bytes) in "+(new Date() - startDate)+" ms");
+			mp4box.flush();
+            finalizeUI();
+            return;
+        }
+
+        readBlock(offset, chunkSize, file);
+    }
+
+    readBlock = function(_offset, length, _file) {
+        var r = new FileReader();
+        var blob = _file.slice(_offset, length + _offset);
+        r.onload = onBlockRead;
+        r.readAsArrayBuffer(blob);
+    }
+
+    readBlock(offset, chunkSize, file);
+}
+
 function httpload(url) {	
-	mp4box 	   = new MP4Box(false, false);
 	var downloader = new Downloader();
 	var startDate = new Date();
 	var nextStart = 0;
+
+	initialize();
+
 	downloader.setCallback(
 		function (response, end, error) { 
 			if (response) {
@@ -47,11 +102,9 @@ function httpload(url) {
 			}
 			if (end) {
 				progressbar.progressbar({ value: 100 });
-				var endRead = new Date();
-	            console.log("Done reading file ("+downloader.totalLength+ " bytes) in "+(endRead - startDate)+" ms");
-				createTreeView(mp4box.inputIsoFile.boxes);
-	            console.log("Done constructing tree in "+(new Date() - endRead)+" ms");
+	            console.log("Done reading file ("+downloader.totalLength+ " bytes) in "+(new Date() - startDate)+" ms");
 				mp4box.flush();
+				finalizeUI();
 			} else {
 				downloader.setChunkStart(nextStart); 
 			}
@@ -148,55 +201,11 @@ function createTreeView(boxes) {
 	fancytree = boxtree.fancytree('getTree');
 }
 
-function parseFile(file) {
-    var fileSize   = file.size;
-    var offset     = 0;
-    var self       = this; // we need a reference to the current object
-    var readBlock  = null;
- 	var startDate  = new Date();
-	
-	mp4box 	   = new MP4Box(false, false);
 
-	mp4box.onError = function(e) { 
-		console.log("mp4box failed to parse data."); 
-	};
-
-    var onparsedbuffer = function(mp4box, buffer) {
-    	console.log("Appending buffer with offset "+offset);
-		buffer.fileStart = offset;
-    	mp4box.appendBuffer(buffer);	
-	}
-
-	var onBlockRead = function(evt) {
-        if (evt.target.error == null) {
-            onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
-            offset += evt.target.result.byteLength;
-			progressbar.progressbar({ value: Math.ceil(100*offset/fileSize) });
-        } else {
-            console.log("Read error: " + evt.target.error);
-            return;
-        }
-        if (offset >= fileSize) {
-			progressbar.progressbar({ value: 100 });
-        	var endRead = new Date();
-            console.log("Done reading file ("+fileSize+ " bytes) in "+(endRead - startDate)+" ms");
-			createTreeView(mp4box.inputIsoFile.boxes);
-			buildItemTable(mp4box.inputIsoFile.items);
-            console.log("Done constructing tree in "+(new Date() - endRead)+" ms");
-            return;
-        }
-
-        readBlock(offset, chunkSize, file);
-    }
-
-    readBlock = function(_offset, length, _file) {
-        var r = new FileReader();
-        var blob = _file.slice(_offset, length + _offset);
-        r.onload = onBlockRead;
-        r.readAsArrayBuffer(blob);
-    }
-
-    readBlock(offset, chunkSize, file);
+function finalizeUI() {
+	createTreeView(mp4box.inputIsoFile.boxes);
+	buildItemTable(mp4box.inputIsoFile.items);
+	buildSampleView();
 }
 
 function buildItemTable(items) {
@@ -240,6 +249,73 @@ function buildItemTable(items) {
 	html += "</tbody>";
 	html += "</table>";
 	$("#itemview").html(html);
+}
+
+function buildSampleView() {
+	var info = mp4box.getInfo();
+	var trackSelector = $("#trackSelect");
+	var sampleRangeSlider = $( "#sample-range" );
+	var sampleRangeText = $( "#sample-range-value" );
+	for (i = 0; i < info.tracks.length; i++) {
+		trackSelector
+         .append($("<option></option>")
+         .attr("value",i)
+         .text(info.tracks[i].id)); 
+	}
+	trackSelector.selectmenu({
+	      width: 100,
+	      change: function( event, data ) {
+	      	var track_index = data.item.value;
+	      	buildSampleTableInfo(info.tracks[0].id, 0, 10);
+			sampleRangeSlider.slider({
+			      range: true,
+			      min: 0,
+			      max: info.tracks[track_index].nb_samples-1,
+			      values: [ 0, 10 ],
+			      slide: function( event, ui ) {
+			        sampleRangeText.val( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+				    buildSampleTableInfo(info.tracks[0].id, ui.values[ 0 ], ui.values[ 1 ]);
+			      }
+			    });
+			    sampleRangeText.val( sampleRangeSlider.slider( "values", 0 ) + " - " + sampleRangeSlider.slider( "values", 1 ) );      
+			}
+	});
+}
+
+function buildSampleTableInfo(track_id, start, end) {
+	var html;
+	var i, j;
+	var samples;
+
+	html = "<table>";
+	html += "<thead>";
+	html += "<tr>";
+	html += "<th>Sample number</th>";
+	html += "<th>DTS</th>";
+	html += "<th>CTS</th>";
+	html += "<th>RAP</th>";
+	html += "<th>Offset</th>";
+	html += "<th>Size</th>";
+	html += "</tr>";
+	html += "</thead>";
+	html += "<tbody>";
+
+	samples = mp4box.getTrackSamplesInfo(track_id);
+	for (i = start; i < end; i++) {
+		var sample = samples[i];
+		html += "<tr>";
+		html += "<td>"+sample.number+"</td>";
+		html += "<td>"+sample.dts + "("+Log.getDurationString(sample.dts, sample.timescale)+")</td>";
+		html += "<td>"+sample.cts + "("+Log.getDurationString(sample.cts, sample.timescale)+")</td>";
+		html += "<td>"+sample.is_rap+"</td>";
+		html += "<td>"+sample.offset+"</td>";
+		html += "<td>"+sample.size+"</td>";
+		html += "<td>";
+		html += "</tr>";
+	}
+	html += "</tbody>";
+	html += "</table>";
+	$("#sampletable").html(html);
 }
 
 window.onload = function () {
