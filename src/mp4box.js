@@ -598,7 +598,7 @@ MP4Box.prototype.seek = function(time, useRap) {
 }
 
 MP4Box.prototype.getTrackSamplesInfo = function(track_id) {
-	var track = this.inputIsoFile.getTrackById(id);
+	var track = this.inputIsoFile.getTrackById(track_id);
 	if (track) {
 		return track.samples;
 	} else {
