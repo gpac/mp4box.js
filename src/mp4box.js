@@ -134,6 +134,12 @@ MP4Box.prototype.createSingleSampleMoof = function(sample) {
 	trun.sample_size[0] = sample.size;
 	trun.sample_flags = [];
 	trun.sample_flags[0] = 0;
+	if (sample.is_rap) {
+		trun.sample_flags[0] = (1 << 25); // sample_depends_on = 2
+	} else {
+		// Commenting out as this seems to create problems in Firefox and Chrome
+		trun.sample_flags[0] = (1 << 16); // sample_is_non_sync_sample = 1
+	}
 	trun.sample_composition_time_offset = [];
 	trun.sample_composition_time_offset[0] = sample.cts - sample.dts;
 	return moof;
