@@ -1,9 +1,14 @@
 <html>
     <head>
 		<title>MP4Box.js - JavaScript MP4 Reader/Fragmenter</title>
+		<script src="../src/log.js"></script>
 		<script src="segment-player.js"></script>
     </head>
 	<body>
 		<video id="v" width="640" height="480" autoplay controls> </video>
+		<div id='dropArea' style="width: 100%; height: 10%; background-color: lightgrey">
+		<input id="fileinput" type="file" onchange='drop()'>Drop segments here</input>
+		<div id="status">Nothing</div>
+		</div>
 	</body>
 </html>

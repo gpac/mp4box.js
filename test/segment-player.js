@@ -39,10 +39,16 @@ window.onload = function () {
 	mediaSource.addEventListener("sourceopen", onSourceOpen);
 	mediaSource.addEventListener("sourceclose", onSourceClose);
 	video.src = window.URL.createObjectURL(mediaSource);
+
+	document.getElementById('dropArea').addEventListener('dragover', dragenter);
+	document.getElementById('dropArea').addEventListener('dragenter', dragenter);
+	document.getElementById('dropArea').addEventListener('drop', drop);
 }
 
 function onSourceClose(e) {
-	alert("MediaSource closed!");
+	//alert("MediaSource closed!");
+	document.getElementById('dropArea').style.backgroundColor = 'red';
+
 }
 
 function onSourceOpen(e) {
@@ -50,14 +56,75 @@ function onSourceOpen(e) {
 	sb = ms.addSourceBuffer(segments.mime);
 	sb.ms = ms;
 	sb.addEventListener('updateend', onUpdateEnd.bind(sb));
+	/*
 	sb.index = 0;
 	getFile(segments.init, sb.appendBuffer.bind(sb));
+	*/
 }
 
 function onUpdateEnd(e) {
 	var sb = this;
-	if (sb.index < segments.segs.length) {
-		sb.index++;
-		getFile(segments.segs[sb.index-1], sb.appendBuffer.bind(sb));
+	// if (sb.index < segments.segs.length) {
+	// 	sb.index++;
+	// 	getFile(segments.segs[sb.index-1], sb.appendBuffer.bind(sb));
+	// }
+	document.getElementById('status').innerHTML = Log.printRanges(sb.buffered);
+}
+
+function dragenter(e) {
+	e.stopPropagation();
+	e.preventDefault();
+}
+
+function drop(e) {
+	var file;
+
+	if (!e) {
+		file = document.getElementById('fileinput').files[0];
+	}
+	else {
+		dragenter(e);
+		file = e.dataTransfer.files[0];
+	}
+	if (file) {
+		parseAndAppendFile(file);
 	}
 }
+
+function parseAndAppendFile(file) {
+    var fileSize   = file.size;
+    var self       = this; // we need a reference to the current object
+    var readBlock  = null;
+    var chunkSize  = 50*1024*1024;
+	var offset 	   = 0;
+	document.getElementById('dropArea').style.backgroundColor = 'yellow';
+
+	var onBlockRead = function(evt) {
+        if (evt.target.error == null) {
+		 	video = document.getElementById('v');
+			video.ms.sourceBuffers[0].appendBuffer(evt.target.result);
+        	document.getElementById('status').innerHTML = Log.printRanges(video.ms.sourceBuffers[0].buffered);
+            offset += evt.target.result.byteLength;
+        } else {
+            console.log("Read error: " + evt.target.error);
+            return;
+        }
+        if (offset >= fileSize) {
+        	document.getElementById('dropArea').style.backgroundColor = 'green';
+        	document.getElementById('status').innerHTML = Log.printRanges(video.ms.sourceBuffers[0].buffered);
+            return;
+        }
+
+        readBlock(offset, chunkSize, file);
+    }
+
+    readBlock = function(_offset, length, _file) {
+        var r = new FileReader();
+        var blob = _file.slice(_offset, length + _offset);
+        r.onload = onBlockRead;
+        r.readAsArrayBuffer(blob);
+    }
+
+    readBlock(offset, chunkSize, file);
+}
+
