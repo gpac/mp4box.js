@@ -566,6 +566,16 @@ function load() {
 			initAllButton.disabled = false;
 		}
 	}
+	mp4box.onItem = function(item) {
+		var metaHandler = mp4box.inputIsoFile.getMetaHandler();
+		if (metaHandler.startsWith("mif1")) {
+			var pitem = mp4box.inputIsoFile.getPrimaryItem();
+			console.log("Found primary item in MP4 of type "+item.content_type);
+			if (pitem.id === item.id) {
+				video.poster = window.URL.createObjectURL(new Blob([item.data.buffer]));
+			}
+		}
+	}
 	mp4box.onSegment = function (id, user, buffer, sampleNum) {	
 		var sb = user;
 		saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
