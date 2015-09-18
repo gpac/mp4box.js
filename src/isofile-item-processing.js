@@ -171,8 +171,10 @@ ISOFile.prototype.processItems = function(callback) {
 	for(var i in this.items) {
 		var item = this.items[i];
 		this.getItem(item.id);
-		if (callback) {
+		if (callback && !item.sent) {
 			callback(item);
+			item.sent = true;
+			item.data = null;
 		}
 	}
 }
