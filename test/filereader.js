@@ -301,6 +301,7 @@ function buildSampleTableInfo(track_id, start, end) {
 	html += "<tbody>";
 
 	samples = mp4box.getTrackSamplesInfo(track_id);
+	if (samples.length < end) end = samples.length;
 	for (i = start; i < end; i++) {
 		var sample = samples[i];
 		html += "<tr>";
@@ -367,6 +368,7 @@ function displayItemContent(id) {
 	var item = mp4box.inputIsoFile.getItem(id);	
 	console.log("Item "+id+", content:");
 	switch (item.content_type) {
+		case "text/plain":
 		case "text/html":
 		case "text/css":
 		case "application/ecmascript":
