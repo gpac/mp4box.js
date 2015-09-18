@@ -29,8 +29,10 @@
 			<h2>MP4Box.js</h2>
 			<h3>Playing any MP4 in your browser (see also <a href="filereader.html">File Analyzer</a>)</h3>
 
-			<div>
-				<video id="v" width="640" height="480" autoplay poster="http://gpac.wp.mines-telecom.fr/files/2014/01/FondBig_1600x230.png"> </video>
+			<div style="position: relative; width: 50%; height: 50%">
+				<video id="v" autoplay poster="http://gpac.wp.mines-telecom.fr/files/2014/01/FondBig_1600x230.png"> </video>
+				<div id="overlayTracks" style="position: absolute; top: 0px; width: 100%; height: 95%;">
+				</div>
 			</div>
 			<div id="progressbar"><div id="progress-label" style="text-align: center;"></div></div>
 			<div id="tabs">
