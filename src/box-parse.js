@@ -44,7 +44,8 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 	} else {
 		if (BoxParser[type+"Box"]) {
 			if (BoxParser.parseForWrite && BoxParser[type+"Box"].prototype.write === BoxParser.Box.prototype.write &&
-				type !== "mdat" && type !== "skip" && type != "free" && type != "esds") {
+				type !== "mdat" && type !== "skip" && type != "free" && type != "esds" && 
+				type != "meta" && type != "pitm" && type != "iloc" && type != "iinf" && type != "infe") {
 				Log.warn("BoxParser", type+" box writing not yet implemented, forcing default parsing");
 				box = new BoxParser.Box(type, size);
 			} else {
