@@ -12,7 +12,7 @@ var stopParse = false;
 mp4box.onReady = function (info) {
 	var mime = 'video/mp4; codecs=\"';
 	for (var i = 0; i < info.tracks.length; i++) {
-		if (i != 0) mime += ',';
+		if (i !== 0) mime += ',';
 		mime+= info.tracks[i].codec;
 	}
 	mime += '\"';
