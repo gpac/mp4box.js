@@ -570,8 +570,8 @@ function start() {
 	downloader.setChunkStart(mp4box.seek(0, true).offset);
 	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
 	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
-	downloader.resume();
 	mp4box.start();
+	downloader.resume();
 }		
 
 function stop() {
