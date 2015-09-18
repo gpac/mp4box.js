@@ -411,6 +411,7 @@ MP4Box.prototype.getInfo = function() {
 		track.timescale = trak.mdia.mdhd.timescale;
 		track.duration = trak.mdia.mdhd.duration;
 		track.codec = sample_desc.getCodec();	
+		track.kind = (trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: "", value: ""});
 		track.language = trak.mdia.mdhd.languageString;
 		track.nb_samples = trak.samples.length;
 		track.size = 0;

@@ -34,6 +34,7 @@ var BoxParser = {
 				  "stvi", 
 				  "padb", "stdp", "sdtp", "saio", "saiz",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
+				  "kind",
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -60,7 +61,8 @@ var BoxParser = {
 		[ "sinf" ],
 		[ "rinf" ],
 		[ "schi" ],
-		[ "trgr" ]
+		[ "trgr" ],
+		[ "udta", ["kind"] ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
