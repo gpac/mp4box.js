@@ -138,6 +138,7 @@ function getBasicTrackHeader() {
 	html += "<th>Bitrate (kbps)</th>";
 	html += "<th>Codec</th>";
 	html += "<th>Language</th>";
+	html += "<th>Kind</th>";
 	html += "<th>Track Width</th>";
 	html += "<th>Track Height</th>";
 	html += "<th>Track Layer</th>";
@@ -166,6 +167,7 @@ function getBasicTrackInfo(track) {
 	html += "<td>"+Math.floor(track.bitrate/1024)+"</td>";
 	html += "<td>"+track.codec+"</td>";
 	html += "<td>"+track.language+"</td>";
+	html += "<td>"+track.kind.schemeURI+" - "+track.kind.value+"</td>";
 	html += "<td>"+track.track_width+"</td>";
 	html += "<td>"+track.track_height+"</td>";
 	html += "<td>"+track.layer+"</td>";
@@ -371,6 +373,7 @@ function addBuffer(video, mp4track) {
 	var track_id = mp4track.id;
 	var codec = mp4track.codec;
 	var mime = 'video/mp4; codecs=\"'+codec+'\"';
+	var kind = mp4track.kind;
 	if (MediaSource.isTypeSupported(mime)) {
 		try {
 			Log.info("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
@@ -385,7 +388,7 @@ function addBuffer(video, mp4track) {
 	} else {
 		Log.warn("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 		var trackType;
-		if (codec == "wvtt") {
+		if (codec == "wvtt" && !kind.schemeURI.startsWith("urn:gpac:")) {
 			trackType = "subtitles";
 		} else {
 			trackType = "metadata";
@@ -394,6 +397,7 @@ function addBuffer(video, mp4track) {
 		texttrack.mode = "showing";
 		mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 		texttrack.codec = codec;
+		texttrack.mp4kind = mp4track.kind;
 		texttrack.track_id = track_id;
 		var div = document.createElement("div");
 		div.id = "overlay_track_"+track_id;
