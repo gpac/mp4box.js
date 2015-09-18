@@ -160,3 +160,12 @@ BoxParser.mp4aSampleEntry.prototype.getCodec = function() {
 		return baseCodec;
 	}
 }
+
+BoxParser.stxtSampleEntry.prototype.getCodec = function() {
+	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+	if(this.mime_format) {
+		return baseCodec + "." + this.mime_format;
+	} else {
+		return baseCodec
+	}
+}
