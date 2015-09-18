@@ -69,6 +69,24 @@ window.onload = function () {
 		Log.error("Media Element error", e);
 	});
 	reset();	
+
+	/* Loading Track Viewers */
+	var s = document.createElement("script");
+	s.src = "trackviewers/fancyLyrics/viewer.js";
+	s.async = false;
+	document.head.appendChild(s);
+	s = document.createElement("script");
+	s.src = "trackviewers/musicbeats/viewer.js";
+	s.async = false;
+	document.head.appendChild(s);
+	s = document.createElement("script");
+	s.src = "trackviewers/gps/altitude.js";
+	s.async = false;
+	document.head.appendChild(s);
+	s = document.createElement("script");
+	s.src = "trackviewers/gps/position.js";
+	s.async = false;
+	document.head.appendChild(s);
 }
 
 /* GUI-related callback functions */
@@ -411,18 +429,7 @@ function addBuffer(video, mp4track) {
 		div.setAttribute("class", "overlay");
 		overlayTracks.appendChild(div);
 		texttrack.div = div;
-		if (texttrack.mime === "image/x3d+xml" && x3dom == undefined) {
-			var link = document.createElement("link");
-			link.type = "text/css";
-			link.rel = "stylesheet";
-			link.href= "trackviewers/x3d/x3dom.css";
-			document.head.appendChild(link);
-			var s = document.createElement("script");
-			s.async = true;
-			s.type="application/ecmascript";
-			s.src = "trackviewers/x3d/x3dom.js";
-			document.head.appendChild(s);
-		}
+		initTrackViewer(texttrack);
 	}
 }
 
@@ -512,6 +519,27 @@ function resetCues() {
 		}
 	}
 } 
+
+function initTrackViewer(track) {
+	if (track.mime === "image/x3d+xml" && x3dom == undefined) {
+		var link = document.createElement("link");
+		link.type = "text/css";
+		link.rel = "stylesheet";
+		link.href= "trackviewers/x3d/x3dom.css";
+		document.head.appendChild(link);
+		var s = document.createElement("script");
+		s.async = true;
+		s.type="application/ecmascript";
+		s.src = "trackviewers/x3d/x3dom.js";
+		document.head.appendChild(s);
+	} else if (track.mp4kind.schemeURI === "urn:gpac:kinds" && track.mp4kind.value === "gps") {
+		track.oncuechange = setupGpsTrackPositionViewer(track, track.div);
+	} else if (track.mp4kind.schemeURI === "urn:gpac:kinds" && track.mp4kind.value === "beats") {
+		track.oncuechange = setupMusicBeatTrackViewer(track, track.div);
+	} else if (track.mp4kind.schemeURI === "urn:gpac:kinds" && track.mp4kind.value === "lyrics") {
+		track.oncuechange = setupFancySubtitleTrackViewer(track, track.div);
+	}
+}
 
 function processInbandCue() {
 	var content = "";
