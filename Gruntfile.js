@@ -96,7 +96,8 @@ module.exports = function(grunt) {
         'test/**/*.js', 
         // Exclude the following from lint 
         '!test/lib/**/*.js', 
-        '!test/mp4/**/*.js'
+        '!test/mp4/**/*.js',
+        '!test/trackviewers/**/*.js', 
       ],
       options: {
         // options here to override JSHint defaults
