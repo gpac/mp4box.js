@@ -106,11 +106,11 @@ MP4BoxStream.prototype.readUint64 = function() {
 
 MP4BoxStream.prototype.readString = function(length) {
   if (this.position + length <= this.uint8.length) {
-    var arr = [];
+    var s = "";
     for (var i = 0; i < length; i++) {
-      arr[i] = this.readUint8();
+      s += String.fromCharCode(this.readUint8());
     }
-    return String.fromCharCode.apply(null, arr); 
+    return s;
   } else {
     throw ("Not enough bytes in buffer");
   }
