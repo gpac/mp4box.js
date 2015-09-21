@@ -378,6 +378,9 @@ function addBuffer(video, mp4track) {
 		try {
 			Log.info("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
 			sb = ms.addSourceBuffer(mime);
+			sb.addEventListener("error", function(e) {
+				Log.error("MSE SourceBuffer #"+track_id,e);
+			});
 			sb.ms = ms;
 			sb.id = track_id;
 			mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
