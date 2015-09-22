@@ -65,6 +65,9 @@ window.onload = function () {
 	buildUrlList(urlSelector);
 
 	video.addEventListener("seeking", onSeeking);
+	video.addEventListener("error", function (e) {
+		Log.error("Media Element error", e);
+	});
 	reset();	
 }
 
@@ -400,6 +403,7 @@ function addBuffer(video, mp4track) {
 		texttrack.mode = "showing";
 		mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 		texttrack.codec = codec;
+		texttrack.mime = codec.substring(codec.indexOf('.')+1);
 		texttrack.mp4kind = mp4track.kind;
 		texttrack.track_id = track_id;
 		var div = document.createElement("div");
@@ -407,6 +411,18 @@ function addBuffer(video, mp4track) {
 		div.setAttribute("class", "overlay");
 		overlayTracks.appendChild(div);
 		texttrack.div = div;
+		if (texttrack.mime === "image/x3d+xml" && x3dom == undefined) {
+			var link = document.createElement("link");
+			link.type = "text/css";
+			link.rel = "stylesheet";
+			link.href= "trackviewers/x3d/x3dom.css";
+			document.head.appendChild(link);
+			var s = document.createElement("script");
+			s.async = true;
+			s.type="application/ecmascript";
+			s.src = "trackviewers/x3d/x3dom.js";
+			document.head.appendChild(s);
+		}
 	}
 }
 
@@ -498,23 +514,25 @@ function resetCues() {
 } 
 
 function processInbandCue() {
-	var mime = this.track.codec.substring(this.track.codec.indexOf('.')+1);
 	var content = "";
 	if (this.is_rap & this.track.config) {
 		content = this.track.config;
 	} 
 	content += this.text;
 	console.log("Video Time:", video.currentTime, "Processing cue for track "+this.track.track_id+" with:", content);
-	if (mime === "application/ecmascript") {
+	if (this.track.mime === "application/ecmascript") {
 		var script = document.createElement("script");
 		script.appendChild(document.createTextNode(content));
 		this.track.div.appendChild(script);
 		//this.track.div.innerHTML = "<script type='application/ecmascript'>"+content+"</script>";
-	} else if (mime === "text/css") {
+	} else if (this.track.mime === "text/css") {
 		this.track.div.innerHTML = "<style>"+content+"</style>";
-	} else if (["image/svg+xml", "text/html"].indexOf(mime) > -1 ) {
+	} else if (["image/svg+xml", "text/html", "image/x3d+xml"].indexOf(this.track.mime) > -1 ) {
 		/* Presentable track */
 		this.track.div.innerHTML = content;
+		if (this.track.mime === "image/x3d+xml") {
+			x3dom.reload();
+		}
 	} else {
 		/* Pure metadata track */
 	}
