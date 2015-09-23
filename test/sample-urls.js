@@ -38,6 +38,13 @@ var sampleUrls = [
 		]
 	},
 	{ 
+		groupName: "Text Tracks Experiments",
+		urls: [
+			{ url: "./mp4/ancient-sun.mp4", desc: "Audio with beat and lyrics tracks "},
+			{ url: "./mp4/helloProcessing.mp4", desc: "Video with graphical overlays"},
+		]
+	},
+	{ 
 		groupName: "For Internal Testing",
 		urls: [
 			{ url: "./mp4/meta/meta-file-single-item.mp4", desc: "Basic 'meta' test", playable: false },
