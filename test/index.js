@@ -521,7 +521,7 @@ function resetCues() {
 } 
 
 function initTrackViewer(track) {
-	if (track.mime === "image/x3d+xml" && x3dom == undefined) {
+	if (track.mime === "image/x3d+xml" && x3dom === undefined) {
 		var link = document.createElement("link");
 		link.type = "text/css";
 		link.rel = "stylesheet";
