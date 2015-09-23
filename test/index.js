@@ -412,37 +412,64 @@ function addBuffer(video, mp4track) {
 	} else {
 		Log.warn("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
 		var trackType;
+		var i;
+		var foundTextTrack = false;
 		if (codec == "wvtt" && !kind.schemeURI.startsWith("urn:gpac:")) {
 			trackType = "subtitles";
 		} else {
 			trackType = "metadata";
 		}
-		var texttrack = video.addTextTrack(trackType, "Text track for track "+track_id);
-		texttrack.mode = "showing";
-		mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
-		texttrack.codec = codec;
-		texttrack.mime = codec.substring(codec.indexOf('.')+1);
-		texttrack.mp4kind = mp4track.kind;
-		texttrack.track_id = track_id;
-		var div = document.createElement("div");
-		div.id = "overlay_track_"+track_id;
-		div.setAttribute("class", "overlay");
-		overlayTracks.appendChild(div);
-		texttrack.div = div;
-		initTrackViewer(texttrack);
+		for (i = 0; i < video.textTracks.length; i++) {
+			var track = video.textTracks[i];
+			if (track.label === 'track_'+track_id) {
+				track.mode = "showing";
+				track.div.style.display = 'inline';
+				foundTextTrack = true;
+				break;
+			}
+		}
+		if (!foundTextTrack) {
+			var texttrack = video.addTextTrack(trackType, "track_"+track_id);
+			texttrack.mode = "showing";
+			mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
+			texttrack.codec = codec;
+			texttrack.mime = codec.substring(codec.indexOf('.')+1);
+			texttrack.mp4kind = mp4track.kind;
+			texttrack.track_id = track_id;
+			var div = document.createElement("div");
+			div.id = "overlay_track_"+track_id;
+			div.setAttribute("class", "overlay");
+			overlayTracks.appendChild(div);
+			texttrack.div = div;
+			initTrackViewer(texttrack);
+		}
 	}
 }
 
 function removeBuffer(video, track_id) {
+	var i;
 	var sb;
 	var ms = video.ms;
 	Log.info("MSE - SourceBuffer #"+track_id,"Removing buffer");
-	mp4box.unsetSegmentOptions(track_id);
-	for (var i = 0; i < ms.sourceBuffers.length; i++) {
+	var foundSb = false;
+	for (i = 0; i < ms.sourceBuffers.length; i++) {
 		sb = ms.sourceBuffers[i];
 		if (sb.id == track_id) {
 			ms.removeSourceBuffer(sb);
+			mp4box.unsetSegmentOptions(track_id);
+			foundSb = true;
 			break;
+		}
+	}
+	if (!foundSb) {
+		for (i = 0; i < video.textTracks.length; i++) {
+			var track = video.textTracks[i];
+			if (track.label === 'track_'+track_id) {
+				track.mode = "disabled";
+				track.div.style.display = 'none';
+				mp4box.unsetExtractionOptions(track_id);
+				break;
+			}
 		}
 	}
 	if (ms.sourceBuffers.length === 0) {
@@ -457,19 +484,19 @@ function addSourceBufferListener(info) {
 		var track = info.tracks[i];
 		var checkBox = document.getElementById("addTrack"+track.id);
 		if (!checkBox) continue;
-		checkBox.addEventListener("change", (function (track_id, codec) { 
+		checkBox.addEventListener("change", (function (t) { 
 			return function (e) {
 				var check = e.target;
 				if (check.checked) { 
-					addBuffer(video, track_id, codec);
+					addBuffer(video, t);
 					initButton.disabled = false;
 					initAllButton.disabled = true;
 				} else {
-					initButton.disabled = removeBuffer(video, track_id);
+					initButton.disabled = removeBuffer(video, t.id);
 					initAllButton.disabled = initButton.disabled;
 				}
 			};
-		})(track.id, track.codec));
+		})(track));
 	}
 }
 
@@ -479,6 +506,8 @@ function initializeAllSourceBuffers() {
 		for (var i = 0; i < info.tracks.length; i++) {
 			var track = info.tracks[i];
 			addBuffer(video, track);
+			var checkBox = document.getElementById("addTrack"+track.id);
+			checkBox.checked = true;
 		}
 		initializeSourceBuffers();
 	}
@@ -624,7 +653,7 @@ function load() {
 				cues = sampleParser.parseSample(sample.data);
 				for (var i = 0; i < cues.length; i++) {
 					var cueIn4 = cues[i];
-					cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, cueIn4.payl.text);
+					cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, (cueIn4.payl ? cueIn4.payl.text : ""));
 					texttrack.addCue(cue);
 				}
 			} else if (sample.description.type === "metx" || sample.description.type === "stpp") {
