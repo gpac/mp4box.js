@@ -206,6 +206,7 @@ function finalizeUI() {
 	createTreeView(mp4box.inputIsoFile.boxes);
 	buildItemTable(mp4box.inputIsoFile.items);
 	buildSampleView();
+	displayMovieInfo(mp4box.getInfo(), document.getElementById("movieview"));
 }
 
 function buildItemTable(items) {
@@ -379,5 +380,5 @@ function displayItemContent(id) {
 			console.log("Cannot display binary data");
 
 	}
-	mp4box.inputIsoFile.releaseItem(id);
+	//mp4box.inputIsoFile.releaseItem(id);
 }

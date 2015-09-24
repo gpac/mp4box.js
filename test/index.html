@@ -12,6 +12,7 @@
         <script src="../dist/mp4box.all.js"></script>
 		<script src="downloader.js"></script>
 		<script src="sample-urls.js"></script>
+		<script src="movieInfoDisplay.js"></script>
 		<script src="index.js"></script>
     </head>
 	<body>
@@ -79,8 +80,8 @@
 				</div>
 				<div id="dlTimeout">
 					<label for="chunk_size_range">Download Timeout (milliseconds)</label>
-					<input id="chunk_speed_range" name="chunk_speed_range" type="range" min="0" max="10000" step="100" value="1000" oninput="setDownloadTimeout(this.value);">
-					<output id="chunk_speed_range_out" for="chunk_speed_range">1000</output>
+					<input id="chunk_speed_range" name="chunk_speed_range" type="range" min="0" max="10000" step="100" value="100" oninput="setDownloadTimeout(this.value);">
+					<output id="chunk_speed_range_out" for="chunk_speed_range">100</output>
 				</div>
 				<div>
 					<label for="dl_realtime">Real-time Download</label>

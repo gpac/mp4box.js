@@ -38,10 +38,11 @@ var sampleUrls = [
 		]
 	},
 	{ 
-		groupName: "Text Tracks Experiments",
+		groupName: "Synchronized Graphics Experiments",
 		urls: [
-			{ url: "./mp4/ancient-sun.mp4", desc: "Audio with beat and lyrics tracks "},
-			{ url: "./mp4/helloProcessing.mp4", desc: "Video with graphical overlays"},
+			{ url: "./mp4/ancient-sun.mp4", desc: "Audio with background, beat and lyrics overlays"},
+			{ url: "./mp4/helloProcessing.mp4", desc: "Video with 2D graphical overlays"},
+			{ url: "./mp4/helloTeaser.mp4", desc: "Video with 3D graphical overlays"},
 		]
 	},
 	{ 
