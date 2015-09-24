@@ -74,6 +74,7 @@ window.onload = function () {
 		video.playing = true;
 		if (video.onPlayCue) {
 			processInbandCue.call(video.onPlayCue);
+			video.onPlayCue = null;
 		}
 	});
 /*	video.addEventListener("suspend", function(e) { 
@@ -164,6 +165,7 @@ function resetDisplay() {
 	infoDiv.innerHTML = '';
 	overlayTracks.innerHTML = '';
 	video.poster = '';
+	video.playing = false;
 }
 
 
