@@ -431,7 +431,7 @@ function initTrackViewer(track) {
 
 function processInbandCue() {
 	var content = "";
-	if (video.playing == false) {
+	if (video.playing === false) {
 		video.onPlayCue = this;
 		return;
 	}
