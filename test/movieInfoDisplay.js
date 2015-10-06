@@ -1,10 +1,14 @@
+var displayDates = false;
+
 function getBasicTrackHeader() {
 	var html = '';
 	html += "<th>Track ID</th>";
 	html += "<th>Track References</th>";
 	html += "<th>Alternate Group</th>";
-	html += "<th>Creation Date</th>";
-	html += "<th>Modified Date</th>";
+	if (displayDates) {
+		html += "<th>Creation Date</th>";
+		html += "<th>Modified Date</th>";
+	}
 	html += "<th>Timescale</th>";
 	html += "<th>Media Duration</th>";
 	html += "<th>Number of Samples</th>";
@@ -32,8 +36,10 @@ function getBasicTrackInfo(track) {
 	}
 	html += "</td>";
 	html += "<td>"+track.alternate_group+"</td>";
-	html += "<td>"+track.created+"</td>";
-	html += "<td>"+track.modified+"</td>";
+	if (displayDates) {
+		html += "<td>"+track.created+"</td>";
+		html += "<td>"+track.modified+"</td>";
+	}
 	html += "<td>"+track.timescale+"</td>";
 	html += "<td>"+track.duration+" ("+Log.getDurationString(track.duration,track.timescale)+") </td>";
 	html += "<td>"+track.nb_samples+"</td>";
@@ -100,7 +106,9 @@ function getTrackListInfo(tracks, type) {
 			default:
 				break;				
 		}
-		html += "<th>Source Buffer Status</th>";
+		if (displaySourceBuffer) {
+			html += "<th>Source Buffer Status</th>";
+		}
 		html += "</tr>";
 		for (var i = 0; i < tracks.length; i++) {
 			html += "<tr>";
@@ -121,11 +129,13 @@ function getTrackListInfo(tracks, type) {
 				default:
 					break;
 			}					
-			var mime = 'video/mp4; codecs=\"'+tracks[i].codec+'\"';
-			if (MediaSource.isTypeSupported(mime)) {
-				html += "<td id=\"buffer"+tracks[i].id+"\">"+"<input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\">"+"</td>";
-			} else {
-				html += "<td>Not supported by your browser, exposing track content using HTML TextTrack <input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\"></td>";
+			if (displaySourceBuffer) {
+				var mime = 'video/mp4; codecs=\"'+tracks[i].codec+'\"';
+				if (MediaSource.isTypeSupported(mime)) {
+					html += "<td id=\"buffer"+tracks[i].id+"\">"+"<input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\">"+"</td>";
+				} else {
+					html += "<td>Not supported by your browser, exposing track content using HTML TextTrack <input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\"></td>";
+				}
 			}
 			html += "</tr>";
 		}
@@ -134,7 +144,9 @@ function getTrackListInfo(tracks, type) {
 	return html;
 }
 
-function displayMovieInfo(info, div) {
+var displaySourceBuffer = true;
+function displayMovieInfo(info, div, _displaySourceBuffer) {
+	if (_displaySourceBuffer !== undefined) displaySourceBuffer = _displaySourceBuffer;
 	var html = "Movie Info";
 	var fileLength = 0;
 	if (typeof(downloader) !== "undefined") {
@@ -158,7 +170,7 @@ function displayMovieInfo(info, div) {
 	html += "</table>";
 	html += getTrackListInfo(info.videoTracks, "Video");
 	html += getTrackListInfo(info.audioTracks, "Audio");
-	html += getTrackListInfo(info.subtitleTracks, "Subtitle");
+	html += getTrackListInfo(info.subtitleTracks, "Subtitle / Text");
 	html += getTrackListInfo(info.metadataTracks, "Metadata");
 	html += getTrackListInfo(info.otherTracks, "Other");
 	html += "</div>";

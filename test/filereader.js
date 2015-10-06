@@ -113,7 +113,7 @@ function httpload(url) {
 			}
 		}
 	);
-	downloader.setInterval(1000);
+	downloader.setInterval(10);
 	downloader.setChunkSize(chunkSize);
 	downloader.setUrl(url);
 	downloader.start();	
@@ -206,7 +206,7 @@ function finalizeUI() {
 	createTreeView(mp4box.inputIsoFile.boxes);
 	buildItemTable(mp4box.inputIsoFile.items);
 	buildSampleView();
-	displayMovieInfo(mp4box.getInfo(), document.getElementById("movieview"));
+	displayMovieInfo(mp4box.getInfo(), document.getElementById("movieview"), false);
 }
 
 function buildItemTable(items) {
