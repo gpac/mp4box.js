@@ -46,6 +46,13 @@ var sampleUrls = [
 		]
 	},
 	{ 
+		groupName: "Packaging Web Resources",
+		urls: [
+			{ url: "./mp4/video-with-html.mp4", desc: "Video with HTML/CSS items"},
+			{ url: "./mp4/Anand-Carlsen2014.mp4", desc: "Video with many web assets (JS, CSS, PNG, WebVTT)"},
+		]
+	},
+	{ 
 		groupName: "For Internal Testing",
 		urls: [
 			{ url: "./mp4/meta/meta-file-single-item.mp4", desc: "Basic 'meta' test", playable: false },
