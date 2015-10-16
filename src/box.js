@@ -34,7 +34,7 @@ var BoxParser = {
 				  "stvi", 
 				  "padb", "stdp", "sdtp", "saio", "saiz",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
-				  "kind",
+				  "kind", "elng",
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 

@@ -11,12 +11,7 @@ BoxParser.mdhdBox.prototype.parse = function(stream) {
 		this.timescale = stream.readUint32();
 		this.duration = stream.readUint32();
 	}
-	this.language = stream.readUint16();
-	var chars = [];
-	chars[0] = (this.language>>10)&0x1F;
-	chars[1] = (this.language>>5)&0x1F;
-	chars[2] = (this.language)&0x1F;
-	this.languageString = String.fromCharCode(chars[0]+0x60, chars[1]+0x60, chars[2]+0x60);
+	this.parseLanguage(stream);
 	stream.readUint16();
 }
 
