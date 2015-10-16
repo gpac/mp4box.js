@@ -43,14 +43,7 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 		return { code: BoxParser.OK, type: type, size: size, hdr_size: hdr_size, start: start };
 	} else {
 		if (BoxParser[type+"Box"]) {
-			if (BoxParser.parseForWrite && BoxParser[type+"Box"].prototype.write === BoxParser.Box.prototype.write &&
-				type !== "mdat" && type !== "skip" && type != "free" && type != "esds" && 
-				type != "meta" && type != "pitm" && type != "iloc" && type != "iinf" && type != "infe") {
-				Log.warn("BoxParser", type+" box writing not yet implemented, forcing default parsing");
-				box = new BoxParser.Box(type, size);
-			} else {
-				box = new BoxParser[type+"Box"](size);		
-			}
+			box = new BoxParser[type+"Box"](size);
 		} else {
 			if (type !== "uuid") {
 				Log.warn("BoxParser", "Unknown box type: "+type);
@@ -64,6 +57,10 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 	box.hdr_size = hdr_size;
 	/* recording the position of the box in the input stream */
 	box.start = start;
+	if (box.write === BoxParser.Box.prototype.write) {
+		Log.warn("BoxParser", type+" box writing not yet implemented, keeping unparsed data in memory for later write");
+		box.parseDataAndRewind(stream);
+	}
 	box.parse(stream);
 	return { code: BoxParser.OK, box: box, size: size };
 }
@@ -78,6 +75,14 @@ BoxParser.Box.prototype.parse = function(stream) {
 			stream.seek(this.start+this.size);
 		}
 	}
+}
+
+/* Used to parse a box without consuming its data, to allow detailled parsing
+   Useful for boxes for which a write method is not yet implemented */
+BoxParser.Box.prototype.parseDataAndRewind = function(stream) {
+	this.data = stream.readUint8Array(this.size-this.hdr_size);
+	// rewinding
+	stream.position -= this.size-this.hdr_size;
 }
 
 BoxParser.FullBox.prototype.parseFullHeader = function (stream) {

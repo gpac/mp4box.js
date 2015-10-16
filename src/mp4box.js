@@ -2,13 +2,11 @@
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-var MP4Box = function (_keepMdatData, _parseForWrite) {
+var MP4Box = function (_keepMdatData) {
 	/* MultiBufferStream to parse chunked file data */
 	this.inputStream = new MultiBufferStream();
 	/* Boolean indicating if bytes containing media data should be kept in memory */
 	this.keepMdatData = (_keepMdatData !== undefined ? _keepMdatData : true);
-	/* Boolean indicating if boxes need to be parsed for writing */
-	this.parseForWrite = (_parseForWrite !== undefined ? _parseForWrite : true);
 	/* ISOFile object containing the parsed boxes */
 	this.inputIsoFile = new ISOFile(this.inputStream);
 	this.inputIsoFile.discardMdatData = (this.keepMdatData ? false : true);
@@ -280,7 +278,7 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	}
 
 	/* Parse whatever is in the existing buffers */
-	this.inputIsoFile.parse(this.parseForWrite);
+	this.inputIsoFile.parse();
 
 	/* Check if the moovStart callback needs to be called */
 	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {

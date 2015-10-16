@@ -17,13 +17,11 @@ var ISOFile = function (stream) {
 	this.moovStartFound = false;
 }
 
-ISOFile.prototype.parse = function(_parseForWrite) {
+ISOFile.prototype.parse = function() {
 	var found;
 	var ret;
 	var box;
 	var parseBoxHeadersOnly = false;
-	/* TODO: remove persistent change to BoxParser (constructor, variable) */
-	BoxParser.parseForWrite = (_parseForWrite === undefined ? false : _parseForWrite);
 
 	if (this.restoreParsePosition)	{
 		if (!this.restoreParsePosition()) {

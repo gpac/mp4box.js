@@ -130,7 +130,7 @@ function loadVideoFileHttpUrl(url) {
 	progressBar.progressbar({ value: 0 });
 
 	if (url) {
-		mp4box = new MP4Box(false, false);
+		mp4box = new MP4Box(false);
 		setMP4Box();
 
 		downloader = new Downloader();
@@ -220,7 +220,7 @@ function loadVideoFileUpload(file) {
 	timeline.innerHTML = "";
 	progressBar.progressbar({ value: 0 });
 	
-	mp4box = new MP4Box(false, false);
+	mp4box = new MP4Box(false);
 	setMP4Box();
 
    	var onparsedbuffer = function(mp4box, buffer) {

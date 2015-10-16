@@ -33,7 +33,7 @@ function drop(e) {
 }
 
 function initialize() {
-	mp4box 	   = new MP4Box(false, false);	
+	mp4box 	   = new MP4Box(false);	
 }
 
 function parseFile(file) {

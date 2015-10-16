@@ -12,7 +12,7 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 	var entry_count = stream.readUint32();
 	for (var i = 0; i < entry_count; i++) {
 		var entry;
-		if (!BoxParser.parseForWrite && BoxParser[this.grouping_type+"SampleGroupEntry"]) {
+		if (BoxParser[this.grouping_type+"SampleGroupEntry"]) {
 			entry = new BoxParser[this.grouping_type+"SampleGroupEntry"](this.grouping_type);	
 		}  else {
 			entry = new BoxParser.SampleGroupEntry(this.grouping_type);	
