@@ -46,13 +46,45 @@ BoxParser.VisualSampleEntry.prototype.write = function(stream) {
 
 BoxParser.AudioSampleEntry.prototype.write = function(stream) {
 	this.writeHeader(stream);
-	this.size += 2*4+3*4;
-	stream.writeUint32(0);
-	stream.writeUint32(0);
-	stream.writeUint16(this.channel_count);
-	stream.writeUint16(this.samplesize);
-	stream.writeUint16(0);
-	stream.writeUint16(0);
-	stream.writeUint32(this.samplerate<<16);
+    this.size += 2+2+4;
+    stream.writeUint16(this.version);
+    stream.writeUint16(this.revision);
+	stream.writeUint32(this.vendor);
+    if (!this.version) { // version == 0
+        this.size += 2*4+4;
+        stream.writeUint16(this.channel_count);
+        stream.writeUint16(this.samplesize);
+        stream.writeUint16(0);
+        stream.writeUint16(0);
+        stream.writeUint32(this.samplerate<<16);
+    } else if (this.version == 1) {
+        this.size += 2*4+4*5;
+        stream.writeUint16(this.channel_count);
+        stream.writeUint16(this.samplesize);
+        stream.writeInt16(this.compressionId);
+        stream.writeUint16(this.packetSize);
+        stream.writeUint32(this.samplerate<<16);
+        stream.writeUint32(this.samplesPerPacket);
+        stream.writeUint32(this.bytesPerPacket);
+        stream.writeUint32(this.bytesPerFrame);
+        stream.writeUint32(this.bytesPerSample);
+    } else if (this.version == 2) {
+/*
+ this.size += 2*4+3*4;
+        out.putShort((short) 3);
+        out.putShort((short) 16);
+        out.putShort((short) -2);
+        out.putShort((short) 0);
+        out.putInt(65536);
+        out.putInt(72);
+        out.putLong(Double.doubleToLongBits(sampleRate));
+        out.putInt(channelCount);
+        out.putInt(0x7F000000);
+        out.putInt(sampleSize);
+        out.putInt(lpcmFlags);
+        out.putInt(bytesPerFrame);
+        out.putInt(samplesPerPkt);
+*/
+    }
 	this.writeFooter(stream);
 }
