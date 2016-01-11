@@ -119,7 +119,11 @@ Object.defineProperty(DataStream.prototype, 'buffer',
     },
     set: function(v) {
       this._buffer = v;
-      this._dataView = new DataView(this._buffer, this._byteOffset);
+      if (this._buffer.byteLength === 0 && !this._byteOffset) {
+        this._dataView = new DataView(this._buffer);
+      } else {
+        this._dataView = new DataView(this._buffer, this._byteOffset);
+      }
       this._byteLength = this._buffer.byteLength;
     } });
 
