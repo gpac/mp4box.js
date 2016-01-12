@@ -68,23 +68,6 @@ BoxParser.AudioSampleEntry.prototype.write = function(stream) {
         stream.writeUint32(this.bytesPerPacket);
         stream.writeUint32(this.bytesPerFrame);
         stream.writeUint32(this.bytesPerSample);
-    } else if (this.version == 2) {
-/*
- this.size += 2*4+3*4;
-        out.putShort((short) 3);
-        out.putShort((short) 16);
-        out.putShort((short) -2);
-        out.putShort((short) 0);
-        out.putInt(65536);
-        out.putInt(72);
-        out.putLong(Double.doubleToLongBits(sampleRate));
-        out.putInt(channelCount);
-        out.putInt(0x7F000000);
-        out.putInt(sampleSize);
-        out.putInt(lpcmFlags);
-        out.putInt(bytesPerFrame);
-        out.putInt(samplesPerPkt);
-*/
     }
 	this.writeFooter(stream);
 }
