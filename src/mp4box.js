@@ -360,83 +360,88 @@ MP4Box.prototype.getInfo = function() {
 	var sample_desc;
 	var _1904 = (new Date(4, 0, 1, 0, 0, 0, 0).getTime());
 
-	movie.duration = this.inputIsoFile.moov.mvhd.duration;
-	movie.timescale = this.inputIsoFile.moov.mvhd.timescale;
-	movie.isFragmented = (this.inputIsoFile.moov.mvex != null);
-	if (movie.isFragmented && this.inputIsoFile.moov.mvex.mehd) {
-		movie.fragment_duration = this.inputIsoFile.moov.mvex.mehd.fragment_duration;
-	} else {
-		movie.fragment_duration = 0;
-	}
-	movie.isProgressive = this.inputIsoFile.isProgressive;
-	movie.hasIOD = (this.inputIsoFile.moov.iods != null);
-	movie.brands = []; 
-	movie.brands.push(this.inputIsoFile.ftyp.major_brand);
-	movie.brands = movie.brands.concat(this.inputIsoFile.ftyp.compatible_brands);	
-	movie.created = new Date(_1904+this.inputIsoFile.moov.mvhd.creation_time*1000);
-	movie.modified = new Date(_1904+this.inputIsoFile.moov.mvhd.modification_time*1000);
-	movie.tracks = [];
-	movie.audioTracks = [];
-	movie.videoTracks = [];
-	movie.subtitleTracks = [];
-	movie.metadataTracks = [];
-	movie.hintTracks = [];
-	movie.otherTracks = [];
-	for (i = 0; i < this.inputIsoFile.moov.traks.length; i++) {
-		trak = this.inputIsoFile.moov.traks[i];
-		sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
-		track = {};
-		movie.tracks.push(track);
-		track.id = trak.tkhd.track_id;
-		track.references = [];
-		if (trak.tref) {
-			for (j = 0; j < trak.tref.boxes.length; j++) {
-				ref = {};
-				track.references.push(ref);
-				ref.type = trak.tref.boxes[j].type;
-				ref.track_ids = trak.tref.boxes[j].track_ids;
+	if (this.inputIsoFile.moov) {
+		movie.hasMoov = true;
+		movie.duration = this.inputIsoFile.moov.mvhd.duration;
+		movie.timescale = this.inputIsoFile.moov.mvhd.timescale;
+		movie.isFragmented = (this.inputIsoFile.moov.mvex != null);
+		if (movie.isFragmented && this.inputIsoFile.moov.mvex.mehd) {
+			movie.fragment_duration = this.inputIsoFile.moov.mvex.mehd.fragment_duration;
+		} else {
+			movie.fragment_duration = 0;
+		}
+		movie.isProgressive = this.inputIsoFile.isProgressive;
+		movie.hasIOD = (this.inputIsoFile.moov.iods != null);
+		movie.brands = []; 
+		movie.brands.push(this.inputIsoFile.ftyp.major_brand);
+		movie.brands = movie.brands.concat(this.inputIsoFile.ftyp.compatible_brands);	
+		movie.created = new Date(_1904+this.inputIsoFile.moov.mvhd.creation_time*1000);
+		movie.modified = new Date(_1904+this.inputIsoFile.moov.mvhd.modification_time*1000);
+		movie.tracks = [];
+		movie.audioTracks = [];
+		movie.videoTracks = [];
+		movie.subtitleTracks = [];
+		movie.metadataTracks = [];
+		movie.hintTracks = [];
+		movie.otherTracks = [];
+		for (i = 0; i < this.inputIsoFile.moov.traks.length; i++) {
+			trak = this.inputIsoFile.moov.traks[i];
+			sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
+			track = {};
+			movie.tracks.push(track);
+			track.id = trak.tkhd.track_id;
+			track.references = [];
+			if (trak.tref) {
+				for (j = 0; j < trak.tref.boxes.length; j++) {
+					ref = {};
+					track.references.push(ref);
+					ref.type = trak.tref.boxes[j].type;
+					ref.track_ids = trak.tref.boxes[j].track_ids;
+				}
+			}
+			track.created = new Date(_1904+trak.tkhd.creation_time*1000);
+			track.modified = new Date(_1904+trak.tkhd.modification_time*1000);
+			track.movie_duration = trak.tkhd.duration;
+			track.layer = trak.tkhd.layer;
+			track.alternate_group = trak.tkhd.alternate_group;
+			track.volume = trak.tkhd.volume;
+			track.matrix = trak.tkhd.matrix;
+			track.track_width = trak.tkhd.width/(1<<16);
+			track.track_height = trak.tkhd.height/(1<<16);
+			track.timescale = trak.mdia.mdhd.timescale;
+			track.duration = trak.mdia.mdhd.duration;
+			track.codec = sample_desc.getCodec();	
+			track.kind = (trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: "", value: ""});
+			track.language = (trak.mdia.elng ? trak.mdia.elng.extended_language : trak.mdia.mdhd.languageString);
+			track.nb_samples = trak.samples.length;
+			track.size = 0;
+			for (j = 0; j < track.nb_samples; j++) {
+				track.size += trak.samples[j].size;
+			}
+			track.bitrate = (track.size*8*track.timescale)/track.duration;
+			if (sample_desc.isAudio()) {
+				movie.audioTracks.push(track);
+				track.audio = {};
+				track.audio.sample_rate = sample_desc.getSampleRate();		
+				track.audio.channel_count = sample_desc.getChannelCount();		
+				track.audio.sample_size = sample_desc.getSampleSize();		
+			} else if (sample_desc.isVideo()) {
+				movie.videoTracks.push(track);
+				track.video = {};
+				track.video.width = sample_desc.getWidth();		
+				track.video.height = sample_desc.getHeight();		
+			} else if (sample_desc.isSubtitle()) {
+				movie.subtitleTracks.push(track);
+			} else if (sample_desc.isHint()) {
+				movie.hintTracks.push(track);
+			} else if (sample_desc.isMetadata()) {
+				movie.metadataTracks.push(track);
+			} else {
+				movie.otherTracks.push(track);
 			}
 		}
-		track.created = new Date(_1904+trak.tkhd.creation_time*1000);
-		track.modified = new Date(_1904+trak.tkhd.modification_time*1000);
-		track.movie_duration = trak.tkhd.duration;
-		track.layer = trak.tkhd.layer;
-		track.alternate_group = trak.tkhd.alternate_group;
-		track.volume = trak.tkhd.volume;
-		track.matrix = trak.tkhd.matrix;
-		track.track_width = trak.tkhd.width/(1<<16);
-		track.track_height = trak.tkhd.height/(1<<16);
-		track.timescale = trak.mdia.mdhd.timescale;
-		track.duration = trak.mdia.mdhd.duration;
-		track.codec = sample_desc.getCodec();	
-		track.kind = (trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: "", value: ""});
-		track.language = (trak.mdia.elng ? trak.mdia.elng.extended_language : trak.mdia.mdhd.languageString);
-		track.nb_samples = trak.samples.length;
-		track.size = 0;
-		for (j = 0; j < track.nb_samples; j++) {
-			track.size += trak.samples[j].size;
-		}
-		track.bitrate = (track.size*8*track.timescale)/track.duration;
-		if (sample_desc.isAudio()) {
-			movie.audioTracks.push(track);
-			track.audio = {};
-			track.audio.sample_rate = sample_desc.getSampleRate();		
-			track.audio.channel_count = sample_desc.getChannelCount();		
-			track.audio.sample_size = sample_desc.getSampleSize();		
-		} else if (sample_desc.isVideo()) {
-			movie.videoTracks.push(track);
-			track.video = {};
-			track.video.width = sample_desc.getWidth();		
-			track.video.height = sample_desc.getHeight();		
-		} else if (sample_desc.isSubtitle()) {
-			movie.subtitleTracks.push(track);
-		} else if (sample_desc.isHint()) {
-			movie.hintTracks.push(track);
-		} else if (sample_desc.isMetadata()) {
-			movie.metadataTracks.push(track);
-		} else {
-			movie.otherTracks.push(track);
-		}
+	} else {
+		movie.hasMoov = false;
 	}
 	return movie;
 }

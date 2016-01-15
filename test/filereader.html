@@ -13,6 +13,8 @@
   		<link href="lib/fancytree/ui.fancytree.min.css" rel="stylesheet" type="text/css">
   		<script src="lib/fancytree/jquery.fancytree-all.min.js" type="text/javascript"></script>
 
+  		<script type="text/javascript" src="lib/d3/d3.js"></script>
+
         <link rel="stylesheet" href="style.css" />
 		<script src="../dist/mp4box.all.js"></script>
 		<script src="sample-urls.js"></script>
@@ -47,7 +49,74 @@
 		  overflow: auto;
 		  position: relative;
 		}
+
+		/* D3 Treemap styles */
+		#treemap {
+		  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		  margin: auto;
+		  position: relative;
+		  width: 960px;
+		}
 		
+		.node {
+		  border: solid 1px white;
+		  font: 10px sans-serif;
+		  line-height: 12px;
+		  overflow: hidden;
+		  position: absolute;
+		  text-indent: 2px;
+		}
+
+		.chart {
+		  display: block;
+		  margin: auto;
+		  margin-top: 60px;
+		  font-size: 11px;
+		}
+
+		rect {
+		  stroke: #eee;
+		  fill: #aaa;
+		  fill-opacity: .8;
+		}
+
+		rect.parent {
+		  cursor: pointer;
+		  fill: steelblue;
+		}
+
+		text {
+		  pointer-events: none;
+		}		
+
+		.axis path,
+		.axis line, {
+		  fill: none;
+		  stroke: #000;
+		  shape-rendering: crispEdges;
+		}
+
+		.x.axis path {
+		}
+
+		.area.above {
+		  fill: rgb(252,141,89);
+		}
+
+		.area.below {
+		  fill: rgb(145,207,96);
+		}
+
+		.line {
+		  fill: none;
+		  stroke: #000;
+		  stroke-width: 1.5px;
+		}
+
+		.ui-selectmenu-button {
+		    vertical-align: middle;
+		}
+
 		</style>
 		<link rel="stylesheet" href="style.css" />
     </head>
@@ -68,7 +137,7 @@
 		  <ul>
 		    <li><a href="#tabs-1">File loading</a></li>
 		    <li><a href="#tabs-2">HTTP URL loading</a></li>
-		    <li><a href="#tabs-3">Sample examples</a></li>
+		    <li><a href="#tabs-3">Examples</a></li>
 		  </ul>
 		  <div id="tabs-1">
 			<input type='file' id='fileinput' onchange='drop()'>
@@ -88,44 +157,64 @@
 		<div id="progressbar"><div id="progress-label" style="text-align: center;">0%</div></div>
 		<div id="resulttabs">
 		  <ul>
-		    <li><a href="#boxview">Box View</a></li>
 		    <li><a href="#movieview">Movie View</a></li>
+		    <li><a href="#boxview">Box View</a></li>
 		    <li><a href="#sampleview">Sample View</a></li>
 		    <li><a href="#itemview">Item View</a></li>
 		  </ul>
-		<div id="boxview">
-		<table>
-		<thead>
-		<tr>
-		<th>Box Tree View</th>
-		<th>Box Property View</th>
-		</tr>
-		</thead>
-		<tbody>
-		<tr>
-		<td style="width: 30%">
-		<div id="boxtree">
-		</div>
-		</td>
-		<td>
-		<div id="boxtable">
-		</div>
-		</td>
-		</tr>
-		</tbody>
-		</table>
-		</div>
-		<div id="sampleview">
-		<label>Track ID: </label><select id="trackSelect" name="trackSelect"><option></option></select>
-		<label>Sample range: </label><input type="text" id="sample-range-value" readonly>
-		<div id="sample-range"></div>
-		<div id="sampletable">
-		</div>
-		</div>
-		<div id="itemview">
-		</div>
-		<div id="movieview">
-		</div>
-		</div>
+			<div id="movieview">
+			</div>
+			<div id="boxview">
+				<ul>
+					<li><a href="#boxtreeview">Tree View</a></li>
+					<li><a href="#boxpartitionview">Partition View</a></li>
+					<li><a href="#boxmapview">Treemap View</a></li>
+				</ul>
+				<div id="boxtreeview">
+					<table>
+						<thead>
+							<tr>
+								<th>Box Tree View</th>
+								<th>Box Property View</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td style="width: 30%">
+									<div id="boxtree">
+									</div>
+								</td>
+								<td>
+									<div id="boxtable">
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="boxpartitionview">
+				</div>
+				<div id="boxmapview">
+				</div>
+			</div>
+			<div id="sampleview">
+				<label>Track ID: <select id="trackSelect" name="trackSelect"></select></label><br>
+				<label>Codec: <span id="trackinfo"></span></label><br>
+				<label>Sample range: <span id="sample-range-value"></span></label>
+				<div id="sample-range"></div>
+				<div id="sampleviewtabs">
+					<ul>
+						<li><a href="#sampletable">Sample Table</a></li>
+						<li><a href="#samplegraph">Sample Graph</a></li>
+						<li><a href="#samplemap">Sample Map</a></li>
+					</ul>
+					<div id="sampletable"></div>
+					<div id="samplegraph"></div>
+					<div id="samplemap"></div>
+				</div>
+			</div>
+			<div id="itemview">
+			</div>
+		</div>			
 	</body>
 </html>

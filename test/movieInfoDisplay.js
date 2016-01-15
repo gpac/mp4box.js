@@ -83,61 +83,73 @@ function getAudioTrackInfo(track) {
 	return html;
 }
 
+function generateTrackHeader(type) {
+	var html = '';
+	html += "<tr>";
+	html += getBasicTrackHeader();
+	switch (type) {
+		case "Video":
+			html += getVideoTrackHeader();
+			break;				
+		case "Audio":
+			html += getAudioTrackHeader();
+			break;				
+		case "Subtitle":
+			break;				
+		case "Metadata":
+			break;				
+		case "Hint":
+			break;				
+		default:
+			break;				
+	}
+	if (displaySourceBuffer) {
+		html += "<th>Source Buffer Status</th>";
+	}
+	html += "</tr>";
+	return html;
+}
+
+function generateTrackInfo(track, type) {
+	var html = '';
+	html += "<tr>";
+	html += getBasicTrackInfo(track);
+	switch (type) {
+		case "Video":
+			html += getVideoTrackInfo(track);
+			break;				
+		case "Audio":
+			html += getAudioTrackInfo(track);
+			break;				
+		case "Subtitle":
+			break;				
+		case "Metadata":
+			break;				
+		case "Hint":
+			break;	
+		default:
+			break;
+	}					
+	if (displaySourceBuffer) {
+		var mime = 'video/mp4; codecs=\"'+track.codec+'\"';
+		if (MediaSource.isTypeSupported(mime)) {
+			html += "<td id=\"buffer"+track.id+"\">"+"<input id=\"addTrack"+track.id+"\" type=\"checkbox\">"+"</td>";
+		} else {
+			html += "<td>Not supported by your browser, exposing track content using HTML TextTrack <input id=\"addTrack"+track.id+"\" type=\"checkbox\"></td>";
+		}
+	}
+	html += "</tr>";
+	return html;
+}
+
 function getTrackListInfo(tracks, type) {
 	var html = '';
 	if (tracks.length>0) {
 		html += type+" track(s) info";
 		html += "<table>";
-		html += "<tr>";
-		html += getBasicTrackHeader();
-		switch (type) {
-			case "Video":
-				html += getVideoTrackHeader();
-				break;				
-			case "Audio":
-				html += getAudioTrackHeader();
-				break;				
-			case "Subtitle":
-				break;				
-			case "Metadata":
-				break;				
-			case "Hint":
-				break;				
-			default:
-				break;				
-		}
-		if (displaySourceBuffer) {
-			html += "<th>Source Buffer Status</th>";
-		}
-		html += "</tr>";
+		html += generateTrackHeader(type)
 		for (var i = 0; i < tracks.length; i++) {
-			html += "<tr>";
-			html += getBasicTrackInfo(tracks[i]);
-			switch (type) {
-				case "Video":
-					html += getVideoTrackInfo(tracks[i]);
-					break;				
-				case "Audio":
-					html += getAudioTrackInfo(tracks[i]);
-					break;				
-				case "Subtitle":
-					break;				
-				case "Metadata":
-					break;				
-				case "Hint":
-					break;	
-				default:
-					break;
-			}					
-			if (displaySourceBuffer) {
-				var mime = 'video/mp4; codecs=\"'+tracks[i].codec+'\"';
-				if (MediaSource.isTypeSupported(mime)) {
-					html += "<td id=\"buffer"+tracks[i].id+"\">"+"<input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\">"+"</td>";
-				} else {
-					html += "<td>Not supported by your browser, exposing track content using HTML TextTrack <input id=\"addTrack"+tracks[i].id+"\" type=\"checkbox\"></td>";
-				}
-			}
-			html += "</tr>";
+			html += generateTrackInfo(tracks[i], type);
 		}
 		html += "</table>";	
 	}
