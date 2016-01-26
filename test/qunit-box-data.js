@@ -128,5 +128,18 @@ var boxtests = [
 			event_duration:	1,
 			id:	1							
 		}
-	}
+	},
+    {
+        url: boxTestBaseUrl + "/mp4/box/sidx.mp4",
+        rangeStart: 972,
+        rangeSize: 45,
+        boxname: "hdlr",
+        data: {
+            type: "hdlr",
+            size: 45,
+            componentType: "\u0000\u0000\u0000\u0000",
+            componentSubType: "soun",
+            name: "SoundHandler"
+        }
+    }
 ];
