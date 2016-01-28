@@ -81,6 +81,8 @@ var BPG = function(bitStream) {
 	    for (i = 0; bitStream.dataView._offset < bitStream.dataView.byteLength; i++) {
 	        this.hevc_data_byte[i] = bitStream.dataView.getUnsigned(8);
 	    }
+        var frame = new HEVCFrame();
+        var nalus = frame.parseNALs(this.hevc_data_byte);
 	}
 
     console.log("BPG loaded");

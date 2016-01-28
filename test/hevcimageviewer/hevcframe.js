@@ -690,3 +690,49 @@ HEVCFrame.prototype.toBPG = function(fileSize, dts) {
 
     return bpg;
 }
+
+/**
+ * Parsese a buffer to find NAL units, removing start codes and emulation preventions bytes 
+ * @param  ArrayBuffer data NALU in Annex B format
+ * @return Array      NAL Units without start codes and epb
+ */
+HEVCFrame.prototype.parseNALs = function(parsedData) {
+	var i;
+	var frames = [];
+	var nalus = [];
+	var nalu = [];
+	var prev_nalu_type = -1;
+	function processEndOfNAL() {
+		if (nalu.length) {
+			nalu = HEVCFrame.prototype.removeEmulationBytes(nalu);
+			var nalu_type = ((nalu[0]>>1)&0x3F);
+			var first_slice_in_pic = nalu[2] & 0x80;
+			if (prev_nalu_type > 0 && prev_nalu_type !== 34) {
+				if (first_slice_in_pic) {
+					/* assuming new frame */
+					frames.push(nalus);
+					nalus = [];
+				}
+			}
+			nalus.push(nalu);
+			nalu = [];
+			prev_nalu_type = nalu_type;
+		}
+	}
+	for (i = 0; i < parsedData.length; i++) {
+		if (i+2 < parsedData.length && parsedData[i] == 0x0 && parsedData[i+1] == 0x0 && parsedData[i+2] == 0x1) {
+			/* found start code, end current NALU, start a new one and skip the current bytes */
+			processEndOfNAL();
+			i+=2;
+		} else if (i+3 < parsedData.length && parsedData[i] == 0x0 && parsedData[i+1] == 0x0 && parsedData[i+2] == 0x0 && parsedData[i+3] == 0x1) {
+			/* found start code, end current NALU, start a new one and skip the current bytes */
+			processEndOfNAL();
+			i+=3;
+		} else {
+			nalu.push(parsedData[i]);
+		}
+	}
+	processEndOfNAL();
+	frames.push(nalus);
+	return frames;
+}
