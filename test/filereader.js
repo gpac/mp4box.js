@@ -602,8 +602,8 @@ function buildSampleJSON(start, end) {
 	json.children = [];
 	for (i = 0; i < info.tracks.length; i++) {
 		samples = mp4box.getTrackSamplesInfo(info.tracks[i].id);
-		for (var j = start; j < (samples.length > end ? end : samples.length); j++) {
-			var s = samples[j];  
+		for (j = start; j < (samples.length > end ? end : samples.length); j++) {
+			s = samples[j];  
 			json.children.push({
 				track: i,
 				number: j,
