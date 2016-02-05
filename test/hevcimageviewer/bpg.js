@@ -81,8 +81,7 @@ var BPG = function(bitStream) {
 	    for (i = 0; bitStream.dataView._offset < bitStream.dataView.byteLength; i++) {
 	        this.hevc_data_byte[i] = bitStream.dataView.getUnsigned(8);
 	    }
-        var frame = new HEVCFrame();
-        var nalus = frame.parseNALs(this.hevc_data_byte);
+        this.frames = HEVCFrame.prototype.parseNALs(this.hevc_data_byte);
 	}
 
     console.log("BPG loaded");
@@ -397,4 +396,9 @@ BPG.prototype.buildImage = function(imageData, canvas) {
     image.appendChild(downloadButton);
     image.appendChild(closeButton);
     image.appendChild(canvasImage);
+}
+
+if (typeof exports !== 'undefined') {
+var HEVCFrame = require('./hevcframe.js').HEVCFrame;
+    exports.BPG = BPG;  
 }

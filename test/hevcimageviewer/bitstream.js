@@ -38,6 +38,7 @@ BitStream.prototype.numToExpGolomb = function(num) {
     
     this.dataView.writeUnsigned(0, length >> 1)
     this.dataView.writeUnsigned(num, (length+1) >> 1)
+    return (length >> 1) + ((length+1) >> 1);
 }
 
 // Function that decodes a Exp-Golomb code (unsigned order k=0) on the stream into a number
@@ -106,4 +107,10 @@ BitStream.prototype.numToue7n = function(num) {
     }
 
     this.dataView.writeUnsigned(res, numBytesFinal*8);
+    return numBytesFinal*8;
+}
+
+if (typeof exports !== 'undefined') {
+    var jDataView = require('../lib/jdataview/jdataview.js');
+    exports.BitStream = BitStream;  
 }

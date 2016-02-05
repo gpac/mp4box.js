@@ -19,6 +19,182 @@ var HEVCFrame = function() {
 	this.height = null;
 }	
 
+HEVCFrame.prototype.writeVPS = function () {
+	var ab = new ArrayBuffer(100);
+	var bs = new BitStream(ab);
+	var nbBits = 0;
+
+	/* NALU Header */
+	bs.dataView.writeUnsigned(0, 1); /* forbidden zero */
+	bs.dataView.writeUnsigned(32, 6); /*nal_unit_type*/
+	bs.dataView.writeUnsigned(0, 6); /* nuh_layer_id */
+	bs.dataView.writeUnsigned(1, 3); /* nuh_temporal_id_plus1 */
+	nbBits+= 16;
+
+	/* VPS payload */
+	bs.dataView.writeUnsigned(0, 4); /* vps_video_parameter_set_id */
+	bs.dataView.writeUnsigned(1, 1); /* vps_base_layer_internal_flag */
+	bs.dataView.writeUnsigned(1, 1); /* vps_base_layer_available_flag */
+	bs.dataView.writeUnsigned(0, 6); /* vps_max_layers_minus1 */
+	bs.dataView.writeUnsigned(0, 3); /* vps_max_sub_layers_minus1 */
+	bs.dataView.writeUnsigned(0, 1); /* vps_temporal_id_nesting_flag */
+	bs.dataView.writeUnsigned(0xffff, 16); /* vps_reserved_0xffff_16bits */
+	nbBits+=32;
+
+	nbBits+=HEVCFrame.prototype.writePTL(bs);
+
+	bs.dataView.writeUnsigned(0, 1); /* vps_sub_layer_ordering_info_present_flag */
+	nbBits++;
+	nbBits+=bs.numToExpGolomb(0);	/* vps_max_dec_pic_buffering_minus1 */
+	nbBits+=bs.numToExpGolomb(0);	/* vps_max_num_reorder_pics */
+	nbBits+=bs.numToExpGolomb(0);	/* vps_max_latency_increase_plus1 */
+	bs.dataView.writeUnsigned(0, 6); /* vps_max_layer_id */
+	nbBits+=6;
+	nbBits+=bs.numToExpGolomb(0);	/* vps_num_layer_sets_minus1 */
+	bs.dataView.writeUnsigned(0, 1); /* vps_timing_info_present_flag */
+	bs.dataView.writeUnsigned(0, 1); /* vps_extension_flag */
+	nbBits+=2;
+	nbBits = HEVCFrame.prototype.writeTrailingBits(bs, nbBits);
+
+	var nbBytes = nbBits/8;
+	ab = ab.slice(0,nbBytes);	
+	var u8 = new Uint8Array(ab);
+	u8 = HEVCFrame.prototype.addEmulationBytes(u8);
+	u8 = HEVCFrame.prototype.addStartCode(u8);
+	return u8.buffer;
+}
+
+HEVCFrame.prototype.writeTrailingBits = function (bs, nbBits) {
+	/* trailing bits */
+	bs.dataView.writeUnsigned(1, 1);
+	nbBits++;
+	while (nbBits % 8 != 0) {
+		bs.dataView.writeUnsigned(0, 1);
+		nbBits++;
+	}
+	return nbBits;
+}
+
+HEVCFrame.prototype.writePTL = function (bs) {
+	var nbBits = 0;
+
+	/* profile_tier_level */
+	bs.dataView.writeUnsigned(0, 2);
+	bs.dataView.writeUnsigned(0, 1);
+	bs.dataView.writeUnsigned(0, 5);
+	bs.dataView.writeUnsigned(0, 32);
+	bs.dataView.writeUnsigned(0, 1);
+	bs.dataView.writeUnsigned(0, 1);
+	bs.dataView.writeUnsigned(0, 1);
+	bs.dataView.writeUnsigned(0, 1);
+	bs.dataView.writeUnsigned(0, 43);
+	bs.dataView.writeUnsigned(0, 1);
+	nbBits+= 88;
+
+	bs.dataView.writeUnsigned(0, 8); /* general_level_idc */
+	nbBits+= 8;
+
+	/* sps_max_sub_layers_minus1 = 0; */
+	return nbBits;
+}
+
+HEVCFrame.prototype.writeSPS = function () {
+	var ab = new ArrayBuffer(100);
+	var bs = new BitStream(ab);
+	var nbBits = 0;
+
+	/* NALU Header */
+	bs.dataView.writeUnsigned(0, 1); /* forbidden zero */
+	bs.dataView.writeUnsigned(33, 6); /*nal_unit_type*/
+	bs.dataView.writeUnsigned(0, 6); /* nuh_layer_id */
+	bs.dataView.writeUnsigned(1, 3); /* nuh_temporal_id_plus1 */
+	nbBits+= 16;
+
+	/* SPS payload */
+	bs.dataView.writeUnsigned(0, 4); /* sps_video_parameter_set_id */
+	bs.dataView.writeUnsigned(0, 3); /* sps_max_sub_layers_minus1 */
+	bs.dataView.writeUnsigned(0, 1); /* sps_temporal_id_nesting_flag */
+	nbBits+= 8;
+	
+	nbBits+=HEVCFrame.prototype.writePTL(bs);
+
+	nbBits+=bs.numToExpGolomb(0);	/* sps_seq_parameter_set_id */
+	nbBits+=bs.numToExpGolomb(this.SPS.chroma_format_idc); /* chroma_format_idc */
+	if (this.SPS.chroma_format_idc == 3) {
+		bs.dataView.writeUnsigned(0, 1); /* separate_colour_plane_flag  */
+		nbBits++;
+	}
+	nbBits+=bs.numToExpGolomb(this.SPS.pic_width_in_luma_samples);	/* pic_width_in_luma_samples */
+	nbBits+=bs.numToExpGolomb(this.SPS.pic_height_in_luma_samples);	/* pic_height_in_luma_samples */
+	bs.dataView.writeUnsigned(0, 1); /*conformance_window_flag*/
+	nbBits++;
+	nbBits+=bs.numToExpGolomb(this.SPS.bit_depth_luma_minus8);	/* bit_depth_luma_minus8 */
+	nbBits+=bs.numToExpGolomb(this.SPS.bit_depth_chroma_minus8);	/* bit_depth_chroma_minus8 */
+	nbBits+=bs.numToExpGolomb(4);	/* log2_max_pic_order_cnt_lsb_minus4 */
+	bs.dataView.writeUnsigned(0, 1); /*sps_sub_layer_ordering_info_present_flag*/
+	nbBits++;
+	nbBits+=bs.numToExpGolomb(0);	/* sps_max_dec_pic_buffering_minus1 */
+	nbBits+=bs.numToExpGolomb(0);	/* sps_max_num_reorder_pics */
+	nbBits+=bs.numToExpGolomb(0);	/* sps_max_latency_increase_plus1 */
+	nbBits+=bs.numToExpGolomb(this.SPS.log2_min_luma_coding_block_size_minus3);	/* log2_min_luma_coding_block_size_minus3 */
+	nbBits+=bs.numToExpGolomb(this.SPS.log2_diff_max_min_luma_coding_block_size);	/* log2_diff_max_min_luma_coding_block_size */
+	nbBits+=bs.numToExpGolomb(this.SPS.log2_min_transform_block_size_minus2);	/* log2_min_luma_transform_block_size_minus2 */
+	nbBits+=bs.numToExpGolomb(this.SPS.log2_diff_max_min_transform_block_size);	/* log2_diff_max_min_luma_transform_block_size */
+	nbBits+=bs.numToExpGolomb(this.SPS.max_transform_hierarchy_depth_inter);	/* max_transform_hierarchy_depth_inter */
+	nbBits+=bs.numToExpGolomb(this.SPS.max_transform_hierarchy_depth_intra);	/* max_transform_hierarchy_depth_intra */
+	bs.dataView.writeUnsigned(0, 1); /*scaling_list_enabled_flag */
+	bs.dataView.writeUnsigned(1, 1); /*amp_enabled_flag */
+	bs.dataView.writeUnsigned(this.SPS.sample_adaptive_offset_enabled_flag, 1); /*sample_adaptive_offset_enabled_flag */
+	bs.dataView.writeUnsigned(this.SPS.pcm_enabled_flag, 1); /*pcm_enabled_flag */
+	nbBits+= 4;
+	if (this.SPS.pcm_enabled_flag) {
+		bs.dataView.writeUnsigned(this.SPS.pcm_sample_bit_depth_luma_minus1, 4); /*pcm_sample_bit_depth_luma_minus1*/
+		nbBits += 4;
+		bs.dataView.writeUnsigned(this.SPS.pcm_sample_bit_depth_chroma_minus1, 4); /*pcm_sample_bit_depth_chroma_minus1*/
+		nbBits += 4;
+		nbBits+=bs.numToExpGolomb(this.SPS.log2_min_pcm_luma_coding_block_size_minus3);	/* log2_min_pcm_luma_coding_block_size_minus3 */
+		nbBits+=bs.numToExpGolomb(this.SPS.log2_diff_max_min_pcm_luma_coding_block_size);	/* log2_diff_max_min_pcm_luma_coding_block_size */
+		bs.dataView.writeUnsigned(this.SPS.pcm_loop_filter_disabled_flag, 4); /*pcm_loop_filter_disabled_flag*/
+		nbBits ++;
+	}
+
+	nbBits+=bs.numToExpGolomb(0);	/* num_short_term_ref_pic_sets */
+	bs.dataView.writeUnsigned(0, 1); /*long_term_ref_pics_present_flag */
+	bs.dataView.writeUnsigned(1, 1); /*sps_temporal_mvp_enabled_flag */
+	bs.dataView.writeUnsigned(this.SPS.strong_intra_smoothing_enabled_flag, 1); /*strong_intra_smoothing_enabled_flag */
+	bs.dataView.writeUnsigned(0, 1); /*vui_parameters_present_flag */
+	bs.dataView.writeUnsigned(this.SPS.sps_extension_present_flag, 1); /*sps_extension_present_flag */
+	nbBits+=4;
+
+	if (this.SPS.sps_extension_present_flag) {
+		bs.dataView.writeUnsigned(this.SPS.sps_range_extension_flag, 1); /*sps_range_extension_flag */
+		bs.dataView.writeUnsigned(this.SPS.sps_extension_7bits, 7); /*sps_range_extension_flag */
+		nbBits+=8;
+	}
+
+	if (this.SPS.sps_range_extension_flag) {
+		bs.dataView.writeUnsigned(this.SPS.transform_skip_rotation_enabled_flag, 1); /* transform_skip_rotation_enabled_flag */
+		bs.dataView.writeUnsigned(this.SPS.transform_skip_rotation_enabled_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.transform_skip_context_enabled_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.implicit_rdpcm_enabled_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.explicit_rdpcm_enabled_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.extended_precision_processing_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.intra_smoothing_disabled_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.high_precision_offsets_enabled_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.persistent_rice_adaptation_enabled_flag, 1);
+		bs.dataView.writeUnsigned(this.SPS.cabac_bypass_alignment_enabled_flag, 1);
+		nbBits+=10;
+	}	
+	nbBits = HEVCFrame.prototype.writeTrailingBits(bs, nbBits);
+
+	var nbBytes = nbBits/8;
+	ab = ab.slice(0,nbBytes);	
+	var u8 = new Uint8Array(ab);
+	u8 = HEVCFrame.prototype.addEmulationBytes(u8);
+	u8 = HEVCFrame.prototype.addStartCode(u8);
+	return u8.buffer;
+}
+
 // Function that reads the SPS NAL Unit of a MP4(HEVC), decode and stock them in a structure
 HEVCFrame.prototype.readSPS = function (nalu) {
 	var i, j;
@@ -147,7 +323,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 		// log2_diff_max_min_transform_block_size ue(v)
 		this.SPS.log2_diff_max_min_transform_block_size = bitStreamRead.expGolombToNum();
 		// max_transform_hierarchy_depth_inter ue(v)
-		bitStreamRead.expGolombToNum();
+		this.SPS.max_transform_hierarchy_depth_inter = bitStreamRead.expGolombToNum();
 		// max_transform_hierarchy_depth_intra ue(v)
 		this.SPS.max_transform_hierarchy_depth_intra = bitStreamRead.expGolombToNum();
 		
@@ -553,15 +729,24 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 	}
 }
 
-// Function that removes Emulation Bytes  
-HEVCFrame.prototype.removeEmulationBytes = function(nalu) {
+HEVCFrame.prototype.addStartCode = function(u8nalu) {
+	var u8dst = new Uint8Array(u8nalu.length+3);
+	u8dst[0] = 0;
+	u8dst[1] = 0;
+	u8dst[2] = 1;
+	for (var i = 0; i < u8nalu.length; i++) {
+			u8dst[3+i]=u8nalu[i];
+	}
+	return u8dst;
+}
 
-	var emulationBytesCount = 0;
-	var numZeros = 0;
-	var arrayBuffer = new ArrayBuffer(nalu.length);
-	var parsedNalu = new Uint8Array(arrayBuffer);
-
-	for (var i = 0; i < nalu.length; i++) {
+HEVCFrame.prototype.addEmulationBytes = function(u8nalu) {
+	var i, emulation_bytes_count, num_zero;
+	i = 0;
+	emulation_bytes_count = 0;
+	num_zero = 0;
+	var u8nalu_dst = new Uint8Array(u8nalu.length*3);
+	while (i < u8nalu.length) {
 		/*ISO 14496-10: "Within the NAL unit, any four-byte sequence that starts with 0x000003
 		other than the following sequences shall not occur at any byte-aligned position:
 		0x00000300
@@ -569,16 +754,51 @@ HEVCFrame.prototype.removeEmulationBytes = function(nalu) {
 		0x00000302
 		0x00000303"
 		*/
-		if (numZeros === 2 && nalu[i] === 0x03 && i+1 < nalu.length /*next byte is readable*/ && nalu[i+1] < 0x04)	{
+		if (num_zero == 2 && u8nalu[i] < 0x04) {
+			/*add emulation code*/
+			num_zero = 0;
+			u8nalu_dst[i+emulation_bytes_count] = 0x03;
+			emulation_bytes_count++;
+			if (!u8nalu[i])
+				num_zero = 1;
+		} else {
+			if (!u8nalu[i])
+				num_zero++;
+			else
+				num_zero = 0;
+		}
+		u8nalu_dst[i+emulation_bytes_count] = u8nalu[i];
+		i++;
+	}
+	return u8nalu_dst.slice(0, u8nalu.length+emulation_bytes_count);
+}
+
+// Function that removes Emulation Bytes  
+HEVCFrame.prototype.removeEmulationBytes = function(u8nalu) {
+
+	var emulationBytesCount = 0;
+	var numZeros = 0;
+	var arrayBuffer = new ArrayBuffer(u8nalu.length);
+	var parsedNalu = new Uint8Array(arrayBuffer);
+
+	for (var i = 0; i < u8nalu.length; i++) {
+		/*ISO 14496-10: "Within the NAL unit, any four-byte sequence that starts with 0x000003
+		other than the following sequences shall not occur at any byte-aligned position:
+		0x00000300
+		0x00000301
+		0x00000302
+		0x00000303"
+		*/
+		if (numZeros === 2 && u8nalu[i] === 0x03 && i+1 < u8nalu.length /*next byte is readable*/ && u8nalu[i+1] < 0x04)	{
 			/*emulation code found*/
 			numZeros = 0;
 			emulationBytesCount++;
 			i++;
 		}
 
-		parsedNalu[i-emulationBytesCount] = nalu[i];
+		parsedNalu[i-emulationBytesCount] = u8nalu[i];
 
-		if (!nalu[i])
+		if (!u8nalu[i])
 			numZeros++;
 		else
 			numZeros = 0;
@@ -589,28 +809,27 @@ HEVCFrame.prototype.removeEmulationBytes = function(nalu) {
 // Function that parses and read VCL and SEI (removing the Starting Length from each data NALU and adding a Starting Code)
 // Starting Length: size from lengthSizeMinusOne property  
 // Starting Code: 0x00000001
-HEVCFrame.prototype.readData = function(data, headerLength) {
-	var arrayBuffer = new ArrayBuffer(data.length);
-	var parsedData = new Uint8Array(arrayBuffer);
+HEVCFrame.prototype.readData = function(u8data, headerLength) {
+	var arrayBuffer = new ArrayBuffer(u8data.length);
+	var parsedU8Data = new Uint8Array(arrayBuffer);
 	var naluLength = 0; // Length of each NALU
-	var i /* data iterator */, j /* parsedData iterator */, k /* NALU iterator */, l;
-	for (i = 0, j = 0, k = 0; i < data.length; i++, j++, k++) {
+	var i /* u8data iterator */, j /* parsedU8Data iterator */, k /* NALU iterator */, l;
+	for (i = 0, j = 0, k = 0; i < u8data.length; i++, j++, k++) {
 		if (k === naluLength) {
 			naluLength = 0;
 			k = 0;
 			// Get the length of the next NALU
 			for (l = headerLength + i; i < l ; i++)
-				naluLength += data[i] * Math.pow(2, (l - i - 1) * 8);
+				naluLength += u8data[i] * Math.pow(2, (l - i - 1) * 8);
 			// Insert Start Code
 			for (l = 3 + j; j < l; j++)
-				parsedData[j] = 0;
-			parsedData[j] = 1;
+				parsedU8Data[j] = 0;
+			parsedU8Data[j] = 1;
 			j++;
 		}
-		parsedData[j] = data[i];
+		parsedU8Data[j] = u8data[i];
 	}
-
-	this.data = parsedData;
+	this.data = parsedU8Data;
 }
 
 HEVCFrame.prototype.toBPG = function(fileSize, dts) {
@@ -735,4 +954,9 @@ HEVCFrame.prototype.parseNALs = function(parsedData) {
 	processEndOfNAL();
 	frames.push(nalus);
 	return frames;
+}
+
+if (typeof exports !== 'undefined') {
+	var BitStream = require('./bitstream.js').BitStream;
+	exports.HEVCFrame = HEVCFrame;	
 }
