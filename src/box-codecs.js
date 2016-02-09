@@ -19,7 +19,7 @@ BoxParser.SampleEntry.prototype.isHint = function() {
 }
 
 BoxParser.SampleEntry.prototype.getCodec = function() {
-	return this.type;
+	return this.type.replace('.','');
 }
 
 BoxParser.SampleEntry.prototype.getWidth = function() {
