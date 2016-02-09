@@ -120,7 +120,8 @@ ISOFile.prototype.buildSampleLists = function() {
 				}
 			}
 
-			sample.description = stsd.entries[stsc.sample_description_index[sample.chunk_run_index]-1];
+			sample.description_index = stsc.sample_description_index[sample.chunk_run_index]-1;
+			sample.description = stsd.entries[sample.description_index];
 			sample.offset = stco.chunk_offsets[sample.chunk_index-1] + offset_in_chunk; /* chunk indexes are 1-based */
 			offset_in_chunk += sample.size;
 
@@ -221,7 +222,8 @@ ISOFile.prototype.updateSampleLists = function() {
 						trak.samples.push(sample);
 						sample.track_id = trak.tkhd.track_id;
 						sample.timescale = trak.mdia.mdhd.timescale;
-						sample.description = trak.mdia.minf.stbl.stsd.entries[default_sample_description_index-1];
+						sample.description_index = default_sample_description_index-1;
+						sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
 						sample.size = default_sample_size;
 						if (trun.flags & BoxParser.TRUN_FLAGS_SIZE) {
 							sample.size = trun.sample_size[k];

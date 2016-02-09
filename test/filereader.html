@@ -7,7 +7,8 @@
 		<!-- Include basic JQuery and JQuery UI files -->
 		<script src="lib/jquery/jquery.js"></script>		
   		<link href="lib/jquery-ui/jquery-ui.min.css" rel="stylesheet" type="text/css">
-		<script src="lib/jquery-ui/jquery-ui.min.js"></script>		
+		<script src="lib/jquery-ui/jquery-ui.min.js"></script>
+		<script src="lib/jquery-ui/jquery-ui.slider.custom.js"></script>
 		
 		<!-- Include JQuery-based Fancytree skin, library, and extensions -->
   		<link href="lib/fancytree/ui.fancytree.min.css" rel="stylesheet" type="text/css">
@@ -70,7 +71,6 @@
 		.chart {
 		  display: block;
 		  margin: auto;
-		  margin-top: 60px;
 		  font-size: 11px;
 		}
 
@@ -131,8 +131,7 @@
 			<script async defer id="github-bjs" src="https://buttons.github.io/buttons.js"></script>
 		</div>
 
-		<h2>MP4Box.js</h2>
-		<h3>ISOBMFF Box Structure Viewer (see also <a href="./">File Player</a>)</h3>
+		<h2>MP4Box.js / ISOBMFF Box Structure Viewer (see also <a href="./">File Player</a>)</h3>
 		<div id="tabs">
 		  <ul>
 		    <li><a href="#tabs-1">File loading</a></li>
@@ -198,9 +197,9 @@
 				</div>
 			</div>
 			<div id="sampleview">
-				<label>Track ID: <select id="trackSelect" name="trackSelect"></select></label><br>
-				<label>Codec: <span id="trackinfo"></span></label><br>
-				<label>Sample range: <span id="sample-range-value"></span></label>
+				<label>Track ID: <select id="trackSelect" name="trackSelect"></select></label>&nbsp;
+				<label>Codec: <input type="text" disabled id="trackinfo"></label>&nbsp;
+				<label>Sample range: <input type="text" disabled id="sample-range-value"></label>
 				<div id="sample-range"></div>
 				<div id="sampleviewtabs">
 					<ul>
