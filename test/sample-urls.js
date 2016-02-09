@@ -8,6 +8,7 @@ var sampleUrls = [
 			{ url: "./mp4/Bad.Influence.se4ep13.mp4", desc: "Bad Influence (S04E13 from Archive.org, 20 min, unfragmented, AVC+AAC, 117MB)"},
 			{ url: "http://storage.googleapis.com/peer5_vod/sintel-2048-surround.mp4", desc: "Sintel (from Peer5, 15 min, non-fragmented, non-progressive, 310MB)"},
 			{ url: "http://akamai-progressive.irt.de/irt_subs/webvtt/nick.mp4", desc: "Nick and the roundabouts (from IRT, 5 min, non-fragmented, WebVTT in MP4, 77MB)"},
+			{ url: "./mp4/counter_french.mp4", desc: "MP3 in MP4"},
 		]
 	},
 	{ 
