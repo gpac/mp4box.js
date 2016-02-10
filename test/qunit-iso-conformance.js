@@ -7,6 +7,7 @@ function makeBoxParsingTest(fileIndex) {
 			var file = new ISOFile(mbs);
 			mbs.insertBuffer(buffer);
 			file.parse();
+			file.write(new DataStream(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN));
 			assert.ok(true, "file "+conformanceFiles[fileIndex]+" parsing");
 			QUnit.start();
 		};
