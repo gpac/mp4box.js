@@ -1,35 +1,36 @@
+if (typeof exports !== 'undefined') {
+	exports = rewrite;	
+}
+
 var fs = require('fs');
 var MP4Box = require('../../dist/mp4box.all.js').MP4Box;
 
-if (process.argv.length < 3) {
-	console.log("usage: node rewrite.js <inputfilename> <outputfilename>");
-	return;
-}
+function rewrite(infile, outfile) {
+	var outfile = fs.createWriteStream(outfile);
 
-var outfile = fs.createWriteStream(process.argv[3]);
+	var mp4box = new MP4Box();
 
-var mp4box = new MP4Box();
-
-mp4box.onReady = function (info) {
-}
-
-var filePos = 0;
-var filereader = fs.createReadStream(process.argv[2]);
-filereader.on('readable', function () {
-	//console.log("Readable event");
-	var chunk = filereader.read();
-	//console.log("Read chunk", chunk);
-	if (chunk) {
-		var arrayBuffer = toArrayBuffer(chunk);
-		//console.log("ArrayBuffer", arrayBuffer);
-		arrayBuffer.fileStart = filePos;
-		filePos += arrayBuffer.byteLength;
-		mp4box.appendBuffer(arrayBuffer);
-	} else {
-		mp4box.flush();		
-		outfile.write(toBuffer(mp4box.writeFile()));
+	mp4box.onReady = function (info) {
 	}
-});
+
+	var filePos = 0;
+	var filereader = fs.createReadStream(infile);
+	filereader.on('readable', function () {
+		//console.log("Readable event");
+		var chunk = filereader.read();
+		//console.log("Read chunk", chunk);
+		if (chunk) {
+			var arrayBuffer = toArrayBuffer(chunk);
+			//console.log("ArrayBuffer", arrayBuffer);
+			arrayBuffer.fileStart = filePos;
+			filePos += arrayBuffer.byteLength;
+			mp4box.appendBuffer(arrayBuffer);
+		} else {
+			mp4box.flush();		
+			outfile.write(toBuffer(mp4box.writeFile()));
+		}
+	});	
+}
 
 
 function toArrayBuffer(buffer) {
@@ -49,3 +50,11 @@ function toBuffer(ab) {
     }
     return buffer;
 }
+
+if (process.argv.length < 3) {
+	console.log("usage: node rewrite.js <inputfilename> <outputfilename>");
+	return;
+} else {
+	rewrite(process.argv[2], process.argv[3]);
+}
+
