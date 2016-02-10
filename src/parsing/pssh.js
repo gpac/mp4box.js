@@ -9,6 +9,8 @@ BoxParser.psshBox.prototype.parse = function(stream) {
 		}
 	} 
 	var datasize = stream.readUint32();
-	this.data = stream.readUint8Array(datasize);
+	if (datasize > 0) {
+		this.data = stream.readUint8Array(datasize);
+	}
 }
 
