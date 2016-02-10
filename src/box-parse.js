@@ -85,6 +85,15 @@ BoxParser.Box.prototype.parseDataAndRewind = function(stream) {
 	stream.position -= this.size-this.hdr_size;
 }
 
+BoxParser.FullBox.prototype.parseDataAndRewind = function(stream) {
+	this.parseFullHeader(stream);
+	this.data = stream.readUint8Array(this.size-this.hdr_size);
+	// restore the header size as if the full header had not been parsed
+	this.hdr_size -= 4;
+	// rewinding
+	stream.position -= this.size-this.hdr_size;
+}
+
 BoxParser.FullBox.prototype.parseFullHeader = function (stream) {
 	this.version = stream.readUint8();
 	this.flags = stream.readUint24();
