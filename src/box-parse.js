@@ -57,7 +57,7 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 	box.hdr_size = hdr_size;
 	/* recording the position of the box in the input stream */
 	box.start = start;
-	if (box.write === BoxParser.Box.prototype.write) {
+	if (box.write === BoxParser.Box.prototype.write && box.type !== "mdat") {
 		Log.warn("BoxParser", type+" box writing not yet implemented, keeping unparsed data in memory for later write");
 		box.parseDataAndRewind(stream);
 	}
@@ -98,6 +98,11 @@ BoxParser.FullBox.prototype.parseFullHeader = function (stream) {
 	this.version = stream.readUint8();
 	this.flags = stream.readUint24();
 	this.hdr_size += 4;
+}
+
+BoxParser.FullBox.prototype.parse = function (stream) {
+	this.parseFullHeader(stream);
+	this.data = stream.readUint8Array(this.size-this.hdr_size);
 }
 
 BoxParser.ContainerBox.prototype.parse = function(stream) {
