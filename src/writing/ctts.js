@@ -10,7 +10,7 @@ BoxParser.cttsBox.prototype.write = function(stream) {
 		if (this.version === 1) {
 			stream.writeInt32(this.sample_offsets[i]); /* signed */
 		} else {			
-			stream.writeUInt32(this.sample_offsets[i]); /* unsigned */
+			stream.writeUint32(this.sample_offsets[i]); /* unsigned */
 		}
 	}
 }
