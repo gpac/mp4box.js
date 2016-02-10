@@ -6,7 +6,7 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 		this.default_length = stream.readUint32();
 	}
 	if (this.version >= 2) {
-		this.default_sample_description_index = stream.readUint32();
+		this.default_group_description_index = stream.readUint32();
 	}
 	this.entries = [];
 	var entry_count = stream.readUint32();
@@ -21,9 +21,20 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 		if (this.version === 1) {
 			if (this.default_length === 0) {
 				entry.description_length = stream.readUint32();
+			} else {
+				entry.description_length = this.default_length;
 			}
+		} else {
+			entry.description_length = this.default_length;			
 		}
-		entry.parse(stream, this.default_length || entry.description_length);
+		if (entry.write === BoxParser.SampleGroupEntry.prototype.write) {
+			Log.warn("BoxParser", " SampleEntry for type "+this.grouping_type+" writing not yet implemented, keeping unparsed data in memory for later write");
+			// storing data
+			entry.data = stream.readUint8Array(entry.description_length);
+			// rewinding
+			stream.position -= entry.description_length;
+		}
+		entry.parse(stream);
 	}
 }
 

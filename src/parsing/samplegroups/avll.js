@@ -1,4 +1,4 @@
-BoxParser.avllSampleGroupEntry.prototype.parse = function(stream, length) {
+BoxParser.avllSampleGroupEntry.prototype.parse = function(stream) {
 	this.layerNumber = stream.readUint8();
 	this.accurateStatisticsFlag = stream.readUint8();
 	this.avgBitRate = stream.readUint16();

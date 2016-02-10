@@ -1,4 +1,4 @@
-BoxParser.alstSampleGroupEntry.prototype.parse = function(stream, length) {
+BoxParser.alstSampleGroupEntry.prototype.parse = function(stream) {
 	var i;
 	var roll_count = stream.readUint16();
 	this.first_output_sample = stream.readUint16();
@@ -6,7 +6,7 @@ BoxParser.alstSampleGroupEntry.prototype.parse = function(stream, length) {
 	for (i = 0; i < roll_count; i++) {
 		this.sample_offset[i] = stream.readUint32();
 	}
-	var remaining = length - 4 - 4*roll_count;
+	var remaining = this.description_length - 4 - 4*roll_count;
 	this.num_output_samples = [];
 	this.num_total_samples = [];
 	for (i = 0; i < remaining/4; i++) {

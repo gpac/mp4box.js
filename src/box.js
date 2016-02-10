@@ -44,7 +44,7 @@ var BoxParser = {
 		[ "mdia" ],
 		[ "minf" ],
 		[ "dinf" ],
-		[ "stbl" ],
+		[ "stbl", [ "sgpd" ] ],
 		[ "mvex", [ "trex" ] ],
 		[ "moof", [ "traf" ] ],
 		[ "traf", [ "trun" ] ],
