@@ -19,7 +19,7 @@ var conformanceFiles;
 var xhr = new XMLHttpRequest();
 xhr.open('GET', 'iso-conformance-files.js', false);
 xhr.send();
-if(xhr.status == 200 || xhr.status == 0 ) {
+if(xhr.status === 200 || xhr.status === 0 ) {
   	conformanceFiles = JSON.parse(xhr.responseText);
 
 	for (var i = 0; i < conformanceFiles.length; i++) {
