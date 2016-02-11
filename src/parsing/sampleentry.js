@@ -1,11 +1,21 @@
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	stream.readUint8Array(6);
 	this.data_reference_index = stream.readUint16();
+	this.hdr_size += 8;
 }
 
 BoxParser.SampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
-	stream.seek(this.start+this.size);
+	this.data = stream.readUint8Array(this.size - this.hdr_size);
+}
+
+BoxParser.SampleEntry.prototype.parseDataAndRewind = function(stream) {
+	this.parseHeader(stream);
+	this.data = stream.readUint8Array(this.size - this.hdr_size);
+	// restore the header size as if the sample entry header had not been parsed
+	this.hdr_size -= 8;
+	// rewinding
+	stream.position -= this.size-this.hdr_size;
 }
 
 BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
@@ -44,21 +54,6 @@ BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
 	stream.readUint16();
 	stream.readUint16();
 	this.samplerate = (stream.readUint32()/(1<<16));
-	this.parseFooter(stream);
-}
-
-BoxParser.SubtitleSampleEntry.prototype.parse = function(stream) {
-	this.parseHeader(stream);
-	this.parseFooter(stream);
-}
-
-BoxParser.MetadataSampleEntry.prototype.parse = function(stream) {
-	this.parseHeader(stream);
-	this.parseFooter(stream);
-}
-
-BoxParser.SystemSampleEntry.prototype.parse = function(stream) {
-	this.parseHeader(stream);
 	this.parseFooter(stream);
 }
 

@@ -20,6 +20,10 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 			Log.warn("BoxParser", "Unknown sample entry type: "+ret.type);
 			box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start);
 		}
+		if (box.write === BoxParser.SampleEntry.prototype.write) {
+			Log.warn("BoxParser", box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
+			box.parseDataAndRewind(stream);
+		}
 		box.parse(stream);
 		this.entries.push(box);
 	}
