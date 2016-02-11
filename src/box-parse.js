@@ -58,7 +58,7 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 	/* recording the position of the box in the input stream */
 	box.start = start;
 	if (box.write === BoxParser.Box.prototype.write && box.type !== "mdat") {
-		Log.warn("BoxParser", type+" box writing not yet implemented, keeping unparsed data in memory for later write");
+		Log.warn("BoxParser", box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
 		box.parseDataAndRewind(stream);
 	}
 	box.parse(stream);
