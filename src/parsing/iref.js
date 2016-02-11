@@ -16,6 +16,10 @@ BoxParser.irefBox.prototype.parse = function(stream) {
 		} else {
 			box = new BoxParser.SingleItemTypeReferenceBoxLarge(ret.type, ret.size, ret.hdr_size, ret.start);
 		}
+		if (box.write === BoxParser.Box.prototype.write && box.type !== "mdat") {
+			Log.warn("BoxParser", box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
+			box.parseDataAndRewind(stream);
+		}
 		box.parse(stream);
 		this.references.push(box);
 	}
