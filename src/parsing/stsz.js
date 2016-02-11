@@ -10,7 +10,6 @@ BoxParser.stszBox.prototype.parse = function(stream) {
 		if (sample_size === 0) {
 			this.sample_sizes = stream.readUint32Array(sample_count);
 		} else {
-			this.sample_sizes = [];
 			for (i = 0; i < sample_count; i++) {
 				this.sample_sizes[i] = sample_size;
 			}		
