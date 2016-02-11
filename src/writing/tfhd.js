@@ -1,7 +1,7 @@
 BoxParser.tfhdBox.prototype.write = function(stream) {
 	this.version = 0;
 	this.size = 4;
-	if (this.flags & BoxParser.TFHD_FLAG_BASE_OFFSET) {
+	if (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET) {
 		this.size += 8;
 	}
 	if (this.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC) {
@@ -18,7 +18,7 @@ BoxParser.tfhdBox.prototype.write = function(stream) {
 	}
 	this.writeHeader(stream);
 	stream.writeUint32(this.track_id);
-	if (this.flags & BoxParser.TFHD_FLAG_BASE_OFFSET) {
+	if (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET) {
 		stream.writeUint64(this.base_data_offset);
 	}
 	if (this.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC) {
