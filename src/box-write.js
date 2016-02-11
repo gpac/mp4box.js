@@ -7,6 +7,9 @@ BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 	if (this.size > MAX_SIZE) {
 		this.size += 8;
 	}
+	if (this.type === "uuid") {
+		this.size += 16;
+	}
 	Log.debug("BoxWriter", "Writing box "+this.type+" of size: "+this.size+" at position "+stream.getPosition()+(msg || ""));
 	if (this.size > MAX_SIZE) {
 		stream.writeUint32(1);
@@ -15,6 +18,9 @@ BoxParser.Box.prototype.writeHeader = function(stream, msg) {
 		stream.writeUint32(this.size);
 	}
 	stream.writeString(this.type, null, 4);
+	if (this.type === "uuid") {
+		stream.writeUint8Array(this.uuid);
+	}
 	if (this.size > MAX_SIZE) {
 		stream.writeUint64(this.size);
 	} 
