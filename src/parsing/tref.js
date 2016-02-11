@@ -4,6 +4,10 @@ BoxParser.trefBox.prototype.parse = function(stream) {
 	while (stream.getPosition() < this.start+this.size) {
 		ret = BoxParser.parseOneBox(stream, true);
 		box = new BoxParser.TrackReferenceTypeBox(ret.type, ret.size, ret.hdr_size, ret.start);
+		if (box.write === BoxParser.Box.prototype.write && box.type !== "mdat") {
+			Log.warn("BoxParser", box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
+			box.parseDataAndRewind(stream);
+		}
 		box.parse(stream);
 		this.boxes.push(box);
 	}
