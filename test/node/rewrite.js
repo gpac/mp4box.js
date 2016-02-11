@@ -5,8 +5,8 @@ if (typeof exports !== 'undefined') {
 var fs = require('fs');
 var MP4Box = require('../../dist/mp4box.all.js').MP4Box;
 
-function rewrite(infile, outfile) {
-	var outfile = fs.createWriteStream(outfile);
+function rewrite(infile, outfilename) {
+	var outfile = fs.createWriteStream(outfilename);
 
 	var mp4box = new MP4Box();
 
