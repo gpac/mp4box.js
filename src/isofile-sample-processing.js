@@ -218,6 +218,7 @@ ISOFile.prototype.updateSampleLists = function() {
 					var trun = traf.truns[j];
 					for (k = 0; k < trun.sample_count; k++) {
 						sample = {};
+			            sample.number = trak.samples.length;
 						traf.first_sample_index = trak.samples.length;
 						trak.samples.push(sample);
 						sample.track_id = trak.tkhd.track_id;
