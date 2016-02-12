@@ -109,7 +109,7 @@ function httpload(url) {
 				downloader.setChunkStart(nextStart); 
 			}
 			if (error) {
-				console.log("Error downloading file");
+				progresslabel.text("Download error!")
 			}
 		}
 	);

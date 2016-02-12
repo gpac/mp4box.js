@@ -568,6 +568,7 @@ function load() {
 			}
 			if (error) {
 				reset();
+				progresslabel.text("Download error!");
 			}
 		}
 	);
