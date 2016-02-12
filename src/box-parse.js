@@ -114,7 +114,7 @@ BoxParser.ContainerBox.prototype.parse = function(stream) {
 		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
 		this.boxes.push(box);
 		if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
-			this[this.subBoxNames+"s"].push(box);
+			this[this.subBoxNames[this.subBoxNames.indexOf(box.type)]+"s"].push(box);
 		} else {
 			this[box.type] = box;
 		}

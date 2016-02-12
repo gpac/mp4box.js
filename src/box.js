@@ -38,7 +38,7 @@ var BoxParser = {
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
-		[ "moov", [ "trak" ] ],
+		[ "moov", [ "trak", "sidx" ] ],
 		[ "trak" ],
 		[ "edts" ],
 		[ "mdia" ],
