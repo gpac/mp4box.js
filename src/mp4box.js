@@ -446,13 +446,6 @@ MP4Box.prototype.getInfo = function() {
 	return movie;
 }
 
-MP4Box.prototype.getInitializationSegment = function() {
-	var stream = new DataStream();
-	stream.endianness = DataStream.BIG_ENDIAN;
-	this.inputIsoFile.writeInitializationSegment(stream);
-	return stream.buffer;
-}
-
 MP4Box.prototype.writeFile = function() {
 	var stream = new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
@@ -475,30 +468,18 @@ MP4Box.prototype.initializeSegmentation = function() {
 		this.nextMoofNumber = 0;
 		this.inputIsoFile.resetTables();
 	}	
-	initSegs = [];
+	initSegs = [];	
 	for (i = 0; i < this.fragmentedTracks.length; i++) {
-		/* removing all tracks to create initialization segments with only one track */
-		for (j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
-			box = this.inputIsoFile.moov.boxes[j];
-			if (box && box.type === "trak") {
-				this.inputIsoFile.moov.boxes[j].ignore = true;
-				this.inputIsoFile.moov.boxes[j] = null;
-			}
-		}
-		/* adding only the needed track */
+		var moov = new BoxParser.moovBox();
+		moov.mvhd = this.inputIsoFile.moov.mvhd;
+	    moov.boxes.push(moov.mvhd);
 		trak = this.inputIsoFile.getTrackById(this.fragmentedTracks[i].id);
-		delete trak.ignore;
-		for (j = 0; j < this.inputIsoFile.moov.boxes.length; j++) {
-			box = this.inputIsoFile.moov.boxes[j];
-			if (box == null) {
-				this.inputIsoFile.moov.boxes[j] = trak;
-				break;
-			}
-		}
+		moov.boxes.push(trak);
+		moov.traks.push(trak);
 		seg = {};
 		seg.id = trak.tkhd.track_id;
 		seg.user = this.fragmentedTracks[i].user;
-		seg.buffer = this.getInitializationSegment();
+		seg.buffer = ISOFile.writeInitializationSegment(moov, (this.inputIsoFile.moov.mvex && this.inputIsoFile.moov.mvex.mehd ? this.inputIsoFile.moov.mvex.mehd.fragment_duration: undefined), (this.inputIsoFile.moov.traks[i].samples.length>0 ? this.inputIsoFile.moov.traks[i].samples[0].duration: 0));
 		initSegs.push(seg);
 	}
 	return initSegs;

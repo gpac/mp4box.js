@@ -6,48 +6,37 @@ ISOFile.prototype.write = function(outstream) {
 }
 
 /* Modify the file and create the initialization segment */
-ISOFile.prototype.writeInitializationSegment = function(outstream) {
+ISOFile.writeInitializationSegment = function(moov, total_duration, sample_duration) {
 	var i;
 	var index;
 	var mehd;
 	var trex;
 	var box;
 	Log.debug("ISOFile", "Generating initialization segment");
-	/* write the ftyp box as is in the input, may need to be fixed for DASH brands ?*/
-	this.ftyp.write(outstream);
 
-	/* The input file may be fragmented and have an mvex box, we just retrieve the duration and delele that box  */
-	if (this.moov.mvex) {
-		this.initial_duration = this.moov.mvex.mehd.fragment_duration;
-		/* find this mvex box in the array of boxes and remove it */
-		index = -1;
-		for (i = 0; i < this.moov.boxes.length; i++) {
-			box = this.moov.boxes[i];
-			if (box === this.moov.mvex) {
-				index = i;
-			}
-		}
-		if (index > -1) {
-			this.moov.boxes.splice(index, 1);
-		}
-		this.moov.mvex = null;
-	}
+	var stream = new DataStream();
+	stream.endianness = DataStream.BIG_ENDIAN;
+
 	/* we can now create the new mvex box */
-	this.moov.mvex = new BoxParser.mvexBox();
-	this.moov.boxes.push(this.moov.mvex);
-	this.moov.mvex.mehd = new BoxParser.mehdBox();
-	this.moov.mvex.boxes.push(this.moov.mvex.mehd);
-	this.moov.mvex.mehd.fragment_duration = this.initial_duration; // restore the same duration
-	for (i = 0; i < this.moov.traks.length; i++) {
-		if (this.moov.traks[i].ignore) continue;
+	moov.mvex = new BoxParser.mvexBox();
+	moov.boxes.push(moov.mvex);
+	if (total_duration) {
+		moov.mvex.mehd = new BoxParser.mehdBox();
+		moov.mvex.boxes.push(moov.mvex.mehd);
+		moov.mvex.mehd.fragment_duration = total_duration; 
+	}
+	for (i = 0; i < moov.traks.length; i++) {
 		trex = new BoxParser.trexBox();
-		this.moov.mvex.boxes.push(trex);
-		this.moov.mvex.trexs.push(trex);
-		trex.track_id = this.moov.traks[i].tkhd.track_id;
+		moov.mvex.boxes.push(trex);
+		moov.mvex.trexs.push(trex);
+		trex.track_id = moov.traks[i].tkhd.track_id;
 		trex.default_sample_description_index = 1;
-		trex.default_sample_duration = (this.moov.traks[i].samples.length>0 ? this.moov.traks[i].samples[0].duration: 0);
+		trex.default_sample_duration = sample_duration;
 		trex.default_sample_size = 0;
 		trex.default_sample_flags = 1<<16;
 	}
-	this.moov.write(outstream);
+	moov.write(stream);
+
+	return stream.buffer;
+
 }
