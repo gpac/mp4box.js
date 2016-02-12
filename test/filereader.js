@@ -671,6 +671,7 @@ function buildSampleMap(start, end) {
     	sample_tooltip += '  CTS:\t\t'+s.cts+' ('+Log.getDurationString(s.cts, s.timescale)+')\n';
     	sample_tooltip += '  DTS:\t\t'+s.dts+' ('+Log.getDurationString(s.dts, s.timescale)+')\n';
     	sample_tooltip += '  RAP:\t\t'+s.is_rap+'\n';
+    	sample_tooltip += '  Offset:\t\t'+s.position+'\n';
     	svg.append("rect")
     			.style("fill", color(s.track))
     			.attr("x", xpos)
