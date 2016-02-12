@@ -197,22 +197,22 @@ ISOFile.prototype.updateSampleLists = function() {
 				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC) {
 					default_sample_description_index = traf.tfhd.default_sample_description_index;
 				} else {
-					default_sample_description_index = trex.default_sample_description_index;
+					default_sample_description_index = (trex ? trex.default_sample_description_index: 1);
 				}
 				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DUR) {
 					default_sample_duration = traf.tfhd.default_sample_duration;
 				} else {
-					default_sample_duration = trex.default_sample_duration;
+					default_sample_duration = (trex ? trex.default_sample_duration : 0);
 				}
 				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_SIZE) {
 					default_sample_size = traf.tfhd.default_sample_size;
 				} else {
-					default_sample_size = trex.default_sample_size;
+					default_sample_size = (trex ? trex.default_sample_size : 0);
 				}
 				if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_FLAGS) {
 					default_sample_flags = traf.tfhd.default_sample_flags;
 				} else {
-					default_sample_flags = trex.default_sample_flags;
+					default_sample_flags = (trex ? trex.default_sample_flags : 0);
 				}
 				for (j = 0; j < traf.truns.length; j++) {
 					var trun = traf.truns[j];
