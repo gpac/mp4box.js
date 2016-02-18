@@ -25,7 +25,6 @@ var BoxParser = {
 				  "sidx", "emsg", "prft", "pssh",
 				  "elst", "dref", "url ", "urn ",
 				  "sbgp", "sgpd",
-				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "mere",
 				  "cprt",
 				  "iods",
 				  "ssix", "tfra", "mfro", "pdin", "tsel",
