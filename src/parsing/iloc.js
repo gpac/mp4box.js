@@ -6,19 +6,32 @@ BoxParser.ilocBox.prototype.parse = function(stream) {
 	this.length_size = byte & 0xF;
 	byte = stream.readUint8();
 	this.base_offset_size = (byte >> 4) & 0xF;
-	if (this.version === 1) {
+	if (this.version === 1 || this.version === 2) {
 		this.index_size = byte & 0xF;
 	} else {
 		this.index_size = 0;		
 		// reserved = byte & 0xF;
 	}
 	this.items = [];
-	var item_count = stream.readUint16();
+	var item_count = 0;
+	if (this.version < 2) {
+		item_count = stream.readUint16();
+	} else if (this.version === 2) {
+		item_count = stream.readUint32();
+	} else {
+		throw "version of iloc box not supported";
+	}
 	for (var i = 0; i < item_count; i++) {
 		var item = {};
 		this.items.push(item);
-		item.item_ID = stream.readUint16();
-		if (this.version === 1) {
+		if (this.version < 2) {
+			item.item_ID = stream.readUint16();
+		} else if (this.version === 2) {
+			item.item_ID = stream.readUint16();
+		} else {
+			throw "version of iloc box not supported";
+		}
+		if (this.version === 1 || this.version === 2) {
 			item.construction_method = (stream.readUint16() & 0xF);
 		} 
 		item.data_reference_index = stream.readUint16();
@@ -40,7 +53,7 @@ BoxParser.ilocBox.prototype.parse = function(stream) {
 		for (var j=0; j < extent_count; j++) {
 			var extent = {};
 			item.extents.push(extent);
-			if ((this.version === 1) && (this.index_size > 0)) {
+			if (this.version === 1 || this.version === 2) {
 				switch(this.index_size) {
 					case 0:
 						extent.extent_index = 0;
