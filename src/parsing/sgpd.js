@@ -4,6 +4,8 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 	Log.debug("BoxParser", "Found Sample Groups of type "+this.grouping_type);
 	if (this.version === 1) {
 		this.default_length = stream.readUint32();
+	} else {
+		this.default_length = 0;		
 	}
 	if (this.version >= 2) {
 		this.default_group_description_index = stream.readUint32();
