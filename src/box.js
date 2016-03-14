@@ -32,7 +32,7 @@ var BoxParser = {
 				  "schm", 
 				  "stvi", 
 				  "padb", "stdp", "sdtp", "saio", "saiz",
-				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
+				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere", 
 				  "kind", "elng",
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
@@ -61,7 +61,8 @@ var BoxParser = {
 		[ "rinf" ],
 		[ "schi" ],
 		[ "trgr" ],
-		[ "udta", ["kind"] ]
+		[ "udta", ["kind"] ],
+		[ "iprp" ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
