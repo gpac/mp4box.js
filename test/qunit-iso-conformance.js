@@ -11,7 +11,11 @@ function makeBoxParsingTest(fileIndex) {
 			assert.ok(true, "file "+conformanceFiles[fileIndex]+" parsing");
 			QUnit.start();
 		};
-		getFile(mediaTestBaseUrl+conformanceFiles[fileIndex], callback);
+		if (conformanceFiles[fileIndex].indexOf("14_large")>-1) {
+			getFileRange(mediaTestBaseUrl+conformanceFiles[fileIndex], 0, 1156, callback);
+		} else {
+			getFile(mediaTestBaseUrl+conformanceFiles[fileIndex], callback);
+		}
 	});
 }
 
