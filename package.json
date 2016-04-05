@@ -45,6 +45,6 @@
     "qunitjs": "^1.15.0"
   },
   "scripts": {
-    "test": "grunt --verbose"
+    "test": "grunt test --verbose"
   }
 }
