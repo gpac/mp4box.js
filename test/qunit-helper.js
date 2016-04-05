@@ -1,4 +1,4 @@
-Log.setLogLevel(Log.debug);
+Log.setLogLevel(Log.info);
 var TIMEOUT_MS = 10000;
 
 function getFileRange(url, start, end, callback) {
