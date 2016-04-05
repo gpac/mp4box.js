@@ -936,7 +936,7 @@ QUnit.asyncTest( "Generate initialization segment", function( assert ) {
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;		
 		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: false } );
-		assert.ok(mp4box.getInitializationSegment(), "Init segments generated");
+		assert.ok(mp4box.initializeSegmentation(), "Init segments generated");
 		QUnit.start();	
 	}
 	getFile(testFiles[index].url, function (buffer) {
