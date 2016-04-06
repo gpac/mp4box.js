@@ -25,5 +25,7 @@ if(xhr.status === 200 || xhr.status === 0 ) {
 	for (var i = 0; i < conformanceFiles.length; i++) {
 		makeBoxParsingTest(i);
 	}
+} else {
+	console.log("Problem fetching file");
 }
 
