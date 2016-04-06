@@ -37,7 +37,8 @@
     "karma-chrome-launcher": "^0.1.12",
     "karma-coverage": "^0.5.5",
     "karma-firefox-launcher": "^0.1.6",
-    "karma-qunit": "^0.1.4"
+    "karma-qunit": "^0.1.4",
+    "qunitjs": "^1.23.0"
   },
   "scripts": {
     "test": "grunt test --verbose"
