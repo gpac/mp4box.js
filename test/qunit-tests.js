@@ -959,7 +959,7 @@ QUnit.asyncTest( "Write-back the entire file", function( assert ) {
 	});
 });
 
-QUnit.module("Playback test");
+/*QUnit.module("Playback test");
 QUnit.asyncTest( "Long Segmentation", function( assert ) {
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var index = 10;
@@ -1004,7 +1004,7 @@ QUnit.asyncTest( "Long Segmentation", function( assert ) {
 		start += size;
 		mp4box.appendBuffer(buffer);
 	});
-});
+});*/
 
 
 QUnit.module("Box parsing tests");
@@ -1088,7 +1088,7 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 
 QUnit.module("misc");
 QUnit.asyncTest( "issue #16 (Peersm)", function( assert ) {
-	var index = 11;
+	var index = 10;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var mp4box = new MP4Box();
 	QUnit.expect(0);

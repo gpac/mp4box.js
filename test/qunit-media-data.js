@@ -49,10 +49,10 @@ var testFiles = [
 		mdatSize: 1309934,
 		moovSize: 19070
 	},
-	{ // 10
-		desc: "long movie",
-		url: mediaTestBaseUrl + 'mp4/Bad.Influence.se4ep13.mp4'
-	},
+//	{ // 10
+//		desc: "long movie",
+//		url: mediaTestBaseUrl + 'mp4/Bad.Influence.se4ep13.mp4'
+//	},
 	{ // 11
 		desc: "Incomplete file from torrent",
 		url: mediaTestBaseUrl + 'mp4/as2-incomplete.mp4'
