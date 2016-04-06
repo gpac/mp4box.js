@@ -891,7 +891,7 @@ QUnit.asyncTest( "Seek and fetch out of order", function( assert ) {
 	var mp4box = new MP4Box();
 	var track_id;
 	mp4box.onSamples = function(id, user, samples) {
-		console.log("Getting sample for time:"+samples[0].dts/samples[0].timescale);
+		Log.info("Getting sample for time:"+samples[0].dts/samples[0].timescale);
 		if (samples[0].dts === 10000000) {
 			window.clearTimeout(timeout);
 			QUnit.start();	
