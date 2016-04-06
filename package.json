@@ -27,17 +27,17 @@
     "grunt": "^0.4.5",
     "grunt-bump": "^0.3.1",
     "grunt-contrib-concat": "^0.5.0",
-    "grunt-contrib-connect": "^0.8.0",
     "grunt-contrib-jshint": "^0.10.0",
     "grunt-contrib-qunit": "^0.5.2",
     "grunt-contrib-uglify": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-karma": "^0.11.0",
+    "grunt-karma-coveralls": "^2.5.4",
     "karma": "^0.12.35",
     "karma-chrome-launcher": "^0.1.12",
+    "karma-coverage": "^0.5.5",
     "karma-firefox-launcher": "^0.1.6",
-    "karma-qunit": "^0.1.4",
-    "qunitjs": "^1.15.0"
+    "karma-qunit": "^0.1.4"
   },
   "scripts": {
     "test": "grunt test --verbose"
