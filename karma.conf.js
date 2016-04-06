@@ -14,11 +14,34 @@ module.exports = function(config) {
 
         // list of files / patterns to load in the browser
         files: [
-          '../dist/mp4box.all.js',
+          '../src/log.js',                       // logging system
+          '../src/stream.js',                    // simple stream parser
+          '../src/DataStream.js',                // bit/byte/string read operations
+          '../src/DataStream-write.js',          // bit/byte/string write operations
+          '../src/DataStream-map.js',            // bit/byte/string other operations
+          '../src/buffer.js',                    // multi-buffer datastream
+          '../src/descriptor.js',                // MPEG-4 descriptor parsing
+          '../src/box.js',                       // core code for box definitions
+          '../src/box-codecs.js',                // core code for box definitions
+          '../src/box-parse.js',                 // basic box parsing code 
+          '../src/parsing/**/*.js',              // box-specific parsing code
+          '../src/box-write.js',                 // box writing code
+          '../src/writing/**/*.js',              // box-specific writing code
+          '../src/box-unpack.js',                // box code for sample manipulation
+          '../src/text-mp4.js',                  // text-based track manipulations
+          '../src/isofile.js',                   // basic file level operations (parse, get boxes)
+          '../src/isofile-advanced-parsing.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
+          '../src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
+          '../src/isofile-item-processing.js',   // item processing operations (sample table, get, ...)
+          '../src/isofile-write.js',             // file level write operations (segment creation ...)
+          '../src/mp4box.js',                    // application level operations (data append, sample extraction, segmentation, ...)          'qunit-helper.js',
           'qunit-helper.js',
           'qunit-media-data.js',
           'qunit-box-data.js',
           'qunit-tests.js',
+          //'qunit-isofile-tests.js',
+          //'iso-conformance-files.js',
+          //'qunit-iso-conformance.js',
         ],
 
 
@@ -30,7 +53,7 @@ module.exports = function(config) {
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            '../dist/mp4box.all.js': ['coverage']
+            '../src/**/*.js': ['coverage']
         },
 
         // test results reporter to use
