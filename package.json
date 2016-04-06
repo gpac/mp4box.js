@@ -22,12 +22,7 @@
     "email": "cyril.concolato@telecom-paristech.fr",
     "url": "http://concolato.wp.mines-telecom.fr/"
   },
-  "licenses": [
-    {
-      "type": "BSD-3-Clause",
-      "url": "https://github.com/gpac/mp4box.js/blob/master/LICENSE"
-    }
-  ],
+  "license": "BSD-3-Clause",
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-bump": "^0.3.1",
