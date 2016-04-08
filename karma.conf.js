@@ -39,9 +39,10 @@ module.exports = function(config) {
           'qunit-media-data.js',
           'qunit-box-data.js',
           'qunit-tests.js',
-          //'qunit-isofile-tests.js',
-          //'iso-conformance-files.js',
-          //'qunit-iso-conformance.js',
+          'qunit-isofile-tests.js',
+          'qunit-mse-tests.js',
+          'iso-conformance-files.js',
+          'qunit-iso-conformance.js',
         ],
 
 
@@ -81,6 +82,7 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
+        // , 'Firefox'
         browsers: ['Chrome'],
 
 
@@ -101,8 +103,10 @@ module.exports = function(config) {
         },
 
         coverageReporter: {
-            type: "lcov",
-            dir: "coverage/"
+          reporters: [ 
+            { type: "lcov", dir: "coverage/" },
+            { type: 'text-summary' }
+          ]
         },
     };
     if (process.env.TRAVIS) {

@@ -11,21 +11,22 @@ function makeBoxParsingTest(fileIndex) {
 			assert.ok(true, "file "+conformanceFiles[fileIndex]+" parsing");
 			QUnit.start();
 		};
-		getFile(conformanceFiles[fileIndex], callback);
+		getFile(mediaTestBaseUrl+conformanceFiles[fileIndex], callback);
 	});
 }
 
-var conformanceFiles;
+/* 
+var conformanceFiles = [];
 var xhr = new XMLHttpRequest();
 xhr.open('GET', 'iso-conformance-files.js', false);
 xhr.send();
 if(xhr.status === 200 || xhr.status === 0 ) {
   	conformanceFiles = JSON.parse(xhr.responseText);
-
-	for (var i = 0; i < conformanceFiles.length; i++) {
-		makeBoxParsingTest(i);
-	}
 } else {
 	console.log("Problem fetching file");
 }
+*/
 
+for (var i = 0; i < conformanceFiles.length; i++) {
+	makeBoxParsingTest(i);
+}

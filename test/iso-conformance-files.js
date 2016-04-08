@@ -1,4 +1,4 @@
-[
+var conformanceFiles = [
 	"ff-conformance/thefiles/01_simple.mp4",
 	"ff-conformance/thefiles/02_dref_edts_img.mp4",
 	"ff-conformance/thefiles/03_hinted.mp4",

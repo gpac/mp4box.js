@@ -3,8 +3,18 @@ function makeBoxParsingTest(i) {
 	QUnit.asyncTest(boxtests[boxtestIndex].boxname, function( assert ) {
 		var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 		var callback = function (buffer) {
+			var file;
+			var stream;
 			window.clearTimeout(timeout);
-			var file = new ISOFile(new MP4BoxStream(buffer));
+			if (typeof MultiBufferStream !== "undefined") {
+				stream = new MultiBufferStream(buffer);
+			} else {
+				stream = new MP4BoxStream(buffer);
+			}
+			file = new ISOFile(stream);
+			if (file.saveParsePosition) {
+				file.saveParsePosition();
+			}
 			file.parse();
 			checkBoxData(assert, file[boxtests[boxtestIndex].boxname], boxtests[boxtestIndex].data);
 			QUnit.start();
