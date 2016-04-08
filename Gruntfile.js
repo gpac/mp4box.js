@@ -110,7 +110,8 @@ module.exports = function(grunt) {
     },
     coveralls: {
         options: {
-            coverageDir: 'test/coverage/'
+            coverageDir: 'test/coverage/',
+            force: true
         }
     }
   });
