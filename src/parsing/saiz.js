@@ -9,7 +9,7 @@ BoxParser.saizBox.prototype.parse = function(stream) {
 	this.sample_info_size = [];
 	if (this.default_sample_info_size === 0) {	
 		for (var i = 0; i < count; i++) {
-			this.sample_info_size[i] = stream.readUint32();
+			this.sample_info_size[i] = stream.readUint8();
 		}
 	}
 }
