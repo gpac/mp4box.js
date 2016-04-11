@@ -1,7 +1,3 @@
-var mediaTestBaseUrl = 'http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/';
-//var mediaTestBaseUrl = 'http://127.0.0.1:8080/code/mp4box.js/test/';
-//var mediaTestBaseUrl = 'http://localhost:9876/test/';
-
 var testFiles = [
 	{ // 0
 		desc: "non-fragmented MP4 file with single MPEG-AVC stream",
