@@ -59,14 +59,14 @@ var testFiles = [
 	},
 	{ // 12 
 		desc: "File with negative CTS-DTS offsets",
-		url: mediaTestBaseUrl + 'mp4/SAO_negctts.mp4',
+		url: mediaTestBaseUrl + 'mp4/SAO_negctts.mp4'
 	},
 	{ // 13 
 		desc: "File with no default flags in fragments",
-		url: mediaTestBaseUrl + 'mp4/SAO_noFragsDefault.mp4',
+		url: mediaTestBaseUrl + 'mp4/SAO_noFragsDefault.mp4'
 	},
 	{ // 14 
 		desc: "File with negative CTS-DTS offsets and no default flags in fragments",
-		url: mediaTestBaseUrl + 'mp4/SAO_negctts_noFragsDefault.mp4',
+		url: mediaTestBaseUrl + 'mp4/SAO_negctts_noFragsDefault.mp4'
 	}
 ];
