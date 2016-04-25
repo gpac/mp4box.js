@@ -12,9 +12,10 @@ It can be used to:
 - [get information about an MP4 file](#getting-information), 
 - [segment](#segmentation) an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - [extract](#extraction) samples from an MP4 to create TextTracks.
-- more to come.
 
 A Player demo is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/), a File Analyzer is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/filereader.html), and some QUnit tests are [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/qunit.html)
+
+On this page, you'll find documentation on how to [build MP4box.js](#build), [use it in a browser](#browser-usage) or [in Node JS](#node-usage) or [contribute](#contribute).
 
 API
 ===
@@ -328,6 +329,8 @@ Node Usage
 =======
 MP4Box.js can be used in Node.js. See for example the [info.js](test/node/info.js) example.
 
-Contributing
+Contribute
 =======
 If your favorite box is not parsed by MP4Box, you can easily contribute. Each box parsing code is stored in a separate file whose name is the 4CC of the box type. For instance, the parsing of the ```ctts``` box is located in [ctts.js](src/parsing/ctts.js).
+
+To contribute to MP4Box.js, simply clone the repository, run `npm install` and `grunt test`.
