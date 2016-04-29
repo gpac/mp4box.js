@@ -7,8 +7,6 @@ BoxParser.cslgBox.prototype.parse = function(stream) {
 		this.greatestDecodeToDisplayDelta = stream.readInt32(); /* signed */
 		this.compositionStartTime = stream.readInt32(); /* signed */
 		this.compositionEndTime = stream.readInt32(); /* signed */
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 

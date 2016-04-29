@@ -25,8 +25,6 @@ BoxParser.stz2Box.prototype.parse = function(stream) {
 		} else {
 			Log.error("BoxParser", "Error in length field in stz2 box");
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size);
 	}
 }
 

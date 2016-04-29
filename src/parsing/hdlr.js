@@ -8,8 +8,6 @@ BoxParser.hdlrBox.prototype.parse = function(stream) {
 		if (this.name[this.name.length-1]==='\0') {
 			this.name = this.name.slice(0,-1);
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size);
-	}
+	} 
 }
 

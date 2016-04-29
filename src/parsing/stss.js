@@ -8,8 +8,6 @@ BoxParser.stssBox.prototype.parse = function(stream) {
 		for(i=0; i<entry_count; i++) {
 			this.sample_numbers.push(stream.readUint32());
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 

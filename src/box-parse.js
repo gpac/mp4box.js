@@ -6,6 +6,7 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 	var box;
 	var start = stream.getPosition();
 	var hdr_size = 0;
+	var diff;
 	var uuid;
 	if (stream.getEndPosition() - start < 8) {
 		Log.debug("BoxParser", "Not enough data in stream to parse the type and size of the box");
@@ -62,6 +63,14 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 		box.parseDataAndRewind(stream);
 	}
 	box.parse(stream);
+	diff = stream.getPosition() - (this.start+this.size);
+	if (diff < 0) {
+		Log.warn("BoxParser", "Box parsing did not read the entire indicated box data size (missing "+(-diff)+" bytes), seeking forward");
+		stream.seek(this.start+this.size);
+	} else if (diff > 0) {
+		Log.error("BoxParser", "Box parsing read "+diff+" more bytes than the indicated box data size, seeking backwards");
+		stream.seek(this.start+this.size);
+	}
 	return { code: BoxParser.OK, box: box, size: size };
 }
 

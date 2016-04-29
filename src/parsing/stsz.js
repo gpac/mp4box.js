@@ -12,8 +12,6 @@ BoxParser.stszBox.prototype.parse = function(stream) {
 				this.sample_sizes[i] = this.sample_size;
 			}		
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size);
 	}
 }
 

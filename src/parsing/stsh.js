@@ -10,8 +10,6 @@ BoxParser.stshBox.prototype.parse = function(stream) {
 			this.shadowed_sample_numbers.push(stream.readUint32());
 			this.sync_sample_numbers.push(stream.readUint32());
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 

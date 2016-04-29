@@ -16,8 +16,6 @@ BoxParser.sttsBox.prototype.parse = function(stream) {
 			}
 			this.sample_deltas.push(delta);
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 
