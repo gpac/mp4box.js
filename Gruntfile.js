@@ -85,7 +85,6 @@ module.exports = function(grunt) {
       ],
       options: {
         // options here to override JSHint defaults
-        force: true,
         eqeqeq: false,
         asi: true,
         loopfunc: true,
@@ -127,7 +126,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
-  grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
+  grunt.registerTask('default', [ 'jshint', 'all']);
   grunt.registerTask('test', ['default', 'karma', 'coveralls']);
 
 };
