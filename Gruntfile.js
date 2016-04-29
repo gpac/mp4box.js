@@ -126,7 +126,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
-  grunt.registerTask('default', [ 'jshint', 'all']);
+  grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
   grunt.registerTask('test', ['default', 'karma', 'coveralls']);
 
 };
