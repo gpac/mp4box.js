@@ -110,10 +110,10 @@ The `info` argument is an object with the following structure.
   ]
 }
 ```
-- **brands**: Array of 4CC codes corresponding to the file brands,
-- **created**: Date object, indicating the creation date of the file as given in the file header,
-- **modified**: Date object, indicating the last modification date of the file as given in the file header,
-- **timescale**: Number, corresponding to the timescale as given in the file header,
+- **brands**: Array of 4CC codes corresponding to the file brands as given in the ftyp box,
+- **created**: Date object, indicating the creation date of the file as given in the movie header,
+- **modified**: Date object, indicating the last modification date of the file as given in the movie header,
+- **timescale**: Number, corresponding to the timescale as given in the movie header,
 - **duration**: Number, providing the duration of the movie (unfragmented part) in timescale units,
 - **isProgressive**: boolean, indicating if the file can be played progressively,
 - **isFragmented**: boolean, indicating if the file is already fragmented,
@@ -156,11 +156,11 @@ mp4box.onError = function (e) {
 ```
 
 ####appendBuffer(data)####
-Provides an ArrayBuffer to parse from. The ArrayBuffer must have a `fileStart` (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file. Returns the offset (in the original file) that is expected to be the `fileStart` value of the next buffer. 
+Provides an ArrayBuffer to parse from. The ArrayBuffer must have a `fileStart` (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file. Returns the offset (in the original file) that is expected to be the `fileStart` value of the next buffer. This is particularly useful when the moov box is not at the beginning of the file.
 ```javascript
 var ab = getArrayBuffer();
 ab.fileStart = 0;
-mp4box.appendBuffer(ab);
+var nextBufferStart = mp4box.appendBuffer(ab);
 ```
 
 ####start()####
