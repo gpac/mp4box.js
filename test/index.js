@@ -254,10 +254,23 @@ function addBuffer(video, mp4track) {
 	var codec = mp4track.codec;
 	var mime = 'video/mp4; codecs=\"'+codec+'\"';
 	var kind = mp4track.kind;
+	var trackDefault;
+	var textTrackType;
+	if (codec == "wvtt" && !kind.schemeURI.startsWith("urn:gpac:")) {
+		textTrackType = "subtitles";
+	} else {
+		textTrackType = "metadata";
+	}
+	if (mp4track.type === "video" || mp4track.type === "audio") {
+		trackDefault = new TrackDefault(mp4track.type, mp4track.language, mp4track.name, [], track_id);
+	} else {
+		trackDefault = new TrackDefault("text", mp4track.language, mp4track.name, [ textTrackType ], track_id);
+	}
 	if (MediaSource.isTypeSupported(mime)) {
 		try {
 			Log.info("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
 			sb = ms.addSourceBuffer(mime);
+			sb.trackDefaults = new TrackDefaultList([trackDefault]);
 			sb.addEventListener("error", function(e) {
 				Log.error("MSE SourceBuffer #"+track_id,e);
 			});
@@ -270,14 +283,8 @@ function addBuffer(video, mp4track) {
 		}
 	} else {
 		Log.warn("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
-		var trackType;
 		var i;
 		var foundTextTrack = false;
-		if (codec == "wvtt" && !kind.schemeURI.startsWith("urn:gpac:")) {
-			trackType = "subtitles";
-		} else {
-			trackType = "metadata";
-		}
 		for (i = 0; i < video.textTracks.length; i++) {
 			var track = video.textTracks[i];
 			if (track.label === 'track_'+track_id) {
@@ -288,7 +295,8 @@ function addBuffer(video, mp4track) {
 			}
 		}
 		if (!foundTextTrack) {
-			var texttrack = video.addTextTrack(trackType, "track_"+track_id);
+			var texttrack = video.addTextTrack(textTrackType, mp4track.name, mp4track.language);
+			texttrack.id = track_id;
 			texttrack.mode = "showing";
 			mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 			texttrack.codec = codec;

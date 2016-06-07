@@ -390,6 +390,7 @@ MP4Box.prototype.getInfo = function() {
 			track = {};
 			movie.tracks.push(track);
 			track.id = trak.tkhd.track_id;
+			track.name = trak.mdia.hdlr.name;
 			track.references = [];
 			if (trak.tref) {
 				for (j = 0; j < trak.tref.boxes.length; j++) {
@@ -420,23 +421,29 @@ MP4Box.prototype.getInfo = function() {
 			}
 			track.bitrate = (track.size*8*track.timescale)/track.duration;
 			if (sample_desc.isAudio()) {
+				track.type = "audio";
 				movie.audioTracks.push(track);
 				track.audio = {};
 				track.audio.sample_rate = sample_desc.getSampleRate();		
 				track.audio.channel_count = sample_desc.getChannelCount();		
 				track.audio.sample_size = sample_desc.getSampleSize();		
 			} else if (sample_desc.isVideo()) {
+				track.type = "video";
 				movie.videoTracks.push(track);
 				track.video = {};
 				track.video.width = sample_desc.getWidth();		
 				track.video.height = sample_desc.getHeight();		
 			} else if (sample_desc.isSubtitle()) {
+				track.type = "subtitles";
 				movie.subtitleTracks.push(track);
 			} else if (sample_desc.isHint()) {
+				track.type = "metadata";
 				movie.hintTracks.push(track);
 			} else if (sample_desc.isMetadata()) {
+				track.type = "metadata";
 				movie.metadataTracks.push(track);
 			} else {
+				track.type = "metadata";
 				movie.otherTracks.push(track);
 			}
 		}

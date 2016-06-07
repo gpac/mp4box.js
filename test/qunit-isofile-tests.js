@@ -6,7 +6,7 @@ function makeBoxParsingTest(i) {
 			var file;
 			var stream;
 			window.clearTimeout(timeout);
-			if (typeof MultiBufferStream !== "undefined") {
+			if (false && typeof MultiBufferStream !== "undefined") {
 				stream = new MultiBufferStream(buffer);
 			} else {
 				stream = new MP4BoxStream(buffer);
