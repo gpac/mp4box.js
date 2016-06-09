@@ -54,6 +54,25 @@ var sampleUrls = [
 		]
 	},
 	{ 
+		groupName: "HTML 5 Track Kinds",
+		urls: [
+			{ url: "./mp4/html5-kind/video-kind-alternative.mp4", desc: "Video with alternative kind"},
+			{ url: "./mp4/html5-kind/video-kind-captions.mp4", desc: "Video with captions kind"},
+			{ url: "./mp4/html5-kind/video-kind-main.mp4", desc: "Video with main kind"},
+			{ url: "./mp4/html5-kind/video-kind-sign.mp4", desc: "Video with sign kind"},
+			{ url: "./mp4/html5-kind/video-kind-subtitles.mp4", desc: "Video with subtitles kind"},
+			{ url: "./mp4/html5-kind/video-kind-commmentary.mp4", desc: "Video with commentary kind"},
+			{ url: "./mp4/html5-kind/video-kind-empty.mp4", desc: "Video with no kind"},
+			{ url: "./mp4/html5-kind/audio-kind-alternative.mp4", desc: "Audio with alternative kind"},
+			{ url: "./mp4/html5-kind/audio-kind-descriptions.mp4", desc: "Audio with descriptions kind"},
+			{ url: "./mp4/html5-kind/audio-kind-main.mp4", desc: "Audio with main kind"},
+			{ url: "./mp4/html5-kind/audio-kind-main-desc.mp4", desc: "Audio with main-desc kind"},
+			{ url: "./mp4/html5-kind/audio-kind-translation.mp4", desc: "Audio with translation kind"},
+			{ url: "./mp4/html5-kind/audio-kind-commentary.mp4", desc: "Audio with commentary kind"},
+			{ url: "./mp4/html5-kind/audio-kind-empty.mp4", desc: "Audio with empty kind"},
+		]
+	},
+	{ 
 		groupName: "For Internal Testing",
 		urls: [
 			{ url: "./mp4/meta/meta-file-single-item.mp4", desc: "Basic 'meta' test", playable: false },

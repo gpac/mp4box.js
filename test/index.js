@@ -18,7 +18,7 @@ var autoplay = false;
 
 var startButton, loadButton, initButton, initAllButton, playButton;
 var urlInput, chunkTimeoutInput, chunkSizeInput;
-var infoDiv, dlTimeoutDiv;
+var infoDiv, dlTimeoutDiv, htm5MediaDiv;
 var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel, extractionSizeLabel;
 var urlSelector;
 var saveChecked;
@@ -37,6 +37,7 @@ window.onload = function () {
 	chunkTimeoutInput = document.getElementById('chunk_speed_range');
 	chunkSizeInput = document.getElementById("chunk_size_range");
 	infoDiv = document.getElementById('infoDiv');
+	html5MediaDiv = document.getElementById('html5MediaDiv');
 	dlTimeoutDiv = document.getElementById('dlTimeout');
 	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');	
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
@@ -89,7 +90,11 @@ window.onload = function () {
 		console.log("Waiting event,");
 		video.playing = false;
 	});
-*/	reset();	
+*/	
+	video.videoTracks.onchange = updateHtml5TrackInfo;
+	video.audioTracks.onchange = updateHtml5TrackInfo;
+	video.textTracks.onchange = updateHtml5TrackInfo;
+	reset();	
 
 	/* Loading Track Viewers */
 	var s = document.createElement("script");
@@ -163,6 +168,7 @@ function setPlaybackRate(value) {
 /* Functions to generate the tables displaying file information */	
 function resetDisplay() {
 	infoDiv.innerHTML = '';
+	html5MediaDiv.innerHTML = '';
 	overlayTracks.innerHTML = '';
 	video.poster = '';
 	video.playing = false;
@@ -255,22 +261,33 @@ function addBuffer(video, mp4track) {
 	var mime = 'video/mp4; codecs=\"'+codec+'\"';
 	var kind = mp4track.kind;
 	var trackDefault;
-	var textTrackType;
-	if (codec == "wvtt" && !kind.schemeURI.startsWith("urn:gpac:")) {
-		textTrackType = "subtitles";
+	var trackDefaultSupport = (typeof TrackDefault !== "undefined");
+	var html5TrackKind = "";
+	if (codec == "wvtt") {
+		if (!kind.schemeURI.startsWith("urn:gpac:")) {
+			html5TrackKind = "subtitles";
+		} else {
+			html5TrackKind = "metadata";
+		}
 	} else {
-		textTrackType = "metadata";
+		if (kind && kind.schemeURI === "urn:w3c:html5:kind") {
+			html5TrackKind = kind.value || "";
+		} 
 	}
-	if (mp4track.type === "video" || mp4track.type === "audio") {
-		trackDefault = new TrackDefault(mp4track.type, mp4track.language, mp4track.name, [], track_id);
-	} else {
-		trackDefault = new TrackDefault("text", mp4track.language, mp4track.name, [ textTrackType ], track_id);
+	if (trackDefaultSupport) {
+		if (mp4track.type === "video" || mp4track.type === "audio") {
+			trackDefault = new TrackDefault(mp4track.type, mp4track.language, mp4track.name, [ html5TrackKind ], track_id);
+		} else {
+			trackDefault = new TrackDefault("text", mp4track.language, mp4track.name, [ html5TrackKind ], track_id);
+		}
 	}
 	if (MediaSource.isTypeSupported(mime)) {
 		try {
 			Log.info("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
 			sb = ms.addSourceBuffer(mime);
-			sb.trackDefaults = new TrackDefaultList([trackDefault]);
+			if (trackDefaultSupport) {
+				sb.trackDefaults = new TrackDefaultList([trackDefault]);
+			}
 			sb.addEventListener("error", function(e) {
 				Log.error("MSE SourceBuffer #"+track_id,e);
 			});
@@ -295,7 +312,7 @@ function addBuffer(video, mp4track) {
 			}
 		}
 		if (!foundTextTrack) {
-			var texttrack = video.addTextTrack(textTrackType, mp4track.name, mp4track.language);
+			var texttrack = video.addTextTrack(html5TrackKind, mp4track.name, mp4track.language);
 			texttrack.id = track_id;
 			texttrack.mode = "showing";
 			mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
@@ -685,4 +702,20 @@ function saveBuffer(buffer, name) {
 		var d = new DataStream(buffer);
 		d.save(name);
 	}
+}
+
+function updateHtml5TrackInfo() {
+	var content = '<table><thead><tr><th>Track ID</th><th>Type</th><th>Kind</th><th>Label</th><th>Language</th><th>Selected/enabled</th></tr></thead><tbody>';
+	var i;
+	for (i = 0; i < video.videoTracks.length; i++) {
+		content += '<tr>'+'<td>'+video.videoTracks[i].id+'</td>'+'<td>video</td>'+'<td>'+video.videoTracks[i].kind+'</td>'+'<td>'+video.videoTracks[i].label+'</td>'+'<td>'+video.videoTracks[i].language+'</td>'+'<td>'+video.videoTracks[i].selected+'</td>'+'</tr>';
+	}
+	for (i = 0; i < video.audioTracks.length; i++) {
+		content += '<tr>'+'<td>'+video.audioTracks[i].id+'</td>'+'<td>audio</td>'+'<td>'+video.audioTracks[i].kind+'</td>'+'<td>'+video.audioTracks[i].label+'</td>'+'<td>'+video.audioTracks[i].language+'</td>'+'<td>'+video.audioTracks[i].enabled+'</td>'+'</tr>';
+	}
+	for (i = 0; i < video.textTracks.length; i++) {
+		content += '<tr>'+'<td>'+video.textTracks[i].id+'</td>'+'<td>text</td>'+'<td>'+video.textTracks[i].kind+'</td>'+'<td>'+video.textTracks[i].label+'</td>'+'<td>'+video.textTracks[i].language+'</td>'+'<td>'+video.textTracks[i].mode+'</td>'+'</tr>';
+	}
+	content += '</tbody></table>';
+	html5MediaDiv.innerHTML = content;
 }
