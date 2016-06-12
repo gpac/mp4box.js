@@ -296,19 +296,13 @@ function buildSampleTrackView(info, trackSelector, track_index) {
 
 	sampleRangeText.val(""+trackSelector.startSample + " - " + trackSelector.endSample+"/"+info.tracks[track_index].nb_samples);
 
-	if ($("#sampletable").is(':visible')) {
-	  	buildSampleTableInfo(info.tracks[track_index].id, trackSelector.startSample, trackSelector.endSample);
-	}
+  	buildSampleTableInfo(info.tracks[track_index].id, trackSelector.startSample, trackSelector.endSample);
 
  	graph = new SampleGraph();
  	graph.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
-	if ($("#samplegraph").is(':visible')) {
-		graph.update();
-	}
+	graph.update();
 
-	if ($("#samplemap").is(':visible')) {
-		buildSampleMap(trackSelector.startSample, trackSelector.endSample);
-	}
+	buildSampleMap(trackSelector.startSample, trackSelector.endSample);
 }
 
 function buildSampleView() {
