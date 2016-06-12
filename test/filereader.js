@@ -743,6 +743,10 @@ SampleGraph.prototype.update = function () {
 	    	d3.min(data, function(d) { return d[l.name]; }),
 	    	d3.max(data, function(d) { return d[l.name]; })
 	  	];
+	  	if (l.domain[0] === l.domain[1]) {
+	  		l.domain[0]--;
+	  		l.domain[1]++;
+	  	}
 	  	l.range.domain(l.domain);
 		l.line = d3.svg.area().interpolate("linear")
 								    .x(function(d) { return that.x(d.x); })
