@@ -278,25 +278,37 @@ function buildSampleTrackView(info, trackSelector, track_index) {
 
 			sampleRangeText.val(""+trackSelector.startSample + " - " + trackSelector.endSample+"/"+info.tracks[track_index].nb_samples);
 
-			buildSampleTableInfo(info.tracks[track_index].id, trackSelector.startSample, trackSelector.endSample);
+			if ($("#sampletable").is(':visible')) {
+				buildSampleTableInfo(info.tracks[track_index].id, trackSelector.startSample, trackSelector.endSample);
+			}
 
-		 	graph.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
-			graph.update();
+			if ($("#samplegraph").is(':visible')) {
+			 	graph.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
+				graph.update();
+			}
 
-			buildSampleMap(trackSelector.startSample, trackSelector.endSample);
+			if ($("#samplemap").is(':visible')) {
+				buildSampleMap(trackSelector.startSample, trackSelector.endSample);
+			}
 		}
     });
 
 
 	sampleRangeText.val(""+trackSelector.startSample + " - " + trackSelector.endSample+"/"+info.tracks[track_index].nb_samples);
 
-  	buildSampleTableInfo(info.tracks[track_index].id, trackSelector.startSample, trackSelector.endSample);
+	if ($("#sampletable").is(':visible')) {
+	  	buildSampleTableInfo(info.tracks[track_index].id, trackSelector.startSample, trackSelector.endSample);
+	}
 
  	graph = new SampleGraph();
  	graph.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
-	graph.update();
+	if ($("#samplegraph").is(':visible')) {
+		graph.update();
+	}
 
-	buildSampleMap(trackSelector.startSample, trackSelector.endSample);
+	if ($("#samplemap").is(':visible')) {
+		buildSampleMap(trackSelector.startSample, trackSelector.endSample);
+	}
 }
 
 function buildSampleView() {
