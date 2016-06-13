@@ -307,7 +307,10 @@ function buildSampleTrackView(info, trackSelector, track_index) {
 
 function buildSampleView() {
 	var info = mp4box.getInfo();
+	$("#trackinfo").addClass("ui-widget ui-widget-content ui-corner-all");
+	$("#sample-range-value").addClass("ui-widget ui-widget-content ui-corner-all");
 	var trackSelector = $("#trackSelect");
+	trackSelector.selectmenu();
 	trackSelector.startSample = 0;
 	trackSelector.endSample = 10;
 	trackSelector.html('');
@@ -320,6 +323,8 @@ function buildSampleView() {
 	      	buildSampleTrackView(info, trackSelector, data.item.value);
 	      }
 	});
+	trackSelector.val(info.tracks[0].id);
+	trackSelector.selectmenu("refresh");
 	buildSampleTrackView(info, trackSelector, 0);
 	buildSampleMap(trackSelector.startSample, trackSelector.endSample);	
 }
@@ -362,13 +367,42 @@ function buildSampleTableInfo(track_id, start, end) {
 }
 
 window.onload = function () {
+	$("#tabs-1").hide();
+	$("#tabs-2").hide();
+	var loadselector = $("#input_type").selectmenu({
+		width: 150,
+		change: function (e) {
+			switch(e.target.selectedOptions[0].value) {
+				case "File":
+					$("#tabs-1").show();
+					$("#tabs-2").hide();
+					$("#tabs-3").hide();
+					break;
+				case "URL":
+					$("#tabs-1").hide();
+					$("#tabs-2").show();
+					$("#tabs-3").hide();
+					break;
+				case "Example":
+					$("#tabs-1").hide();
+					$("#tabs-2").hide();
+					$("#tabs-3").show();
+					break;
+			}
+		}
+	});
+	
+
 	boxtree = $('#boxtree');
 	boxtable = $('#boxtable');
 	progressbar = $('#progressbar');
 	progresslabel = $('#progress-label');
 	fileinput = $('#fileinput');
-	urlinput = $('#urlinput');
+	urlinput = $('#urlinput');	
+	urlinput.width(500);
+	urlinput.addClass("ui-widget ui-widget-content ui-corner-all");
 	urlSelector = $('#urlSelector');
+	urlSelector.selectmenu({width: 500});
 	progressbar.progressbar({ 
 		value: 0, 
 		change: function() {
@@ -395,10 +429,38 @@ window.onload = function () {
 
 	boxtable.html(generateBoxTable({}));
 
-	$("#tabs").tabs();
+	//$("#tabs").tabs();
 	$("#resulttabs").tabs();
 	$("#boxview").tabs();
-	$("#sampleviewtabs").tabs();
+	//$("#sampleviewtabs").tabs();
+	$("#sampleviewselector").selectmenu({
+		width: 200,
+		change: function(e) {
+			switch(e.target.selectedOptions[0].value) {
+				case "Sample Table":
+					$("#sampletable").show();
+					$("#samplegraph").hide();
+					$("#samplemap").hide();
+					break;
+				case "Sample Graph":
+					$("#sampletable").hide();
+					$("#samplegraph").show();
+					$("#samplemap").hide();
+					break;
+				case "Sample Map":
+					$("#sampletable").hide();
+					$("#samplegraph").hide();
+					$("#samplemap").show();
+					break;
+			}
+		}
+	});
+	$("#sampletable").show();
+	$("#samplegraph").hide();
+	$("#samplemap").hide();
+
+	$("#LoadFromList").button();
+	$("#LoadFromUrl").button();
 
 	buildUrlList(urlSelector[0], true);
 	
@@ -764,7 +826,7 @@ function SampleGraph() {
 
 	var margin = {top: 10, right: 10, bottom: 80, left: 100};
     var width = this.width = document.body.clientWidth - margin.left - margin.right;
-    var height = this.height = window.innerHeight/2 - margin.top - margin.bottom;
+    var height = this.height = window.innerHeight - margin.top - margin.bottom;
 
   	function DrawableLine(name, color, legend, visible) {
   		this.visible = visible;
@@ -772,17 +834,17 @@ function SampleGraph() {
   		this.name = name;
   		this.color = color;
 		this.range = d3.scale.linear().range([height, 0]);
-		this.axis = d3.svg.axis().scale(this.range).orient("left").tickFormat(d3.format("d"));
+		this.axis = d3.svg.axis().scale(this.range).tickSize(1).orient("left").tickFormat(d3.format("d"));
   	}
 
   	var xaxisChoice = this.xaxisChoice = "number";
   	this.lines = [
 	  	new DrawableLine("dts", "purple", "DTS (timescale)", false),
-	  	new DrawableLine("cts", "black", "CTS (timescale)", true),
-	  	new DrawableLine("size", "blue", "Size (bytes)", false),
-	  	new DrawableLine("ctso", "red", "CTS Offset", false),
-	  	new DrawableLine("duration", "green", "Duration", false),
-	  	new DrawableLine("is_rap", "orange", "RAP", false),
+	  	new DrawableLine("cts", "black", "CTS (timescale)", false),
+	  	new DrawableLine("size", "blue", "Size (bytes)", true),
+	  	new DrawableLine("ctso", "red", "CTS Offset (timescale)", false),
+	  	new DrawableLine("duration", "green", "Duration (timescale)", false),
+	  	new DrawableLine("is_rap", "orange", "RAP (boolean)", false),
   	];
 
 	var div = d3.select("#samplegraph");
@@ -838,7 +900,7 @@ function SampleGraph() {
 	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 	this.x = d3.scale.linear().range([0, width]);
-	this.xAxis = d3.svg.axis().scale(this.x).orient("bottom").tickFormat(d3.format("d"));
+	this.xAxis = d3.svg.axis().scale(this.x).orient("bottom").tickSize(1).tickFormat(d3.format("d"));
 
 	/*var ctspoints = svg.selectAll(".point").data(data);
 	ctspoints.attr("stroke", ctsLine.color)
@@ -862,7 +924,7 @@ function SampleGraph() {
 	.append("text")
 		.attr("class", "label")
 		.attr("x", width - margin.right)
-		.attr("y", -6)
+		.attr("y", 30)
 		.style("text-anchor", "end")
 		.text((xaxisChoice === "time" ? "DTS" : "Number"));
 
