@@ -261,6 +261,7 @@ function buildItemTable(items) {
 
 function buildSampleTrackView(info, trackSelector, track_index) {
 	var graph;
+	var timeline;
 
 	$("#trackinfo").val(info.tracks[track_index].codec);
 	var sampleRangeSlider = $( "#sample-range" );
@@ -287,6 +288,11 @@ function buildSampleTrackView(info, trackSelector, track_index) {
 				graph.update();
 			}
 
+			if ($("#sampletimeline").is(':visible')) {
+			 	timeline.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
+				timeline.update();
+			}
+
 			if ($("#samplemap").is(':visible')) {
 				buildSampleMap(trackSelector.startSample, trackSelector.endSample);
 			}
@@ -301,6 +307,10 @@ function buildSampleTrackView(info, trackSelector, track_index) {
  	graph = new SampleGraph();
  	graph.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
 	graph.update();
+
+ 	timeline = new SampleTimeline();
+ 	timeline.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
+	timeline.update();
 
 	buildSampleMap(trackSelector.startSample, trackSelector.endSample);
 }
@@ -441,16 +451,25 @@ window.onload = function () {
 					$("#sampletable").show();
 					$("#samplegraph").hide();
 					$("#samplemap").hide();
+					$("#sampletimeline").hide();
 					break;
 				case "Sample Graph":
 					$("#sampletable").hide();
 					$("#samplegraph").show();
 					$("#samplemap").hide();
+					$("#sampletimeline").hide();
 					break;
 				case "Sample Map":
 					$("#sampletable").hide();
 					$("#samplegraph").hide();
 					$("#samplemap").show();
+					$("#sampletimeline").hide();
+					break;
+				case "Sample Timeline":
+					$("#sampletable").hide();
+					$("#samplegraph").hide();
+					$("#samplemap").hide();
+					$("#sampletimeline").show();
 					break;
 			}
 		}
@@ -458,12 +477,13 @@ window.onload = function () {
 	$("#sampletable").show();
 	$("#samplegraph").hide();
 	$("#samplemap").hide();
+	$("#sampletimeline").hide();
 
 	$("#LoadFromList").button();
 	$("#LoadFromUrl").button();
 
 	buildUrlList(urlSelector[0], true);
-	
+	//urlSelector.val()
 	if (window.location.search) {
 		httpload(window.location.search.substring(1));
 	}
@@ -772,6 +792,83 @@ function buildSampleMap(start, end) {
 		    xpos += rw;
 	    }
     }
+}
+
+SampleTimeline.prototype.update = function() {
+  	var that = this;
+	var data = this.data;
+	var scale = 1/20;
+	var sample_height = 30;
+	var height_spacing = 10;
+	var x_offset = 100;
+	this.svg.html('');
+	this.svg.append('text').attr('x', 0)
+						   .attr('y', sample_height/2)
+						   .text('Decoding');
+	this.svg.append('text').attr('x', 0)
+						   .attr('y', sample_height)
+						   .text('Timeline');
+	this.svg.append('text').attr('x', 0)
+						   .attr('y', 3*sample_height/2+height_spacing)
+						   .text('Composition');
+	this.svg.append('text').attr('x', 0)
+						   .attr('y', 2*sample_height+height_spacing)
+						   .text('Timeline');
+	this.svg.append('defs').append('marker').attr('id','arrow')
+											.attr('markerWidth',13)
+											.attr('markerHeight',13)
+											.attr('refX',2)
+											.attr('refY',6)
+											.attr('orient',"auto")
+											.append("path").attr("d","M2,2 L2,11 L10,6 L2,2").attr("fill","black");
+	var dts_offset = data[0].dts;
+	data.forEach(function(d, i) {
+    	var sampleg = that.svg.append('g').attr('transform', 'translate('+x_offset+')');
+    	sampleg.append('rect').attr('x', (d.dts-dts_offset)*scale)
+    						  .attr('y', 0)
+    						  .attr('width', d.duration*scale)
+    						  .attr('height', sample_height)
+    						  .attr('fill', 'red');
+	    sampleg.append("text")
+	        .attr("text-anchor", "middle")
+			.attr("dominant-baseline", "central")
+	    	.attr("x", (d.dts-dts_offset+d.duration/2)*scale)
+	    	.attr("y", sample_height/2)
+	    	.text(d.dts);
+    	sampleg.append('rect').attr('x', (d.cts-dts_offset)*scale)
+    						  .attr('y', sample_height+height_spacing)
+    						  .attr('width', d.duration*scale)
+    						  .attr('height', sample_height)
+    						  .attr('fill', 'blue');
+	    sampleg.append("text")
+	        .attr("text-anchor", "middle")
+			.attr("dominant-baseline", "central")
+	    	.attr("x", (d.cts-dts_offset+d.duration/2)*scale)
+	    	.attr("y", sample_height+height_spacing+sample_height/2)
+	    	.text(d.cts);
+    	sampleg.append('line').attr('x1', (d.dts-dts_offset+d.duration/2)*scale)
+    						  .attr('y1', sample_height)
+    						  .attr('x2', (d.cts-dts_offset+d.duration/2)*scale)
+    						  .attr('y2', sample_height+height_spacing)
+    						  .attr('stroke-width', '1px')
+    						  .attr('marker-end','url(#arrow)')
+    						  .attr('stroke','black');
+  	});
+}
+
+function SampleTimeline() {
+	var margin = {top: 10, right: 10, bottom: 80, left: 20};
+    var width = this.width = document.body.clientWidth - margin.left - margin.right;
+    var height = this.height = window.innerHeight - margin.top - margin.bottom;
+
+	var div = d3.select("#sampletimeline");
+	div.html('');	
+	this.svg = div.append("svg")
+		.attr("width", "100%")
+		.attr("height", "100%")
+	    .attr("viewBox", "0 0 "+(width + margin.left + margin.right)+" "+(height + margin.top + margin.bottom))
+	  .append("g")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 }
 
 SampleGraph.prototype.update = function () {
