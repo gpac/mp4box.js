@@ -166,19 +166,17 @@ function displayMovieInfo(info, div, _displaySourceBuffer) {
 	}
 	html += "<div>";
 	html += "<table>";
-	html += "<tr><th>File Size</th><td>"+fileLength+" bytes</td></tr>";
-	html += "<tr><th>Brands</th><td>"+info.brands+"</td></tr>";
-	html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
-	html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
-	html += "<tr><th>Timescale</th><td>"+info.timescale+"</td></tr>";
-	html += "<tr><th>Duration</th><td>"+info.duration+" ("+Log.getDurationString(info.duration,info.timescale)+")</td></tr>";
-	html += "<tr><th>Bitrate</th><td>"+Math.floor((fileLength*8*info.timescale)/(info.duration*1000))+" kbps</td></tr>";
+	html += "<tr><th>File Size / Bitrate</th><td>"+fileLength+" bytes / "+Math.floor((fileLength*8*info.timescale)/(info.duration*1000))+" kbps</td></tr>";
+	html += "<tr><th>Duration / Timescale</th><td>"+info.duration+"/"+info.timescale+" ("+Log.getDurationString(info.duration,info.timescale)+")</td></tr>";
+	html += "<tr><th>Brands (major/compatible)</th><td>"+info.brands+"</td></tr>";
+	html += "<tr><th>MIME</th><td>"+info.mime+"</td></tr>";
 	html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
 	html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
 	html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
 	if (info.isFragmented) {
 		html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+Log.getDurationString(info.fragment_duration,info.timescale)+")</td></tr>";
 	}
+	html += "<tr><th>Creation / Modification Dates</th><td>"+dateToInput(info.created)+" / "+ dateToInput(info.modified)+"</td></tr>";
 	html += "</table>";
 	html += getTrackListInfo(info.videoTracks, "Video");
 	html += getTrackListInfo(info.audioTracks, "Audio");
@@ -187,4 +185,26 @@ function displayMovieInfo(info, div, _displaySourceBuffer) {
 	html += getTrackListInfo(info.otherTracks, "Other");
 	html += "</div>";
 	div.innerHTML = html;
+}
+
+function dateToInput(date) {
+	var d = date.getDate();
+    var m = date.getMonth()+1;
+    var y = date.getFullYear();
+    var h = date.getHours();
+    var mn = date.getMinutes();
+    if(d < 10){
+        d = "0"+d;
+    };
+    if(m < 10){
+        m = "0"+m;
+    };
+    if(h < 10){
+        h = "0"+h;
+    };
+    if(mn < 10){
+        mn = "0"+mn;
+    };
+
+    return "<input type='date' disabled value='"+y+"-"+m+"-"+d+"'><input type='time' disabled value='"+h+":"+mn+"'>";
 }
