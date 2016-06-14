@@ -9,6 +9,9 @@ var fileinput;
 var urlinput;
 var fancytree;
 
+var objectToLoad = null;
+var objectIsFile = false;
+
 Log.setLogLevel(Log.debug);
 
 var chunkSize  = 1024 * 1024; // bytes
@@ -19,16 +22,12 @@ function dragenter(e) {
 }
 
 function drop(e) {
-	var file;
-
+	objectIsFile = true;
 	if (!e) {
-		file = document.getElementById('fileinput').files[0];
+		objectToLoad = document.getElementById('fileinput').files[0];
 	}
 	else {
-		file = e.dataTransfer.files[0];
-	}
-	if (file) {
-		parseFile(file);
+		objectToLoad = e.dataTransfer.files[0];
 	}
 }
 
@@ -62,13 +61,14 @@ function parseFile(file) {
 			progressbar.progressbar({ value: Math.ceil(100*offset/fileSize) });
         } else {
             console.log("Read error: " + evt.target.error);
+            finalizeUI(false);
             return;
         }
         if (offset >= fileSize) {
 			progressbar.progressbar({ value: 100 });
             console.log("Done reading file ("+fileSize+ " bytes) in "+(new Date() - startDate)+" ms");
 			mp4box.flush();
-            finalizeUI();
+            finalizeUI(true);
             return;
         }
 
@@ -97,19 +97,19 @@ function httpload(url) {
 			if (response) {
 				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
 				mp4box.appendBuffer(response);
-				nextStart += chunkSize;
-				
+				nextStart += chunkSize;				
 			}
 			if (end) {
 				progressbar.progressbar({ value: 100 });
 	            console.log("Done reading file ("+downloader.totalLength+ " bytes) in "+(new Date() - startDate)+" ms");
 				mp4box.flush();
-				finalizeUI();
+				finalizeUI(true);
 			} else {
 				downloader.setChunkStart(nextStart); 
 			}
 			if (error) {
 				progresslabel.text("Download error!")
+				finalizeUI(false);
 			}
 		}
 	);
@@ -119,12 +119,13 @@ function httpload(url) {
 	downloader.start();	
 }
 
-function httploadFromUrl() {
-	httpload(urlinput.val());
-}
-
-function httploadFromList() {
-	httpload(urlSelector.find(":selected").val());
+function load() {
+	$("#LoadButton").button( "disable" );
+	if (objectIsFile) {
+		parseFile(objectToLoad);
+	} else {
+		httpload(objectToLoad);
+	}
 }
 
 function generateBoxTable(box) {
@@ -209,11 +210,25 @@ function createBoxView() {
 	createBoxPartition(boxnodes);
 }
 
-function finalizeUI() {
-	createBoxView();
-	buildItemTable(mp4box.inputIsoFile.items);
-	buildSampleView();
-	displayMovieInfo(mp4box.getInfo(), document.getElementById("movieview"), false);
+function resetBoxView() {
+	fancytree.reload([]);
+	d3.select("#boxmapview").html('');
+	d3.select("#boxpartitionview").html('');
+}
+
+function finalizeUI(success) {
+	$("#LoadButton").button("enable");
+	if (success) {
+		createBoxView();
+		buildItemTable(mp4box.inputIsoFile.items);
+		buildSampleView();
+		displayMovieInfo(mp4box.getInfo(), document.getElementById("movieview"), false);
+	} else {
+		resetBoxView();
+		$("#itemview").html('');
+		resetSampleView();
+		$("#movieview").html('');
+	}
 }
 
 function buildItemTable(items) {
@@ -408,11 +423,23 @@ window.onload = function () {
 	progressbar = $('#progressbar');
 	progresslabel = $('#progress-label');
 	fileinput = $('#fileinput');
+	fileinput.width(500);
 	urlinput = $('#urlinput');	
+	urlinput[0].onchange = function(e) { 
+		objectToLoad = urlinput.val(); 
+		objectIsFile = false;
+		console.log(objectIsFile, objectToLoad);
+	}	
 	urlinput.width(500);
 	urlinput.addClass("ui-widget ui-widget-content ui-corner-all");
 	urlSelector = $('#urlSelector');
-	urlSelector.selectmenu({width: 500});
+	urlSelector.selectmenu({
+		width: 500,
+		change: function(e) {
+			objectIsFile = false;
+			objectToLoad = urlSelector.find(":selected").val();
+		}
+	});
 	progressbar.progressbar({ 
 		value: 0, 
 		change: function() {
@@ -479,11 +506,9 @@ window.onload = function () {
 	$("#samplemap").hide();
 	$("#sampletimeline").hide();
 
-	$("#LoadFromList").button();
-	$("#LoadFromUrl").button();
+	$("#LoadButton").button();
 
 	buildUrlList(urlSelector[0], true);
-	//urlSelector.val()
 	if (window.location.search) {
 		httpload(window.location.search.substring(1));
 	}
@@ -797,7 +822,7 @@ function buildSampleMap(start, end) {
 SampleTimeline.prototype.update = function() {
   	var that = this;
 	var data = this.data;
-	var scale = 1/20;
+	var scale = (data[0].duration ? 50/data[0].duration : 50);
 	var sample_height = 30;
 	var height_spacing = 10;
 	var x_offset = 100;

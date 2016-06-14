@@ -133,7 +133,7 @@
 
 		<h3>MP4Box.js / ISOBMFF Box Structure Viewer (see also <a href="./">File Player</a>)</h3>
 		<div style="width: 100%;">
-			<div style="width: 15%;float: left;">
+			<div style="width: 15%; float: left;">
 			<label for="input_type">Load: </label>
 		    <select name="input_type" id="input_type">
 		      <option>File</option>
@@ -141,22 +141,21 @@
 		      <option selected="selected">Example</option>
 		    </select>
 		    </div>
-		    <div style="width: 50%;float: left;">
+		    <div style="width: 45%; float: left;">
 			  <div id="tabs-1">
 				<input type='file' id='fileinput' onchange='drop()'>
 			  </div>
 			  <div id="tabs-2">
 			    <label for="urlinput">Enter URL:</label>
 			    <input type='url' name='urlinput' id='urlinput'>
-			    <button onclick='httploadFromUrl()' id="LoadFromUrl">Load</button>
 			  </div>
 			  <div id="tabs-3">
 				<label>Select Example:</label>
 				<select id="urlSelector">
 				</select>
-			    <button onclick='httploadFromList()' id="LoadFromList">Load</button>
 			  </div>
 			</div>
+		    <button style="width: 5%; float: left;" onclick='load()' id="LoadButton">Load</button>
 			<div id="progressbar" style="width: 34%; float: left;">
 				<div id="progress-label" style="text-align: center;">0%</div>
 			</div>
