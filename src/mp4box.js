@@ -374,7 +374,7 @@ MP4Box.prototype.getInfo = function() {
 		movie.hasIOD = (this.inputIsoFile.moov.iods != null);
 		movie.brands = []; 
 		movie.brands.push(this.inputIsoFile.ftyp.major_brand);
-		movie.brands = movie.brands.concat(this.inputIsoFile.ftyp.compatible_brands);	
+		movie.brands = movie.brands.concat(this.inputIsoFile.ftyp.compatible_brands);
 		movie.created = new Date(_1904+this.inputIsoFile.moov.mvhd.creation_time*1000);
 		movie.modified = new Date(_1904+this.inputIsoFile.moov.mvhd.modification_time*1000);
 		movie.tracks = [];
@@ -450,6 +450,21 @@ MP4Box.prototype.getInfo = function() {
 	} else {
 		movie.hasMoov = false;
 	}
+	movie.mime = "";
+	if (movie.videoTracks.length > 0) {
+		movie.mime += 'video/mp4; codecs=\"';
+	} else if (movie.audioTracks.length > 0) {
+		movie.mime += 'audio/mp4; codecs=\"';
+	} else {
+		movie.mime += 'application/mp4; codecs=\"';
+	}
+	for (i = 0; i < movie.tracks.length; i++) {
+		if (i !== 0) movie.mime += ',';
+		movie.mime+= movie.tracks[i].codec;
+	}
+	movie.mime += '\"; profiles=\"';
+	movie.mime += this.inputIsoFile.ftyp.compatible_brands.join();
+	movie.mime += '\"';
 	return movie;
 }
 
