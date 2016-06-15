@@ -29,6 +29,7 @@ function drop(e) {
 	else {
 		objectToLoad = e.dataTransfer.files[0];
 	}
+	load();
 }
 
 function initialize() {
@@ -128,7 +129,8 @@ function load() {
 	}
 }
 
-function generateBoxTable(box) {
+function generateBoxTable(box, excluded_fields, additional_props) {
+	var prop;
 	var html = '<table>';
 	html += '<thead>';
 	html += '<tr>';
@@ -141,8 +143,10 @@ function generateBoxTable(box) {
 	html += '</tr>';
 	html += '</thead>';
 	html += '<tbody>';
-	for (var prop in box) {
+	for (prop in box) {
 		if (["hdr_size", "start", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents"].indexOf(prop) > -1) {
+			continue;
+		} else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
 			continue;
 		} else if (box[prop] instanceof BoxParser.Box) {
 			continue;
@@ -161,8 +165,20 @@ function generateBoxTable(box) {
 			html += '</tr>';
 		}
 	}
+	if (additional_props) {
+		for (prop in additional_props) {
+			html += '<tr>';
+			html += '<td><code>';
+			html += prop;
+			html += '</code></td>';
+			html += '<td><code>';
+			html += additional_props[prop];
+			html += '</code></td>';
+			html += '</tr>';
+		}
+	}
 	html += '</tbody>';
-	html += '</html>';
+	html += '</table>';
 	return html;
 }
 
@@ -274,6 +290,16 @@ function buildItemTable(items) {
 	$("#itemview").html(html);
 }
 
+function resetSampleView() {
+	$("#sampletable").html('');
+	$("#samplemap").html('');
+	$("#trackinfo").val('');
+	$("#trackSelect").html('');
+	$("#sample-range-value").val('');
+	$("#samplegraph").html('');
+	$("#sampletimeline").html('');
+}
+
 function buildSampleTrackView(info, trackSelector, track_index) {
 	var graph;
 	var timeline;
@@ -365,9 +391,10 @@ function buildSampleTableInfo(track_id, start, end) {
 	html += "<th>Sample number</th>";
 	html += "<th>DTS</th>";
 	html += "<th>CTS</th>";
-	html += "<th>RAP</th>";
+	html += "<th>Is Sync</th>";
 	html += "<th>Offset</th>";
 	html += "<th>Size</th>";
+	html += "<th>Groups</th>";
 	html += "</tr>";
 	html += "</thead>";
 	html += "<tbody>";
@@ -384,6 +411,14 @@ function buildSampleTableInfo(track_id, start, end) {
 		html += "<td>"+sample.offset+"</td>";
 		html += "<td>"+sample.size+"</td>";
 		html += "<td>";
+		if (sample.sample_groups && sample.sample_groups.length > 0) {
+			for (j = 0; j < sample.sample_groups.length; j++) {
+				if (sample.sample_groups[j].description) {
+					html += generateBoxTable(sample.sample_groups[j].description, [ "data", "description_length"], { grouping_type_parameter: sample.sample_groups[j].parameter});
+				}
+			}
+		}
+		html += "</td>"
 		html += "</tr>";
 	}
 	html += "</tbody>";
@@ -509,8 +544,13 @@ window.onload = function () {
 	$("#LoadButton").button();
 
 	buildUrlList(urlSelector[0], true);
+	objectToLoad = urlSelector.find(":selected").val();
+	urlSelector.val(objectToLoad);
+	urlSelector.selectmenu("refresh");
+
 	if (window.location.search) {
-		httpload(window.location.search.substring(1));
+		objectToLoad = window.location.search.substring(1);
+		load();
 	}
 }
 
@@ -853,7 +893,8 @@ SampleTimeline.prototype.update = function() {
     						  .attr('y', 0)
     						  .attr('width', d.duration*scale)
     						  .attr('height', sample_height)
-    						  .attr('fill', 'red');
+    						  .style('fill', 'red')
+    						  .style('stroke', (d.is_rap?'black':'none'));
 	    sampleg.append("text")
 	        .attr("text-anchor", "middle")
 			.attr("dominant-baseline", "central")
@@ -864,7 +905,8 @@ SampleTimeline.prototype.update = function() {
     						  .attr('y', sample_height+height_spacing)
     						  .attr('width', d.duration*scale)
     						  .attr('height', sample_height)
-    						  .attr('fill', 'blue');
+    						  .style('fill', 'blue')
+    						  .style('stroke', (d.is_rap?'black':'none'));
 	    sampleg.append("text")
 	        .attr("text-anchor", "middle")
 			.attr("dominant-baseline", "central")
@@ -877,7 +919,7 @@ SampleTimeline.prototype.update = function() {
     						  .attr('y2', sample_height+height_spacing)
     						  .attr('stroke-width', '1px')
     						  .attr('marker-end','url(#arrow)')
-    						  .attr('stroke','black');
+    						  .style('stroke','black');
   	});
 }
 

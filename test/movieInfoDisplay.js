@@ -195,16 +195,16 @@ function dateToInput(date) {
     var mn = date.getMinutes();
     if(d < 10){
         d = "0"+d;
-    };
+    }
     if(m < 10){
         m = "0"+m;
-    };
+    }
     if(h < 10){
         h = "0"+h;
-    };
+    }
     if(mn < 10){
         mn = "0"+mn;
-    };
+    }
 
     return "<input type='date' disabled value='"+y+"-"+m+"-"+d+"'><input type='time' disabled value='"+h+":"+mn+"'>";
 }

@@ -146,11 +146,9 @@
 				<input type='file' id='fileinput' onchange='drop()'>
 			  </div>
 			  <div id="tabs-2">
-			    <label for="urlinput">Enter URL:</label>
 			    <input type='url' name='urlinput' id='urlinput'>
 			  </div>
 			  <div id="tabs-3">
-				<label>Select Example:</label>
 				<select id="urlSelector">
 				</select>
 			  </div>
@@ -163,7 +161,7 @@
 		<div id="resulttabs" style="clear: both;">
 		  <ul>
 		    <li><a href="#movieview">File Overview</a></li>
-		    <li><a href="#boxview">Structural View</a></li>
+		    <li><a href="#boxview">Box View</a></li>
 		    <li><a href="#sampleview">Sample View</a></li>
 		    <li><a href="#itemview">Item View</a></li>
 		  </ul>
@@ -171,7 +169,7 @@
 			</div>
 			<div id="boxview">
 				<ul>
-					<li><a href="#boxtreeview">Box Tree View</a></li>
+					<li><a href="#boxtreeview">Tree View</a></li>
 					<li><a href="#boxpartitionview">Partition View</a></li>
 					<li><a href="#boxmapview">Treemap View</a></li>
 				</ul>
@@ -203,15 +201,15 @@
 				</div>
 			</div>
 			<div id="sampleview">
-				<label>Track ID: <select id="trackSelect" name="trackSelect"></select></label>&nbsp;
-				<label>Codec: <input type="text" disabled id="trackinfo" style="width: 120px;"></label>&nbsp;
-				<label>Sample range: <input type="text" disabled id="sample-range-value" style="width: 200px;"></label>
 				<label>View type:<select name="sampleviewselector" id="sampleviewselector">
 					<option selected="selected">Sample Table</option>
 					<option>Sample Graph</option>
 					<option>Sample Map</option>
 					<option>Sample Timeline</option>
 				</select></label>
+				<label>Track ID: <select id="trackSelect" name="trackSelect"></select></label>&nbsp;
+				<label>Codec: <input type="text" disabled id="trackinfo" style="width: 120px;"></label>&nbsp;
+				<label>Sample range: <input type="text" disabled id="sample-range-value" style="width: 200px;"></label>
 				<div id="sample-range"></div>
 				<div>
 					<div id="sampletable"></div>
