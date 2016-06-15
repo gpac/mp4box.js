@@ -2,7 +2,7 @@
  * Copyright (c) Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-BoxParser.parseOneBox = function(stream, headerOnly) {
+BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	var box;
 	var start = stream.getPosition();
 	var hdr_size = 0;
@@ -34,7 +34,10 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 			throw "Unlimited box size not supported";
 		}
 	}
-	
+	if (parentSize && size > parentSize) {
+		Log.error("BoxParser", "Box of type "+type+" has a size "+size+" greater than its container size "+parentSize);
+		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };
+	}
 	if (start + size > stream.getEndPosition()) {
 		stream.seek(start);
 		Log.warn("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
@@ -63,15 +66,15 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 		box.parseDataAndRewind(stream);
 	}
 	box.parse(stream);
-	diff = stream.getPosition() - (this.start+this.size);
+	diff = stream.getPosition() - (box.start+box.size);
 	if (diff < 0) {
-		Log.warn("BoxParser", "Box parsing did not read the entire indicated box data size (missing "+(-diff)+" bytes), seeking forward");
-		stream.seek(this.start+this.size);
+		Log.warn("BoxParser", "Parsing of box "+box.type+" did not read the entire indicated box data size (missing "+(-diff)+" bytes), seeking forward");
+		stream.seek(box.start+box.size);
 	} else if (diff > 0) {
-		Log.error("BoxParser", "Box parsing read "+diff+" more bytes than the indicated box data size, seeking backwards");
-		stream.seek(this.start+this.size);
+		Log.error("BoxParser", "Parsing of box "+box.type+" read "+diff+" more bytes than the indicated box data size, seeking backwards");
+		stream.seek(box.start+box.size);
 	}
-	return { code: BoxParser.OK, box: box, size: size };
+	return { code: BoxParser.OK, box: box, size: box.size };
 }
 
 BoxParser.Box.prototype.parse = function(stream) {
@@ -118,16 +121,20 @@ BoxParser.ContainerBox.prototype.parse = function(stream) {
 	var ret;
 	var box;
 	while (stream.getPosition() < this.start+this.size) {
-		ret = BoxParser.parseOneBox(stream, false);
-		box = ret.box;
-		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
-		this.boxes.push(box);
-		if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
-			this[this.subBoxNames[this.subBoxNames.indexOf(box.type)]+"s"].push(box);
+		ret = BoxParser.parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+		if (ret.code === BoxParser.OK) {
+			box = ret.box;
+			/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
+			this.boxes.push(box);
+			if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
+				this[this.subBoxNames[this.subBoxNames.indexOf(box.type)]+"s"].push(box);
+			} else {
+				this[box.type] = box;
+			}
 		} else {
-			this[box.type] = box;
+			return;
 		}
-	}
+	} 
 }
 
 BoxParser.Box.prototype.parseLanguage = function(stream) {

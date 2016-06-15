@@ -3,6 +3,7 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 var BoxParser = {
+	ERR_INVALID_DATA : -1,
 	ERR_NOT_ENOUGH_DATA : 0,
 	OK : 1,
 	boxCodes : [ 
@@ -43,10 +44,10 @@ var BoxParser = {
 		[ "mdia" ],
 		[ "minf" ],
 		[ "dinf" ],
-		[ "stbl", [ "sgpd" ] ],
+		[ "stbl", [ "sgpd", "sbgp" ] ],
 		[ "mvex", [ "trex" ] ],
 		[ "moof", [ "traf" ] ],
-		[ "traf", [ "trun" ] ],
+		[ "traf", [ "trun", "sgpd", "sbgp" ] ],
 		[ "vttc" ], 
 		[ "tref" ],
 		[ "iref" ],

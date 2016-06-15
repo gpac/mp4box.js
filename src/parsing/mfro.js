@@ -1,5 +1,5 @@
 BoxParser.mfroBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
-	this.size = stream.readUint32();
+	this._size = stream.readUint32();
 }
 

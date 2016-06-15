@@ -22,10 +22,14 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	var ret;
 	var box;
 	while (stream.getPosition() < this.start+this.size) {
-		ret = BoxParser.parseOneBox(stream, false);
-		box = ret.box;
-		this.boxes.push(box);
-		this[box.type] = box;
+		ret = BoxParser.parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+		if (ret.code === BoxParser.OK) {
+			box = ret.box;
+			this.boxes.push(box);
+			this[box.type] = box;
+		} else {
+			return;
+		}
 	}	
 }
 

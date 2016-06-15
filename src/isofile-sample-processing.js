@@ -39,7 +39,7 @@ ISOFile.prototype.resetTables = function () {
 /* Build initial sample list from  sample tables */
 ISOFile.prototype.buildSampleLists = function() {	
 	var i, j, k;
-	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs;
+	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs, sbgps, sgpds;
 	var chunk_run_index, chunk_index, last_chunk_in_run, offset_in_chunk, last_sample_in_chunk;
 	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index, subs_entry_index, last_subs_sample_index;
 	for (i = 0; i < this.moov.traks.length; i++) {
@@ -53,6 +53,8 @@ ISOFile.prototype.buildSampleLists = function() {
 		stss = trak.mdia.minf.stbl.stss;
 		stsd = trak.mdia.minf.stbl.stsd;
 		subs = trak.mdia.minf.stbl.subs;
+		sbgps = trak.mdia.minf.stbl.sbgps;
+		sgpds = trak.mdia.minf.stbl.sgpds;
 		
 		last_sample_in_stts_run = -1;
 		stts_run_index = -1;
@@ -60,7 +62,26 @@ ISOFile.prototype.buildSampleLists = function() {
 		ctts_run_index = -1;
 		last_stss_index = 0;
 		subs_entry_index = 0;
-		last_subs_sample_index = 0;
+		last_subs_sample_index = 0;		
+
+		sbpg_indices = [];
+		for (k = 0; k < sbgps.length; k++) {
+			sbpg_indices[k] = {};
+			sbpg_indices[k].last_sample_in_run = 0;
+			sbpg_indices[k].run_index = -1;
+			if (sgpds) {
+				for (var l=0; l <sgpds.length; l++) {
+					if (sgpds[l].grouping_type === sbgps[k].grouping_type) {
+						sbpg_indices[k].description = sgpds[l];
+					}
+				}
+			}
+		}
+
+		if (typeof stsz === "undefined") {
+			continue;
+		}
+
 		/* we build the samples one by one and compute their properties */
 		for (j = 0; j < stsz.sample_sizes.length; j++) {
 			var sample = {};
@@ -165,6 +186,36 @@ ISOFile.prototype.buildSampleLists = function() {
 				if (subs.samples[subs_entry_index].sample_delta + last_subs_sample_index == j) {
 					sample.subsamples = subs.samples[subs_entry_index].subsamples;
 					last_subs_sample_index += subs.samples[subs_entry_index].sample_delta;
+				}
+			}
+			if (sbgps) {
+				sample.sample_groups = [];
+				for (k = 0; k < sbgps.length; k++) {
+					sample.sample_groups[k] = {};
+					sample.sample_groups[k].type = sbgps[k].grouping_type;
+					sample.sample_groups[k].parameter = sbgps[k].grouping_type_parameter;
+					if (j==sbpg_indices[k].last_sample_in_run) {
+						sbpg_indices[k].run_index++;	
+						if (sbpg_indices[k].run_index < sbgps[k].entries.length - 1) {
+							sbpg_indices[k].last_sample_in_run += sbgps[k].entries[sbpg_indices[k].run_index].sample_count;
+						}
+					}
+					if (sbpg_indices[k].run_index < sbgps[k].entries.length - 1) {
+						sample.sample_groups[k].group_description_index = sbgps[k].entries[sbpg_indices[k].run_index].group_description_index;
+					} else {
+						sample.sample_groups[k].group_description_index = -1; // special value for not defined
+					}
+					if (sample.sample_groups[k].group_description_index !== 0) {
+						if (sample.sample_groups[k].group_description_index > 0) {
+							sample.sample_groups[k].description = sbpg_indices[k].description.entries[sample.sample_groups[k].group_description_index-1];
+						} else {
+							if (sbpg_indices[k].description.version >= 2) {
+								if (sbpg_indices[k].description.default_group_description_index > 0) {								
+									sample.sample_groups[k].description = sbpg_indices[k].description.entries[sbpg_indices[k].description.default_group_description_index-1];
+								}
+							}
+						}
+					}
 				}
 			}
 		}
