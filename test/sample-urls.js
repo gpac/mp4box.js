@@ -9,6 +9,7 @@ var sampleUrls = [
 			{ url: "http://storage.googleapis.com/peer5_vod/sintel-2048-surround.mp4", desc: "Sintel (from Peer5, 15 min, non-fragmented, non-progressive, 310MB)"},
 			{ url: "http://akamai-progressive.irt.de/irt_subs/webvtt/nick.mp4", desc: "Nick and the roundabouts (from IRT, 5 min, non-fragmented, WebVTT in MP4, 77MB)"},
 			{ url: "./mp4/counter_french.mp4", desc: "MP3 in MP4"},
+			{ url: "./mp4/sintel-1024-surround.mp4", desc: "Sintel 1024 Surround"},
 		]
 	},
 	{ 
