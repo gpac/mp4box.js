@@ -39,7 +39,7 @@ ISOFile.prototype.resetTables = function () {
 /* Build initial sample list from  sample tables */
 ISOFile.prototype.buildSampleLists = function() {	
 	var i, j, k;
-	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs, sbgps, sgpds;
+	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs, sbgps, sgpds, sdtp, stdp;
 	var chunk_run_index, chunk_index, last_chunk_in_run, offset_in_chunk, last_sample_in_chunk;
 	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index, subs_entry_index, last_subs_sample_index;
 	for (i = 0; i < this.moov.traks.length; i++) {
@@ -53,6 +53,8 @@ ISOFile.prototype.buildSampleLists = function() {
 		stss = trak.mdia.minf.stbl.stss;
 		stsd = trak.mdia.minf.stbl.stsd;
 		subs = trak.mdia.minf.stbl.subs;
+		sdtp = trak.mdia.minf.stbl.sdtp;
+		stdp = trak.mdia.minf.stbl.stdp;
 		sbgps = trak.mdia.minf.stbl.sbgps;
 		sgpds = trak.mdia.minf.stbl.sgpds;
 		
@@ -69,11 +71,9 @@ ISOFile.prototype.buildSampleLists = function() {
 			sbpg_indices[k] = {};
 			sbpg_indices[k].last_sample_in_run = 0;
 			sbpg_indices[k].run_index = -1;
-			if (sgpds) {
-				for (var l=0; l <sgpds.length; l++) {
-					if (sgpds[l].grouping_type === sbgps[k].grouping_type) {
-						sbpg_indices[k].description = sgpds[l];
-					}
+			for (var l=0; l <sgpds.length; l++) {
+				if (sgpds[l].grouping_type === sbgps[k].grouping_type) {
+					sbpg_indices[k].description = sgpds[l];
 				}
 			}
 		}
@@ -181,6 +181,22 @@ ISOFile.prototype.buildSampleLists = function() {
 				}
 			} else {
 				sample.is_rap = true;
+			}
+			if (sdtp) {
+				sample.is_leading = sdtp.is_leading[j];
+				sample.depends_on = sdtp.sample_depends_on[j];
+				sample.is_depended_on = sdtp.sample_is_depended_on[j];
+				sample.has_redundancy = sdtp.sample_has_redundancy[j];
+			} else {
+				sample.is_leading = 0;
+				sample.depends_on = 0;
+				sample.is_depended_on = 0
+				sample.has_redundancy = 0;
+			}
+			if (stdp) {
+				sample.degradation_priority = stdp.priority[j];
+			} else {
+				sample.degradation_priority = 0;
 			}
 			if (subs) {
 				if (subs.samples[subs_entry_index].sample_delta + last_subs_sample_index == j) {
@@ -305,6 +321,11 @@ ISOFile.prototype.updateSampleLists = function() {
 							sample_flags = trun.first_sample_flags;
 						}
 						sample.is_rap = ((sample_flags >> 16 & 0x1) ? false : true);
+						sample.is_leading = (sample_flags >> 26 & 0x3);
+						sample.depends_on = (sample_flags >> 24 & 0x3);
+						sample.is_depended_on = (sample_flags >> 22 & 0x3);
+						sample.has_redundancy = (sample_flags >> 20 & 0x3);
+						sample.degradation_priority = (sample_flags & 0xFFFF);
 						var bdop = (traf.tfhd.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET) ? true : false;
 						var dbim = (traf.tfhd.flags & BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF) ? true : false;
 						var dop = (trun.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) ? true : false;

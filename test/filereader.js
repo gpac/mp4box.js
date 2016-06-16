@@ -394,6 +394,11 @@ function buildSampleTableInfo(track_id, start, end) {
 	html += "<th>Is Sync</th>";
 	html += "<th>Offset</th>";
 	html += "<th>Size</th>";
+	html += "<th>Is Leading</th>";
+	html += "<th>Depends On</th>";
+	html += "<th>Is Depended On</th>";
+	html += "<th>Has Redundancy</th>";
+	html += "<th>Degradation Priority</th>";
 	html += "<th>Groups</th>";
 	html += "</tr>";
 	html += "</thead>";
@@ -410,6 +415,11 @@ function buildSampleTableInfo(track_id, start, end) {
 		html += "<td>"+sample.is_rap+"</td>";
 		html += "<td>"+sample.offset+"</td>";
 		html += "<td>"+sample.size+"</td>";
+		html += "<td>"+sample.is_leading+"</td>";
+		html += "<td>"+sample.depends_on+"</td>";
+		html += "<td>"+sample.is_depended_on+"</td>";
+		html += "<td>"+sample.has_redundancy+"</td>";
+		html += "<td>"+sample.degradation_priority+"</td>";
 		html += "<td>";
 		if (sample.sample_groups && sample.sample_groups.length > 0) {
 			for (j = 0; j < sample.sample_groups.length; j++) {
