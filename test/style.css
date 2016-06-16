@@ -87,7 +87,6 @@ button {
 }
 
 table {
-   width: 100%;
    margin: 0 0 10px 0;
    background: #FFFFFF;
    border: 1px solid #333333;
@@ -104,4 +103,8 @@ td, th {
 th {
    background: #EEEEEE;
    text-align: center;
+}
+
+#sampletable table tr td, #sampletable table tr th {
+	width: 1px;
 }
