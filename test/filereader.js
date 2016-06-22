@@ -447,7 +447,7 @@ function buildSampleTableInfo(track_id, start, end) {
 		for (prop in properties) {
 			html += "<td class='stbl_"+properties[prop]+"'>"+sample[properties[prop]];
 			if (properties[prop] == "cts" || properties[prop] == "dts") {
-				html += "("+Log.getDurationString(sample[properties[prop]], sample.timescale)+")";
+				html += " - "+Log.getDurationString(sample[properties[prop]], sample.timescale);
 			}
 			html += "</td>";
 		}
@@ -907,6 +907,9 @@ function buildSampleMap(start, end) {
 SampleTimeline.prototype.update = function() {
   	var that = this;
 	var data = this.data;
+	if (!data || data.length === 0) {
+		return;
+	}
 	var scale = (data[0].duration ? 50/data[0].duration : 50);
 	var sample_height = 30;
 	var height_spacing = 10;
@@ -986,6 +989,9 @@ function SampleTimeline() {
 SampleGraph.prototype.update = function () {
   	var that = this;
 	var data = this.data;
+	if (!data || data.length === 0) {
+		return;
+	}
 	var xaxisChoice = this.xaxisChoice;
 
 	data.forEach(function(d, i) {
