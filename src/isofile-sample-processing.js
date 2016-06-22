@@ -155,10 +155,27 @@ ISOFile.setSampleGroupProperties = function(trak, sample, sample_number, sample_
 	}
 }
 
+ISOFile.process_sdtp = function (sdtp, sample, number) {
+	if (!sample) {
+		return;
+	}
+	if (sdtp) {
+		sample.is_leading = sdtp.is_leading[number];
+		sample.depends_on = sdtp.sample_depends_on[number];
+		sample.is_depended_on = sdtp.sample_is_depended_on[number];
+		sample.has_redundancy = sdtp.sample_has_redundancy[number];
+	} else {
+		sample.is_leading = 0;
+		sample.depends_on = 0;
+		sample.is_depended_on = 0
+		sample.has_redundancy = 0;
+	}	
+}
+
 /* Build initial sample list from  sample tables */
 ISOFile.prototype.buildSampleLists = function() {	
 	var i, j, k;
-	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs, sbgps, sgpds, sdtp, stdp;
+	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs, sbgps, sgpds, stdp;
 	var chunk_run_index, chunk_index, last_chunk_in_run, offset_in_chunk, last_sample_in_chunk;
 	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index, subs_entry_index, last_subs_sample_index;
 	for (i = 0; i < this.moov.traks.length; i++) {
@@ -172,7 +189,6 @@ ISOFile.prototype.buildSampleLists = function() {
 		stss = trak.mdia.minf.stbl.stss;
 		stsd = trak.mdia.minf.stbl.stsd;
 		subs = trak.mdia.minf.stbl.subs;
-		sdtp = trak.mdia.minf.stbl.sdtp;
 		stdp = trak.mdia.minf.stbl.stdp;
 		sbgps = trak.mdia.minf.stbl.sbgps;
 		sgpds = trak.mdia.minf.stbl.sgpds;
@@ -291,17 +307,7 @@ ISOFile.prototype.buildSampleLists = function() {
 			} else {
 				sample.is_sync = true;
 			}
-			if (sdtp) {
-				sample.is_leading = sdtp.is_leading[j];
-				sample.depends_on = sdtp.sample_depends_on[j];
-				sample.is_depended_on = sdtp.sample_is_depended_on[j];
-				sample.has_redundancy = sdtp.sample_has_redundancy[j];
-			} else {
-				sample.is_leading = 0;
-				sample.depends_on = 0;
-				sample.is_depended_on = 0
-				sample.has_redundancy = 0;
-			}
+			ISOFile.process_sdtp(trak.mdia.minf.stbl.sdtp, sample, sample.number);
 			if (stdp) {
 				sample.degradation_priority = stdp.priority[j];
 			} else {
@@ -329,7 +335,6 @@ ISOFile.prototype.updateSampleLists = function() {
 	var box, moof, traf, trak, trex;
 	var sample;
 	var sample_flags;
-	var sample_number_in_traf;
 	
 	if (this.moov === undefined) {
 		return;
@@ -364,7 +369,7 @@ ISOFile.prototype.updateSampleLists = function() {
 				} else {
 					default_sample_flags = (trex ? trex.default_sample_flags : 0);
 				}
-				sample_number_in_traf = -1;
+				traf.sample_number = 0;
 				/* process sample groups */
 				if (traf.sbgps.length > 0) {
 					ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
@@ -373,8 +378,8 @@ ISOFile.prototype.updateSampleLists = function() {
 					var trun = traf.truns[j];
 					for (k = 0; k < trun.sample_count; k++) {
 						sample = {};
-						sample.sample_number_in_traf = sample_number_in_traf;
-						sample_number_in_traf++;
+						sample.number_in_traf = traf.sample_number;
+						traf.sample_number++;
 			            sample.number = trak.samples.length;
 						traf.first_sample_index = trak.samples.length;
 						trak.samples.push(sample);
@@ -416,6 +421,7 @@ ISOFile.prototype.updateSampleLists = function() {
 						sample.is_depended_on = (sample_flags >> 22 & 0x3);
 						sample.has_redundancy = (sample_flags >> 20 & 0x3);
 						sample.degradation_priority = (sample_flags & 0xFFFF);
+						ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
 						var bdop = (traf.tfhd.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET) ? true : false;
 						var dbim = (traf.tfhd.flags & BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF) ? true : false;
 						var dop = (trun.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) ? true : false;
@@ -445,7 +451,7 @@ ISOFile.prototype.updateSampleLists = function() {
 						last_run_position = sample.offset + sample.size;
 						if (traf.sbgps.length > 0 || traf.sgpds.length > 0 ||
 							trak.mdia.minf.stbl.sbgps.length > 0 || trak.mdia.minf.stbl.sgpds.length > 0) {
-							ISOFile.setSampleGroupProperties(trak, sample, sample_number_in_traf, traf.sample_groups_info);
+							ISOFile.setSampleGroupProperties(trak, sample, sample.number_in_traf, traf.sample_groups_info);
 						}
 					}
 				}
