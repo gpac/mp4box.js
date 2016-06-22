@@ -36,6 +36,125 @@ ISOFile.prototype.resetTables = function () {
 	}
 }
 
+ISOFile.initSampleGroups = function(trak, traf, sbgps, trak_sgpds, traf_sgpds) {
+	var l;
+	var k;
+	var sample_groups_info;
+	var sample_group_info;
+	var sample_group_key;
+	function SampleGroupInfo(_type, _parameter, _sbgp) {
+		this.grouping_type = _type;
+		this.grouping_type_parameter = _parameter;
+		this.sbgp = _sbgp;
+		this.last_sample_in_run = -1;
+		this.entry_index = -1;		
+	}
+	if (traf) {
+		traf.sample_groups_info = [];
+	} 
+	if (!trak.sample_groups_info) {
+		trak.sample_groups_info = [];
+	}
+	for (k = 0; k < sbgps.length; k++) {
+		sample_group_key = sbgps[k].grouping_type +"/"+ sbgps[k].grouping_type_parameter;
+		sample_group_info = new SampleGroupInfo(sbgps[k].grouping_type, sbgps[k].grouping_type_parameter, sbgps[k]);
+		if (traf) {
+			traf.sample_groups_info[sample_group_key] = sample_group_info;
+		}
+		if (!trak.sample_groups_info[sample_group_key]) {
+			trak.sample_groups_info[sample_group_key] = sample_group_info;
+		}
+		for (l=0; l <trak_sgpds.length; l++) {
+			if (trak_sgpds[l].grouping_type === sbgps[k].grouping_type) {
+				sample_group_info.description = trak_sgpds[l];
+				sample_group_info.description.used = true;
+			}
+		}
+		if (traf_sgpds) {
+			for (l=0; l <traf_sgpds.length; l++) {
+				if (traf_sgpds[l].grouping_type === sbgps[k].grouping_type) {
+					sample_group_info.fragment_description = traf_sgpds[l];
+					sample_group_info.fragment_description.used = true;
+					sample_group_info.is_fragment = true;
+				}
+			}			
+		}
+	}
+	if (!traf) {
+		for (k = 0; k < trak_sgpds.length; k++) {
+			if (!trak_sgpds[k].used && trak_sgpds[k].version >= 2) {
+				sample_group_key = trak_sgpds[k].grouping_type +"/0";
+				sample_group_info = new SampleGroupInfo(trak_sgpds[k].grouping_type, 0);
+				if (!trak.sample_groups_info[sample_group_key]) {
+					trak.sample_groups_info[sample_group_key] = sample_group_info;
+				}
+			}
+		}
+	} else {
+		if (traf_sgpds) {
+			for (k = 0; k < traf_sgpds.length; k++) {
+				if (!traf_sgpds[k].used && traf_sgpds[k].version >= 2) {
+					sample_group_key = traf_sgpds[k].grouping_type +"/0";
+					sample_group_info = new SampleGroupInfo(traf_sgpds[k].grouping_type, 0);
+					sample_group_info.is_fragment = true;
+					if (!traf.sample_groups_info[sample_group_key]) {
+						traf.sample_groups_info[sample_group_key] = sample_group_info;
+					}
+				}
+			}
+		}
+	}
+}
+
+ISOFile.setSampleGroupProperties = function(trak, sample, sample_number, sample_groups_info) {
+	var k;
+	var index;
+	sample.sample_groups = [];
+	for (k in sample_groups_info) {
+		sample.sample_groups[k] = {};
+		sample.sample_groups[k].grouping_type = sample_groups_info[k].grouping_type;
+		sample.sample_groups[k].grouping_type_parameter = sample_groups_info[k].grouping_type_parameter;
+		if (sample_number >= sample_groups_info[k].last_sample_in_run) {
+			if (sample_groups_info[k].last_sample_in_run < 0) {
+				sample_groups_info[k].last_sample_in_run = 0;
+			}
+			sample_groups_info[k].entry_index++;	
+			if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp.entries.length - 1) {
+				sample_groups_info[k].last_sample_in_run += sample_groups_info[k].sbgp.entries[sample_groups_info[k].entry_index].sample_count;
+			}
+		}
+		if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp.entries.length - 1) {
+			sample.sample_groups[k].group_description_index = sample_groups_info[k].sbgp.entries[sample_groups_info[k].entry_index].group_description_index;
+		} else {
+			sample.sample_groups[k].group_description_index = -1; // special value for not defined
+		}
+		if (sample.sample_groups[k].group_description_index !== 0) {
+			var description;
+			if (sample_groups_info[k].fragment_description) {
+				description = sample_groups_info[k].fragment_description;
+			} else {
+				description = sample_groups_info[k].description;
+			}
+			if (sample.sample_groups[k].group_description_index > 0) {
+				if (sample.sample_groups[k].group_description_index > 65535) {
+					index = (sample.sample_groups[k].group_description_index >> 16)-1;
+				} else {
+					index = sample.sample_groups[k].group_description_index-1;
+				}
+				if (description && index >= 0) {
+					sample.sample_groups[k].description = description.entries[index];
+				}
+			} else {
+				if (description && description.version >= 2) {
+					if (description.default_group_description_index > 0) {								
+						sample.sample_groups[k].description = description.entries[description.default_group_description_index-1];
+					}
+				}
+			}
+		}
+	}
+}
+
 /* Build initial sample list from  sample tables */
 ISOFile.prototype.buildSampleLists = function() {	
 	var i, j, k;
@@ -66,17 +185,7 @@ ISOFile.prototype.buildSampleLists = function() {
 		subs_entry_index = 0;
 		last_subs_sample_index = 0;		
 
-		sbpg_indices = [];
-		for (k = 0; k < sbgps.length; k++) {
-			sbpg_indices[k] = {};
-			sbpg_indices[k].last_sample_in_run = 0;
-			sbpg_indices[k].run_index = -1;
-			for (var l=0; l <sgpds.length; l++) {
-				if (sgpds[l].grouping_type === sbgps[k].grouping_type) {
-					sbpg_indices[k].description = sgpds[l];
-				}
-			}
-		}
+		ISOFile.initSampleGroups(trak, null, sbgps, sgpds);
 
 		if (typeof stsz === "undefined") {
 			continue;
@@ -174,13 +283,13 @@ ISOFile.prototype.buildSampleLists = function() {
 			}
 			if (stss) {
 				if (j == stss.sample_numbers[last_stss_index] - 1) { // sample numbers are 1-based
-					sample.is_rap = true;
+					sample.is_sync = true;
 					last_stss_index++;
 				} else {
-					sample.is_rap = false;				
+					sample.is_sync = false;				
 				}
 			} else {
-				sample.is_rap = true;
+				sample.is_sync = true;
 			}
 			if (sdtp) {
 				sample.is_leading = sdtp.is_leading[j];
@@ -204,35 +313,8 @@ ISOFile.prototype.buildSampleLists = function() {
 					last_subs_sample_index += subs.samples[subs_entry_index].sample_delta;
 				}
 			}
-			if (sbgps) {
-				sample.sample_groups = [];
-				for (k = 0; k < sbgps.length; k++) {
-					sample.sample_groups[k] = {};
-					sample.sample_groups[k].type = sbgps[k].grouping_type;
-					sample.sample_groups[k].parameter = sbgps[k].grouping_type_parameter;
-					if (j==sbpg_indices[k].last_sample_in_run) {
-						sbpg_indices[k].run_index++;	
-						if (sbpg_indices[k].run_index < sbgps[k].entries.length - 1) {
-							sbpg_indices[k].last_sample_in_run += sbgps[k].entries[sbpg_indices[k].run_index].sample_count;
-						}
-					}
-					if (sbpg_indices[k].run_index < sbgps[k].entries.length - 1) {
-						sample.sample_groups[k].group_description_index = sbgps[k].entries[sbpg_indices[k].run_index].group_description_index;
-					} else {
-						sample.sample_groups[k].group_description_index = -1; // special value for not defined
-					}
-					if (sample.sample_groups[k].group_description_index !== 0) {
-						if (sample.sample_groups[k].group_description_index > 0) {
-							sample.sample_groups[k].description = sbpg_indices[k].description.entries[sample.sample_groups[k].group_description_index-1];
-						} else {
-							if (sbpg_indices[k].description.version >= 2) {
-								if (sbpg_indices[k].description.default_group_description_index > 0) {								
-									sample.sample_groups[k].description = sbpg_indices[k].description.entries[sbpg_indices[k].description.default_group_description_index-1];
-								}
-							}
-						}
-					}
-				}
+			if (sbgps.length > 0 || sgpds.length > 0) {
+				ISOFile.setSampleGroupProperties(trak, sample, j, trak.sample_groups_info);
 			}
 		}
 		if (j>0) trak.samples[j-1].duration = Math.max(trak.mdia.mdhd.duration - trak.samples[j-1].dts, 0);
@@ -247,6 +329,7 @@ ISOFile.prototype.updateSampleLists = function() {
 	var box, moof, traf, trak, trex;
 	var sample;
 	var sample_flags;
+	var sample_number_in_traf;
 	
 	if (this.moov === undefined) {
 		return;
@@ -281,10 +364,17 @@ ISOFile.prototype.updateSampleLists = function() {
 				} else {
 					default_sample_flags = (trex ? trex.default_sample_flags : 0);
 				}
+				sample_number_in_traf = -1;
+				/* process sample groups */
+				if (traf.sbgps.length > 0) {
+					ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
+				}
 				for (j = 0; j < traf.truns.length; j++) {
 					var trun = traf.truns[j];
 					for (k = 0; k < trun.sample_count; k++) {
 						sample = {};
+						sample.sample_number_in_traf = sample_number_in_traf;
+						sample_number_in_traf++;
 			            sample.number = trak.samples.length;
 						traf.first_sample_index = trak.samples.length;
 						trak.samples.push(sample);
@@ -320,7 +410,7 @@ ISOFile.prototype.updateSampleLists = function() {
 						} else if (k === 0 && (trun.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG)) {
 							sample_flags = trun.first_sample_flags;
 						}
-						sample.is_rap = ((sample_flags >> 16 & 0x1) ? false : true);
+						sample.is_sync = ((sample_flags >> 16 & 0x1) ? false : true);
 						sample.is_leading = (sample_flags >> 26 & 0x3);
 						sample.depends_on = (sample_flags >> 24 & 0x3);
 						sample.is_depended_on = (sample_flags >> 22 & 0x3);
@@ -353,6 +443,10 @@ ISOFile.prototype.updateSampleLists = function() {
 							sample.offset = last_run_position; // this run starts immediately after the data of the previous run
 						}
 						last_run_position = sample.offset + sample.size;
+						if (traf.sbgps.length > 0 || traf.sgpds.length > 0 ||
+							trak.mdia.minf.stbl.sbgps.length > 0 || trak.mdia.minf.stbl.sgpds.length > 0) {
+							ISOFile.setSampleGroupProperties(trak, sample, sample_number_in_traf, traf.sample_groups_info);
+						}
 					}
 				}
 				if (traf.subs) {

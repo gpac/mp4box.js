@@ -552,7 +552,7 @@ MP4Box.prototype.seekTrack = function(time, useRap, trak) {
 			seek_sample_num = j-1;
 			break;
 		} 
-		if (useRap && sample.is_rap) {
+		if (useRap && sample.is_sync) {
 			rap_seek_sample_num = j;
 		}
 	}

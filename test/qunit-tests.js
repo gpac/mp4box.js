@@ -783,12 +783,12 @@ QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
 		assert.notEqual(seekStep, 2, "Callback should never be reached on step 2");
 		assert.equal(samples.length, 1, "One sample received");
 		if (seekStep === 0) {
-			assert.equal(samples[0].is_rap, true, "Step 0 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, true, "Step 0 Sample RAP status matches");
 			assert.equal(samples[0].dts, 25000, "Step 0 Sample DTS matches");
 			assert.equal(samples[0].cts, 25000, "Step 0 Sample CTS matches");
 			assert.equal(samples[0].size, 3158, "Step 0 Sample size matches");
 		} else if (seekStep === 1) {
-			assert.equal(samples[0].is_rap, false, "Step 1 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, false, "Step 1 Sample RAP status matches");
 			assert.equal(samples[0].dts, 27000, "Step 1 Sample DTS matches");
 			assert.equal(samples[0].cts, 27000, "Step 1 Sample CTS matches");
 			assert.equal(samples[0].size, 176, "Step 1 Sample size matches");
@@ -847,12 +847,12 @@ QUnit.asyncTest( "Seek in the past", function( assert ) {
 	var track_id;
 	mp4box.onSamples = function(id, user, samples) {		
 		if (seekStep === 0) {
-			assert.equal(samples[0].is_rap, true, "Step 0 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, true, "Step 0 Sample RAP status matches");
 			assert.equal(samples[0].dts, 25000, "Step 0 Sample DTS matches");
 			assert.equal(samples[0].cts, 25000, "Step 0 Sample CTS matches");
 			assert.equal(samples[0].size, 3158, "Step 0 Sample size matches");
 		} else if (seekStep === 1) {
-			assert.equal(samples[0].is_rap, true, "Step 1 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, true, "Step 1 Sample RAP status matches");
 			assert.equal(samples[0].dts, 0, "Step 1 Previous Sample DTS matches");
 			assert.equal(samples[0].cts, 0, "Step 1 Sample CTS matches");
 			assert.equal(samples[0].size, 3291, "Step 1 Sample size matches");

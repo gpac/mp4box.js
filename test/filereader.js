@@ -129,19 +129,21 @@ function load() {
 	}
 }
 
-function generateBoxTable(box, excluded_fields, additional_props) {
+function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 	var prop;
 	var html = '<table>';
-	html += '<thead>';
-	html += '<tr>';
-	html += '<th>';
-	html += 'Property name';
-	html += '</th>';
-	html += '<th>';
-	html += 'Property value';
-	html += '</th>';
-	html += '</tr>';
-	html += '</thead>';
+	if (!no_header) {
+		html += '<thead>';
+		html += '<tr>';
+		html += '<th>';
+		html += 'Property name';
+		html += '</th>';
+		html += '<th>';
+		html += 'Property value';
+		html += '</th>';
+		html += '</tr>';
+		html += '</thead>';
+	}
 	html += '<tbody>';
 	for (prop in box) {
 		if (["hdr_size", "start", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents"].indexOf(prop) > -1) {
@@ -384,22 +386,55 @@ function buildSampleTableInfo(track_id, start, end) {
 	var html;
 	var i, j;
 	var samples;
+	var properties = ["number", "dts", "cts", "offset", "size", "is_sync", "is_leading", "depends_on", "is_depended_on",
+					  "has_redundancy", "degradation_priority"];
+	var prop;
+	var sample;
+	var trak;
+	var sample_group_info;
+	var sample_group_name;
 
-	html = "<table>";
+	function getShowHidePropertyCheckbox(name) {
+		var html = "<label>";
+		var esc_name = name.replace('/','_');
+		html += name;
+		html += "<input name='check_"+esc_name+"' type='checkbox' checked='checked' value='"+esc_name+"'";
+		html +=" onchange='if (!this.checked) { $(\".stbl_"+esc_name+"\").hide(); } else { $(\".stbl_"+esc_name+"\").show();} '>";
+		html += "</label>";
+		return html;
+	}
+
+	trak = mp4box.inputIsoFile.getTrackById(track_id);
+
+	html = "<div style='margin-top: 10px;margin-bottom: 10px;'>Show sample properties: ";
+	for (prop in properties) {
+		html += getShowHidePropertyCheckbox(properties[prop]);
+	}
+	if (trak && trak.sample_groups_info) {
+		html += "<br>";
+		html += "Show sample groups: ";
+		for (j in trak.sample_groups_info) {
+			sample_group_info = trak.sample_groups_info[j];
+			sample_group_name = sample_group_info.grouping_type.trim()+"/"+sample_group_info.grouping_type_parameter;
+			html += getShowHidePropertyCheckbox(sample_group_name);			
+		}
+	}
+	html += "</div>";
+
+	html += "<table>";
 	html += "<thead>";
 	html += "<tr>";
-	html += "<th>Sample number</th>";
-	html += "<th>DTS</th>";
-	html += "<th>CTS</th>";
-	html += "<th>Is Sync</th>";
-	html += "<th>Offset</th>";
-	html += "<th>Size</th>";
-	html += "<th>Is Leading</th>";
-	html += "<th>Depends On</th>";
-	html += "<th>Is Depended On</th>";
-	html += "<th>Has Redundancy</th>";
-	html += "<th>Degradation Priority</th>";
-	html += "<th>Groups</th>";
+	for (prop in properties) {
+		html += "<th class='stbl_"+properties[prop]+"'>"+properties[prop]+"</th>";
+	}
+	if (trak && trak.sample_groups_info) {
+		//html += "<th>Groups</th>";
+		for (j in trak.sample_groups_info) {
+			sample_group_info = trak.sample_groups_info[j];
+			sample_group_name = sample_group_info.grouping_type.trim()+"/"+sample_group_info.grouping_type_parameter;
+			html += "<th class='stbl_"+sample_group_name.replace('/','_')+"'>Sample Group '"+sample_group_name+"'</th>";
+		}
+	}
 	html += "</tr>";
 	html += "</thead>";
 	html += "<tbody>";
@@ -407,28 +442,28 @@ function buildSampleTableInfo(track_id, start, end) {
 	samples = mp4box.getTrackSamplesInfo(track_id);
 	if (samples.length < end) end = samples.length;
 	for (i = start; i < end; i++) {
-		var sample = samples[i];
+		sample = samples[i];
 		html += "<tr>";
-		html += "<td>"+sample.number+"</td>";
-		html += "<td>"+sample.dts + "("+Log.getDurationString(sample.dts, sample.timescale)+")</td>";
-		html += "<td>"+sample.cts + "("+Log.getDurationString(sample.cts, sample.timescale)+")</td>";
-		html += "<td>"+sample.is_rap+"</td>";
-		html += "<td>"+sample.offset+"</td>";
-		html += "<td>"+sample.size+"</td>";
-		html += "<td>"+sample.is_leading+"</td>";
-		html += "<td>"+sample.depends_on+"</td>";
-		html += "<td>"+sample.is_depended_on+"</td>";
-		html += "<td>"+sample.has_redundancy+"</td>";
-		html += "<td>"+sample.degradation_priority+"</td>";
-		html += "<td>";
-		if (sample.sample_groups && sample.sample_groups.length > 0) {
-			for (j = 0; j < sample.sample_groups.length; j++) {
-				if (sample.sample_groups[j].description) {
-					html += generateBoxTable(sample.sample_groups[j].description, [ "data", "description_length"], { grouping_type_parameter: sample.sample_groups[j].parameter});
+		for (prop in properties) {
+			html += "<td class='stbl_"+properties[prop]+"'>"+sample[properties[prop]];
+			if (properties[prop] == "cts" || properties[prop] == "dts") {
+				html += "("+Log.getDurationString(sample[properties[prop]], sample.timescale)+")";
+			}
+			html += "</td>";
+		}
+		if (sample.sample_groups) {
+			for (j in sample.sample_groups) {
+				sample_group_info = sample.sample_groups[j];
+				if (sample_group_info) {
+					sample_group_name = sample_group_info.grouping_type.trim()+"/"+sample_group_info.grouping_type_parameter;
+					html += "<td class='stbl_"+sample_group_name.replace('/','_')+"'>";
+					if (sample_group_info.description) {
+						html += generateBoxTable(sample_group_info.description, [ "data", "description_length", "grouping_type"], undefined, true);
+					}
+					html += "</td>";
 				}
 			}
 		}
-		html += "</td>"
 		html += "</tr>";
 	}
 	html += "</tbody>";
@@ -833,7 +868,7 @@ function buildSampleMap(start, end) {
     	sample_tooltip += '  Duration:\t'+s.duration+' ('+Log.getDurationString(s.duration, s.timescale)+')\n';
     	sample_tooltip += '  CTS:\t\t'+s.cts+' ('+Log.getDurationString(s.cts, s.timescale)+')\n';
     	sample_tooltip += '  DTS:\t\t'+s.dts+' ('+Log.getDurationString(s.dts, s.timescale)+')\n';
-    	sample_tooltip += '  RAP:\t\t'+s.is_rap+'\n';
+    	sample_tooltip += '  Sync:\t\t'+s.is_sync+'\n';
     	sample_tooltip += '  Offset:\t\t'+s.position+'\n';
     	svg.append("rect")
     			.style("fill", color(s.track))
@@ -904,7 +939,7 @@ SampleTimeline.prototype.update = function() {
     						  .attr('width', d.duration*scale)
     						  .attr('height', sample_height)
     						  .style('fill', 'red')
-    						  .style('stroke', (d.is_rap?'black':'none'));
+    						  .style('stroke', (d.is_sync?'black':'none'));
 	    sampleg.append("text")
 	        .attr("text-anchor", "middle")
 			.attr("dominant-baseline", "central")
@@ -916,7 +951,7 @@ SampleTimeline.prototype.update = function() {
     						  .attr('width', d.duration*scale)
     						  .attr('height', sample_height)
     						  .style('fill', 'blue')
-    						  .style('stroke', (d.is_rap?'black':'none'));
+    						  .style('stroke', (d.is_sync?'black':'none'));
 	    sampleg.append("text")
 	        .attr("text-anchor", "middle")
 			.attr("dominant-baseline", "central")
@@ -1018,7 +1053,7 @@ function SampleGraph() {
 	  	new DrawableLine("size", "blue", "Size (bytes)", true),
 	  	new DrawableLine("ctso", "red", "CTS Offset (timescale)", false),
 	  	new DrawableLine("duration", "green", "Duration (timescale)", false),
-	  	new DrawableLine("is_rap", "orange", "RAP (boolean)", false),
+	  	new DrawableLine("is_sync", "orange", "RAP (boolean)", false),
   	];
 
 	var div = d3.select("#samplegraph");

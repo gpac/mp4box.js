@@ -91,9 +91,9 @@ window.onload = function () {
 		video.playing = false;
 	});
 */	
-	video.videoTracks.onchange = updateHtml5TrackInfo;
-	video.audioTracks.onchange = updateHtml5TrackInfo;
-	video.textTracks.onchange = updateHtml5TrackInfo;
+	if (video.videoTracks) video.videoTracks.onchange = updateHtml5TrackInfo;
+	if (video.audioTracks) video.audioTracks.onchange = updateHtml5TrackInfo;
+	if (video.textTracks) video.textTracks.onchange = updateHtml5TrackInfo;
 	reset();	
 
 	/* Loading Track Viewers */
@@ -460,7 +460,7 @@ function processInbandCue() {
 		video.onPlayCue = this;
 		return;
 	}
-	if (this.is_rap & this.track.config) {
+	if (this.is_sync & this.track.config) {
 		content = this.track.config;
 	} 
 	content += this.text;
@@ -552,7 +552,7 @@ function load() {
 				console.log("Parsed XML sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :", xmlSubSample.document);
 				cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, xmlSubSample.documentString);
 				texttrack.addCue(cue);
-				cue.is_rap = sample.is_rap;
+				cue.is_sync = sample.is_sync;
 				cue.onenter = processInbandCue;
 			} else if (sample.description.type === "mett" || sample.description.type === "sbtt" || sample.description.type === "stxt") {
 				sampleParser = new Textin4Parser();
@@ -568,7 +568,7 @@ function load() {
 				console.log("Parsed text sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :", textSample);
 				cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, textSample);
 				texttrack.addCue(cue);
-				cue.is_rap = sample.is_rap;
+				cue.is_sync = sample.is_sync;
 				cue.onenter = processInbandCue;
 			}
 		}
