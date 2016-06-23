@@ -4,10 +4,10 @@ BoxParser.subsBox.prototype.parse = function(stream) {
 	var subsample_count;
 	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
-	this.samples = [];
+	this.entries = [];
 	for (i = 0; i < entry_count; i++) {
 		var sampleInfo = {};
-		this.samples[i] = sampleInfo;
+		this.entries[i] = sampleInfo;
 		sampleInfo.sample_delta = stream.readUint32();
 		sampleInfo.subsamples = [];
 		subsample_count = stream.readUint16();
@@ -22,7 +22,7 @@ BoxParser.subsBox.prototype.parse = function(stream) {
 				}
 				subsample.priority = stream.readUint8();
 				subsample.discardable = stream.readUint8();
-				subsample.reserved = stream.readUint32();
+				subsample.codec_specific_parameters = stream.readUint32();
 			}
 		}
 	}
