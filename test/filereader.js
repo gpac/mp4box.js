@@ -201,6 +201,9 @@ function getFancyTreeData(boxes) {
 		} else if (box.references) {
 			fancytree_node.children = getFancyTreeData(box.references);
 			fancytree_node.folder = true;
+		} else if (box.subsamples) {
+			fancytree_node.children = getFancyTreeData(box.subsamples);
+			fancytree_node.folder = true;
 		} else if (box.items) {
 			fancytree_node.children = getFancyTreeData(box.items);
 			fancytree_node.folder = true;
