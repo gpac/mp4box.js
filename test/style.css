@@ -105,6 +105,6 @@ th {
    text-align: center;
 }
 
-#sampletable table tr td, #sampletable table tr th {
+.trackinfo table tr td, trackinfo table tr th, #sampletable table tr td, #sampletable table tr th {
 	width: 1px;
 }
