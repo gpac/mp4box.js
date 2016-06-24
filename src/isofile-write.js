@@ -25,7 +25,7 @@ ISOFile.writeInitializationSegment = function(moov, total_duration, sample_durat
 	for (i = 0; i < moov.traks.length; i++) {
 		mvex.add("trex").set("track_id", moov.traks[i].tkhd.track_id)
 						.set("default_sample_description_index", 1)
-						.set("default_sample_duration", sample_duration1)
+						.set("default_sample_duration", sample_duration)
 						.set("default_sample_size", 0)
 						.set("default_sample_flags", 1<<16)
 	}
