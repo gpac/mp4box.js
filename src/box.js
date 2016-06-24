@@ -208,6 +208,32 @@ BoxParser.TRUN_FLAGS_SIZE		= 0x200;
 BoxParser.TRUN_FLAGS_FLAGS		= 0x400;
 BoxParser.TRUN_FLAGS_CTS_OFFSET	= 0x800;
 
+BoxParser.Box.prototype.add = function(name) {
+	var i, j;
+	var box = new BoxParser[name+"Box"]();
+	this.boxes.push(box);
+	if (this[name+"s"]) {
+		this[name+"s"].push(box);
+	} else {
+		this[name] = box;
+	}
+	return box;
+}
+
+BoxParser.Box.prototype.set = function(prop, value) {
+	this[prop] = value;
+	return this;
+}
+
+BoxParser.Box.prototype.addEntry = function(value, _prop) {
+	var prop = _prop || "entries";
+	if (!this[prop]) {
+		this[prop] = [];
+	}
+	this[prop].push(value);
+	return this;
+}
+
 if (typeof exports !== "undefined") {
 	exports.BoxParser = BoxParser;
 }
