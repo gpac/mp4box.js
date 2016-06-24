@@ -27,6 +27,7 @@ module.exports = function(grunt) {
               'src/text-mp4.js',                  // text-based track manipulations
               'src/isofile.js',                   // basic file level operations (parse, get boxes)
               'src/isofile-advanced-parsing.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
+              'src/isofile-advanced-creation.js',    // file level advanced operations to create files from scratch
               'src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
               'src/isofile-item-processing.js',   // item processing operations (sample table, get, ...)
               'src/isofile-write.js',             // file level write operations (segment creation ...)
