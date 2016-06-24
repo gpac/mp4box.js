@@ -42,9 +42,11 @@ BoxParser.Box.prototype.write = function(stream) {
 			stream.writeUint8Array(this.data);
 		}
 	} else {
-		this.size = this.data.length;
+		this.size = (this.data ? this.data.length : 0);
 		this.writeHeader(stream);
-		stream.writeUint8Array(this.data);
+		if (this.data) {
+			stream.writeUint8Array(this.data);
+		}
 	}
 }
 
