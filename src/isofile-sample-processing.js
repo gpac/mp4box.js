@@ -181,6 +181,8 @@ ISOFile.prototype.buildSampleLists = function() {
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
 		trak.samples = [];
+		trak.samples_duration = 0;
+		trak.samples_size = 0;
 		stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
 		stsc = trak.mdia.minf.stbl.stsc;
 		stsz = trak.mdia.minf.stbl.stsz || trak.mdia.minf.stbl.stz2;
@@ -217,7 +219,7 @@ ISOFile.prototype.buildSampleLists = function() {
 			trak.samples[j] = sample;
 			/* size can be known directly */
 			sample.size = stsz.sample_sizes[j];
-
+			trak.samples_size += sample.size;
 			/* computing chunk-based properties (offset, sample description index)*/
 			if (j === 0) {				
 				chunk_index = 1; /* the first sample is in the first chunk (chunk indexes are 1-based) */
@@ -281,6 +283,7 @@ ISOFile.prototype.buildSampleLists = function() {
 			}
 			if (j > 0) {
 				trak.samples[j-1].duration = stts.sample_deltas[stts_run_index];
+				trak.samples_duration += trak.samples[j-1].duration;
 				sample.dts = trak.samples[j-1].dts + trak.samples[j-1].duration;
 			} else {
 				sample.dts = 0;
@@ -314,16 +317,19 @@ ISOFile.prototype.buildSampleLists = function() {
 				sample.degradation_priority = 0;
 			}
 			if (subs) {
-				if (subs.samples[subs_entry_index].sample_delta + last_subs_sample_index == j) {
-					sample.subsamples = subs.samples[subs_entry_index].subsamples;
-					last_subs_sample_index += subs.samples[subs_entry_index].sample_delta;
+				if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index == j) {
+					sample.subsamples = subs.entries[subs_entry_index].subsamples;
+					last_subs_sample_index += subs.entries[subs_entry_index].sample_delta;
 				}
 			}
 			if (sbgps.length > 0 || sgpds.length > 0) {
 				ISOFile.setSampleGroupProperties(trak, sample, j, trak.sample_groups_info);
 			}
 		}
-		if (j>0) trak.samples[j-1].duration = Math.max(trak.mdia.mdhd.duration - trak.samples[j-1].dts, 0);
+		if (j>0) {
+			trak.samples[j-1].duration = Math.max(trak.mdia.mdhd.duration - trak.samples[j-1].dts, 0);
+			trak.samples_duration += trak.samples[j-1].duration;
+		}
 	}
 }
 
@@ -391,10 +397,12 @@ ISOFile.prototype.updateSampleLists = function() {
 						if (trun.flags & BoxParser.TRUN_FLAGS_SIZE) {
 							sample.size = trun.sample_size[k];
 						}
+						trak.samples_size += sample.size;
 						sample.duration = default_sample_duration;
 						if (trun.flags & BoxParser.TRUN_FLAGS_DURATION) {
 							sample.duration = trun.sample_duration[k];
 						}
+						trak.samples_duration += sample.duration;
 						if (trak.first_traf_merged || k > 0) {
 							sample.dts = trak.samples[trak.samples.length-2].dts+trak.samples[trak.samples.length-2].duration;
 						} else {
@@ -456,11 +464,12 @@ ISOFile.prototype.updateSampleLists = function() {
 					}
 				}
 				if (traf.subs) {
+					trak.has_fragment_subsamples = true;
 					var sample_index = traf.first_sample_index;
-					for (j = 0; j < traf.subs.samples.length; j++) {
-						sample_index += traf.subs.samples[j].sample_delta;
+					for (j = 0; j < traf.subs.entries.length; j++) {
+						sample_index += traf.subs.entries[j].sample_delta;
 						sample = trak.samples[sample_index-1];
-						sample.subsamples = traf.subs.samples[j].subsamples;
+						sample.subsamples = traf.subs.entries[j].subsamples;
 					}					
 				}
 			}

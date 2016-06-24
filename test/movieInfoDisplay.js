@@ -2,37 +2,45 @@ var displayDates = false;
 
 function getBasicTrackHeader() {
 	var html = '';
-	html += "<th>Track ID</th>";
-	html += "<th>Track References</th>";
+	html += "<th>ID</th>";
+	html += "<th>References</th>";
 	html += "<th>Alternate Group</th>";
 	if (displayDates) {
 		html += "<th>Creation Date</th>";
 		html += "<th>Modified Date</th>";
 	}
+	html += "<th>Presentation Duration</th>";
+	html += "<th>Presentation Edits</th>";
+	html += "<th>Duration</th>";
 	html += "<th>Timescale</th>";
-	html += "<th>Media Duration</th>";
+	html += "<th>Timelines Shift</th>";
 	html += "<th>Number of Samples</th>";
 	html += "<th>Bitrate (kbps)</th>";
 	html += "<th>Codec</th>";
 	html += "<th>Language</th>";
 	html += "<th>Kind</th>";
-	html += "<th>Track Width</th>";
-	html += "<th>Track Height</th>";
-	html += "<th>Track Layer</th>";
+	html += "<th>Width</th>";
+	html += "<th>Height</th>";
+	html += "<th>Layer</th>";
 	return html;
 }
 
 function getBasicTrackInfo(track) {
+	var i;
 	var html = '';
 	html += "<td>"+track.id+"</td>";
 	html += "<td>";
-	if (track.references.length === 0) {
-		html += "none";
-	} else {
-		for (var i = 0; i < track.references.length; i++) {
-			if (i > 0) html += "<br>";
-			html += "Reference of type "+track.references[i]+" to tracks "+track.references[i].track_ids;
+	if (track.references && track.references.length > 0){
+		html += "<table>";
+		html += "<thead>";
+		html += "<tr><th>Type</th><th>Tracks</th></tr>";
+		html += "</thead>";
+		html += "<tbody>";
+		for (i = 0; i < track.references.length; i++) {
+			html += "<tr><td>"+track.references[i].type+"</td><td>"+track.references[i].track_ids+"</td></tr>";
 		}
+		html += "</tbody>";
+		html += "</table>";
 	}
 	html += "</td>";
 	html += "<td>"+track.alternate_group+"</td>";
@@ -40,10 +48,44 @@ function getBasicTrackInfo(track) {
 		html += "<td>"+track.created+"</td>";
 		html += "<td>"+track.modified+"</td>";
 	}
+	html += "<td>"+track.movie_duration+" - "+Log.getDurationString(track.movie_duration,track.movie_timescale)+"</td>";
+	html += "<td>";
+	if (track.edits && track.edits.length > 0) { 
+		html += "<table>";
+		html += "<thead>";
+		html += "<tr><th>Presentation Duration</th><th>Track Time</th><th>Speed</th></tr>";
+		html += "</thead>";
+		html += "<tbody>";
+		for (i = 0; i < track.edits.length; i++) {
+			html += "<tr>";
+			html += "<td>"+track.edits[i].segment_duration+" - "+Log.getDurationString(track.edits[i].segment_duration,track.movie_timescale)+"</td>";
+			if (track.edits[i].media_time !== -1) {
+				html += "<td>"+track.edits[i].media_time+" - "+Log.getDurationString(track.edits[i].media_time,track.timescale)+"</td>";
+			} else {
+				html += "<td></td>";
+			}
+			html += "<td>"+track.edits[i].media_rate_integer+"</td>";			
+			html += "</tr>";
+		}
+		html += "</tbody>";
+		html += "</table>";
+	} 
+	html += "</td>";
+	html += "<td>"+track.duration+" - "+Log.getDurationString(track.duration,track.timescale)+"</td>";
 	html += "<td>"+track.timescale+"</td>";
-	html += "<td>"+track.duration+" ("+Log.getDurationString(track.duration,track.timescale)+") </td>";
+	html += "<td>";
+	if (track.cts_shift) {
+		html += "<table>";
+		html += "<tr><td>shift</td><td>"+track.cts_shift.compositionToDTSShift+" - "+Log.getDurationString(track.cts_shift.compositionToDTSShift,track.timescale)+"</td></tr>";
+		html += "<tr><td>min</td><td>"+track.cts_shift.leastDecodeToDisplayDelta+" - "+Log.getDurationString(track.cts_shift.leastDecodeToDisplayDelta,track.timescale)+"</td></tr>";
+		html += "<tr><td>max</td><td>"+track.cts_shift.greatestDecodeToDisplayDelta+" - "+Log.getDurationString(track.cts_shift.greatestDecodeToDisplayDelta,track.timescale)+"</td></tr>";
+		html += "<tr><td>start</td><td>"+track.cts_shift.compositionStartTime+" - "+Log.getDurationString(track.cts_shift.compositionStartTime,track.timescale)+"</td></tr>";
+		html += "<tr><td>end</td><td>"+track.cts_shift.compositionEndTime+" - "+Log.getDurationString(track.cts_shift.compositionEndTime,track.timescale)+"</td></tr>";
+		html += "</table>";	
+	}	
+	html += "</td>";
 	html += "<td>"+track.nb_samples+"</td>";
-	html += "<td>"+Math.floor(track.bitrate/1024)+"</td>";
+	html += "<td>"+(Math.floor(track.bitrate*100/1024)/100)+"</td>";
 	html += "<td>"+track.codec+"</td>";
 	html += "<td>"+track.language+"</td>";
 	html += "<td>"+track.kind.schemeURI+" - "+track.kind.value+"</td>";
@@ -144,6 +186,7 @@ function generateTrackInfo(track, type) {
 
 function getTrackListInfo(tracks, type) {
 	var html = '';
+	html += "<div class='trackinfo'>";
 	if (tracks.length>0) {
 		html += type+" track(s) info";
 		html += "<table>";
@@ -153,6 +196,7 @@ function getTrackListInfo(tracks, type) {
 		}
 		html += "</table>";	
 	}
+	html += '</div>';
 	return html;
 }
 
@@ -174,7 +218,7 @@ function displayMovieInfo(info, div, _displaySourceBuffer) {
 	html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
 	html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
 	if (info.isFragmented) {
-		html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+" ("+Log.getDurationString(info.fragment_duration,info.timescale)+")</td></tr>";
+		html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+(info.fragment_duration ? " - "+Log.getDurationString(info.fragment_duration,info.timescale):"")+"</td></tr>";
 	}
 	html += "<tr><th>Creation / Modification Dates</th><td>"+dateToInput(info.created)+" / "+ dateToInput(info.modified)+"</td></tr>";
 	html += "</table>";

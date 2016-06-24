@@ -413,6 +413,9 @@ function buildSampleTableInfo(track_id, start, end) {
 	for (prop in properties) {
 		html += getShowHidePropertyCheckbox(properties[prop]);
 	}
+	if (trak.mdia.minf.stbl.subs || trak.has_fragment_subsamples) {
+		html += getShowHidePropertyCheckbox("subsamples");
+	}
 	if (trak && trak.sample_groups_info) {
 		html += "<br>";
 		html += "Show sample groups: ";
@@ -437,6 +440,9 @@ function buildSampleTableInfo(track_id, start, end) {
 			sample_group_name = sample_group_info.grouping_type.trim()+"/"+sample_group_info.grouping_type_parameter;
 			html += "<th class='stbl_"+sample_group_name.replace('/','_')+"'>Sample Group '"+sample_group_name+"'</th>";
 		}
+	}
+	if (trak.mdia.minf.stbl.subs || trak.has_fragment_subsamples) {
+		html += "<th class='stbl_subsamples'>subsamples</th>";
 	}
 	html += "</tr>";
 	html += "</thead>";
@@ -466,6 +472,15 @@ function buildSampleTableInfo(track_id, start, end) {
 					html += "</td>";
 				}
 			}
+		}
+		if (trak.mdia.minf.stbl.subs || trak.has_fragment_subsamples) {
+			html += "<td class='stbl_subsamples'>";
+			if (sample.subsamples) {
+				for (j = 0; j < sample.subsamples.length; j++) {
+					html += generateBoxTable(sample.subsamples[j], [], [], true);
+				}
+			}
+			html += "</td>";
 		}
 		html += "</tr>";
 	}

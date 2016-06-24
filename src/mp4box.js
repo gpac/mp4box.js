@@ -367,9 +367,7 @@ MP4Box.prototype.getInfo = function() {
 		movie.isFragmented = (this.inputIsoFile.moov.mvex != null);
 		if (movie.isFragmented && this.inputIsoFile.moov.mvex.mehd) {
 			movie.fragment_duration = this.inputIsoFile.moov.mvex.mehd.fragment_duration;
-		} else {
-			movie.fragment_duration = 0;
-		}
+		} 
 		movie.isProgressive = this.inputIsoFile.isProgressive;
 		movie.hasIOD = (this.inputIsoFile.moov.iods != null);
 		movie.brands = []; 
@@ -400,9 +398,13 @@ MP4Box.prototype.getInfo = function() {
 					ref.track_ids = trak.tref.boxes[j].track_ids;
 				}
 			}
+			if (trak.edts) {
+				track.edits = trak.edts.elst.entries;
+			}
 			track.created = new Date(_1904+trak.tkhd.creation_time*1000);
 			track.modified = new Date(_1904+trak.tkhd.modification_time*1000);
 			track.movie_duration = trak.tkhd.duration;
+			track.movie_timescale = movie.timescale;
 			track.layer = trak.tkhd.layer;
 			track.alternate_group = trak.tkhd.alternate_group;
 			track.volume = trak.tkhd.volume;
@@ -410,16 +412,15 @@ MP4Box.prototype.getInfo = function() {
 			track.track_width = trak.tkhd.width/(1<<16);
 			track.track_height = trak.tkhd.height/(1<<16);
 			track.timescale = trak.mdia.mdhd.timescale;
+			track.cts_shift = trak.mdia.minf.stbl.cslg;
 			track.duration = trak.mdia.mdhd.duration;
+			track.samples_duration = trak.samples_duration;
 			track.codec = sample_desc.getCodec();	
 			track.kind = (trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: "", value: ""});
 			track.language = (trak.mdia.elng ? trak.mdia.elng.extended_language : trak.mdia.mdhd.languageString);
 			track.nb_samples = trak.samples.length;
-			track.size = 0;
-			for (j = 0; j < track.nb_samples; j++) {
-				track.size += trak.samples[j].size;
-			}
-			track.bitrate = (track.size*8*track.timescale)/track.duration;
+			track.size = trak.samples_size;
+			track.bitrate = (track.size*8*track.timescale)/track.samples_duration;
 			if (sample_desc.isAudio()) {
 				track.type = "audio";
 				movie.audioTracks.push(track);
