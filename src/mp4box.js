@@ -104,36 +104,22 @@ MP4Box.prototype.unsetExtractionOptions = function(id) {
 
 MP4Box.prototype.createSingleSampleMoof = function(sample) {
 	var moof = new BoxParser.moofBox();
-	var mfhd = new BoxParser.mfhdBox();
-	mfhd.sequence_number = this.nextMoofNumber;
+	moof.add("mfhd").set("sequence_number", this.nextMoofNumber);
 	this.nextMoofNumber++;
-	moof.boxes.push(mfhd);
-	var traf = new BoxParser.trafBox();
-	moof.boxes.push(traf);
-	var tfhd = new BoxParser.tfhdBox();
-	traf.boxes.push(tfhd);
-	tfhd.track_id = sample.track_id;
-	tfhd.flags = BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
-	var tfdt = new BoxParser.tfdtBox();
-	traf.boxes.push(tfdt);
-	tfdt.baseMediaDecodeTime = sample.dts;
-	var trun = new BoxParser.trunBox();
-	traf.boxes.push(trun);
-	moof.trun = trun;
-	trun.flags = BoxParser.TRUN_FLAGS_DATA_OFFSET | BoxParser.TRUN_FLAGS_DURATION | 
-				 BoxParser.TRUN_FLAGS_SIZE | BoxParser.TRUN_FLAGS_FLAGS | 
-				 BoxParser.TRUN_FLAGS_CTS_OFFSET;
-	trun.data_offset = 0;
-	trun.first_sample_flags = 0;
-	trun.sample_count = 1;
-	trun.sample_duration = [];
-	trun.sample_duration[0] = sample.duration;
-	trun.sample_size = [];
-	trun.sample_size[0] = sample.size;
-	trun.sample_flags = [];
-	trun.sample_flags[0] = 0;
-	trun.sample_composition_time_offset = [];
-	trun.sample_composition_time_offset[0] = sample.cts - sample.dts;
+	var traf = moof.add("traf");
+	traf.add("tfhd").set("track_id", sample.track_id)
+					.set("flags", BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
+	traf.add("tfdt").set("baseMediaDecodeTime", sample.dts);
+	traf.add("trun").set("flags", BoxParser.TRUN_FLAGS_DATA_OFFSET | BoxParser.TRUN_FLAGS_DURATION | 
+				 				  BoxParser.TRUN_FLAGS_SIZE | BoxParser.TRUN_FLAGS_FLAGS | 
+				 				  BoxParser.TRUN_FLAGS_CTS_OFFSET)
+					.set("data_offset",0)
+					.set("first_sample_flags",0)
+					.set("sample_count",1)
+					.set("sample_duration",[sample.duration])
+					.set("sample_size",[sample.size])
+					.set("sample_flags",[0])
+					.set("sample_composition_time_offset", [sample.cts - sample.dts]);
 	return moof;
 }
 
