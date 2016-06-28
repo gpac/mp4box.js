@@ -259,7 +259,7 @@ ISOFile.prototype.appendBuffer = function(ab) {
 			nextFileStart = this.stream.getEndFilePositionAfter(nextFileStart);
 		}
 	} else {
-		if (this !== null) {
+		if (this.nextParsePosition) {
 			/* moov has not been parsed but the first buffer was received, 
 			   the next fetch should probably be the next box start */
 			nextFileStart = this.nextParsePosition;
