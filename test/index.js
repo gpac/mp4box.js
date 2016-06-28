@@ -244,11 +244,15 @@ function onUpdateEnd(isNotInit, isEndOfAppend) {
 			mp4boxfile.releaseUsedSamples(this.id, this.sampleNum);
 			delete this.sampleNum;
 		}
+		if (this.is_last) {
+			this.ms.endOfStream();
+		}
 	}
 	if (this.ms.readyState === "open" && this.updating === false && this.pendingAppends.length > 0) {
 		var obj = this.pendingAppends.shift();
 		Log.info("MSE - SourceBuffer #"+this.id, "Appending new buffer, pending: "+this.pendingAppends.length);
 		this.sampleNum = obj.sampleNum;
+		this.is_last = obj.is_last;
 		this.appendBuffer(obj.buffer);
 	}
 }
@@ -523,11 +527,11 @@ function load() {
 			}
 		}
 	}
-	mp4boxfile.onSegment = function (id, user, buffer, sampleNum) {	
+	mp4boxfile.onSegment = function (id, user, buffer, sampleNum, is_last) {	
 		var sb = user;
 		saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
 		sb.segmentIndex++;
-		sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum });
+		sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum, is_last: is_last });
 		Log.info("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
 		onUpdateEnd.call(sb, true, false);
 	}
@@ -583,7 +587,7 @@ function load() {
 			var nextStart = 0;
 			if (response) {
 				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
-				nextStart = mp4boxfile.appendBuffer(response);
+				nextStart = mp4boxfile.appendBuffer(response, end);
 			}
 			if (end) {
 				progressbar.progressbar({ value: 100 });
