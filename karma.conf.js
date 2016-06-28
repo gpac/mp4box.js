@@ -35,15 +35,16 @@ module.exports = function(config) {
           '../src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
           '../src/isofile-item-processing.js',   // item processing operations (sample table, get, ...)
           '../src/isofile-write.js',             // file level write operations (segment creation ...)
-          '../src/mp4box.js',                    // application level operations (data append, sample extraction, segmentation, ...)          'qunit-helper.js',
+          '../src/mp4box.js',                    // application level operations (data append, sample extraction, segmentation, ...)  
           'qunit-helper.js',
-          'qunit-media-data.js',
+/*          'qunit-media-data.js',
           'qunit-box-data.js',
           'qunit-tests.js',
           'qunit-isofile-tests.js',
           'qunit-mse-tests.js',
           'iso-conformance-files.js',
-          'qunit-iso-conformance.js',
+          'qunit-iso-conformance.js',*/
+          'qunit-iso-creation.js',
         ],
 
 
