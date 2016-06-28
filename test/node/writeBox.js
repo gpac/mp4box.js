@@ -15,7 +15,7 @@ var box = JSON.parse(boxDesc);
 box.writeHeader = MP4Box.BoxParser[box.type+"Box"].prototype.writeHeader;
 box.write = MP4Box.BoxParser[box.type+"Box"].prototype.write;
 mp4boxfile.boxes.push(box);
-outfile.write(toBuffer(mp4boxfile.writeFile()));
+outfile.write(toBuffer(mp4boxfile.getBuffer()));
 
 function toArrayBuffer(buffer) {
     var ab = new ArrayBuffer(buffer.length);

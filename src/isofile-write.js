@@ -65,18 +65,11 @@ ISOFile.writeInitializationSegment = function(moov, total_duration, sample_durat
 
 }
 
-ISOFile.prototype.toFile = function(name) {
+ISOFile.prototype.save = function(name) {
 	var stream = new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
 	this.write(stream);
 	stream.save(name);	
-}
-
-ISOFile.prototype.writeFile = function() {
-	var stream = new DataStream();
-	stream.endianness = DataStream.BIG_ENDIAN;
-	this.write(stream);
-	return stream.buffer;
 }
 
 ISOFile.prototype.getBuffer = function() {

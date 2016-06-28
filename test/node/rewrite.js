@@ -27,7 +27,7 @@ function rewrite(infile, outfilename) {
 			mp4box.appendBuffer(arrayBuffer);
 		} else {
 			mp4box.flush();		
-			outfile.write(toBuffer(mp4box.writeFile()));
+			outfile.write(toBuffer(mp4box.getBuffer()));
 		}
 	});	
 }

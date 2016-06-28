@@ -951,7 +951,7 @@ QUnit.asyncTest( "Write-back the entire file", function( assert ) {
 	mp4boxfile.onReady = function(info) { 
 		window.clearTimeout(timeout);
 		assert.ok(true, "moov found!" );	
-		var b = mp4boxfile.writeFile();
+		var b = mp4boxfile.getBuffer();
 		QUnit.start();	
 	}
 	getFile(testFiles[index].url, function (buffer) {
@@ -1044,7 +1044,7 @@ function makeBoxReadWriteReadTest(i) {
 			mp4box_read_ref.appendBuffer(buffer);
 			boxref = mp4box_read_ref[boxtests[boxtestIndex].boxname];
 			mp4box_write.boxes.push(boxref);
-			written_buffer = mp4box_write.writeFile();
+			written_buffer = mp4box_write.getBuffer();
 			written_buffer.fileStart = 0;
 			mp4box_read_written.appendBuffer(written_buffer);
 			checkBoxData(assert, mp4box_read_written[boxtests[boxtestIndex].boxname], boxref);
