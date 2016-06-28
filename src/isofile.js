@@ -431,7 +431,7 @@ ISOFile.prototype.processSamples = function() {
 				}
 				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
-				if (trak.nextSample % fragTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
+				if (trak.nextSample % fragTrak.nb_samples === 0 || (this.do_flush && trak.nextSample >= trak.samples.length)) {
 					Log.info("ISOFile", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+Math.max(0,trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]"); 
 					Log.info("ISOFile", "Sample data size in memory: "+this.getAllocatedSampleDataSize()); 			
 					if (this.onSegment) {
@@ -514,15 +514,6 @@ ISOFile.prototype.getTrackSample = function(track_id, number) {
 	return sample;	
 }
 
-ISOFile.prototype.start = function() {
-	this.sampleProcessingStarted = true;
-	this.processSamples();
-}
-
-ISOFile.prototype.stop = function() {
-	this.sampleProcessingStarted = false;
-}
-
 /* Called by the application to release the resources associated to samples already forwarded to the application */
 ISOFile.prototype.releaseUsedSamples = function (id, sampleNum) {
 	var size = 0;
@@ -535,9 +526,20 @@ ISOFile.prototype.releaseUsedSamples = function (id, sampleNum) {
 	trak.lastValidSample = sampleNum;
 }
 
-/* Called by the application to flush the remaining samples, once the download is finished */
+ISOFile.prototype.start = function() {
+	this.sampleProcessingStarted = true;
+	this.processSamples();
+}
+
+ISOFile.prototype.stop = function() {
+	this.sampleProcessingStarted = false;
+	this.do_flush = false;
+}
+
+/* Called by the application to flush the remaining samples (e.g. once the download is finished or when no more samples will be added) */
 ISOFile.prototype.flush = function() {
 	Log.info("ISOFile", "Flushing remaining samples");
+	this.do_flush = true;
 	this.updateSampleLists();
 	this.processSamples();
 	this.stream.cleanBuffers();
