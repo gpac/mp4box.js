@@ -1,5 +1,5 @@
 var fs = require('fs');
-var MP4Box = require('../../dist/mp4boxfile.all.js');
+var MP4Box = require('mp4box');
 
 if (process.argv.length < 3) {
 	console.log("usage: node writeBox.js <inputfilename> <outputfilename>");

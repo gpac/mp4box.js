@@ -3,14 +3,14 @@ if (typeof exports !== 'undefined') {
 }
 
 var fs = require('fs');
-var MP4Box = require('../../dist/mp4box.all.js').MP4Box;
+var MP4Box = require('mp4box');
 
 function rewrite(infile, outfilename) {
 	var outfile = fs.createWriteStream(outfilename);
 
-	var mp4box = new MP4Box();
+	var mp4boxfile = MP4Box.createFile();
 
-	mp4box.onReady = function (info) {
+	mp4boxfile.onReady = function (info) {
 	}
 
 	var filePos = 0;
@@ -24,10 +24,10 @@ function rewrite(infile, outfilename) {
 			//console.log("ArrayBuffer", arrayBuffer);
 			arrayBuffer.fileStart = filePos;
 			filePos += arrayBuffer.byteLength;
-			mp4box.appendBuffer(arrayBuffer);
+			mp4boxfile.appendBuffer(arrayBuffer);
 		} else {
-			mp4box.flush();		
-			outfile.write(toBuffer(mp4box.getBuffer()));
+			mp4boxfile.flush();		
+			outfile.write(toBuffer(mp4boxfile.getBuffer()));
 		}
 	});	
 }

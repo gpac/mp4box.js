@@ -1,15 +1,15 @@
 var fs = require('fs');
-var mp4boxModule = require('mp4box');
+var MP4Box = require('mp4box');
 
 if (process.argv.length < 3) {
 	console.log("usage: node mp4codec.js <inputfilename>");
 	return;
 }
 
-var mp4box = new mp4boxModule.MP4Box();
+var mp4boxfile = MP4Box.createFile();
 var stopParse = false;
 
-mp4box.onReady = function (info) {
+mp4boxfile.onReady = function (info) {
 	var mime = 'video/mp4; codecs=\"';
 	for (var i = 0; i < info.tracks.length; i++) {
 		if (i !== 0) mime += ',';
@@ -33,9 +33,9 @@ filereader.on('readable', function () {
 			//console.log("ArrayBuffer", arrayBuffer);
 			arrayBuffer.fileStart = filePos;
 			filePos += arrayBuffer.byteLength;
-			mp4box.appendBuffer(arrayBuffer);
+			mp4boxfile.appendBuffer(arrayBuffer);
 		} else {
-			mp4box.flush();
+			mp4boxfile.flush();
 		}
 	}
 });
