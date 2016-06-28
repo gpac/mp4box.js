@@ -105,6 +105,8 @@ ISOFile.prototype.addTrack = function (_options) {
 	stbl.add("stsc").set("first_chunk", [])
 					.set("samples_per_chunk", [])
 					.set("sample_description_index", []);
+	stbl.add("stco").set("chunk_offsets", []);
+	stbl.add("stsz").set("sample_sizes", []);
 
 	this.moov.mvex.add("trex").set("track_id", options.id)
 							  .set("default_sample_description_index", options.default_sample_description_index || 1)
@@ -131,9 +133,7 @@ ISOFile.prototype.addSample = function (trak, data, _options) {
 	sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
 	sample.data = data;
 	sample.size = data.bytesLength;
-	trak.samples_size += sample.size;
 	sample.duration = options.duration || 1;
-	trak.samples_duration += sample.duration;
 	sample.cts = options.cts || 0;
 	sample.dts = options.dts || 0;
 	sample.is_sync = options.is_sync || false;
@@ -144,6 +144,10 @@ ISOFile.prototype.addSample = function (trak, data, _options) {
 	sample.degradation_priority = options.degradation_priority || 0;
 	sample.offset = 0;
 	sample.subsamples = options.subsamples;
+	trak.samples.push(sample);
+	trak.samples_size += sample.size;
+	trak.samples_duration += sample.duration;
+
 	this.processSamples();
 	
 	//var moof = ISOFile.createSingleSampleMoof(sample);
