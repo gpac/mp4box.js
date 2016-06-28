@@ -6,12 +6,12 @@ function makeBoxParsingTest(i) {
 			var file;
 			var stream;
 			window.clearTimeout(timeout);
-			if (false && typeof MultiBufferStream !== "undefined") {
+			if (typeof MultiBufferStream !== "undefined") {
 				stream = new MultiBufferStream(buffer);
 			} else {
 				stream = new MP4BoxStream(buffer);
 			}
-			file = new ISOFile(stream);
+			file = MP4Box.createFile(false, stream);
 			if (file.saveParsePosition) {
 				file.saveParsePosition();
 			}

@@ -7,7 +7,7 @@
 Log.setLogLevel(Log.d);
 
 // The main object processing the mp4 files
-var mp4box;
+var mp4boxfile;
 
 // Object responsible for file downloading
 var downloader;
@@ -26,11 +26,11 @@ var stopButton;
 // Setup MP4Box
 function setMP4Box() {
 
-	mp4box.onMoovStart = function() {
+	mp4boxfile.onMoovStart = function() {
 		console.log("Starting to receive File Information");
 	}
 
-	mp4box.onReady = function(info) {
+	mp4boxfile.onReady = function(info) {
 		var isHEVC = false;
 		console.log("Received File Information");
 		// Extract only for video tracks
@@ -41,21 +41,21 @@ function setMP4Box() {
 				totalDuration = info.tracks[i].duration/info.tracks[i].timescale;
 				timeProgress = 0;
 				// 1 call for each sample
-				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
+				mp4boxfile.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
 				isHEVC = true;
 				progressLabel.show();
 			}
 		}
-		mp4box.start();
+		mp4boxfile.start();
 		if (!isHEVC)
 			throw("index_bpg.setMP4Box(): Not a HEVC movie file.");
 	}
 
-	mp4box.onError = function(e) {
+	mp4boxfile.onError = function(e) {
  		console.log("Received Error Message "+e);
 	}
 
-	mp4box.onSamples = function (id, user, samples) {	
+	mp4boxfile.onSamples = function (id, user, samples) {	
 
 		if (!stopProcess) {
 			console.log("Received "+samples.length+" samples on track "+id+" for object "+user);
@@ -86,7 +86,7 @@ function toggleStopExtraction(stop) {
 		stopProcess = true;
 		if (downloader)
 			downloader.stop();
-		mp4box.unsetExtractionOptions(1);
+		mp4boxfile.unsetExtractionOptions(1);
 	}
 	else {
 		stopButton.show();
@@ -130,7 +130,7 @@ function loadVideoFileHttpUrl(url) {
 	progressBar.progressbar({ value: 0 });
 
 	if (url) {
-		mp4box = new MP4Box(false);
+		mp4boxfile = MP4Box.createFile(false);
 		setMP4Box();
 
 		downloader = new Downloader();
@@ -138,11 +138,11 @@ function loadVideoFileHttpUrl(url) {
 		downloader.setCallback(
 			function (response, end, error) { 
 				if (response) {
-					var nextStart = mp4box.appendBuffer(response);
+					var nextStart = mp4boxfile.appendBuffer(response);
 					downloader.setChunkStart(nextStart); 
 				}
 				if (end) {
-					mp4box.flush();
+					mp4boxfile.flush();
 				}
 				if (error) {
 					console.log("index_bpg.loadVideoFileHttpUrl(): Error downloading.");
@@ -220,18 +220,18 @@ function loadVideoFileUpload(file) {
 	timeline.innerHTML = "";
 	progressBar.progressbar({ value: 0 });
 	
-	mp4box = new MP4Box(false);
+	mp4boxfile = new MP4Box(false);
 	setMP4Box();
 
-   	var onparsedbuffer = function(mp4box, buffer) {
+   	var onparsedbuffer = function(mp4boxfile, buffer) {
     	console.log("Appending buffer with offset "+offset);
 		buffer.fileStart = offset;
-		mp4box.appendBuffer(buffer);	
+		mp4boxfile.appendBuffer(buffer);	
 	}
 
 	var onBlockRead = function(evt) {
         if (evt.target.error == null) {
-            onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
+            onparsedbuffer(mp4boxfile, evt.target.result); // callback for handling read chunk
             offset += evt.target.result.byteLength;
         } else {
             console.log("Read error: " + evt.target.error);

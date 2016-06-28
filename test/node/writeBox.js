@@ -1,5 +1,5 @@
 var fs = require('fs');
-var MP4BoxExports = require('../../dist/mp4box.all.js');
+var MP4Box = require('../../dist/mp4boxfile.all.js');
 
 if (process.argv.length < 3) {
 	console.log("usage: node writeBox.js <inputfilename> <outputfilename>");
@@ -8,14 +8,14 @@ if (process.argv.length < 3) {
 
 var outfile = fs.createWriteStream(process.argv[3]);
 
-var mp4box = new MP4BoxExports.MP4Box();
+var mp4boxfile = MP4Box.createFile();
 
 var boxDesc = fs.readFileSync(process.argv[2]);
 var box = JSON.parse(boxDesc);
-box.writeHeader = MP4BoxExports.BoxParser[box.type+"Box"].prototype.writeHeader;
-box.write = MP4BoxExports.BoxParser[box.type+"Box"].prototype.write;
-mp4box.inputIsoFile.boxes.push(box);
-outfile.write(toBuffer(mp4box.writeFile()));
+box.writeHeader = MP4Box.BoxParser[box.type+"Box"].prototype.writeHeader;
+box.write = MP4Box.BoxParser[box.type+"Box"].prototype.write;
+mp4boxfile.boxes.push(box);
+outfile.write(toBuffer(mp4boxfile.writeFile()));
 
 function toArrayBuffer(buffer) {
     var ab = new ArrayBuffer(buffer.length);

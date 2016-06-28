@@ -2,7 +2,7 @@
 Log.setLogLevel(Log.info);
 
 /* The main object processing the mp4 files */
-var mp4box;
+var mp4boxfile;
 /* Metadata extracted from the mp4 file */
 var movieInfo;
 
@@ -241,7 +241,7 @@ function onUpdateEnd(isNotInit, isEndOfAppend) {
 			updateBufferedString(this, "Update ended");
 		}
 		if (this.sampleNum) {
-			mp4box.releaseUsedSamples(this.id, this.sampleNum);
+			mp4boxfile.releaseUsedSamples(this.id, this.sampleNum);
 			delete this.sampleNum;
 		}
 	}
@@ -293,7 +293,7 @@ function addBuffer(video, mp4track) {
 			});
 			sb.ms = ms;
 			sb.id = track_id;
-			mp4box.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
+			mp4boxfile.setSegmentOptions(track_id, sb, { nbSamples: parseInt(segmentSizeLabel.value) } );
 			sb.pendingAppends = [];
 		} catch (e) {
 			Log.error("MSE - SourceBuffer #"+track_id,"Cannot create buffer with type '"+mime+"'" + e);
@@ -315,7 +315,7 @@ function addBuffer(video, mp4track) {
 			var texttrack = video.addTextTrack(html5TrackKind, mp4track.name, mp4track.language);
 			texttrack.id = track_id;
 			texttrack.mode = "showing";
-			mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
+			mp4boxfile.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 			texttrack.codec = codec;
 			texttrack.mime = codec.substring(codec.indexOf('.')+1);
 			texttrack.mp4kind = mp4track.kind;
@@ -340,7 +340,7 @@ function removeBuffer(video, track_id) {
 		sb = ms.sourceBuffers[i];
 		if (sb.id == track_id) {
 			ms.removeSourceBuffer(sb);
-			mp4box.unsetSegmentOptions(track_id);
+			mp4boxfile.unsetSegmentOptions(track_id);
 			foundSb = true;
 			break;
 		}
@@ -351,7 +351,7 @@ function removeBuffer(video, track_id) {
 			if (track.label === 'track_'+track_id) {
 				track.mode = "disabled";
 				track.div.style.display = 'none';
-				mp4box.unsetExtractionOptions(track_id);
+				mp4boxfile.unsetExtractionOptions(track_id);
 				break;
 			}
 		}
@@ -398,7 +398,7 @@ function initializeAllSourceBuffers() {
 }
 
 function initializeSourceBuffers() {
-	var initSegs = mp4box.initializeSegmentation();
+	var initSegs = mp4boxfile.initializeSegmentation();
 	for (var i = 0; i < initSegs.length; i++) {
 		var sb = initSegs[i].user;
 		if (i === 0) {
@@ -492,11 +492,11 @@ function load() {
 		return;
 	}
 
-	mp4box = new MP4Box();
-	mp4box.onMoovStart = function () {
+	mp4boxfile = MP4Box.createFile();
+	mp4boxfile.onMoovStart = function () {
 		Log.info("Application", "Starting to parse movie information");
 	}
-	mp4box.onReady = function (info) {
+	mp4boxfile.onReady = function (info) {
 		Log.info("Application", "Movie information received");
 		movieInfo = info;
 		if (info.isFragmented) {
@@ -513,17 +513,17 @@ function load() {
 			initAllButton.disabled = false;
 		}
 	}
-	mp4box.onItem = function(item) {
-		var metaHandler = mp4box.inputIsoFile.getMetaHandler();
+	mp4boxfile.onItem = function(item) {
+		var metaHandler = this.getMetaHandler();
 		if (metaHandler.startsWith("mif1")) {
-			var pitem = mp4box.inputIsoFile.getPrimaryItem();
+			var pitem = this.getPrimaryItem();
 			console.log("Found primary item in MP4 of type "+item.content_type);
 			if (pitem.id === item.id) {
 				video.poster = window.URL.createObjectURL(new Blob([item.data.buffer]));
 			}
 		}
 	}
-	mp4box.onSegment = function (id, user, buffer, sampleNum) {	
+	mp4boxfile.onSegment = function (id, user, buffer, sampleNum) {	
 		var sb = user;
 		saveBuffer(buffer, 'track-'+id+'-segment-'+sb.segmentIndex+'.m4s');
 		sb.segmentIndex++;
@@ -531,7 +531,7 @@ function load() {
 		Log.info("Application","Received new segment for track "+id+" up to sample #"+sampleNum+", segments pending append: "+sb.pendingAppends.length);
 		onUpdateEnd.call(sb, true, false);
 	}
-	mp4box.onSamples = function (id, user, samples) {
+	mp4boxfile.onSamples = function (id, user, samples) {
 		var sampleParser;
 		var cue;	
 		var texttrack = user;
@@ -583,11 +583,11 @@ function load() {
 			var nextStart = 0;
 			if (response) {
 				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
-				nextStart = mp4box.appendBuffer(response);
+				nextStart = mp4boxfile.appendBuffer(response);
 			}
 			if (end) {
 				progressbar.progressbar({ value: 100 });
-				mp4box.flush();
+				mp4boxfile.flush();
 			} else {
 				downloader.setChunkStart(nextStart); 			
 			}
@@ -607,10 +607,10 @@ function load() {
 function start() {
 	startButton.disabled = true;
 	stopButton.disabled = false;
-	downloader.setChunkStart(mp4box.seek(0, true).offset);
+	downloader.setChunkStart(mp4boxfile.seek(0, true).offset);
 	downloader.setChunkSize(parseInt(chunkSizeLabel.value));
 	downloader.setInterval(parseInt(chunkTimeoutLabel.value));
-	mp4box.start();
+	mp4boxfile.start();
 	downloader.resume();
 }		
 
@@ -644,7 +644,7 @@ function onSeeking(e) {
 		Log.info("Application", "Seeking called to video time "+Log.getDurationString(video.currentTime));
 		downloader.stop();
 		resetCues();
-		seek_info = mp4box.seek(video.currentTime, true);
+		seek_info = mp4boxfile.seek(video.currentTime, true);
 		downloader.setChunkStart(seek_info.offset);
 		downloader.resume();
 		startButton.disabled = true;
