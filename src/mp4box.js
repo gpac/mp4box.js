@@ -362,6 +362,7 @@ MP4Box.prototype.getInfo = function() {
 
 	if (this.inputIsoFile.moov) {
 		movie.hasMoov = true;
+		movie.size = this.inputIsoFile.size;
 		movie.duration = this.inputIsoFile.moov.mvhd.duration;
 		movie.timescale = this.inputIsoFile.moov.mvhd.timescale;
 		movie.isFragmented = (this.inputIsoFile.moov.mvex != null);

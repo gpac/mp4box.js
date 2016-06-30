@@ -67,6 +67,7 @@ function parseFile(file) {
         if (offset >= fileSize) {
 			progressbar.progressbar({ value: 100 });
             console.log("Done reading file ("+fileSize+ " bytes) in "+(new Date() - startDate)+" ms");
+			mp4box.inputIsoFile.size = fileSize;
 			mp4box.flush();
             finalizeUI();
             return;
@@ -103,6 +104,7 @@ function httpload(url) {
 			if (end) {
 				progressbar.progressbar({ value: 100 });
 	            console.log("Done reading file ("+downloader.totalLength+ " bytes) in "+(new Date() - startDate)+" ms");
+				mp4box.inputIsoFile.size = downloader.totalLength;
 				mp4box.flush();
 				finalizeUI();
 			} else {
