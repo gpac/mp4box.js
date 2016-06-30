@@ -160,19 +160,18 @@ var displaySourceBuffer = true;
 function displayMovieInfo(info, div, _displaySourceBuffer) {
 	if (_displaySourceBuffer !== undefined) displaySourceBuffer = _displaySourceBuffer;
 	var html = "Movie Info";
-	var fileLength = 0;
 	if (typeof(downloader) !== "undefined") {
 		downloader.getFileLength();
 	}
 	html += "<div>";
 	html += "<table>";
-	html += "<tr><th>File Size</th><td>"+fileLength+" bytes</td></tr>";
+	html += "<tr><th>File Size</th><td>"+info.size+" bytes</td></tr>";
 	html += "<tr><th>Brands</th><td>"+info.brands+"</td></tr>";
 	html += "<tr><th>Creation Date</th><td>"+info.created+"</td></tr>";
 	html += "<tr><th>Modified Date</th><td>"+info.modified+"</td></tr>";
 	html += "<tr><th>Timescale</th><td>"+info.timescale+"</td></tr>";
 	html += "<tr><th>Duration</th><td>"+info.duration+" ("+Log.getDurationString(info.duration,info.timescale)+")</td></tr>";
-	html += "<tr><th>Bitrate</th><td>"+Math.floor((fileLength*8*info.timescale)/(info.duration*1000))+" kbps</td></tr>";
+	html += "<tr><th>Bitrate</th><td>"+Math.floor((info.size*8*info.timescale)/(info.duration*1000))+" kbps</td></tr>";
 	html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
 	html += "<tr><th>Fragmented</th><td>"+info.isFragmented+"</td></tr>";
 	html += "<tr><th>MPEG-4 IOD</th><td>"+info.hasIOD+"</td></tr>";
