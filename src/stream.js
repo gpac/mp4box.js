@@ -26,6 +26,7 @@ MP4BoxStream.prototype.getLength = function() {
 MP4BoxStream.prototype.seek = function (pos) {
   var npos = Math.max(0, Math.min(this.uint8.length, pos));
   this.position = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
+  return true;
 }
 
 MP4BoxStream.prototype.isEos = function () {

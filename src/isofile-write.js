@@ -36,7 +36,7 @@ ISOFile.prototype.createFragment = function(track_id, sampleNumber, stream_) {
 }
 
 /* Modify the file and create the initialization segment */
-ISOFile.writeInitializationSegment = function(moov, total_duration, sample_duration) {
+ISOFile.writeInitializationSegment = function(ftyp, moov, total_duration, sample_duration) {
 	var i;
 	var index;
 	var mehd;
@@ -46,7 +46,8 @@ ISOFile.writeInitializationSegment = function(moov, total_duration, sample_durat
 
 	var stream = new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
-
+	ftyp.write(stream);
+	
 	/* we can now create the new mvex box */
 	var mvex = moov.add("mvex");
 	if (total_duration) {
@@ -105,7 +106,7 @@ ISOFile.prototype.initializeSegmentation = function() {
 		seg = {};
 		seg.id = trak.tkhd.track_id;
 		seg.user = this.fragmentedTracks[i].user;
-		seg.buffer = ISOFile.writeInitializationSegment(moov, (this.moov.mvex && this.moov.mvex.mehd ? this.moov.mvex.mehd.fragment_duration: undefined), (this.moov.traks[i].samples.length>0 ? this.moov.traks[i].samples[0].duration: 0));
+		seg.buffer = ISOFile.writeInitializationSegment(this.ftyp, moov, (this.moov.mvex && this.moov.mvex.mehd ? this.moov.mvex.mehd.fragment_duration: undefined), (this.moov.traks[i].samples.length>0 ? this.moov.traks[i].samples[0].duration: 0));
 		initSegs.push(seg);
 	}
 	return initSegs;

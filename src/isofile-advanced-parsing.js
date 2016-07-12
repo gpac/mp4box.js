@@ -68,7 +68,7 @@ ISOFile.prototype.processIncompleteBox = function(ret) {
 		   (TODO: we could skip 'free' boxes ...)
 			   or we did not have enough data to parse the type and size of the box, 
 		   we try to concatenate the current buffer with the next buffer to restart parsing */
-		merged = this.stream.mergeNextBuffer();
+		merged = (this.stream.mergeNextBuffer ? this.stream.mergeNextBuffer() : false);
 		if (merged) {
 			/* The next buffer was contiguous, the merging succeeded,
 			   we can now continue parsing, 
@@ -135,14 +135,16 @@ ISOFile.prototype.saveParsePosition = function() {
 }
 
 ISOFile.prototype.updateUsedBytes = function(box, ret) {
-	if (box.type === "mdat") {
-		/* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */
-		this.stream.addUsedBytes(box.hdr_size);
-		if (this.discardMdatData) {
-			this.stream.addUsedBytes(box.size-box.hdr_size);
-		}
-	} else {
-		/* for all other boxes, the entire box data is considered used */
-		this.stream.addUsedBytes(box.size);
-	}	
+	if (this.stream.addUsedBytes) {
+		if (box.type === "mdat") {
+			/* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */
+			this.stream.addUsedBytes(box.hdr_size);
+			if (this.discardMdatData) {
+				this.stream.addUsedBytes(box.size-box.hdr_size);
+			}
+		} else {
+			/* for all other boxes, the entire box data is considered used */
+			this.stream.addUsedBytes(box.size);
+		}	
+	}
 }
