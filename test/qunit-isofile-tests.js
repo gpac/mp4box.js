@@ -1,3 +1,5 @@
+QUnit.module("Individual Box Parsing");
+
 function makeBoxParsingTest(i) {
 	var boxtestIndex = i;
 	QUnit.asyncTest(boxtests[boxtestIndex].boxname, function( assert ) {

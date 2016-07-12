@@ -1,3 +1,5 @@
+QUnit.module("File Creation");
+
 QUnit.test("addSample and segmentation", function( assert ) {
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var f = MP4Box.createFile();

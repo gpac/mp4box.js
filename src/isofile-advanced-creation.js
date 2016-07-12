@@ -1,6 +1,9 @@
 ISOFile.prototype.add = BoxParser.Box.prototype.add;
 
 ISOFile.prototype.init = function () {
+	var ftyp = this.add("ftyp").set("major_brand", "iso4")
+							   .set("minor_version", 0)
+							   .set("compatible_brands", []);
 	var moov = this.add("moov");
 	moov.add("mvhd").set("timescale",600)
 					.set("rate", 1)
