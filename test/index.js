@@ -170,13 +170,15 @@ function resetDisplay() {
 	infoDiv.innerHTML = '';
 	html5MediaDiv.innerHTML = '';
 	overlayTracks.innerHTML = '';
-	video.poster = '';
-	video.playing = false;
+	//video.poster = '';
+	//video.playing = false;
 }
 
 
 /* main functions, MSE-related */
 function resetMediaSource() {
+	if (video.ms) return;
+	
 	var mediaSource;
 	mediaSource = new MediaSource();
 	mediaSource.video = video;

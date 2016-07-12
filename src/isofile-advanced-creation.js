@@ -70,9 +70,10 @@ ISOFile.prototype.addTrack = function (_options) {
 						.set("frame_count", 1)
 						.set("compressorname", options.type+" Compressor")
 						.set("depth", 0x18);
+
 			sample_entry.add("avcC").set("SPS", [])
 									.set("PPS", [])
-									.set("configurationVersion", 0)
+									.set("configurationVersion", 1)
 									.set("AVCProfileIndication",0)
 									.set("profile_compatibility", 0)
 									.set("AVCLevelIndication" ,0)
@@ -132,7 +133,8 @@ ISOFile.prototype.addSample = function (trak, data, _options) {
 	sample.description_index = (options.sample_description_index ? options.sample_description_index - 1: 0);
 	sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
 	sample.data = data;
-	sample.size = data.bytesLength;
+	sample.size = data.length;
+	sample.alreadyRead = sample.size;
 	sample.duration = options.duration || 1;
 	sample.cts = options.cts || 0;
 	sample.dts = options.dts || 0;
