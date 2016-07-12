@@ -488,7 +488,7 @@ MP4Box.prototype.initializeSegmentation = function() {
 		seg = {};
 		seg.id = trak.tkhd.track_id;
 		seg.user = this.fragmentedTracks[i].user;
-		seg.buffer = ISOFile.writeInitializationSegment(moov, (this.inputIsoFile.moov.mvex && this.inputIsoFile.moov.mvex.mehd ? this.inputIsoFile.moov.mvex.mehd.fragment_duration: undefined), (this.inputIsoFile.moov.traks[i].samples.length>0 ? this.inputIsoFile.moov.traks[i].samples[0].duration: 0));
+		seg.buffer = ISOFile.writeInitializationSegment(this.inputIsoFile.ftyp, moov, (this.inputIsoFile.moov.mvex && this.inputIsoFile.moov.mvex.mehd ? this.inputIsoFile.moov.mvex.mehd.fragment_duration: undefined), (this.inputIsoFile.moov.traks[i].samples.length>0 ? this.inputIsoFile.moov.traks[i].samples[0].duration: 0));
 		initSegs.push(seg);
 	}
 	return initSegs;

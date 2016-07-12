@@ -6,7 +6,7 @@ ISOFile.prototype.write = function(outstream) {
 }
 
 /* Modify the file and create the initialization segment */
-ISOFile.writeInitializationSegment = function(moov, total_duration, sample_duration) {
+ISOFile.writeInitializationSegment = function(ftyp, moov, total_duration, sample_duration) {
 	var i;
 	var index;
 	var mehd;
@@ -16,7 +16,8 @@ ISOFile.writeInitializationSegment = function(moov, total_duration, sample_durat
 
 	var stream = new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
-
+	ftyp.write(stream);
+	
 	/* we can now create the new mvex box */
 	var mvex = moov.add("mvex");
 	if (total_duration) {
