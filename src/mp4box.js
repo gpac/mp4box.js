@@ -156,6 +156,7 @@ MP4Box.prototype.createFragment = function(input, track_id, sampleNumber, stream
 MP4Box.prototype.processSamples = function() {
 	var i;
 	var trak;
+	var sample;
 	if (!this.sampleProcessingStarted) return;
 
 	/* For each track marked for fragmentation, 
@@ -184,7 +185,7 @@ MP4Box.prototype.processSamples = function() {
 					Log.info("MP4Box", "Sample data size in memory: "+this.inputIsoFile.getAllocatedSampleDataSize()); 			
 					if (this.onSegment) {
 						/* get the time for this segment */
-						var sample = trak.nextSample < trak.samples.length && trak.samples[trak.nextSample];
+						sample = trak.nextSample < trak.samples.length && trak.samples[trak.nextSample];
 						var time = (sample.dts + sample.duration) / sample.timescale;
 						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample, time);
 					}
@@ -207,7 +208,7 @@ MP4Box.prototype.processSamples = function() {
 			trak = extractTrak.trak;
 			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {				
 				Log.debug("MP4Box", "Exporting on track #"+extractTrak.id +" sample #"+trak.nextSample);
-				var sample = this.inputIsoFile.getSample(trak, trak.nextSample);
+				sample = this.inputIsoFile.getSample(trak, trak.nextSample);
 				if (sample) {
 					trak.nextSample++;
 					extractTrak.samples.push(sample);
