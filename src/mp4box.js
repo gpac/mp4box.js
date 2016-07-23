@@ -14,6 +14,10 @@ var MP4Box = function (_keepMdatData) {
 	this.onMoovStart = null;
 	/* Boolean keeping track of the call to onMoovStart, to avoid double calls */
 	this.moovStartSent = false;
+	/* Callback called when mdat is found before the moov */
+	this.onMdatBeforeMoov = null;
+	/* Boolean keeping track of the call to onMdatBeforeMoov, to avoid double calls */
+	this.mdatBeforeMoovSent = false;
 	/* Callback called when the moov is entirely parsed */
 	this.onReady = null;
 	/* Boolean keeping track of the call to onReady, to avoid double calls */
@@ -267,9 +271,17 @@ MP4Box.prototype.appendBuffer = function(ab) {
 	this.inputIsoFile.parse();
 
 	/* Check if the moovStart callback needs to be called */
-	if (this.inputIsoFile.moovStartFound && !this.moovStartSent) {
-		this.moovStartSent = true;
-		if (this.onMoovStart) this.onMoovStart();
+	if (this.inputIsoFile.moovStartFound) {
+		if (!this.moovStartSent) {
+			this.moovStartSent = true;
+			if (this.onMoovStart) this.onMoovStart();
+		}
+	} else {
+		/* Check if the mdatBeforeMoov callback needs to be called */
+		if (this.inputIsoFile.parsingMdat && !this.mdatBeforeMoovSent) {
+			this.mdatBeforeMoovSent = true;
+			if (this.onMdatBeforeMoov) this.onMdatBeforeMoov(this.inputIsoFile.parsingMdat);
+		}
 	}
 
 	if (this.inputIsoFile.moov) {
