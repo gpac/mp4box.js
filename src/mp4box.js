@@ -183,7 +183,10 @@ MP4Box.prototype.processSamples = function() {
 					Log.info("MP4Box", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+Math.max(0,trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]"); 
 					Log.info("MP4Box", "Sample data size in memory: "+this.inputIsoFile.getAllocatedSampleDataSize()); 			
 					if (this.onSegment) {
-						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample);
+						/* get the time for this segment */
+						var sample = trak.nextSample < trak.samples.length && trak.samples[trak.nextSample];
+						var time = (sample.dts + sample.duration) / sample.timescale;
+						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample, time);
 					}
 					/* force the creation of a new buffer */
 					fragTrak.segmentStream = null;
