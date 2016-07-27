@@ -9,7 +9,7 @@
     "Cyril Concolato"
   ], 
 "license": "MIT",
-"ignore":"ignore": [
+"ignore": [
     "*",
     "!dist/",
     "!dist/*"
