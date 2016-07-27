@@ -1,1 +1,19 @@
 
+ {
+"name": "mp4box",
+
+"homepage": "http://download.tsi.telecom-paristech.fr/gpac/mp4box.js",
+    
+"version": "1.0",
+"main":["dist/mp4box.all.js"],
+"authors": [
+    "Cyril Concolato"
+  ], 
+"license": "MIT",
+"ignore": [
+    "**/.*",
+    "src",
+    "test" 
+  ]
+
+}
