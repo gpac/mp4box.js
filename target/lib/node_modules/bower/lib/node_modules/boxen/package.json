@@ -1,0 +1,105 @@
+{
+  "_args": [
+    [
+      "boxen@^0.3.1",
+      "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH/node_modules/update-notifier"
+    ]
+  ],
+  "_from": "boxen@>=0.3.1 <0.4.0",
+  "_id": "boxen@0.3.1",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/boxen",
+  "_nodeVersion": "4.2.4",
+  "_npmOperationalInternal": {
+    "host": "packages-5-east.internal.npmjs.com",
+    "tmp": "tmp/boxen-0.3.1.tgz_1455102193900_0.9651177956257015"
+  },
+  "_npmUser": {
+    "email": "sindresorhus@gmail.com",
+    "name": "sindresorhus"
+  },
+  "_npmVersion": "2.14.12",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "boxen",
+    "raw": "boxen@^0.3.1",
+    "rawSpec": "^0.3.1",
+    "scope": null,
+    "spec": ">=0.3.1 <0.4.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/update-notifier"
+  ],
+  "_resolved": "https://registry.npmjs.org/boxen/-/boxen-0.3.1.tgz",
+  "_shasum": "a7d898243ae622f7abb6bb604d740a76c6a5461b",
+  "_shrinkwrap": null,
+  "_spec": "boxen@^0.3.1",
+  "_where": "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH/node_modules/update-notifier",
+  "author": {
+    "email": "sindresorhus@gmail.com",
+    "name": "Sindre Sorhus",
+    "url": "sindresorhus.com"
+  },
+  "bugs": {
+    "url": "https://github.com/sindresorhus/boxen/issues"
+  },
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "filled-array": "^1.0.0",
+    "object-assign": "^4.0.1",
+    "repeating": "^2.0.0",
+    "string-width": "^1.0.1",
+    "widest-line": "^1.0.0"
+  },
+  "description": "Create boxes in the terminal",
+  "devDependencies": {
+    "ava": "*",
+    "xo": "*"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "a7d898243ae622f7abb6bb604d740a76c6a5461b",
+    "tarball": "http://registry.npmjs.org/boxen/-/boxen-0.3.1.tgz"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "files": [
+    "index.js",
+    "border-characters.js"
+  ],
+  "gitHead": "05c5f742a22962c4fc35344ecfba44f1e69528b3",
+  "homepage": "https://github.com/sindresorhus/boxen#readme",
+  "keywords": [
+    "cli",
+    "box",
+    "boxes",
+    "terminal",
+    "term",
+    "console",
+    "ascii",
+    "unicode",
+    "border",
+    "text"
+  ],
+  "license": "MIT",
+  "maintainers": [
+    {
+      "email": "sindresorhus@gmail.com",
+      "name": "sindresorhus"
+    }
+  ],
+  "name": "boxen",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sindresorhus/boxen.git"
+  },
+  "scripts": {
+    "test": "xo && ava"
+  },
+  "version": "0.3.1"
+}

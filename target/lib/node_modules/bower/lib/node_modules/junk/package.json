@@ -1,0 +1,92 @@
+{
+  "_args": [
+    [
+      "junk@^1.0.0",
+      "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH"
+    ]
+  ],
+  "_from": "junk@>=1.0.0 <2.0.0",
+  "_id": "junk@1.0.2",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/junk",
+  "_nodeVersion": "0.12.5",
+  "_npmUser": {
+    "email": "sindresorhus@gmail.com",
+    "name": "sindresorhus"
+  },
+  "_npmVersion": "2.11.2",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "junk",
+    "raw": "junk@^1.0.0",
+    "rawSpec": "^1.0.0",
+    "scope": null,
+    "spec": ">=1.0.0 <2.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/junk/-/junk-1.0.2.tgz",
+  "_shasum": "cc71db3c05d53b3238d0f1dec97a88267c10700e",
+  "_shrinkwrap": null,
+  "_spec": "junk@^1.0.0",
+  "_where": "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH",
+  "author": {
+    "email": "sindresorhus@gmail.com",
+    "name": "Sindre Sorhus",
+    "url": "http://sindresorhus.com"
+  },
+  "bugs": {
+    "url": "https://github.com/sindresorhus/junk/issues"
+  },
+  "dependencies": {},
+  "description": "Filter out OS junk files like .DS_Store and Thumbs.db",
+  "devDependencies": {
+    "ava": "0.0.3"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "cc71db3c05d53b3238d0f1dec97a88267c10700e",
+    "tarball": "http://registry.npmjs.org/junk/-/junk-1.0.2.tgz"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "files": [
+    "index.js"
+  ],
+  "gitHead": "3a7be1c4dd897607457038e6ceba7492a2ded0e4",
+  "homepage": "https://github.com/sindresorhus/junk",
+  "keywords": [
+    "junk",
+    "trash",
+    "garbage",
+    "files",
+    "os",
+    "ignore",
+    "exclude",
+    "filter",
+    "temp",
+    "tmp"
+  ],
+  "license": "MIT",
+  "maintainers": [
+    {
+      "email": "sindresorhus@gmail.com",
+      "name": "sindresorhus"
+    }
+  ],
+  "name": "junk",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sindresorhus/junk.git"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "version": "1.0.2"
+}

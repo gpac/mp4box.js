@@ -1,0 +1,92 @@
+{
+  "_args": [
+    [
+      "duplexify@^3.2.0",
+      "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH/node_modules/got"
+    ]
+  ],
+  "_from": "duplexify@>=3.2.0 <4.0.0",
+  "_id": "duplexify@3.4.3",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/duplexify",
+  "_nodeVersion": "4.2.3",
+  "_npmOperationalInternal": {
+    "host": "packages-9-west.internal.npmjs.com",
+    "tmp": "tmp/duplexify-3.4.3.tgz_1456243581005_0.08543725567869842"
+  },
+  "_npmUser": {
+    "email": "mathiasbuus@gmail.com",
+    "name": "mafintosh"
+  },
+  "_npmVersion": "2.14.7",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "duplexify",
+    "raw": "duplexify@^3.2.0",
+    "rawSpec": "^3.2.0",
+    "scope": null,
+    "spec": ">=3.2.0 <4.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/got"
+  ],
+  "_resolved": "https://registry.npmjs.org/duplexify/-/duplexify-3.4.3.tgz",
+  "_shasum": "af6a7b10d928b095f8ad854d072bb90998db850d",
+  "_shrinkwrap": null,
+  "_spec": "duplexify@^3.2.0",
+  "_where": "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH/node_modules/got",
+  "author": {
+    "name": "Mathias Buus"
+  },
+  "bugs": {
+    "url": "https://github.com/mafintosh/duplexify/issues"
+  },
+  "dependencies": {
+    "end-of-stream": "1.0.0",
+    "inherits": "^2.0.1",
+    "readable-stream": "^2.0.0"
+  },
+  "description": "Turn a writeable and readable stream into a streams2 duplex stream with support for async initialization and streams1/streams2 input",
+  "devDependencies": {
+    "concat-stream": "^1.4.6",
+    "tape": "^2.13.3",
+    "through2": "^0.5.1"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "af6a7b10d928b095f8ad854d072bb90998db850d",
+    "tarball": "http://registry.npmjs.org/duplexify/-/duplexify-3.4.3.tgz"
+  },
+  "gitHead": "0ecf524c3903ad55d3a2d4ce17939240105ce470",
+  "homepage": "https://github.com/mafintosh/duplexify",
+  "keywords": [
+    "duplex",
+    "streams2",
+    "streams",
+    "stream",
+    "writable",
+    "readable",
+    "async"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "email": "mathiasbuus@gmail.com",
+      "name": "mafintosh"
+    }
+  ],
+  "name": "duplexify",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mafintosh/duplexify.git"
+  },
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "version": "3.4.3"
+}

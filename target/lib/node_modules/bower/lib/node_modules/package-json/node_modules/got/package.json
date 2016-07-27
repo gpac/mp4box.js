@@ -1,0 +1,136 @@
+{
+  "_args": [
+    [
+      "got@^5.0.0",
+      "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH/node_modules/package-json"
+    ]
+  ],
+  "_from": "got@>=5.0.0 <6.0.0",
+  "_id": "got@5.5.1",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/package-json/got",
+  "_nodeVersion": "4.4.1",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/got-5.5.1.tgz_1459841349746_0.03332527121528983"
+  },
+  "_npmUser": {
+    "email": "floatdrop@gmail.com",
+    "name": "floatdrop"
+  },
+  "_npmVersion": "2.14.20",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "got",
+    "raw": "got@^5.0.0",
+    "rawSpec": "^5.0.0",
+    "scope": null,
+    "spec": ">=5.0.0 <6.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/package-json"
+  ],
+  "_resolved": "https://registry.npmjs.org/got/-/got-5.5.1.tgz",
+  "_shasum": "c7d0af2beb0c0e21a6cc2cf235c6591960118a11",
+  "_shrinkwrap": null,
+  "_spec": "got@^5.0.0",
+  "_where": "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH/node_modules/package-json",
+  "browser": {
+    "unzip-response": false
+  },
+  "bugs": {
+    "url": "https://github.com/sindresorhus/got/issues"
+  },
+  "dependencies": {
+    "create-error-class": "^3.0.1",
+    "duplexer2": "^0.1.4",
+    "is-plain-obj": "^1.0.0",
+    "is-redirect": "^1.0.0",
+    "is-retry-allowed": "^1.0.0",
+    "is-stream": "^1.0.0",
+    "lowercase-keys": "^1.0.0",
+    "node-status-codes": "^1.0.0",
+    "object-assign": "^4.0.1",
+    "parse-json": "^2.1.0",
+    "pinkie-promise": "^2.0.0",
+    "read-all-stream": "^3.0.0",
+    "readable-stream": "^2.0.5",
+    "timed-out": "^2.0.0",
+    "unzip-response": "^1.0.0",
+    "url-parse-lax": "^1.0.0"
+  },
+  "description": "Simplified HTTP/HTTPS requests",
+  "devDependencies": {
+    "ava": "^0.5.0",
+    "coveralls": "^2.11.4",
+    "get-port": "^2.0.0",
+    "into-stream": "^2.0.0",
+    "nyc": "^3.2.2",
+    "pem": "^1.4.4",
+    "pify": "^2.3.0",
+    "tempfile": "^1.1.1",
+    "xo": "*"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "c7d0af2beb0c0e21a6cc2cf235c6591960118a11",
+    "tarball": "https://registry.npmjs.org/got/-/got-5.5.1.tgz"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "files": [
+    "index.js"
+  ],
+  "gitHead": "db9f86dfc25bc75c873a3191055a478ce21b403c",
+  "homepage": "https://github.com/sindresorhus/got",
+  "keywords": [
+    "http",
+    "https",
+    "get",
+    "got",
+    "url",
+    "uri",
+    "request",
+    "util",
+    "utility",
+    "simple",
+    "curl",
+    "wget",
+    "fetch"
+  ],
+  "license": "MIT",
+  "maintainers": [
+    {
+      "email": "sindresorhus@gmail.com",
+      "name": "sindresorhus"
+    },
+    {
+      "email": "floatdrop@gmail.com",
+      "name": "floatdrop"
+    },
+    {
+      "email": "kevinmartensson@gmail.com",
+      "name": "kevva"
+    }
+  ],
+  "name": "got",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sindresorhus/got.git"
+  },
+  "scripts": {
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "test": "xo && nyc ava"
+  },
+  "version": "5.5.1",
+  "xo": {
+    "ignores": [
+      "test/**"
+    ]
+  }
+}

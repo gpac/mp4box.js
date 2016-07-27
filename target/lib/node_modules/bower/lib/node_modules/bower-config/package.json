@@ -1,0 +1,124 @@
+{
+  "_args": [
+    [
+      "bower-config@^1.3.1",
+      "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH"
+    ]
+  ],
+  "_from": "bower-config@>=1.3.1 <2.0.0",
+  "_id": "bower-config@1.3.1",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/bower-config",
+  "_nodeVersion": "5.9.0",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/bower-config-1.3.1.tgz_1459524522610_0.09749516868032515"
+  },
+  "_npmUser": {
+    "email": "sheerun@sher.pl",
+    "name": "sheerun"
+  },
+  "_npmVersion": "3.7.3",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "bower-config",
+    "raw": "bower-config@^1.3.1",
+    "rawSpec": "^1.3.1",
+    "scope": null,
+    "spec": ">=1.3.1 <2.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_shasum": "9a1983ce5bd5b6c75ddbd4dee8f4a3d5c0fff59a",
+  "_shrinkwrap": null,
+  "_spec": "bower-config@^1.3.1",
+  "_where": "/private/var/folders/22/xz6_9gpx3jggts_8j68_25g80000gn/T/tmp-51023WwSVKpwQ7KvH",
+  "author": {
+    "name": "Twitter"
+  },
+  "bugs": {
+    "url": "https://github.com/bower/config/issues"
+  },
+  "dependencies": {
+    "graceful-fs": "^4.1.3",
+    "mout": "^1.0.0",
+    "optimist": "^0.6.1",
+    "osenv": "^0.1.3",
+    "untildify": "^2.1.0"
+  },
+  "description": "The Bower config reader and writer.",
+  "devDependencies": {
+    "coveralls": "^2.11.4",
+    "expect.js": "^0.3.1",
+    "glob": "^4.5.3",
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-coveralls": "^1.0.0",
+    "grunt-exec": "^0.4.6",
+    "grunt-simple-mocha": "^0.4.0",
+    "istanbul": "^0.4.1",
+    "load-grunt-tasks": "^2.0.0",
+    "mkdirp": "^0.5.0",
+    "mocha": "~1.12.0",
+    "node-uuid": "^1.4.3",
+    "q": "^1.2.0",
+    "rimraf": "^2.3.2"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "9a1983ce5bd5b6c75ddbd4dee8f4a3d5c0fff59a",
+    "tarball": "https://registry.npmjs.org/bower-config/-/bower-config-1.3.1.tgz"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "files": [
+    "lib"
+  ],
+  "gitHead": "75a285391e6707a19dbe68814b40fc6e21415ebb",
+  "homepage": "http://bower.io",
+  "license": "MIT",
+  "main": "lib/Config",
+  "maintainers": [
+    {
+      "email": "andremiguelcruz@msn.com",
+      "name": "satazor"
+    },
+    {
+      "email": "mat@wibbly.org.uk",
+      "name": "wibblymat"
+    },
+    {
+      "email": "sindresorhus@gmail.com",
+      "name": "sindresorhus"
+    },
+    {
+      "email": "paul.irish@gmail.com",
+      "name": "paulirish"
+    },
+    {
+      "email": "sheerun@sher.pl",
+      "name": "sheerun"
+    },
+    {
+      "email": "desandrocodes@gmail.com",
+      "name": "desandro"
+    }
+  ],
+  "name": "bower-config",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bower/config.git"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "version": "1.3.1"
+}

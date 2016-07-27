@@ -1,4 +1,4 @@
- {
+{
 "name": "mp4box",
 
 "homepage": "http://download.tsi.telecom-paristech.fr/gpac/mp4box.js",
@@ -10,7 +10,7 @@
   ], 
 "license": "MIT",
 "ignore": [
-    "*",
+    "!bower.json",
     "!dist/",
     "!dist/*"
 ]
