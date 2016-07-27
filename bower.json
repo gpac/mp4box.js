@@ -3,7 +3,7 @@
 
 "homepage": "http://download.tsi.telecom-paristech.fr/gpac/mp4box.js",
     
-"version": "0.3.16",
+"version": "0.3.17",
 "main":["dist/mp4box.all.js"],
 "authors": [
     "Cyril Concolato"
