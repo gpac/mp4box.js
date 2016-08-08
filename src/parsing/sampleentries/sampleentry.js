@@ -25,8 +25,13 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 		ret = BoxParser.parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
 		if (ret.code === BoxParser.OK) {
 			box = ret.box;
-			this.boxes.push(box);
-			this[box.type] = box;
+            if (box) {
+                this.boxes.push(box);
+                this[box.type] = box;
+            } else {
+                // encountered terminator box
+                stream.position = this.start + this.size;
+            }
 		} else {
 			return;
 		}
