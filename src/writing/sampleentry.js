@@ -21,7 +21,10 @@ BoxParser.SampleEntry.prototype.writeFooter = function(stream) {
 
 BoxParser.SampleEntry.prototype.write = function(stream) {
 	this.writeHeader(stream);
-	this.writeFooter(stream);
+	stream.writeUint8Array(this.data);
+	this.size += this.data.length;
+	Log.debug("BoxWriter", "Adjusting box "+this.type+" with new size "+this.size);
+	stream.adjustUint32(this.sizePosition, this.size);	
 }
 
 BoxParser.VisualSampleEntry.prototype.write = function(stream) {

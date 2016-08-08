@@ -783,12 +783,12 @@ QUnit.asyncTest( "full download and seek at rap 0", function( assert ) {
 		assert.notEqual(seekStep, 2, "Callback should never be reached on step 2");
 		assert.equal(samples.length, 1, "One sample received");
 		if (seekStep === 0) {
-			assert.equal(samples[0].is_rap, true, "Step 0 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, true, "Step 0 Sample RAP status matches");
 			assert.equal(samples[0].dts, 25000, "Step 0 Sample DTS matches");
 			assert.equal(samples[0].cts, 25000, "Step 0 Sample CTS matches");
 			assert.equal(samples[0].size, 3158, "Step 0 Sample size matches");
 		} else if (seekStep === 1) {
-			assert.equal(samples[0].is_rap, false, "Step 1 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, false, "Step 1 Sample RAP status matches");
 			assert.equal(samples[0].dts, 27000, "Step 1 Sample DTS matches");
 			assert.equal(samples[0].cts, 27000, "Step 1 Sample CTS matches");
 			assert.equal(samples[0].size, 176, "Step 1 Sample size matches");
@@ -847,12 +847,12 @@ QUnit.asyncTest( "Seek in the past", function( assert ) {
 	var track_id;
 	mp4box.onSamples = function(id, user, samples) {		
 		if (seekStep === 0) {
-			assert.equal(samples[0].is_rap, true, "Step 0 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, true, "Step 0 Sample RAP status matches");
 			assert.equal(samples[0].dts, 25000, "Step 0 Sample DTS matches");
 			assert.equal(samples[0].cts, 25000, "Step 0 Sample CTS matches");
 			assert.equal(samples[0].size, 3158, "Step 0 Sample size matches");
 		} else if (seekStep === 1) {
-			assert.equal(samples[0].is_rap, true, "Step 1 Sample RAP status matches");
+			assert.equal(samples[0].is_sync, true, "Step 1 Sample RAP status matches");
 			assert.equal(samples[0].dts, 0, "Step 1 Previous Sample DTS matches");
 			assert.equal(samples[0].cts, 0, "Step 1 Sample CTS matches");
 			assert.equal(samples[0].size, 3291, "Step 1 Sample size matches");
@@ -891,7 +891,7 @@ QUnit.asyncTest( "Seek and fetch out of order", function( assert ) {
 	var mp4box = new MP4Box();
 	var track_id;
 	mp4box.onSamples = function(id, user, samples) {
-		console.log("Getting sample for time:"+samples[0].dts/samples[0].timescale);
+		Log.info("Getting sample for time:"+samples[0].dts/samples[0].timescale);
 		if (samples[0].dts === 10000000) {
 			window.clearTimeout(timeout);
 			QUnit.start();	
@@ -936,7 +936,7 @@ QUnit.asyncTest( "Generate initialization segment", function( assert ) {
 		assert.ok(true, "moov found!" );	
 		track_id = info.tracks[0].id;		
 		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: false } );
-		assert.ok(mp4box.getInitializationSegment(), "Init segments generated");
+		assert.ok(mp4box.initializeSegmentation(), "Init segments generated");
 		QUnit.start();	
 	}
 	getFile(testFiles[index].url, function (buffer) {
@@ -959,7 +959,7 @@ QUnit.asyncTest( "Write-back the entire file", function( assert ) {
 	});
 });
 
-QUnit.module("Playback test");
+/*QUnit.module("Playback test");
 QUnit.asyncTest( "Long Segmentation", function( assert ) {
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var index = 10;
@@ -1004,7 +1004,7 @@ QUnit.asyncTest( "Long Segmentation", function( assert ) {
 		start += size;
 		mp4box.appendBuffer(buffer);
 	});
-});
+});*/
 
 
 QUnit.module("Box parsing tests");
@@ -1088,7 +1088,7 @@ QUnit.asyncTest( "Byte-by-byte parsing", function( assert ) {
 
 QUnit.module("misc");
 QUnit.asyncTest( "issue #16 (Peersm)", function( assert ) {
-	var index = 11;
+	var index = 10;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var mp4box = new MP4Box();
 	QUnit.expect(0);

@@ -2,6 +2,9 @@ MP4Box.js
 ======
 
 [![Build Status](https://travis-ci.org/gpac/mp4box.js.svg?branch=master)](https://travis-ci.org/gpac/mp4box.js)
+[![Coverage Status](https://coveralls.io/repos/github/gpac/mp4box.js/badge.svg?branch=master)](https://coveralls.io/github/gpac/mp4box.js?branch=master)
+[![Dependency Status](https://david-dm.org/gpac/mp4box.js.svg)](https://david-dm.org/gpac/mp4box.js)
+[![devDependency Status](https://david-dm.org/gpac/mp4box.js/dev-status.svg)](https://david-dm.org/gpac/mp4box.js#info=devDependencies)
 
 JavaScript library to process MP4 files in the browser (and in NodeJS), with support for progressive parsing. 
 Inspired by the [MP4Box](http://gpac.wp.mines-telecom.fr/mp4box/) tool from the [GPAC](http://gpac.wp.mines-telecom.fr) project. 
@@ -9,9 +12,10 @@ It can be used to:
 - [get information about an MP4 file](#getting-information), 
 - [segment](#segmentation) an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - [extract](#extraction) samples from an MP4 to create TextTracks.
-- more to come.
 
 A Player demo is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/), a File Analyzer is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/filereader.html), and some QUnit tests are [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/qunit.html)
+
+On this page, you'll find documentation on how to [build MP4box.js](#build), [use it in a browser](#browser-usage) or [in Node JS](#node-usage) or [contribute](#contribute).
 
 API
 ===
@@ -106,10 +110,10 @@ The `info` argument is an object with the following structure.
   ]
 }
 ```
-- **brands**: Array of 4CC codes corresponding to the file brands,
-- **created**: Date object, indicating the creation date of the file as given in the file header,
-- **modified**: Date object, indicating the last modification date of the file as given in the file header,
-- **timescale**: Number, corresponding to the timescale as given in the file header,
+- **brands**: Array of 4CC codes corresponding to the file brands as given in the ftyp box,
+- **created**: Date object, indicating the creation date of the file as given in the movie header,
+- **modified**: Date object, indicating the last modification date of the file as given in the movie header,
+- **timescale**: Number, corresponding to the timescale as given in the movie header,
 - **duration**: Number, providing the duration of the movie (unfragmented part) in timescale units,
 - **isProgressive**: boolean, indicating if the file can be played progressively,
 - **isFragmented**: boolean, indicating if the file is already fragmented,
@@ -152,11 +156,11 @@ mp4box.onError = function (e) {
 ```
 
 ####appendBuffer(data)####
-Provides an ArrayBuffer to parse from. The ArrayBuffer must have a `fileStart` (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file. Returns the offset (in the original file) that is expected to be the `fileStart` value of the next buffer. 
+Provides an ArrayBuffer to parse from. The ArrayBuffer must have a `fileStart` (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file. Returns the offset (in the original file) that is expected to be the `fileStart` value of the next buffer. This is particularly useful when the moov box is not at the beginning of the file.
 ```javascript
 var ab = getArrayBuffer();
 ab.fileStart = 0;
-mp4box.appendBuffer(ab);
+var nextBufferStart = mp4box.appendBuffer(ab);
 ```
 
 ####start()####
@@ -325,6 +329,8 @@ Node Usage
 =======
 MP4Box.js can be used in Node.js. See for example the [info.js](test/node/info.js) example.
 
-Contributing
+Contribute
 =======
 If your favorite box is not parsed by MP4Box, you can easily contribute. Each box parsing code is stored in a separate file whose name is the 4CC of the box type. For instance, the parsing of the ```ctts``` box is located in [ctts.js](src/parsing/ctts.js).
+
+To contribute to MP4Box.js, simply clone the repository, run `npm install` and `grunt test`.

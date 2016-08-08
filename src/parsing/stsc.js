@@ -12,8 +12,6 @@ BoxParser.stscBox.prototype.parse = function(stream) {
 			this.samples_per_chunk.push(stream.readUint32());
 			this.sample_description_index.push(stream.readUint32());
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 

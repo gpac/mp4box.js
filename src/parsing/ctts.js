@@ -18,8 +18,6 @@ BoxParser.cttsBox.prototype.parse = function(stream) {
 			this.sample_counts.push(stream.readUint32());
 			this.sample_offsets.push(stream.readInt32()); /* signed */
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
-	}
+	} 
 }
 

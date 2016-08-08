@@ -1,4 +1,4 @@
-BoxParser.avssSampleGroupEntry.prototype.parse = function(stream, length) {
+BoxParser.avssSampleGroupEntry.prototype.parse = function(stream) {
 	this.subSequenceIdentifier = stream.readUint16();
 	this.layerNumber = stream.readUint8();
 	var tmp_byte = stream.readUint8();

@@ -9,10 +9,14 @@
 /**
  * Constructor
  */
-var MultiBufferStream = function() {
+var MultiBufferStream = function(buffer) {
 	/* List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non overlapping */
 	this.buffers = [];	
 	this.bufferIndex = -1;
+	if (buffer) {
+		this.insertBuffer(buffer);
+		this.bufferIndex = 0;
+	}
 }
 MultiBufferStream.prototype = new DataStream(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
 

@@ -1,6 +1,3 @@
-//var mediaTestBaseUrl = 'http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/';
-var mediaTestBaseUrl = 'http://127.0.0.1:8080/code/mp4box.js/test/';
-
 var testFiles = [
 	{ // 0
 		desc: "non-fragmented MP4 file with single MPEG-AVC stream",
@@ -48,12 +45,24 @@ var testFiles = [
 		mdatSize: 1309934,
 		moovSize: 19070
 	},
-	{ // 10
-		desc: "long movie",
-		url: mediaTestBaseUrl + 'mp4/Bad.Influence.se4ep13.mp4'
-	},
+//	{ // 10
+//		desc: "long movie",
+//		url: mediaTestBaseUrl + 'mp4/Bad.Influence.se4ep13.mp4'
+//	},
 	{ // 11
 		desc: "Incomplete file from torrent",
 		url: mediaTestBaseUrl + 'mp4/as2-incomplete.mp4'
+	},
+	{ // 12 
+		desc: "File with negative CTS-DTS offsets",
+		url: mediaTestBaseUrl + 'mp4/negctts.mp4'
+	},
+	{ // 13 
+		desc: "File with no default flags in fragments",
+		url: mediaTestBaseUrl + 'mp4/noFragsDefault.mp4'
+	},
+	{ // 14 
+		desc: "File with negative CTS-DTS offsets and no default flags in fragments",
+		url: mediaTestBaseUrl + 'mp4/negctts_noFragsDefault.mp4'
 	}
 ];

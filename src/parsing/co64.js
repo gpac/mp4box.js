@@ -8,8 +8,6 @@ BoxParser.co64Box.prototype.parse = function(stream) {
 		for(i=0; i<entry_count; i++) {
 			this.chunk_offsets.push(stream.readUint64());
 		}
-	} else {
-		this.data = stream.readUint8Array(this.size-this.hdr_size-4);
 	}
 }
 

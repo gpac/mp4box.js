@@ -30,7 +30,7 @@ BoxParser.sgpdBox.prototype.write = function(stream) {
 				stream.writeUint32(entry.description_length);
 			}
 		}
-		stream.writeUint8Array(entry.data);
+		entry.write(stream);
 	}
 }
 

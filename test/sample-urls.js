@@ -8,6 +8,8 @@ var sampleUrls = [
 			{ url: "./mp4/Bad.Influence.se4ep13.mp4", desc: "Bad Influence (S04E13 from Archive.org, 20 min, unfragmented, AVC+AAC, 117MB)"},
 			{ url: "http://storage.googleapis.com/peer5_vod/sintel-2048-surround.mp4", desc: "Sintel (from Peer5, 15 min, non-fragmented, non-progressive, 310MB)"},
 			{ url: "http://akamai-progressive.irt.de/irt_subs/webvtt/nick.mp4", desc: "Nick and the roundabouts (from IRT, 5 min, non-fragmented, WebVTT in MP4, 77MB)"},
+			{ url: "./mp4/counter_french.mp4", desc: "MP3 in MP4"},
+			{ url: "./mp4/sintel-1024-surround.mp4", desc: "Sintel 1024 Surround"},
 		]
 	},
 	{ 
@@ -50,6 +52,25 @@ var sampleUrls = [
 		urls: [
 			{ url: "./mp4/video-with-html.mp4", desc: "Video with HTML/CSS items"},
 			{ url: "./mp4/Anand-Carlsen2014.mp4", desc: "Video with many web assets (JS, CSS, PNG, WebVTT)"},
+		]
+	},
+	{ 
+		groupName: "HTML 5 Track Kinds",
+		urls: [
+			{ url: "./mp4/html5-kind/video-kind-alternative.mp4", desc: "Video with alternative kind"},
+			{ url: "./mp4/html5-kind/video-kind-captions.mp4", desc: "Video with captions kind"},
+			{ url: "./mp4/html5-kind/video-kind-main.mp4", desc: "Video with main kind"},
+			{ url: "./mp4/html5-kind/video-kind-sign.mp4", desc: "Video with sign kind"},
+			{ url: "./mp4/html5-kind/video-kind-subtitles.mp4", desc: "Video with subtitles kind"},
+			{ url: "./mp4/html5-kind/video-kind-commmentary.mp4", desc: "Video with commentary kind"},
+			{ url: "./mp4/html5-kind/video-kind-empty.mp4", desc: "Video with no kind"},
+			{ url: "./mp4/html5-kind/audio-kind-alternative.mp4", desc: "Audio with alternative kind"},
+			{ url: "./mp4/html5-kind/audio-kind-descriptions.mp4", desc: "Audio with descriptions kind"},
+			{ url: "./mp4/html5-kind/audio-kind-main.mp4", desc: "Audio with main kind"},
+			{ url: "./mp4/html5-kind/audio-kind-main-desc.mp4", desc: "Audio with main-desc kind"},
+			{ url: "./mp4/html5-kind/audio-kind-translation.mp4", desc: "Audio with translation kind"},
+			{ url: "./mp4/html5-kind/audio-kind-commentary.mp4", desc: "Audio with commentary kind"},
+			{ url: "./mp4/html5-kind/audio-kind-empty.mp4", desc: "Audio with empty kind"},
 		]
 	},
 	{ 

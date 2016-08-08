@@ -92,6 +92,9 @@ Downloader.prototype.getFile = function() {
 		dl.callback(null, false, true);
 	}
 	xhr.onreadystatechange = function (e) { 
+		if (xhr.status == 404) {
+			dl.callback(null, false, true);
+		}	
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
 			var rangeReceived = xhr.getResponseHeader("Content-Range");
 			Log.info("Downloader", "Received data range: "+rangeReceived);

@@ -2,16 +2,21 @@
  * Copyright (c) Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-BoxParser.parseOneBox = function(stream, headerOnly) {
+BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	var box;
 	var start = stream.getPosition();
 	var hdr_size = 0;
+	var diff;
 	var uuid;
 	if (stream.getEndPosition() - start < 8) {
 		Log.debug("BoxParser", "Not enough data in stream to parse the type and size of the box");
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
 	}
 	var size = stream.readUint32();
+    if (size === 0) {
+        Log.debug("BoxParser", "Found terminator box at " + start);
+        return { code: BoxParser.OK };
+    }
 	var type = stream.readString(4);
 	Log.debug("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start);
 	hdr_size = 8;
@@ -33,7 +38,10 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 			throw "Unlimited box size not supported";
 		}
 	}
-	
+	if (parentSize && size > parentSize) {
+		Log.error("BoxParser", "Box of type "+type+" has a size "+size+" greater than its container size "+parentSize);
+		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };
+	}
 	if (start + size > stream.getEndPosition()) {
 		stream.seek(start);
 		Log.warn("BoxParser", "Not enough data in stream to parse the entire \""+type+"\" box");
@@ -57,12 +65,20 @@ BoxParser.parseOneBox = function(stream, headerOnly) {
 	box.hdr_size = hdr_size;
 	/* recording the position of the box in the input stream */
 	box.start = start;
-	if (box.write === BoxParser.Box.prototype.write) {
-		Log.warn("BoxParser", type+" box writing not yet implemented, keeping unparsed data in memory for later write");
+	if (box.write === BoxParser.Box.prototype.write && box.type !== "mdat") {
+		Log.warn("BoxParser", box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
 		box.parseDataAndRewind(stream);
 	}
 	box.parse(stream);
-	return { code: BoxParser.OK, box: box, size: size };
+	diff = stream.getPosition() - (box.start+box.size);
+	if (diff < 0) {
+		Log.warn("BoxParser", "Parsing of box "+box.type+" did not read the entire indicated box data size (missing "+(-diff)+" bytes), seeking forward");
+		stream.seek(box.start+box.size);
+	} else if (diff > 0) {
+		Log.error("BoxParser", "Parsing of box "+box.type+" read "+diff+" more bytes than the indicated box data size, seeking backwards");
+		stream.seek(box.start+box.size);
+	}
+	return { code: BoxParser.OK, box: box, size: box.size };
 }
 
 BoxParser.Box.prototype.parse = function(stream) {
@@ -85,26 +101,44 @@ BoxParser.Box.prototype.parseDataAndRewind = function(stream) {
 	stream.position -= this.size-this.hdr_size;
 }
 
+BoxParser.FullBox.prototype.parseDataAndRewind = function(stream) {
+	this.parseFullHeader(stream);
+	this.data = stream.readUint8Array(this.size-this.hdr_size);
+	// restore the header size as if the full header had not been parsed
+	this.hdr_size -= 4;
+	// rewinding
+	stream.position -= this.size-this.hdr_size;
+}
+
 BoxParser.FullBox.prototype.parseFullHeader = function (stream) {
 	this.version = stream.readUint8();
 	this.flags = stream.readUint24();
 	this.hdr_size += 4;
 }
 
+BoxParser.FullBox.prototype.parse = function (stream) {
+	this.parseFullHeader(stream);
+	this.data = stream.readUint8Array(this.size-this.hdr_size);
+}
+
 BoxParser.ContainerBox.prototype.parse = function(stream) {
 	var ret;
 	var box;
 	while (stream.getPosition() < this.start+this.size) {
-		ret = BoxParser.parseOneBox(stream, false);
-		box = ret.box;
-		/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
-		this.boxes.push(box);
-		if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
-			this[this.subBoxNames+"s"].push(box);
+		ret = BoxParser.parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+		if (ret.code === BoxParser.OK) {
+			box = ret.box;
+			/* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
+			this.boxes.push(box);
+			if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
+				this[this.subBoxNames[this.subBoxNames.indexOf(box.type)]+"s"].push(box);
+			} else {
+				this[box.type] = box;
+			}
 		} else {
-			this[box.type] = box;
+			return;
 		}
-	}
+	} 
 }
 
 BoxParser.Box.prototype.parseLanguage = function(stream) {

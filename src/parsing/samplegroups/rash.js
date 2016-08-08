@@ -1,8 +1,8 @@
-BoxParser.rashSampleGroupEntry.prototype.parse = function(stream, length) {
+BoxParser.rashSampleGroupEntry.prototype.parse = function(stream) {
 	this.operation_point_count = stream.readUint16();
-	if (length !== 2+(this.operation_point_count === 1?2:this.operation_point_count*6)+9) {
+	if (this.description_length !== 2+(this.operation_point_count === 1?2:this.operation_point_count*6)+9) {
 		Log.warn("BoxParser", "Mismatch in "+this.grouping_type+" sample group length");
-		this.data =  stream.readUint8Array(length-2);
+		this.data =  stream.readUint8Array(this.description_length-2);
 	} else {
 		if (this.operation_point_count === 1) {
 			this.target_rate_share = stream.readUint16();

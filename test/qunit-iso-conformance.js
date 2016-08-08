@@ -7,12 +7,29 @@ function makeBoxParsingTest(fileIndex) {
 			var file = new ISOFile(mbs);
 			mbs.insertBuffer(buffer);
 			file.parse();
+			file.write(new DataStream(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN));
 			assert.ok(true, "file "+conformanceFiles[fileIndex]+" parsing");
 			QUnit.start();
 		};
-		getFile(conformanceFiles[fileIndex], callback);
+		if (conformanceFiles[fileIndex].indexOf("14_large")>-1) {
+			getFileRange(mediaTestBaseUrl+conformanceFiles[fileIndex], 0, 1156, callback);
+		} else {
+			getFile(mediaTestBaseUrl+conformanceFiles[fileIndex], callback);
+		}
 	});
 }
+
+/* 
+var conformanceFiles = [];
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'iso-conformance-files.js', false);
+xhr.send();
+if(xhr.status === 200 || xhr.status === 0 ) {
+  	conformanceFiles = JSON.parse(xhr.responseText);
+} else {
+	console.log("Problem fetching file");
+}
+*/
 
 for (var i = 0; i < conformanceFiles.length; i++) {
 	makeBoxParsingTest(i);

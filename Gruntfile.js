@@ -27,6 +27,7 @@ module.exports = function(grunt) {
               'src/text-mp4.js',                  // text-based track manipulations
               'src/isofile.js',                   // basic file level operations (parse, get boxes)
               'src/isofile-advanced-parsing.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
+              'src/isofile-advanced-creation.js',    // file level advanced operations to create files from scratch
               'src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
               'src/isofile-item-processing.js',   // item processing operations (sample table, get, ...)
               'src/isofile-write.js',             // file level write operations (segment creation ...)
@@ -72,23 +73,6 @@ module.exports = function(grunt) {
         }
       },
     },
-    qunit: {
-		all: {
-		  options: {
-		    urls: [
-		      'http://localhost:9000/test/qunit.html'
-		    ]
-		  }
-		}
-    },
-    connect: {
-	    server: {
-	      options: {
-	        port: 9000,
-	        base: '.'
-	      }
-	    }
-  	},
   	jshint: {
       files: [
         'Gruntfile.js', 
@@ -98,13 +82,14 @@ module.exports = function(grunt) {
         '!test/lib/**/*.js', 
         '!test/mp4/**/*.js',
         '!test/trackviewers/**/*.js', 
+        '!test/coverage/**/*.js', 
       ],
       options: {
         // options here to override JSHint defaults
-    	eqeqeq: false,
-    	asi: true,
-    	loopfunc: true,
-    	eqnull: true,
+        eqeqeq: false,
+        asi: true,
+        loopfunc: true,
+        eqnull: true,
         globals: {
         }
       }
@@ -123,21 +108,26 @@ module.exports = function(grunt) {
         files:  ['package.json'],
         pushTo: 'origin'
       }
+    },
+    coveralls: {
+        options: {
+            coverageDir: 'test/coverage/',
+            force: true
+        }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-karma-coveralls');
   grunt.loadNpmTasks('grunt-bump');
 
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
   grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
-  grunt.registerTask('test', ['default', 'karma']);
+  grunt.registerTask('test', ['default', 'karma', 'coveralls']);
 
 };

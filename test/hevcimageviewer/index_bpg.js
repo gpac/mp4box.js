@@ -65,7 +65,7 @@ function setMP4Box() {
 				var sample = samples[i];
 				// Check if it is HEVC
 				if (sample.description.type === "hvc1") {
-					if (sample.is_rap === true) {
+					if (sample.is_sync === true) {
 						// Send MP4 data to build a BPG	
 						var bpg = extractBPG(sample);
 						bpg.show(1);

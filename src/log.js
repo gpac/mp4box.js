@@ -43,7 +43,7 @@ var Log = (function (){
 	
 /* Helper function to print a duration value in the form H:MM:SS.MS */
 Log.getDurationString = function(duration, _timescale) {
-
+	var neg;
 	/* Helper function to print a number on a fixed number of digits */
 	function pad(number, length) {
 		var str = '' + number;
@@ -53,7 +53,12 @@ Log.getDurationString = function(duration, _timescale) {
 		}
 		return a.join('.');
 	}
-
+	if (duration < 0) {
+		neg = true;
+		duration = -duration;
+	} else {
+		neg = false;	
+	}
 	var timescale = _timescale || 1;
 	var duration_sec = duration/timescale;
 	var hours = Math.floor(duration_sec/3600);
@@ -64,7 +69,7 @@ Log.getDurationString = function(duration, _timescale) {
 	duration_sec = Math.floor(duration_sec);
 	msec -= duration_sec*1000;
 	msec = Math.floor(msec);
-	return ""+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2)+"."+pad(msec,3);
+	return (neg ? "-": "")+hours+":"+pad(minutes,2)+":"+pad(duration_sec,2)+"."+pad(msec,3);
 }
 	
 /* Helper function to stringify HTML5 TimeRanges objects */	

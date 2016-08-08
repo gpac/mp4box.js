@@ -8,4 +8,3 @@ BoxParser.tx3gSampleEntry.prototype.parse = function(stream) {
 	this.style_record = stream.readUint8Array(12);
 	this.parseFooter(stream);
 }
-

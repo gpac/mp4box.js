@@ -1,7 +1,13 @@
 language: node_js
 sudo: false
 node_js:
-- '0.10'
+- 'node'
+before_install:
+- echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+- "export CHROME_BIN=chromium-browser"
+- "export DISPLAY=:99.0"
+- "sh -e /etc/init.d/xvfb start"
+- sleep 3 # give xvfb some time to start
 before_script:
 - npm install -g grunt-cli
 deploy:
@@ -21,7 +27,7 @@ deploy:
   - provider: npm
     email: cyril.concolato@telecom-paristech.fr
     api_key:
-      secure: "qT37keNDM4h+9o7XvnCKDF/Hxt+zAcUtaqI78EHu77J22tWKFW45MJw8iL6yyJCit7kRyYAd/YSgk1LwwdJQwlWmuDIYYiF27NfGeLD+md1OlaPztUNhO9h6mm1jjSSYhhMEf3p2ugNmFih2EkXvodYcvhEpJyAMAeSU4jdmtGk="
+      secure: qT37keNDM4h+9o7XvnCKDF/Hxt+zAcUtaqI78EHu77J22tWKFW45MJw8iL6yyJCit7kRyYAd/YSgk1LwwdJQwlWmuDIYYiF27NfGeLD+md1OlaPztUNhO9h6mm1jjSSYhhMEf3p2ugNmFih2EkXvodYcvhEpJyAMAeSU4jdmtGk=
     skip_cleanup: true
     on:
       tags: true

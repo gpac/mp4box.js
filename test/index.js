@@ -18,7 +18,7 @@ var autoplay = false;
 
 var startButton, loadButton, initButton, initAllButton, playButton;
 var urlInput, chunkTimeoutInput, chunkSizeInput;
-var infoDiv, dlTimeoutDiv;
+var infoDiv, dlTimeoutDiv, htm5MediaDiv;
 var chunkTimeoutLabel, chunkSizeLabel, segmentSizeLabel, extractionSizeLabel;
 var urlSelector;
 var saveChecked;
@@ -37,6 +37,7 @@ window.onload = function () {
 	chunkTimeoutInput = document.getElementById('chunk_speed_range');
 	chunkSizeInput = document.getElementById("chunk_size_range");
 	infoDiv = document.getElementById('infoDiv');
+	html5MediaDiv = document.getElementById('html5MediaDiv');
 	dlTimeoutDiv = document.getElementById('dlTimeout');
 	chunkTimeoutLabel = document.querySelector('#chunk_speed_range_out');	
 	chunkSizeLabel = document.querySelector('#chunk_size_range_out');
@@ -89,7 +90,11 @@ window.onload = function () {
 		console.log("Waiting event,");
 		video.playing = false;
 	});
-*/	reset();	
+*/	
+	if (video.videoTracks) video.videoTracks.onchange = updateHtml5TrackInfo;
+	if (video.audioTracks) video.audioTracks.onchange = updateHtml5TrackInfo;
+	if (video.textTracks) video.textTracks.onchange = updateHtml5TrackInfo;
+	reset();	
 
 	/* Loading Track Viewers */
 	var s = document.createElement("script");
@@ -163,6 +168,7 @@ function setPlaybackRate(value) {
 /* Functions to generate the tables displaying file information */	
 function resetDisplay() {
 	infoDiv.innerHTML = '';
+	html5MediaDiv.innerHTML = '';
 	overlayTracks.innerHTML = '';
 	video.poster = '';
 	video.playing = false;
@@ -254,10 +260,34 @@ function addBuffer(video, mp4track) {
 	var codec = mp4track.codec;
 	var mime = 'video/mp4; codecs=\"'+codec+'\"';
 	var kind = mp4track.kind;
+	var trackDefault;
+	var trackDefaultSupport = (typeof TrackDefault !== "undefined");
+	var html5TrackKind = "";
+	if (codec == "wvtt") {
+		if (!kind.schemeURI.startsWith("urn:gpac:")) {
+			html5TrackKind = "subtitles";
+		} else {
+			html5TrackKind = "metadata";
+		}
+	} else {
+		if (kind && kind.schemeURI === "urn:w3c:html5:kind") {
+			html5TrackKind = kind.value || "";
+		} 
+	}
+	if (trackDefaultSupport) {
+		if (mp4track.type === "video" || mp4track.type === "audio") {
+			trackDefault = new TrackDefault(mp4track.type, mp4track.language, mp4track.name, [ html5TrackKind ], track_id);
+		} else {
+			trackDefault = new TrackDefault("text", mp4track.language, mp4track.name, [ html5TrackKind ], track_id);
+		}
+	}
 	if (MediaSource.isTypeSupported(mime)) {
 		try {
 			Log.info("MSE - SourceBuffer #"+track_id,"Creation with type '"+mime+"'");
 			sb = ms.addSourceBuffer(mime);
+			if (trackDefaultSupport) {
+				sb.trackDefaults = new TrackDefaultList([trackDefault]);
+			}
 			sb.addEventListener("error", function(e) {
 				Log.error("MSE SourceBuffer #"+track_id,e);
 			});
@@ -270,14 +300,8 @@ function addBuffer(video, mp4track) {
 		}
 	} else {
 		Log.warn("MSE", "MIME type '"+mime+"' not supported for creation of a SourceBuffer for track id "+track_id);
-		var trackType;
 		var i;
 		var foundTextTrack = false;
-		if (codec == "wvtt" && !kind.schemeURI.startsWith("urn:gpac:")) {
-			trackType = "subtitles";
-		} else {
-			trackType = "metadata";
-		}
 		for (i = 0; i < video.textTracks.length; i++) {
 			var track = video.textTracks[i];
 			if (track.label === 'track_'+track_id) {
@@ -288,7 +312,8 @@ function addBuffer(video, mp4track) {
 			}
 		}
 		if (!foundTextTrack) {
-			var texttrack = video.addTextTrack(trackType, "track_"+track_id);
+			var texttrack = video.addTextTrack(html5TrackKind, mp4track.name, mp4track.language);
+			texttrack.id = track_id;
 			texttrack.mode = "showing";
 			mp4box.setExtractionOptions(track_id, texttrack, { nbSamples: parseInt(extractionSizeLabel.value) });
 			texttrack.codec = codec;
@@ -435,7 +460,7 @@ function processInbandCue() {
 		video.onPlayCue = this;
 		return;
 	}
-	if (this.is_rap & this.track.config) {
+	if (this.is_sync & this.track.config) {
 		content = this.track.config;
 	} 
 	content += this.text;
@@ -527,7 +552,7 @@ function load() {
 				console.log("Parsed XML sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :", xmlSubSample.document);
 				cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, xmlSubSample.documentString);
 				texttrack.addCue(cue);
-				cue.is_rap = sample.is_rap;
+				cue.is_sync = sample.is_sync;
 				cue.onenter = processInbandCue;
 			} else if (sample.description.type === "mett" || sample.description.type === "sbtt" || sample.description.type === "stxt") {
 				sampleParser = new Textin4Parser();
@@ -543,7 +568,7 @@ function load() {
 				console.log("Parsed text sample at time "+Log.getDurationString(sample.dts,sample.timescale)+" :", textSample);
 				cue = new VTTCue(sample.dts/sample.timescale, (sample.dts+sample.duration)/sample.timescale, textSample);
 				texttrack.addCue(cue);
-				cue.is_rap = sample.is_rap;
+				cue.is_sync = sample.is_sync;
 				cue.onenter = processInbandCue;
 			}
 		}
@@ -568,6 +593,7 @@ function load() {
 			}
 			if (error) {
 				reset();
+				progresslabel.text("Download error!");
 			}
 		}
 	);
@@ -676,4 +702,20 @@ function saveBuffer(buffer, name) {
 		var d = new DataStream(buffer);
 		d.save(name);
 	}
+}
+
+function updateHtml5TrackInfo() {
+	var content = '<table><thead><tr><th>Track ID</th><th>Type</th><th>Kind</th><th>Label</th><th>Language</th><th>Selected/enabled</th></tr></thead><tbody>';
+	var i;
+	for (i = 0; i < video.videoTracks.length; i++) {
+		content += '<tr>'+'<td>'+video.videoTracks[i].id+'</td>'+'<td>video</td>'+'<td>'+video.videoTracks[i].kind+'</td>'+'<td>'+video.videoTracks[i].label+'</td>'+'<td>'+video.videoTracks[i].language+'</td>'+'<td>'+video.videoTracks[i].selected+'</td>'+'</tr>';
+	}
+	for (i = 0; i < video.audioTracks.length; i++) {
+		content += '<tr>'+'<td>'+video.audioTracks[i].id+'</td>'+'<td>audio</td>'+'<td>'+video.audioTracks[i].kind+'</td>'+'<td>'+video.audioTracks[i].label+'</td>'+'<td>'+video.audioTracks[i].language+'</td>'+'<td>'+video.audioTracks[i].enabled+'</td>'+'</tr>';
+	}
+	for (i = 0; i < video.textTracks.length; i++) {
+		content += '<tr>'+'<td>'+video.textTracks[i].id+'</td>'+'<td>text</td>'+'<td>'+video.textTracks[i].kind+'</td>'+'<td>'+video.textTracks[i].label+'</td>'+'<td>'+video.textTracks[i].language+'</td>'+'<td>'+video.textTracks[i].mode+'</td>'+'</tr>';
+	}
+	content += '</tbody></table>';
+	html5MediaDiv.innerHTML = content;
 }

@@ -3,6 +3,7 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 var BoxParser = {
+	ERR_INVALID_DATA : -1,
 	ERR_NOT_ENOUGH_DATA : 0,
 	OK : 1,
 	boxCodes : [ 
@@ -25,7 +26,6 @@ var BoxParser = {
 				  "sidx", "emsg", "prft", "pssh",
 				  "elst", "dref", "url ", "urn ",
 				  "sbgp", "sgpd",
-				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "mere",
 				  "cprt",
 				  "iods",
 				  "ssix", "tfra", "mfro", "pdin", "tsel",
@@ -33,21 +33,21 @@ var BoxParser = {
 				  "schm", 
 				  "stvi", 
 				  "padb", "stdp", "sdtp", "saio", "saiz",
-				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere",
-				  "kind",
+				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere", 
+				  "kind", "elng",
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
-		[ "moov", [ "trak" ] ],
+		[ "moov", [ "trak", "sidx" ] ],
 		[ "trak" ],
 		[ "edts" ],
 		[ "mdia" ],
 		[ "minf" ],
 		[ "dinf" ],
-		[ "stbl" ],
+		[ "stbl", [ "sgpd", "sbgp" ] ],
 		[ "mvex", [ "trex" ] ],
 		[ "moof", [ "traf" ] ],
-		[ "traf", [ "trun" ] ],
+		[ "traf", [ "trun", "sgpd", "sbgp" ] ],
 		[ "vttc" ], 
 		[ "tref" ],
 		[ "iref" ],
@@ -62,12 +62,13 @@ var BoxParser = {
 		[ "rinf" ],
 		[ "schi" ],
 		[ "trgr" ],
-		[ "udta", ["kind"] ]
+		[ "udta", ["kind"] ],
+		[ "iprp" ]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
 		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4", "avcp", "drac", "encv", "mjp2", "mvc1", "mvc2", "resv", "s263", "svc1", "vc-1", "hvc1", "hev1"  ] },
-		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos" ] },
+		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos", ".mp3" ] },
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
 		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] },
@@ -207,6 +208,32 @@ BoxParser.TRUN_FLAGS_DURATION	= 0x100;
 BoxParser.TRUN_FLAGS_SIZE		= 0x200;
 BoxParser.TRUN_FLAGS_FLAGS		= 0x400;
 BoxParser.TRUN_FLAGS_CTS_OFFSET	= 0x800;
+
+BoxParser.Box.prototype.add = function(name) {
+	var i, j;
+	var box = new BoxParser[name+"Box"]();
+	this.boxes.push(box);
+	if (this[name+"s"]) {
+		this[name+"s"].push(box);
+	} else {
+		this[name] = box;
+	}
+	return box;
+}
+
+BoxParser.Box.prototype.set = function(prop, value) {
+	this[prop] = value;
+	return this;
+}
+
+BoxParser.Box.prototype.addEntry = function(value, _prop) {
+	var prop = _prop || "entries";
+	if (!this[prop]) {
+		this[prop] = [];
+	}
+	this[prop].push(value);
+	return this;
+}
 
 if (typeof exports !== "undefined") {
 	exports.BoxParser = BoxParser;

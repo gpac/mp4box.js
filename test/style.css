@@ -1,7 +1,8 @@
 body {
 	background: #fff;
 	margin: 0;
-	padding: 20px;
+	padding-left: 20px;
+	padding-right: 20px;
 	line-height: 1.4em;
 	font-family: tahoma, arial, sans-serif;
 }
@@ -86,7 +87,6 @@ button {
 }
 
 table {
-   width: 100%;
    margin: 0 0 10px 0;
    background: #FFFFFF;
    border: 1px solid #333333;
@@ -103,4 +103,8 @@ td, th {
 th {
    background: #EEEEEE;
    text-align: center;
+}
+
+.trackinfo table tr td, trackinfo table tr th, #sampletable table tr td, #sampletable table tr th {
+	width: 1px;
 }
