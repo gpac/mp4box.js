@@ -63,6 +63,12 @@ BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
 	stream.readUint16();
 	stream.readUint16();
 	this.samplerate = (stream.readUint32()/(1<<16));
+    if (this.version == 1) {
+        this.samplesPerPacket = stream.readUint32();
+        this.bytesPerPacket = stream.readUint32();
+        this.bytesPerFrame = stream.readUint32();
+        this.bytesPerSample = stream.readUint32();
+    }
 	this.parseFooter(stream);
 }
 
