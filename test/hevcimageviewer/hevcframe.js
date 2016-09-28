@@ -1,40 +1,42 @@
 if (typeof exports !== 'undefined') {
 	var GolombBitStream = require('./golomb.js');
-	var NALUFrame = require('./naluframe.js');
+	var NALUStream = require('./naluframe.js');
 }
 
-/* HEVCFrame object derived from the NALUFrame object */
-var HEVCFrame = function() {
-	// Sequence Parameter Set
+var HEVCStream = function(u8data) {
+	// Parsed PS
 	this.VPS    = {};
-	// Sequence Parameter Set
+	this.VPS.ptl= {};
 	this.SPS    = {};
 	this.SPS.ptl= {};
-	// Picture Parameter Set
 	this.PPS    = null;
-	// Video Coding Layer
-	// Supplemental Enhancement Information
+	// Other NALU not parsed
 	this.data   = null;
-	// Width
-	this.width  = null;
-	// Height
-	this.height = null;
-}	
-HEVCFrame.VPS_NALU_TYPE = 32;
-HEVCFrame.SPS_NALU_TYPE = 33;
-HEVCFrame.PPS_NALU_TYPE = 34;
-HEVCFrame.prototype = new NALUFrame();
+	this.width  = 0;
+	this.height = 0;
+	if (u8data) {
+		var i;
+		this.frames = NALUStream.parseFrames(u8data, HEVCStream);
+		for (i = 0; i < frames.length; i++) {
+			
+		}
+	}
+	this.nalu_length = 4;
+}
+HEVCStream.VPS_NALU_TYPE = 32;
+HEVCStream.SPS_NALU_TYPE = 33;
+HEVCStream.PPS_NALU_TYPE = 34;
 
-/* Writes a hrarcoded VPS for this frame
+/* Writes the VPS for this stream
    Returns an ArrayBuffer with start code and emulation prevention bytes */
-HEVCFrame.prototype.writeVPS = function () {
+HEVCStream.prototype.writeVPS = function () {
 	var ab = new ArrayBuffer(100);
 	var bs = new GolombBitStream(ab);
 	var nbBits = 0;
 
 	/* NALU Header */
 	bs.dataView.writeUnsigned(0, 1); /* forbidden zero */
-	bs.dataView.writeUnsigned(HEVCFrame.VPS_NALU_TYPE, 6); /*nal_unit_type*/
+	bs.dataView.writeUnsigned(HEVCStream.VPS_NALU_TYPE, 6); /*nal_unit_type*/
 	bs.dataView.writeUnsigned(0, 6); /* nuh_layer_id */
 	bs.dataView.writeUnsigned(1, 3); /* nuh_temporal_id_plus1 */
 	nbBits+= 16;
@@ -62,20 +64,20 @@ HEVCFrame.prototype.writeVPS = function () {
 	bs.dataView.writeUnsigned(0, 1); /* vps_timing_info_present_flag */
 	bs.dataView.writeUnsigned(0, 1); /* vps_extension_flag */
 	nbBits+=2;
-	nbBits = NALUFrame.writeTrailingBits(bs, nbBits);
+	nbBits = NALUStream.writeTrailingBits(bs, nbBits);
 
 	var nbBytes = nbBits/8;
 	ab = ab.slice(0,nbBytes);	
 	var u8 = new Uint8Array(ab);
-	u8 = NALUFrame.addEmulationBytes(u8);
-	u8 = NALUFrame.addStartCode(u8);
+	u8 = NALUStream.addEmulationBytes(u8);
+	u8 = NALUStream.addStartCode(u8);
 	return u8.buffer;
 }
 
-/* Writes a hardcoded profile, tier and level structure used in VPS/SPS in the given bitstream 
+/* Writes a profile, tier and level structure used in VPS/SPS in the given GolombBitstream 
    Returns the number of bits written
 */
-HEVCFrame.prototype.writePTL = function (bs, ptl) {
+HEVCStream.prototype.writePTL = function (bs, ptl) {
 	var nbBits = 0;
 
 	/* profile_tier_level */
@@ -98,16 +100,16 @@ HEVCFrame.prototype.writePTL = function (bs, ptl) {
 	return nbBits;
 }
 
-/* Writes the SPS for this frame
+/* Writes the SPS for this stream
    Returns an ArrayBuffer with start code and emulation prevention bytes */
-HEVCFrame.prototype.writeSPS = function () {
+HEVCStream.prototype.writeSPS = function () {
 	var ab = new ArrayBuffer(100);
 	var bs = new GolombBitStream(ab);
 	var nbBits = 0;
 
 	/* NALU Header */
 	bs.dataView.writeUnsigned(0, 1); /* forbidden zero */
-	bs.dataView.writeUnsigned(HEVCFrame.SPS_NALU_TYPE, 6); /*nal_unit_type*/
+	bs.dataView.writeUnsigned(HEVCStream.SPS_NALU_TYPE, 6); /*nal_unit_type*/
 	bs.dataView.writeUnsigned(0, 6); /* nuh_layer_id */
 	bs.dataView.writeUnsigned(1, 3); /* nuh_temporal_id_plus1 */
 	nbBits+= 16;
@@ -187,17 +189,18 @@ HEVCFrame.prototype.writeSPS = function () {
 		bs.dataView.writeUnsigned(this.SPS.cabac_bypass_alignment_enabled_flag, 1);
 		nbBits+=10;
 	}	
-	nbBits = NALUFrame.writeTrailingBits(bs, nbBits);
+	nbBits = NALUStream.writeTrailingBits(bs, nbBits);
 
 	var nbBytes = nbBits/8;
 	ab = ab.slice(0,nbBytes);	
 	var u8 = new Uint8Array(ab);
-	u8 = NALUFrame.addEmulationBytes(u8);
-	u8 = NALUFrame.addStartCode(u8);
+	u8 = NALUStream.addEmulationBytes(u8);
+	u8 = NALUStream.addStartCode(u8);
 	return u8.buffer;
 }
 
-HEVCFrame.prototype.readPTL = function(bs, ptl, sps_max_sub_layers_minus1) {
+/* Reads profile, tier and level structure from the given GolombBitstream */
+HEVCStream.prototype.readPTL = function(bs, ptl, sps_max_sub_layers_minus1) {
 	ptl.general_profile_space = bitStreamRead.dataView.getUnsigned(2);
 	ptl.general_tier_flag = bitStreamRead.dataView.getUnsigned(1);
 	ptl.general_profile_idc = bitStreamRead.dataView.getUnsigned(5);
@@ -251,15 +254,16 @@ HEVCFrame.prototype.readPTL = function(bs, ptl, sps_max_sub_layers_minus1) {
 	}
 }
 
-/* Reads an SPS NAL Unit with emulation prevention bytes (no start code) from an ArrayBuffer into this frame */
-HEVCFrame.prototype.readSPS = function (nalu) {
+/* Reads an SPS NAL Unit with emulation prevention bytes (no start code) from an ArrayBuffer */
+HEVCStream.prototype.readSPS = function (nalu) {
 	var i, j;
-	var parsedNalu = NALUFrame.removeEmulationBytes(nalu);
+	var parsedNalu = NALUStream.removeEmulationBytes(nalu);
 	var bitStreamRead = new GolombBitStream(parsedNalu.buffer);
-	/* forbidden_zero_bit f(1), nal_unit_type u(6), 
-	nuh_layer_id u(6), nuh_temporal_id_plus1 u(3),
-	sps_video_parameter_set_id u(4) */
-	bitStreamRead.dataView.getUnsigned(20);
+	/* NALU Header on 16 bits: forbidden_zero_bit f(1), nal_unit_type u(6), 
+	nuh_layer_id u(6), nuh_temporal_id_plus1 u(3) */
+	bitStreamRead.dataView.getUnsigned(16);
+	/* sps_video_parameter_set_id u(4) */
+	bitStreamRead.dataView.getUnsigned(4);
 	// sps_max_sub_layers_minus1 u(3)
 	var sps_max_sub_layers_minus1 = bitStreamRead.dataView.getUnsigned(3);
 	// sps_temporal_id_nesting_flag u(1)
@@ -379,7 +383,7 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 				delta_idx_minus1 = bitStreamRead.expGolombToNum();
 			}
 			if (delta_idx_minus1 > i - 1 || delta_idx_minus1 < 0) {
-				throw("HEVCFrame.readSPS(): st_ref_pic_set error.")
+				throw("HEVCStream.readSPS(): st_ref_pic_set error.")
 			}
 			var ref_i = i - 1 - delta_idx_minus1; // RefRpsIdx
 			var delta_rps_sign = bitStreamRead.dataView.getUnsigned(1);
@@ -636,15 +640,15 @@ HEVCFrame.prototype.readSPS = function (nalu) {
 	}	
 }
 
-HEVCFrame.getNALUType = function (nalu) {
+HEVCStream.getNALUType = function (nalu) {
 	return ((nalu[0]>>1)&0x3F);
 }
 
 /* Used by the generic NALU parser to determine if a NALU starts a new frame */
-HEVCFrame.isFrameStart = function (nalu, previous_nalu_type) {
-	var nalu_type = HEVCFrame.getNALUType(nalu);
+HEVCStream.isFrameStart = function (nalu, previous_nalu_type) {
+	var nalu_type = HEVCStream.getNALUType(nalu);
 	var first_slice_in_pic = nalu[2] & 0x80;
-	if (previous_nalu_type > 0 && previous_nalu_type !== HEVCFrame.PPS_NALU_TYPE) {
+	if (previous_nalu_type > 0 && previous_nalu_type !== HEVCStream.PPS_NALU_TYPE) {
 		if (first_slice_in_pic) {
 			return true;
 		}
@@ -652,47 +656,58 @@ HEVCFrame.isFrameStart = function (nalu, previous_nalu_type) {
 	return false;
 }
 
-HEVCFrame.createFrameFromSample = function(sample) {
+HEVCStream.createStreamFromSample = function(sample) {
 	var mp4NALUSHead = sample.description.hvcC.nalu_arrays;
 	var mp4NALUSData = sample.data;
 	
-	var hevcFrame = new HEVCFrame();
-	hevcFrame.width = sample.description.width;
-	hevcFrame.height = sample.description.height;
+	var hevcstream = new HEVCStream();
+	hevcstream.nalu_length = sample.description.hvcC.lengthSizeMinusOne + 1;
+	hevcstream.width = sample.description.width;
+	hevcstream.height = sample.description.height;
 	
 	for (var i = 0; i < mp4NALUSHead.length; i++) {
-		if (mp4NALUSHead[i].nalu_type === HEVCFrame.SPS_NALU_TYPE) {
-			hevcFrame.readSPS(mp4NALUSHead[i][0].data);
-		} else if (mp4NALUSHead[i].nalu_type === HEVCFrame.PPS_NALU_TYPE) {
-			hevcFrame.PPS = mp4NALUSHead[i][0].data;
+		if (mp4NALUSHead[i].nalu_type === HEVCStream.SPS_NALU_TYPE) {
+			hevcstream.readSPS(mp4NALUSHead[i][0].data);
+		} else if (mp4NALUSHead[i].nalu_type === HEVCStream.PPS_NALU_TYPE) {
+			hevcstream.PPS = mp4NALUSHead[i][0].data;
 		}
 	}
-	hevcFrame.data = NALUFrame.readSampleData(mp4NALUSData, sample.description.hvcC.lengthSizeMinusOne + 1);
-	return hevcFrame;
+	hevcstream.data = NALUStream.readSampleData(mp4NALUSData, sample.description.hvcC.lengthSizeMinusOne + 1);
+	return hevcstream;
 }	
 
-if (typeof exports !== 'undefined') {
-	module.exports = HEVCFrame;	
+HEVCStream.prototype.getDecoderConfigurationRecord = function() {
+	var record = {};
+	record.configurationVersion = 1;
+	record.general_profile_space = this.SPS.ptl.general_profile_space;
+	record.general_tier_flag = this.SPS.ptl.general_tier_space;
+	record.general_profile_idc = this.SPS.ptl.general_profile_idc;
+	record.general_profile_compatibility = this.SPS.ptl.general_profile_compatibility;
+	record.general_constraint_indicator = 0;
+	record.general_level_idc = this.SPS.ptl.general_level_idc;
+	record.min_spatial_segmentation_idc = this.SPS.min_spatial_segmentation_idc || 0;
+	record.parallelismType = 0;
+	record.chroma_format_idc = this.SPS.chroma_format_idc;
+	record.bit_depth_luma_minus8 = this.SPS.bit_depth_luma_minus8;
+	record.bit_depth_chroma_minus8 = this.SPS.bit_depth_chroma_minus8;
+	record.avgFrameRate = 0;
+	record.constantFrameRate = 0;
+	record.numTemporalLayers = 0;
+	record.temporalIdNested = 0;
+	record.lengthSizeMinusOne = this.nalu_length - 1;
+	record.nalu_arrays = [];
+	return record;
 }
 
-HEVCFrame.prototype.getHVCC = function() {
-	var hvcC = {};
-	hvcC.configurationVersion = 1;
-	hvcC.general_profile_space = this.SPS.ptl.general_profile_space;
-	hvcC.general_tier_flag = this.SPS.ptl.general_tier_space;
-	hvcC.general_profile_idc = this.SPS.ptl.general_profile_idc;
-	hvcC.general_profile_compatibility = this.SPS.ptl.general_profile_compatibility;
-	hvcC.general_constraint_indicator = 0;
-	hvcC.general_level_idc = this.SPS.ptl.general_level_idc;
-	hvcC.min_spatial_segmentation_idc = this.SPS.min_spatial_segmentation_idc || 0;
-	hvcC.parallelismType = 0;
-	hvcC.chroma_format_idc = this.SPS.chroma_format_idc;
-	hvcC.bit_depth_luma_minus8 = this.SPS.bit_depth_luma_minus8;
-	hvcC.bit_depth_chroma_minus8 = this.SPS.bit_depth_chroma_minus8;
-	hvcC.avgFrameRate = 0;
-	hvcC.constantFrameRate = 0;
-	hvcC.numTemporalLayers = 0;
-	hvcC.temporalIdNested = 0;
-	hvcC.lengthSizeMinusOne = 4;
-	hvcC.nalu_arrays = [];
+HEVCStream.prototype.setISOMBFFOptions = function(options) {
+	if (options) {
+		this.nalu_length = options.nalu_length | this.nalu_length;
+		if (typeof options.inband_ps != "undefined") {
+			this.inband_ps = options.inband_ps;
+		}
+	}
+}
+
+if (typeof exports !== 'undefined') {
+	module.exports = HEVCStream;	
 }
