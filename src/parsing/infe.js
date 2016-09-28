@@ -21,7 +21,7 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 		}
 		this.item_protection_index = stream.readUint16();
 		this.item_type = stream.readString(4);
-		this.name = stream.readCString();
+		this.item_name = stream.readCString();
 		if (this.item_type === "mime") {
 			this.content_type = stream.readCString();
 			this.content_encoding = stream.readCString();
