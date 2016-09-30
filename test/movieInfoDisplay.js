@@ -211,7 +211,9 @@ function displayMovieInfo(info, div, _displaySourceBuffer) {
 	html += "<div>";
 	html += "<table>";
 	html += "<tr><th>File Size / Bitrate</th><td>"+fileLength+" bytes / "+Math.floor((fileLength*8*info.timescale)/(info.duration*1000))+" kbps</td></tr>";
-	html += "<tr><th>Duration / Timescale</th><td>"+info.duration+"/"+info.timescale+" ("+Log.getDurationString(info.duration,info.timescale)+")</td></tr>";
+	if (info.timescale) {
+		html += "<tr><th>Duration / Timescale</th><td>"+info.duration+"/"+info.timescale+" ("+Log.getDurationString(info.duration,info.timescale)+")</td></tr>";
+	}
 	html += "<tr><th>Brands (major/compatible)</th><td>"+info.brands+"</td></tr>";
 	html += "<tr><th>MIME</th><td>"+info.mime+"</td></tr>";
 	html += "<tr><th>Progressive</th><td>"+info.isProgressive+"</td></tr>";
@@ -220,13 +222,25 @@ function displayMovieInfo(info, div, _displaySourceBuffer) {
 	if (info.isFragmented) {
 		html += "<tr><th>Fragmented duration</th><td>"+info.fragment_duration+(info.fragment_duration ? " - "+Log.getDurationString(info.fragment_duration,info.timescale):"")+"</td></tr>";
 	}
-	html += "<tr><th>Creation / Modification Dates</th><td>"+dateToInput(info.created)+" / "+ dateToInput(info.modified)+"</td></tr>";
+	if (info.created && info.modified) {
+		html += "<tr><th>Creation / Modification Dates</th><td>"+dateToInput(info.created)+" / "+ dateToInput(info.modified)+"</td></tr>";
+	}
 	html += "</table>";
-	html += getTrackListInfo(info.videoTracks, "Video");
-	html += getTrackListInfo(info.audioTracks, "Audio");
-	html += getTrackListInfo(info.subtitleTracks, "Subtitle / Text");
-	html += getTrackListInfo(info.metadataTracks, "Metadata");
-	html += getTrackListInfo(info.otherTracks, "Other");
+	if (info.videoTracks) {
+		html += getTrackListInfo(info.videoTracks, "Video");
+	}
+	if (info.audioTracks) {
+		html += getTrackListInfo(info.audioTracks, "Audio");
+	}
+	if (info.subtitleTracks) {
+		html += getTrackListInfo(info.subtitleTracks, "Subtitle / Text");
+	}
+	if (info.metadataTracks) {
+		html += getTrackListInfo(info.metadataTracks, "Metadata");
+	}
+	if (info.otherTracks) {
+		html += getTrackListInfo(info.otherTracks, "Other");
+	}
 	html += "</div>";
 	div.innerHTML = html;
 }

@@ -363,26 +363,28 @@ function buildSampleTrackView(info, trackSelector, track_index) {
 
 function buildSampleView() {
 	var info = mp4box.getInfo();
-	$("#trackinfo").addClass("ui-widget ui-widget-content ui-corner-all");
-	$("#sample-range-value").addClass("ui-widget ui-widget-content ui-corner-all");
-	var trackSelector = $("#trackSelect");
-	trackSelector.selectmenu();
-	trackSelector.startSample = 0;
-	trackSelector.endSample = 10;
-	trackSelector.html('');
-	for (i = 0; i < info.tracks.length; i++) {
-		trackSelector.append($("<option></option>").attr("value",i).text(info.tracks[i].id)); 
+	if (info.tracks) {
+		$("#trackinfo").addClass("ui-widget ui-widget-content ui-corner-all");
+		$("#sample-range-value").addClass("ui-widget ui-widget-content ui-corner-all");
+		var trackSelector = $("#trackSelect");
+		trackSelector.selectmenu();
+		trackSelector.startSample = 0;
+		trackSelector.endSample = 10;
+		trackSelector.html('');
+		for (i = 0; i < info.tracks.length; i++) {
+			trackSelector.append($("<option></option>").attr("value",i).text(info.tracks[i].id)); 
+		}
+		trackSelector.selectmenu({
+		      width: 100,
+		      change: function( event, data ) {
+		      	buildSampleTrackView(info, trackSelector, data.item.value);
+		      }
+		});
+		trackSelector.val(info.tracks[0].id);
+		trackSelector.selectmenu("refresh");
+		buildSampleTrackView(info, trackSelector, 0);
+		buildSampleMap(trackSelector.startSample, trackSelector.endSample);	
 	}
-	trackSelector.selectmenu({
-	      width: 100,
-	      change: function( event, data ) {
-	      	buildSampleTrackView(info, trackSelector, data.item.value);
-	      }
-	});
-	trackSelector.val(info.tracks[0].id);
-	trackSelector.selectmenu("refresh");
-	buildSampleTrackView(info, trackSelector, 0);
-	buildSampleMap(trackSelector.startSample, trackSelector.endSample);	
 }
 
 function buildSampleTableInfo(track_id, start, end) {
