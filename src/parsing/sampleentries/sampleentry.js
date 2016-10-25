@@ -56,19 +56,21 @@ BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
 }
 
 BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
-	this.parseHeader(stream);
-	stream.readUint32Array(2);
-	this.channel_count = stream.readUint16();
-	this.samplesize = stream.readUint16();
-	stream.readUint16();
-	stream.readUint16();
-	this.samplerate = (stream.readUint32()/(1<<16));
+    this.parseHeader(stream);
+    this.version = stream.readUint16();
+    this.revision = stream.readUint16();
+    this.vendor = stream.readUint32();
+    this.channel_count = stream.readUint16();
+    this.samplesize = stream.readUint16();
+    this.compressionId = stream.readInt16();
+    this.packetSize = stream.readUint16();
+    this.samplerate = (stream.readUint32() / (1 << 16));
     if (this.version == 1) {
         this.samplesPerPacket = stream.readUint32();
         this.bytesPerPacket = stream.readUint32();
         this.bytesPerFrame = stream.readUint32();
         this.bytesPerSample = stream.readUint32();
     }
-	this.parseFooter(stream);
+    this.parseFooter(stream);
 }
 
