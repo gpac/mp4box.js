@@ -12,6 +12,7 @@ before_script:
   - 'npm install -g grunt-cli'
   - 'npm install grunt'
   - 'npm install karma'
+  - 'npm install grunt-karma'
   - 'npm install karma-phantomjs-launcher'
 deploy:
   - provider: releases
