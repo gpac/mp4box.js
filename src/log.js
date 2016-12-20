@@ -86,3 +86,7 @@ Log.printRanges = function(ranges) {
 		return "(empty)";
 	}
 }
+
+if (typeof exports !== 'undefined') {
+	exports.Log = Log;
+}

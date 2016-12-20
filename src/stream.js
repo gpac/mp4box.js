@@ -173,3 +173,7 @@ MP4BoxStream.prototype.readInt32Array = function(length) {
   }
   return arr;
 }
+
+if (typeof exports !== 'undefined') {
+  exports.MP4BoxStream = MP4BoxStream;
+}
