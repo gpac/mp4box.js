@@ -24,7 +24,7 @@ MP4BoxStream.prototype.getLength = function() {
 }
 
 MP4BoxStream.prototype.seek = function (pos) {
-  var npos = Math.max(0, Math.min(this.uint8.length, pos));
+  var npos = Math.max(0, Math.min(this.buffer.byteLength, pos));
   this.position = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   return true;
 }
@@ -38,7 +38,7 @@ MP4BoxStream.prototype.isEos = function () {
  *************************************************************************/
 MP4BoxStream.prototype.readAnyInt = function(size, signed) {
   var res = 0;
-  if (this.position + size <= this.buffer.bytesLength) {
+  if (this.position + size <= this.buffer.byteLength) {
     switch (size) {
       case 1:
         if (signed) {
@@ -109,7 +109,7 @@ MP4BoxStream.prototype.readUint64 = function() {
 }
 
 MP4BoxStream.prototype.readString = function(length) {
-  if (this.position + length <= this.uint8.length) {
+  if (this.position + length <= this.buffer.byteLength) {
     var s = "";
     for (var i = 0; i < length; i++) {
       s += String.fromCharCode(this.readUint8());
