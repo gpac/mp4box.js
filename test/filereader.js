@@ -146,7 +146,7 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 	}
 	html += '<tbody>';
 	for (prop in box) {
-		if (["hdr_size", "start", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents"].indexOf(prop) > -1) {
+		if (["hdr_size", "start", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents", "associations"].indexOf(prop) > -1) {
 			continue;
 		} else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
 			continue;
@@ -192,27 +192,14 @@ function getFancyTreeData(boxes) {
 		array.push(fancytree_node);
 		fancytree_node.title = box.type || i;
 		fancytree_node.data = { 'box': box };
-		if (box.boxes) {
-			fancytree_node.children = getFancyTreeData(box.boxes);
-			fancytree_node.folder = true;
-		} else if (box.entries) {
-			fancytree_node.children = getFancyTreeData(box.entries);
-			fancytree_node.folder = true;
-		} else if (box.references) {
-			fancytree_node.children = getFancyTreeData(box.references);
-			fancytree_node.folder = true;
-		} else if (box.subsamples) {
-			fancytree_node.children = getFancyTreeData(box.subsamples);
-			fancytree_node.folder = true;
-		} else if (box.items) {
-			fancytree_node.children = getFancyTreeData(box.items);
-			fancytree_node.folder = true;
-		} else if (box.item_infos) {
-			fancytree_node.children = getFancyTreeData(box.item_infos);
-			fancytree_node.folder = true;
-		} else if (box.extents) {
-			fancytree_node.children = getFancyTreeData(box.extents);
-			fancytree_node.folder = true;
+		var child_prop_names = [ "boxes", "entries", "references", "subsamples",
+								 "items", "item_infos", "extents", "associations"];
+		for (var j = 0; j < child_prop_names.length; j++) {
+			var name = child_prop_names[j];
+			if (box[name]) {
+				fancytree_node.children = getFancyTreeData(box[name]);
+				fancytree_node.folder = true;
+			}
 		}
 	}
 	return array;
@@ -363,26 +350,28 @@ function buildSampleTrackView(info, trackSelector, track_index) {
 
 function buildSampleView() {
 	var info = mp4boxfile.getInfo();
-	$("#trackinfo").addClass("ui-widget ui-widget-content ui-corner-all");
-	$("#sample-range-value").addClass("ui-widget ui-widget-content ui-corner-all");
-	var trackSelector = $("#trackSelect");
-	trackSelector.selectmenu();
-	trackSelector.startSample = 0;
-	trackSelector.endSample = 10;
-	trackSelector.html('');
-	for (i = 0; i < info.tracks.length; i++) {
-		trackSelector.append($("<option></option>").attr("value",i).text(info.tracks[i].id)); 
+	if (info.tracks) {
+		$("#trackinfo").addClass("ui-widget ui-widget-content ui-corner-all");
+		$("#sample-range-value").addClass("ui-widget ui-widget-content ui-corner-all");
+		var trackSelector = $("#trackSelect");
+		trackSelector.selectmenu();
+		trackSelector.startSample = 0;
+		trackSelector.endSample = 10;
+		trackSelector.html('');
+		for (i = 0; i < info.tracks.length; i++) {
+			trackSelector.append($("<option></option>").attr("value",i).text(info.tracks[i].id)); 
+		}
+		trackSelector.selectmenu({
+		      width: 100,
+		      change: function( event, data ) {
+		      	buildSampleTrackView(info, trackSelector, data.item.value);
+		      }
+		});
+		trackSelector.val(info.tracks[0].id);
+		trackSelector.selectmenu("refresh");
+		buildSampleTrackView(info, trackSelector, 0);
+		buildSampleMap(trackSelector.startSample, trackSelector.endSample);	
 	}
-	trackSelector.selectmenu({
-	      width: 100,
-	      change: function( event, data ) {
-	      	buildSampleTrackView(info, trackSelector, data.item.value);
-	      }
-	});
-	trackSelector.val(info.tracks[0].id);
-	trackSelector.selectmenu("refresh");
-	buildSampleTrackView(info, trackSelector, 0);
-	buildSampleMap(trackSelector.startSample, trackSelector.endSample);	
 }
 
 function buildSampleTableInfo(track_id, start, end) {

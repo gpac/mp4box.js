@@ -1,7 +1,7 @@
 var MP4BoxStream = function(arrayBuffer) {
   if (arrayBuffer instanceof ArrayBuffer) {
     this.buffer = arrayBuffer;
-    this.uint8 = new Uint8Array(arrayBuffer);
+    this.dataview = new DataView(arrayBuffer);
   } else {
     throw ("Needs an array buffer");
   }
@@ -24,7 +24,7 @@ MP4BoxStream.prototype.getLength = function() {
 }
 
 MP4BoxStream.prototype.seek = function (pos) {
-  var npos = Math.max(0, Math.min(this.uint8.length, pos));
+  var npos = Math.max(0, Math.min(this.buffer.byteLength, pos));
   this.position = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   return true;
 }
@@ -36,77 +36,80 @@ MP4BoxStream.prototype.isEos = function () {
 /*************************************************************************
   Read methods, simimar to DataStream but simpler
  *************************************************************************/
-
-MP4BoxStream.prototype.readUint8 = function() {
-  var u8;
-  if (this.position + 1 <= this.uint8.length) {
-    u8 = this.uint8[this.position];
-    this.position++;
-    return u8;
+MP4BoxStream.prototype.readAnyInt = function(size, signed) {
+  var res = 0;
+  if (this.position + size <= this.buffer.byteLength) {
+    switch (size) {
+      case 1:
+        if (signed) {
+          res = this.dataview.getInt8(this.position);
+        } else {
+          res = this.dataview.getUint8(this.position);          
+        }
+        break;
+      case 2:
+        if (signed) {
+          res = this.dataview.getInt16(this.position);
+        } else {
+          res = this.dataview.getUint16(this.position);          
+        }
+        break;
+      case 3:
+        if (signed) {
+          throw ("No method for reading signed 24 bits values");
+        } else {
+          res = this.dataview.getUint8(this.position) << 16;
+          res |= this.dataview.getUint8(this.position) << 8;
+          res |= this.dataview.getUint8(this.position);
+        }
+        break;
+      case 4:
+        if (signed) {
+          res = this.dataview.getInt32(this.position);
+        } else {
+          res = this.dataview.getUint32(this.position);          
+        }
+        break;
+      case 8:
+        if (signed) {
+          throw ("No method for reading signed 64 bits values");
+        } else {
+          res = this.dataview.getUint32(this.position) << 32;          
+          res |= this.dataview.getUint32(this.position);
+        }
+        break;
+      default:
+        throw ("readInt method not implemented for size: "+size);  
+    }
+    this.position+= size;
+    return res;
   } else {
     throw ("Not enough bytes in buffer");
   }
+}
+
+MP4BoxStream.prototype.readUint8 = function() {
+  return this.readAnyInt(1, false);
 }
 
 MP4BoxStream.prototype.readUint16 = function() {
-  var u8_1, u8_2, u16;
-  if (this.position + 2 <= this.uint8.length) {
-    u8_1 = this.uint8[this.position];
-    this.position++;
-    u8_2 = this.uint8[this.position];
-    this.position++;
-    u16 = u8_1 << 8 | u8_2;
-    return u16;
-  } else {
-    throw ("Not enough bytes in buffer");
-  }
+  return this.readAnyInt(2, false);
 }
 
 MP4BoxStream.prototype.readUint24 = function() {
-  var u8, u24;
-  if (this.position + 3 <= this.uint8.length) {
-    u24 = this.uint8[this.position] << 16;
-    this.position++;
-    u24 |= this.uint8[this.position] << 8;
-    this.position++;
-    u24 |= this.uint8[this.position];
-    this.position++;
-    return u24;
-  } else {
-    throw ("Not enough bytes in buffer");
-  }
+  return this.readAnyInt(3, false);
 }
 
 MP4BoxStream.prototype.readUint32 = function() {
-  var u8, u32;
-  if (this.position + 4 <= this.uint8.length) {
-    u32 = this.uint8[this.position] << 24;
-    this.position++;
-    u32 |= this.uint8[this.position] << 16;
-    this.position++;
-    u32 |= this.uint8[this.position] << 8;
-    this.position++;
-    u32 |= this.uint8[this.position];
-    this.position++;
-    return u32;
-  } else {
-    throw ("Not enough bytes in buffer");
-  }
+  return this.readAnyInt(4, false);
 }
 
 MP4BoxStream.prototype.readUint64 = function() {
-  var u64;
-  if (this.position + 8 <= this.uint8.length) {
-    u64 = this.readUint32() << 32;
-    u64 |= this.readUint32();
-    return u64;
-  } else {
-    throw ("Not enough bytes in buffer");
-  }
+  return this.readAnyInt(8, false);
 }
 
 MP4BoxStream.prototype.readString = function(length) {
-  if (this.position + length <= this.uint8.length) {
+  if (this.position + length <= this.buffer.byteLength) {
     var s = "";
     for (var i = 0; i < length; i++) {
       s += String.fromCharCode(this.readUint8());
@@ -131,19 +134,19 @@ MP4BoxStream.prototype.readCString = function() {
 }
 
 MP4BoxStream.prototype.readInt8 = function() {
-  return this.readUint8();
+  return this.readAnyInt(1, true);
 }
 
 MP4BoxStream.prototype.readInt16 = function() {
-  return this.readUint16();
+  return this.readAnyInt(2, true);
 }
 
 MP4BoxStream.prototype.readInt32 = function() {
-  return this.readUint32();
+  return this.readAnyInt(4, true);
 }
 
 MP4BoxStream.prototype.readUint8Array = function(length) {
-  var arr = [];
+  var arr = new Uint8Array(length);
   for (var i = 0; i < length; i++) {
     arr[i] = this.readUint8();
   }
@@ -151,7 +154,7 @@ MP4BoxStream.prototype.readUint8Array = function(length) {
 }
 
 MP4BoxStream.prototype.readInt16Array = function(length) {
-  var arr = [];
+  var arr = new Int16Array(length);
   for (var i = 0; i < length; i++) {
     arr[i] = this.readUint16();
   }
@@ -159,7 +162,7 @@ MP4BoxStream.prototype.readInt16Array = function(length) {
 }
 
 MP4BoxStream.prototype.readUint32Array = function(length) {
-  var arr = [];
+  var arr = new Uint32Array(length);
   for (var i = 0; i < length; i++) {
     arr[i] = this.readUint32();
   }
@@ -167,9 +170,13 @@ MP4BoxStream.prototype.readUint32Array = function(length) {
 }
 
 MP4BoxStream.prototype.readInt32Array = function(length) {
-  var arr = [];
+  var arr = new Int32Array(length);
   for (var i = 0; i < length; i++) {
     arr[i] = this.readInt32();
   }
   return arr;
+}
+
+if (typeof exports !== 'undefined') {
+  exports.MP4BoxStream = MP4BoxStream;
 }

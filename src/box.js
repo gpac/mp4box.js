@@ -16,7 +16,8 @@ var BoxParser = {
 				 "vmhd", "smhd", "hmhd", // full boxes not yet parsed
 				 "idat", "meco",
 				 "udta", "strk",
-				 "free", "skip"
+				 "free", "skip", 
+				 "clap", "pasp"
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
@@ -34,7 +35,8 @@ var BoxParser = {
 				  "stvi", 
 				  "padb", "stdp", "sdtp", "saio", "saiz",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere", 
-				  "kind", "elng",
+				  "kind", "elng", 
+				  "ipma", "pixi", "ispe"
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -63,7 +65,8 @@ var BoxParser = {
 		[ "schi" ],
 		[ "trgr" ],
 		[ "udta", ["kind"] ],
-		[ "iprp" ]
+		[ "iprp", ["ipma"] ],
+		[ "ipco"]
 	],
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */

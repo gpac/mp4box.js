@@ -89,8 +89,10 @@ module.exports = function(grunt) {
         // options here to override JSHint defaults
         eqeqeq: false,
         asi: true,
-        loopfunc: true,
+        //verbose: true,
+	loopfunc: true,
         eqnull: true,
+	reporterOutput: "",
         globals: {
         }
       }

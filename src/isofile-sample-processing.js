@@ -313,6 +313,14 @@ ISOFile.prototype.buildTrakSampleLists = function(trak) {
 				last_stss_index++;
 			} else {
 				sample.is_sync = false;				
+				sample.degradation_priority = 0;
+			}
+			if (subs) {
+				if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index == j+1) {
+					sample.subsamples = subs.entries[subs_entry_index].subsamples;
+					last_subs_sample_index += subs.entries[subs_entry_index].sample_delta;
+					subs_entry_index++;
+				}
 			}
 		} else {
 			sample.is_sync = true;
