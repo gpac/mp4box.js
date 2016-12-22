@@ -149,3 +149,7 @@ var MPEG4DescriptorParser = function () {
 	
 	return this;
 }
+
+if (typeof exports !== 'undefined') {
+	exports.MPEG4DescriptorParser = MPEG4DescriptorParser;
+}

@@ -18,6 +18,9 @@ var Log = (function (){
 				else log_level = LOG_LEVEL_ERROR;
 			},
 			debug : function(module, msg) {
+				if (console.debug === undefined) {
+					console.debug = console.log;
+				}
 				if (LOG_LEVEL_DEBUG >= log_level) {
 					console.debug("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
@@ -85,4 +88,8 @@ Log.printRanges = function(ranges) {
 	} else {
 		return "(empty)";
 	}
+}
+
+if (typeof exports !== 'undefined') {
+	exports.Log = Log;
 }

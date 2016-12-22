@@ -147,7 +147,7 @@ MP4BoxStream.prototype.readUint8Array = function(length) {
   for (var i = 0; i < length; i++) {
     arr[i] = this.readUint8();
   }
-  return arr;
+  return Uint8Array.from(arr);
 }
 
 MP4BoxStream.prototype.readInt16Array = function(length) {
@@ -155,7 +155,7 @@ MP4BoxStream.prototype.readInt16Array = function(length) {
   for (var i = 0; i < length; i++) {
     arr[i] = this.readUint16();
   }
-  return arr;
+  return Int16Array.from(arr);
 }
 
 MP4BoxStream.prototype.readUint32Array = function(length) {
@@ -163,7 +163,7 @@ MP4BoxStream.prototype.readUint32Array = function(length) {
   for (var i = 0; i < length; i++) {
     arr[i] = this.readUint32();
   }
-  return arr;
+  return Uint32Array.from(arr);
 }
 
 MP4BoxStream.prototype.readInt32Array = function(length) {
@@ -171,5 +171,9 @@ MP4BoxStream.prototype.readInt32Array = function(length) {
   for (var i = 0; i < length; i++) {
     arr[i] = this.readInt32();
   }
-  return arr;
+  return Int32Array.from(arr);
+}
+
+if (typeof exports !== 'undefined') {
+  exports.MP4BoxStream = MP4BoxStream;
 }

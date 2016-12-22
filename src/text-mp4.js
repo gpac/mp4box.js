@@ -59,7 +59,9 @@ XMLSubtitlein4Parser.prototype.parseSample = function(sample) {
 			}
 		}
 	}
-	res.document = (new DOMParser()).parseFromString(res.documentString, "application/xml");
+	if (typeof (DOMParser) !== "undefined") {
+		res.document = (new DOMParser()).parseFromString(res.documentString, "application/xml");
+	}
 	return res;
 }
 
@@ -79,4 +81,9 @@ Textin4Parser.prototype.parseConfig = function(data) {
 	stream.readUint32(); // version & flags
 	textString = stream.readCString();
 	return textString;
+}
+
+if (typeof exports !== 'undefined') {
+	exports.XMLSubtitlein4Parser = XMLSubtitlein4Parser;
+	exports.Textin4Parser = Textin4Parser;
 }
