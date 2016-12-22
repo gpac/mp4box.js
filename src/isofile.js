@@ -207,10 +207,8 @@ ISOFile.prototype.checkBuffer = function (ab) {
    Returns the next expected file position, or undefined if not ready to parse */
 ISOFile.prototype.appendBuffer = function(ab, last) {
 	var nextFileStart;
-	if (this.checkBuffer) {
-		if (!this.checkBuffer(ab)) {
-			return;
-		}
+	if (!this.checkBuffer(ab)) {
+		return;
 	}
 
 	/* Parse whatever is in the existing buffers */
@@ -225,16 +223,14 @@ ISOFile.prototype.appendBuffer = function(ab, last) {
 	if (this.moov) {
 		/* A moov box has been entirely parsed */
 		
-		if (this.processSamples) {
-			/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
-			if (!this.sampleListBuilt) {
-				this.buildSampleLists();
-				this.sampleListBuilt = true;
-			} 
+		/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
+		if (!this.sampleListBuilt) {
+			this.buildSampleLists();
+			this.sampleListBuilt = true;
+		} 
 
-			/* We update the sample information if there are any new moof boxes */
-			this.updateSampleLists();
-		}
+		/* We update the sample information if there are any new moof boxes */
+		this.updateSampleLists();
 		
 		/* If the application needs to be informed that the 'moov' has been found, 
 		   we create the information object and callback the application */
@@ -243,10 +239,8 @@ ISOFile.prototype.appendBuffer = function(ab, last) {
 			this.onReady(this.getInfo());
 		}
 
-		if (this.processSamples) {
-			/* See if any sample extraction or segment creation needs to be done with the available samples */
-			this.processSamples(last);
-		}
+		/* See if any sample extraction or segment creation needs to be done with the available samples */
+		this.processSamples(last);
 
 		/* Inform about the best range to fetch next */
 		if (this.nextSeekPosition) {
