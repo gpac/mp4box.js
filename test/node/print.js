@@ -7,7 +7,7 @@ if (process.argv.length > 2) {
 	arrayBuffer.fileStart = 0;
 
 	mp4boxfile.appendBuffer(arrayBuffer);
-	console.log(mp4boxfile.print(MP4Box.Log));
+	mp4boxfile.print(console);
 } else {
-	console.log("usage: node info.js <file>");
+	console.log("usage: node print.js <file>");
 }

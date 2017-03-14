@@ -566,6 +566,9 @@ DataStream.prototype.readCString = function(length) {
 */
 var MAX_SIZE = Math.pow(2, 32);
 
+DataStream.prototype.readInt64 = function () {
+  return (this.readInt32()*MAX_SIZE)+this.readUint32();
+}
 DataStream.prototype.readUint64 = function () {
 	return (this.readUint32()*MAX_SIZE)+this.readUint32();
 }

@@ -31,6 +31,7 @@ module.exports = function(grunt) {
               'src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
               'src/isofile-item-processing.js',   // item processing operations (sample table, get, ...)
               'src/isofile-write.js',             // file level write operations (segment creation ...)
+              'src/box-print.js',                 // simple print
               'src/mp4box.js'                     // application level operations (data append, sample extraction, segmentation, ...)
         ],
         dest: 'dist/<%= pkg.name %>.all.js'

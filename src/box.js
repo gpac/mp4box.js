@@ -10,13 +10,9 @@ var BoxParser = {
 				 "mdat", "idat", "free", "skip",
 				 "avcC", "hvcC", "ftyp", "styp", 
 				 "payl", "vttC",
-				 "rtp ", "sdp ",
+				 "sdp ",
 				 "btrt", "frma",
 				 "trpy", "tpyl", "totl", "tpay", "dmed", "dimm", "drep", "nump", "npck", "maxr", "tmin", "tmax", "dmax", "pmax", "payt",
-				 "vmhd", "smhd", "hmhd", // full boxes not yet parsed
-				 "idat", "meco",
-				 "udta", "strk",
-				 "free", "skip", 
 				 "clap", "pasp"
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "url ", "urn ", 
@@ -25,7 +21,7 @@ var BoxParser = {
 				  "esds", "subs",
 				  "txtC",
 				  "sidx", "emsg", "prft", "pssh",
-				  "elst", "dref", "url ", "urn ",
+				  "elst", "dref", 
 				  "sbgp", "sgpd",
 				  "cprt",
 				  "iods",
@@ -34,9 +30,12 @@ var BoxParser = {
 				  "schm", 
 				  "stvi", 
 				  "padb", "stdp", "sdtp", "saio", "saiz",
-				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere", 
+				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "mere", 
 				  "kind", "elng", 
-				  "ipma", "pixi", "ispe"
+				  "ipma", "pixi", "ispe",
+				  "sthd",
+				  "tenc",
+				  "vpcC"
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
@@ -53,7 +52,6 @@ var BoxParser = {
 		[ "vttc" ], 
 		[ "tref" ],
 		[ "iref" ],
-		[ "udta" ],
 		[ "mfra" ],
 		[ "meco" ],
 		[ "hnti" ],
@@ -71,7 +69,7 @@ var BoxParser = {
 	sampleEntryCodes : [ 
 		/* 4CC as registered on http://mp4ra.org/codecs.html */
 		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4", "avcp", "drac", "encv", "mjp2", "mvc1", "mvc2", "resv", "s263", "svc1", "vc-1", "hvc1", "hev1"  ] },
-		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", ,"dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos", ".mp3" ] },
+		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", "dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos", ".mp3" ] },
 		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
 		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
 		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] },
@@ -212,13 +210,15 @@ BoxParser.TRUN_FLAGS_FLAGS		= 0x400;
 BoxParser.TRUN_FLAGS_CTS_OFFSET	= 0x800;
 
 BoxParser.Box.prototype.add = function(name) {
-	var i, j;
-	var box = new BoxParser[name+"Box"]();
+	return this.addBox(new BoxParser[name+"Box"]());
+}
+
+BoxParser.Box.prototype.addBox = function(box) {
 	this.boxes.push(box);
-	if (this[name+"s"]) {
-		this[name+"s"].push(box);
+	if (this[box.type+"s"]) {
+		this[box.type+"s"].push(box);
 	} else {
-		this[name] = box;
+		this[box.type] = box;
 	}
 	return box;
 }

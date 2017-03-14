@@ -13,5 +13,5 @@ MP4Box.createFile = function (_keepMdatData, _stream) {
 }
 
 if (typeof exports !== 'undefined') {
-	module.exports = MP4Box;	
+	exports.createFile = MP4Box.createFile;	
 }

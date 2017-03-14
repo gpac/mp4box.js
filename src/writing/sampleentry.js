@@ -59,3 +59,15 @@ BoxParser.AudioSampleEntry.prototype.write = function(stream) {
 	stream.writeUint32(this.samplerate<<16);
 	this.writeFooter(stream);
 }
+
+BoxParser.stppSampleEntry.prototype.write = function(stream) {
+	this.writeHeader(stream);
+	this.size += this.namespace.length+1+
+				 this.schema_location.length+1+
+				 this.auxiliary_mime_types.length+1;
+	stream.writeCString(this.namespace);
+	stream.writeCString(this.schema_location);
+	stream.writeCString(this.auxiliary_mime_types);
+	this.writeFooter(stream);
+}
+
