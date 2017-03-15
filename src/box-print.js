@@ -53,7 +53,7 @@ BoxParser.mvhdBox.prototype.print = function(output) {
 	output.log(output.indent+"timescale: "+this.timescale);
 	output.log(output.indent+"duration: "+this.duration);
 	output.log(output.indent+"rate: "+this.rate);
-	output.log(output.indent+"volume: "+this.volume>>8);
+	output.log(output.indent+"volume: "+(this.volume>>8));
 	output.log(output.indent+"matrix: "+this.matrix.join(", "));
 	output.log(output.indent+"next_track_id: "+this.next_track_id);
 }
@@ -64,7 +64,7 @@ BoxParser.tkhdBox.prototype.print = function(output) {
 	output.log(output.indent+"modification_time: "+this.modification_time);
 	output.log(output.indent+"track_id: "+this.track_id);
 	output.log(output.indent+"duration: "+this.duration);
-	output.log(output.indent+"volume: "+this.volume>>8);
+	output.log(output.indent+"volume: "+(this.volume>>8));
 	output.log(output.indent+"matrix: "+this.matrix.join(", "));
 	output.log(output.indent+"layer: "+this.layer);
 	output.log(output.indent+"alternate_group: "+this.alternate_group);
