@@ -48,26 +48,26 @@ ISOFile.prototype.print = function(output) {
 
 BoxParser.mvhdBox.prototype.print = function(output) {
 	BoxParser.FullBox.prototype.printHeader.call(this, output);
-	output.log("creation_time: "+this.creation_time);
-	output.log("modification_time: "+this.modification_time);
-	output.log("timescale: "+this.timescale);
-	output.log("duration: "+this.duration);
-	output.log("rate: "+this.rate);
-	output.log("volume: "+this.volume>>8);
-	output.log("matrix: "+this.matrix.join(", "));
-	output.log("next_track_id: "+this.next_track_id);
+	output.log(output.indent+"creation_time: "+this.creation_time);
+	output.log(output.indent+"modification_time: "+this.modification_time);
+	output.log(output.indent+"timescale: "+this.timescale);
+	output.log(output.indent+"duration: "+this.duration);
+	output.log(output.indent+"rate: "+this.rate);
+	output.log(output.indent+"volume: "+this.volume>>8);
+	output.log(output.indent+"matrix: "+this.matrix.join(", "));
+	output.log(output.indent+"next_track_id: "+this.next_track_id);
 }
 
 BoxParser.tkhdBox.prototype.print = function(output) {
 	BoxParser.FullBox.prototype.printHeader.call(this, output);
-	output.log("creation_time: "+this.creation_time);
-	output.log("modification_time: "+this.modification_time);
-	output.log("track_id: "+this.track_id);
-	output.log("duration: "+this.duration);
-	output.log("volume: "+this.volume>>8);
-	output.log("matrix: "+this.matrix.join(", "));
-	output.log("layer: "+this.layer);
-	output.log("alternate_group: "+this.alternate_group);
-	output.log("width: "+this.width);
-	output.log("height: "+this.height);
+	output.log(output.indent+"creation_time: "+this.creation_time);
+	output.log(output.indent+"modification_time: "+this.modification_time);
+	output.log(output.indent+"track_id: "+this.track_id);
+	output.log(output.indent+"duration: "+this.duration);
+	output.log(output.indent+"volume: "+this.volume>>8);
+	output.log(output.indent+"matrix: "+this.matrix.join(", "));
+	output.log(output.indent+"layer: "+this.layer);
+	output.log(output.indent+"alternate_group: "+this.alternate_group);
+	output.log(output.indent+"width: "+this.width);
+	output.log(output.indent+"height: "+this.height);
 }
