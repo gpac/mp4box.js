@@ -54,6 +54,7 @@ module.exports = function(grunt) {
               'src/parsing/tfdt.js',
               'src/parsing/trun.js',
               'src/isofile.js',
+              'src/box-print.js',                 
               'src/mp4box.js'
         ],
         dest: 'dist/<%= pkg.name %>.simple.js'
