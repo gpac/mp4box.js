@@ -12,7 +12,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 		Log.debug("BoxParser", "Not enough data in stream to parse the type and size of the box");
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
 	}
-	if (parentSize < 8) {
+	if (parentSize && parentSize < 8) {
 		Log.debug("BoxParser", "Not enough bytes left in the parent box to parse a new box");
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
 	}
@@ -30,7 +30,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 		hdr_size += 16;
 	}
 	if (size == 1) {
-		if ((stream.getEndPosition() - stream.getPosition() < 8) || ((parentSize - hdr_size) < 8)) {
+		if ((stream.getEndPosition() - stream.getPosition() < 8) || (parentSize && (parentSize - hdr_size) < 8)) {
 			stream.seek(start);
 			Log.warn("BoxParser", "Not enough data in stream to parse the extended size of the \""+type+"\" box");
 			return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
@@ -40,12 +40,16 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	} else if (size === 0) {
 		/* box extends till the end of file or invalid file */
 		if (parentSize) {
-			size = parentSize - hdr_size;
+			size = parentSize;
 		} else {
 			if (type !== "mdat") {
 				throw "Unlimited box size not supported";
 			}	
 		}
+	}
+	if (size < hdr_size) {
+		Log.error("BoxParser", "Box of type "+type+" has an invalid size "+size+" (too small to be a box)");
+		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };		
 	}
 	if (parentSize && size > parentSize) {
 		Log.error("BoxParser", "Box of type "+type+" has a size "+size+" greater than its container size "+parentSize);
