@@ -18,7 +18,7 @@ var MultiBufferStream = function(buffer) {
 		this.bufferIndex = 0;
 	}
 }
-MultiBufferStream.prototype = new DataStream(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
+MultiBufferStream.prototype = new DataStream(new ArrayBuffer(0), 0, DataStream.BIG_ENDIAN);
 
 /************************************************************************************
   Methods for the managnement of the buffers (insertion, removal, concatenation, ...)
