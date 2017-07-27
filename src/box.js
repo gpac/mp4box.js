@@ -19,7 +19,7 @@ var BoxParser = {
 				 "free", "skip", 
 				 "clap", "pasp", "colr"
 			   ],
-	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "url ", "urn ", 
+	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "sthd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
 				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
 				  "esds", "subs",
@@ -36,7 +36,9 @@ var BoxParser = {
 				  "padb", "stdp", "sdtp", "saio", "saiz",
 				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "iref" , "mere", 
 				  "kind", "elng", 
-				  "ipma", "pixi", "ispe"
+				  "ipma", "pixi", "ispe",
+				  "tenc",
+				  "vpcC"
 				  /* missing "stsd", "iref", : special case full box and container */
 				],
 	containerBoxCodes : [ 
