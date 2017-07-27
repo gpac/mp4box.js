@@ -17,7 +17,7 @@ var BoxParser = {
 				 "idat", "meco",
 				 "udta", "strk",
 				 "free", "skip", 
-				 "clap", "pasp"
+				 "clap", "pasp", "colr"
 			   ],
 	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "url ", "urn ", 
 				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh", 
