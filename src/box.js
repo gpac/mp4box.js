@@ -80,7 +80,7 @@ var BoxParser = {
 		{ prefix: "System", types: [ "mp4s"] }
 	],
 	sampleGroupEntryCodes: [
-		"roll", "prol", "alst", "rap ", "tele", "avss", "avll", "sync", "tscl", "tsas", "stsa", "scif", "mvif", "scnm", "dtrt", "vipr", "tele", "rash"
+		"roll", "prol", "alst", "rap ", "tele", "avss", "avll", "sync", "tscl", "tsas", "stsa", "scif", "mvif", "scnm", "dtrt", "vipr", "tele", "rash", "seig"
 	],
 	trackGroupTypes: [ "msrc" ],
 	initialize: function() {
