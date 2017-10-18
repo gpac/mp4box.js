@@ -41,7 +41,8 @@ BoxParser.VisualSampleEntry.prototype.write = function(stream) {
 	stream.writeUint32(this.vertresolution);
 	stream.writeUint32(0);
 	stream.writeUint16(this.frame_count);
-	stream.writeString(this.compressorname, null, 32);
+	stream.writeUint8(Math.min(31, this.compressorname.length));
+	stream.writeString(this.compressorname, null, 31);
 	stream.writeUint16(this.depth);
 	stream.writeInt16(-1);
 	this.writeFooter(stream);

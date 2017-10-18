@@ -34,6 +34,7 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 }
 
 BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
+	var compressorname_length;
 	this.parseHeader(stream);
 	stream.readUint16(); 
 	stream.readUint16();
@@ -44,7 +45,11 @@ BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
 	this.vertresolution = stream.readUint32();
 	stream.readUint32();
 	this.frame_count = stream.readUint16();
-	this.compressorname = stream.readString(32);
+	compressorname_length = Math.min(31, stream.readUint8());
+	this.compressorname = stream.readString(compressorname_length);
+	if (compressorname_length < 31) {
+		stream.readString(31 - compressorname_length);
+	}
 	this.depth = stream.readUint16();
 	stream.readUint16();
 	this.parseFooter(stream);
