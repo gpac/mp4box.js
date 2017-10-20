@@ -29,6 +29,7 @@ var sampleUrls = [
 			{ url: "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-aaclc_low.mp4", desc: "DASH onDemand audio (fragmented, AAC Low)"},
 			{ url: "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-h264bl_full.mp4", desc: "DASH onDemand video (fragmented, H.264/AVC Baseline Full HD)"},
 			{ url: "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-onDemand/mp4-onDemand-h264bl_low.mp4", desc: "DASH onDemand video (fragmented, H.264/AVC Baseline Low Resolution)"},
+			{ url: "https://storage.googleapis.com/media-session/flac.mp4", desc: "FLAC in ISO-BMFF"}
 		]
 	},
 	{ 
