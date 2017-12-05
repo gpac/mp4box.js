@@ -13,6 +13,10 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
 	}
 	var size = stream.readUint32();
+    if (size === 0) {
+        Log.debug("BoxParser", "Found terminator box at " + start);
+        return { code: BoxParser.OK };
+    }
 	var type = stream.readString(4);
 	Log.debug("BoxParser", "Found box of type "+type+" and size "+size+" at position "+start);
 	hdr_size = 8;

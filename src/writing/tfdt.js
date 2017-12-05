@@ -1,5 +1,4 @@
 BoxParser.tfdtBox.prototype.write = function(stream) {
-	this.version = 0;
 	this.flags = 0;
 	this.size = 4;
 	if (this.version === 1) {
