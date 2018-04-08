@@ -39,7 +39,9 @@ window.onload = function () {
 	mediaSource.addEventListener("sourceopen", onSourceOpen);
 	mediaSource.addEventListener("sourceclose", onSourceClose);
 	video.src = window.URL.createObjectURL(mediaSource);
-
+	if (initializeEME) {
+		initializeEME(video);
+    }
 	document.getElementById('dropArea').addEventListener('dragover', dragenter);
 	document.getElementById('dropArea').addEventListener('dragenter', dragenter);
 	document.getElementById('dropArea').addEventListener('drop', drop);
