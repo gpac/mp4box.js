@@ -82,7 +82,7 @@ module.exports = function(grunt) {
         'src/**/*.js', 
         'test/**/*.js', 
         // Exclude the following from lint 
-        '!test/lib/**/*.js', 
+        '!test/lib*/**/*.js', 
         '!test/mp4/**/*.js',
         '!test/trackviewers/**/*.js', 
         '!test/coverage/**/*.js', 
