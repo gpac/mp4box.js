@@ -7,14 +7,13 @@
   */
 DataStream.prototype.save = function(filename) {
   var blob = new Blob([this.buffer]);
-  var URL = (window.webkitURL || window.URL);
-  if (URL && URL.createObjectURL) {
-      var url = URL.createObjectURL(blob);
+  if (window.URL && URL.createObjectURL) {
+      var url = window.URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.setAttribute('href', url);
       a.setAttribute('download', filename);
       a.click();
-      URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(url);
   } else {
       throw("DataStream.save: Can't create object URL.");
   }

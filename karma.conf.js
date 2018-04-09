@@ -31,10 +31,11 @@ module.exports = function(config) {
           '../src/text-mp4.js',                  // text-based track manipulations
           '../src/isofile.js',                   // basic file level operations (parse, get boxes)
           '../src/isofile-advanced-parsing.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
+          '../src/isofile-advanced-creation.js',  // file level advanced parsing operations (incomplete boxes, mutliple buffers ...)
           '../src/isofile-sample-processing.js', // file level sample processing operations (sample table, get, ...)
           '../src/isofile-item-processing.js',   // item processing operations (sample table, get, ...)
           '../src/isofile-write.js',             // file level write operations (segment creation ...)
-          '../src/mp4box.js',                    // application level operations (data append, sample extraction, segmentation, ...)          'qunit-helper.js',
+          '../src/mp4box.js',                    // application level operations (data append, sample extraction, segmentation, ...)  
           'qunit-helper.js',
           'qunit-media-data.js',
           'qunit-box-data.js',
@@ -43,6 +44,7 @@ module.exports = function(config) {
           'qunit-mse-tests.js',
           'iso-conformance-files.js',
           'qunit-iso-conformance.js',
+          'qunit-iso-creation.js',
         ],
 
 
@@ -82,7 +84,8 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        // , 'Firefox'
+        // 
+        //browsers: ['Chrome', 'Firefox'],
         browsers: ['Chrome'],
 
 

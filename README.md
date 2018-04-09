@@ -25,22 +25,22 @@ API
 Similar to `MP4Box -info file.mp4`, MP4Box.js can provide general information about the file (duration, number and types of tracks ...). For that, create an MP4Box object, set the `onReady` callback and provide data in the form of ArrayBuffer objects. MP4Box.js supports progressive parsing. You can provide small buffers at a time, the callback will be called when the 'moov' box is parsed.
 
 ```javascript
-var MP4Box = require('mp4box').MP4Box; // Or whatever import method you prefer.
-var mp4box = new MP4Box();
-mp4box.onError = function(e) {};
-mp4box.onReady = function(info) {};
-mp4box.appendBuffer(data);
-mp4box.appendBuffer(data);
-mp4box.appendBuffer(data);
+var MP4Box = require('mp4box'); // Or whatever import method you prefer.
+var mp4boxfile = MP4Box.createFile();
+mp4boxfile.onError = function(e) {};
+mp4boxfile.onReady = function(info) {};
+mp4boxfile.appendBuffer(data);
+mp4boxfile.appendBuffer(data);
+mp4boxfile.appendBuffer(data);
 ...
-mp4box.flush();
+mp4boxfile.flush();
 ```
 
 #### onMoovStart() ####
 The `onMoovStart` callback is called when the 'moov' box is starting to be parsed. Depending on the download speed, it may take a while to download the whole 'moov' box. The end of parsing is signaled by the `onReady` callback.
 
 ```javascript
-mp4box.onMoovStart = function () {
+mp4boxfile.onMoovStart = function () {
 	console.log("Starting to receive File Information");
 }
 ```
@@ -49,7 +49,7 @@ mp4box.onMoovStart = function () {
 The `onReady` callback is called when the the 'moov' box has been parsed, i.e. when the metadata about the file is parsed. 
 
 ```javascript
-mp4box.onReady = function (info) {
+mp4boxfile.onReady = function (info) {
 	console.log("Received File Information");
 }
 ```
@@ -151,7 +151,7 @@ Audio-specific information object:
 #### onError(e) ####
 Indicates that an error has occured during the processing. `e` is a String.
 ```javascript
-mp4box.onError = function (e) {
+mp4boxfile.onError = function (e) {
 	console.log("Received Error Message "+e);
 }
 ```
@@ -161,7 +161,7 @@ Provides an ArrayBuffer to parse from. The ArrayBuffer must have a `fileStart` (
 ```javascript
 var ab = getArrayBuffer();
 ab.fileStart = 0;
-var nextBufferStart = mp4box.appendBuffer(ab);
+var nextBufferStart = mp4boxfile.appendBuffer(ab);
 ```
 
 #### start() ####
@@ -177,12 +177,12 @@ Indicates that no more data will be received and that all remaining samples shou
 
 ```javascript
 var mp4box = new MP4Box();
-mp4box.onReady = function(info) {
+mp4boxfile.onReady = function(info) {
   ...
-  mp4box.onSegment = function (id, user, buffer) {}
-  mp4box.setSegmentOptions(info.tracks[0].id, sb, options);  
-  var initSegs = mp4box.initializeSegmentation();  
-  mp4box.start();
+  mp4boxfile.onSegment = function (id, user, buffer) {}
+  mp4boxfile.setSegmentOptions(info.tracks[0].id, sb, options);  
+  var initSegs = mp4boxfile.initializeSegmentation();  
+  mp4boxfile.start();
   ...
 };
 ```
@@ -193,20 +193,20 @@ Indicates that the track with the given `track_id` should be segmented, with the
 - **rapAlignement**: boolean, indicating if segments should start with a RAP. If not provided, the default is true.
 
 ```javascript
-mp4box.setSegmentOptions(1, sb, { nbSamples: 1000 });
+mp4boxfile.setSegmentOptions(1, sb, { nbSamples: 1000 });
 ```
  
 #### unsetSegmentOptions(track_id) ####
 Indicates that the track with the given `track_id` should not be segmented.
 ```javascript
-mp4box.unsetSegmentOptions(1);
+mp4boxfile.unsetSegmentOptions(1);
 ```
 
 #### onSegment(id, user, buffer) ####
 Callback called when a segment is ready, according to the options passed in [setSegmentOptions](##setsegmentoptionstrack_id-user-options). `user` is the caller of the segmentation, for this track, and `buffer` is an ArrayBuffer containing the Movie Fragments for this segment.
 
 ```javascript
-mp4box.onSegment = function (id, user, buffer) {
+mp4boxfile.onSegment = function (id, user, buffer) {
 	console.log("Received segment on track "+id+" for object "+user+" with a length of "+buffer.byteLength);
 }
 ```
@@ -236,13 +236,13 @@ Indicates that the application is ready to receive segments. Returns an array of
 It is possible to extract the samples of a track, in a similar manner to the segmentation process.
 ```javascript
 var mp4box = new MP4Box();
-mp4box.onReady = function(info) {
+mp4boxfile.onReady = function(info) {
   ...
   /* create a texttrack */
   var texttrack = v.addTextTrack("metadata", "Text track for extraction of track "+info.tracks[0].id);
-  mp4box.onSamples = function (id, user, samples) {}
-  mp4box.setExtractionOptions(info.tracks[0].id, texttrack, options);  
-  mp4box.start();
+  mp4boxfile.onSamples = function (id, user, samples) {}
+  mp4boxfile.setExtractionOptions(info.tracks[0].id, texttrack, options);  
+  mp4boxfile.start();
   ...
 };
 ```
@@ -253,20 +253,20 @@ Indicates that the track with the given `track_id` for which samples should be e
 - **rapAlignement**: boolean, indicating if sample arrays should start with a RAP. If not provided, the default is true.
 
 ```javascript
-mp4box.setExtractionOptions(1, texttrack, { nbSamples: 1000 });
+mp4boxfile.setExtractionOptions(1, texttrack, { nbSamples: 1000 });
 ```
  
 #### unsetExtractionOptions(track_id) ####
 Indicates that the samples for the track with the given `track_id` should not be extracted.
 ```javascript
-mp4box.unsetExtractionOptions(1);
+mp4boxfile.unsetExtractionOptions(1);
 ```
 
 #### onSamples(id, user, samples) ####
 Callback called when a set of samples is ready, according to the options passed in [setExtractionOptions](#setextractionoptionstrack_id-user-options). `user` is the caller of the segmentation, for this track, and `samples` is an Array of samples.
 
 ```javascript
-mp4box.onSamples = function (id, user, samples) {
+mp4boxfile.onSamples = function (id, user, samples) {
 	console.log("Received "+samples.length+" samples on track "+id+" for object "+user);
 }
 ```
@@ -289,12 +289,12 @@ Each sample has the following structure:
 #### seek(time, useRap) ####
 Indicates that the next samples to process (for extraction or segmentation) start at the given time (Number, in seconds) or at the time of the previous Random Access Point (if useRap is true, default is false). Returns the offset in the file of the next bytes to be provided via [appendBuffer](#appendbufferdata) .
 ```javascript
-mp4box.seek(10, true);
+mp4boxfile.seek(10, true);
 ```
 #### releaseUsedSamples(id, sampleNumber) ####
 Releases the memory allocated for sample data for the given track id, up to (but excluding) the given sample number.
 ```
-mp4box.releaseUsedSamples(1, 250);
+mp4boxfile.releaseUsedSamples(1, 250);
 ```
 
 Build

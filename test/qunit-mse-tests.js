@@ -3,7 +3,7 @@ QUnit.asyncTest( "Appending init segment", function( assert ) {
 	var index = 0;
 	var track_id;
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, 2000);
-	var mp4box = new MP4Box();
+	var mp4boxfile = MP4Box.createFile();
 	var videodiv = document.createElement("div");
 	document.body.appendChild(videodiv)
 	var video = document.createElement("video");
@@ -24,10 +24,10 @@ QUnit.asyncTest( "Appending init segment", function( assert ) {
 		QUnit.start();					
 	}
 
-	mp4box.onReady = function(info) { 
+	mp4boxfile.onReady = function(info) { 
 		track_id = info.tracks[0].id;
-		mp4box.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
-		var initSegs = mp4box.initializeSegmentation();
+		mp4boxfile.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
+		var initSegs = mp4boxfile.initializeSegmentation();
 		var mime = 'video/mp4; codecs=\"'+info.tracks[0].codec+'\"';
 		var sb = ms.addSourceBuffer(mime);
 		sb.addEventListener("updateend", onInitAppended);
@@ -36,7 +36,7 @@ QUnit.asyncTest( "Appending init segment", function( assert ) {
 
 	function onSourceOpen(e) {
 		getFile(testFiles[index].url, function (buffer) {			
-			mp4box.appendBuffer(buffer);
+			mp4boxfile.appendBuffer(buffer);
 		});
 	}
 

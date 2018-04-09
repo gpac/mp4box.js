@@ -1,13 +1,8 @@
-/* MP4box/BPG 
- * 2015 - Wesley Marques Dias
- * Index
- */
-
 // Setting the level of logs (error, warning, info, debug)
 Log.setLogLevel(Log.d);
 
 // The main object processing the mp4 files
-var mp4box;
+var mp4boxfile;
 
 // Object responsible for file downloading
 var downloader;
@@ -26,11 +21,11 @@ var stopButton;
 // Setup MP4Box
 function setMP4Box() {
 
-	mp4box.onMoovStart = function() {
+	mp4boxfile.onMoovStart = function() {
 		console.log("Starting to receive File Information");
 	}
 
-	mp4box.onReady = function(info) {
+	mp4boxfile.onReady = function(info) {
 		var isHEVC = false;
 		console.log("Received File Information");
 		// Extract only for video tracks
@@ -41,38 +36,39 @@ function setMP4Box() {
 				totalDuration = info.tracks[i].duration/info.tracks[i].timescale;
 				timeProgress = 0;
 				// 1 call for each sample
-				mp4box.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
+				mp4boxfile.setExtractionOptions(info.tracks[i].id, null, { nbSamples: 1 });
 				isHEVC = true;
 				progressLabel.show();
 			}
 		}
-		mp4box.start();
+		mp4boxfile.start();
 		if (!isHEVC)
-			throw("index_bpg.setMP4Box(): Not a HEVC movie file.");
+			throw("Not an HEVC movie file.");
 	}
 
-	mp4box.onError = function(e) {
+	mp4boxfile.onError = function(e) {
  		console.log("Received Error Message "+e);
 	}
 
-	mp4box.onSamples = function (id, user, samples) {	
+	mp4boxfile.onSamples = function (id, user, samples) {	
 
 		if (!stopProcess) {
 			console.log("Received "+samples.length+" samples on track "+id+" for object "+user);
-
-
 			for (var i = 0; i < samples.length; i++) {
 				var sample = samples[i];
 				// Check if it is HEVC
 				if (sample.description.type === "hvc1") {
 					if (sample.is_sync === true) {
 						// Send MP4 data to build a BPG	
-						var bpg = extractBPG(sample);
-						bpg.show(1);
+						var hevcFrame = HEVCFrame.createFrameFromSample(sample);
+						var bpg = new BPG();
+						bpg.readFromHEVC(hevcFrame, sample.size + sample.description.hvcC.size, sample.dts/sample.timescale);
+						showBPG(bpg, 1);
 					}
 				}
-				else
-					throw("index_bpg.setMP4Box(): Not a expected HEVC movie file.");
+				else {
+					throw("Not an HVC1 movie file.");
+				}
 			}
 		}
 	}
@@ -84,9 +80,10 @@ function toggleStopExtraction(stop) {
 		stopButton.css("opacity", "0.4");
 		stopButton.css("cursor", "default");
 		stopProcess = true;
-		if (downloader)
+		if (downloader) {
 			downloader.stop();
-		mp4box.unsetExtractionOptions(1);
+		}
+		mp4boxfile.unsetExtractionOptions(1);
 	}
 	else {
 		stopButton.show();
@@ -97,32 +94,6 @@ function toggleStopExtraction(stop) {
 	}
 }
 
-// Extract a BPG from the HEVCFrame using the NAL Units
-function extractBPG(sample) {
-	var mp4NALUSHead = sample.description.hvcC.nalu_arrays;
-	var mp4NALUSData = sample.data;
-	var hevcFrame = new HEVCFrame();
-	hevcFrame.width = sample.description.width;
-	hevcFrame.height = sample.description.height;
-	
-	for (var i = 0; i < mp4NALUSHead.length; i++) {
-		// Sequence Parameter Set
-		if (mp4NALUSHead[i].nalu_type === 33)
-			hevcFrame.readSPS(mp4NALUSHead[i][0].data);
-		// Picture Parameter Set
-		if (mp4NALUSHead[i].nalu_type === 34)
-			hevcFrame.PPS = mp4NALUSHead[i][0].data;
-	}
-	// Video Coding Layer and Supplemental Enhancement Information
-	// Read mp4NALUSData removing the Starting Length from each NALU and inserting a Starting Code
-	hevcFrame.readData(mp4NALUSData, sample.description.hvcC.lengthSizeMinusOne + 1);
-
-	// Create BPG
-	var bpg = hevcFrame.toBPG(sample.size + sample.description.hvcC.size, sample.dts/sample.timescale);
-
-	return bpg;
-}
-
 // HTTP URL video
 function loadVideoFileHttpUrl(url) {
 	var timeline = document.getElementById("timeline");
@@ -130,7 +101,7 @@ function loadVideoFileHttpUrl(url) {
 	progressBar.progressbar({ value: 0 });
 
 	if (url) {
-		mp4box = new MP4Box(false);
+		mp4boxfile = MP4Box.createFile(false);
 		setMP4Box();
 
 		downloader = new Downloader();
@@ -138,14 +109,14 @@ function loadVideoFileHttpUrl(url) {
 		downloader.setCallback(
 			function (response, end, error) { 
 				if (response) {
-					var nextStart = mp4box.appendBuffer(response);
+					var nextStart = mp4boxfile.appendBuffer(response);
 					downloader.setChunkStart(nextStart); 
 				}
 				if (end) {
-					mp4box.flush();
+					mp4boxfile.flush();
 				}
 				if (error) {
-					console.log("index_bpg.loadVideoFileHttpUrl(): Error downloading.");
+					console.log("Error downloading.");
 				}
 			}
 		);
@@ -156,27 +127,28 @@ function loadVideoFileHttpUrl(url) {
 		downloader.start();
 	}
 	else
-		throw ("index_bpg.loadFromHttpUrl(): URL not informed.");
+		throw ("URL not informed.");
+}
+
+function readAndShowBPG(buffer) {
+	console.log("Start reading the BPG");
+    var bpg = new BPG();
+    bpg.read(buffer, 0);
+    showBPG(bpg, 0); 	
 }
 
 // HTTP URL video
 function loadImageFileHttpUrl(url) {
-	url = document.getElementById('urlInput').value;
-
 	if (url) {
 		downloader = new Downloader();
 
 		downloader.setCallback(
 			function (response, end, error) { 
 				if (end && response) {
-					var arrayBufferRead = response;
-					console.log("Start reading the BPG");
-		            var bitStreamRead = new BitStream(arrayBufferRead);
-				    var bpg = new BPG(bitStreamRead);
-				    bpg.show(0); 
+					readAndShowBPG(response);
 				}
 				if (error) {
-					console.log("index_bpg.loadImageFromHttpUrl(): Error downloading.");
+					console.log("Error downloading.");
 				}
 			}
 		);
@@ -187,23 +159,15 @@ function loadImageFileHttpUrl(url) {
 		downloader.start();
 	}
 	else
-		throw ("index_bpg.loadFromHttpUrl(): URL not informed.");
+		throw ("URL not informed.");
 }
-
 
 // Image file upload
 function loadImageFileUpload(file) {
 	var fileReader = new FileReader();
-
-	fileReader.onload =
-		function(e) {
-			var arrayBufferRead = fileReader.result;
-			console.log("Start reading the BPG");
-            var bitStreamRead = new BitStream(arrayBufferRead);
-		    var bpg = new BPG(bitStreamRead);
-		    bpg.show(0); 
-		};
-
+	fileReader.onload = function(e) {
+							readAndShowBPG(fileReader.result);
+						};
 	fileReader.readAsArrayBuffer(file);
 }
 
@@ -220,18 +184,18 @@ function loadVideoFileUpload(file) {
 	timeline.innerHTML = "";
 	progressBar.progressbar({ value: 0 });
 	
-	mp4box = new MP4Box(false);
+	mp4boxfile = MP4Box.createFile(false);
 	setMP4Box();
 
-   	var onparsedbuffer = function(mp4box, buffer) {
+   	var onparsedbuffer = function(mp4boxfile, buffer) {
     	console.log("Appending buffer with offset "+offset);
 		buffer.fileStart = offset;
-		mp4box.appendBuffer(buffer);	
+		mp4boxfile.appendBuffer(buffer);	
 	}
 
 	var onBlockRead = function(evt) {
         if (evt.target.error == null) {
-            onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
+            onparsedbuffer(mp4boxfile, evt.target.result); // callback for handling read chunk
             offset += evt.target.result.byteLength;
         } else {
             console.log("Read error: " + evt.target.error);
@@ -270,7 +234,7 @@ function loadFromFile() {
 		if (file.name.split('.').pop() === "bpg")
 			loadImageFileUpload(file);
 		else
-			throw("index_bpg.loadFromFile(): Not a valid file.");
+			throw("Not a valid file.");
 
 	document.getElementById('fileInput').value = "";
 }
@@ -298,13 +262,13 @@ function loadFromHttpUrl() {
 		validUrl = false;
 
 	if (!validUrl)
-		throw("index_bpg.loadFromHttpUrl(): Not a valid HTTP URL.");
+		throw("Not a valid HTTP URL.");
 }
 
 // Save file from an ArrayBuffer
 function saveData(arrayBuffer, fileName) {
     var blob = new Blob([arrayBuffer]);
-    var URL = (window.webkitURL || window.URL);
+    var URL = window.URL;
     if (URL && URL.createObjectURL) {
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -316,8 +280,12 @@ function saveData(arrayBuffer, fileName) {
         URL.revokeObjectURL(url);
     } 
     else {
-        throw("index_bpg.saveData(): Can't create object URL.");
+        throw("Can't create object URL.");
     }
+}
+
+function setUrl(url) {
+	document.getElementById('urlInput').value = url;
 }
 
 // UI adjustments
@@ -355,6 +323,135 @@ window.onload = function() {
 	buildUrlList(urlSelector);
 }
 
-function setUrl(url) {
-	document.getElementById('urlInput').value = url;
+// List representing the images buffered for decoding
+var imagesBuffer = [];
+
+// Show the BPG in a canvas using the BPGDecoder
+function showBPG(bpg, isThumbnail) {
+    var dts;
+
+    console.log("Showing BPG");
+
+    if (bpg.dts !== undefined) {
+        dts = bpg.dts;
+    }
+
+    var blob = new Blob([bpg.toBitStream().dataView.buffer]);
+    var URL = window.URL;
+    if (URL && URL.createObjectURL) {
+        var url = URL.createObjectURL(blob);
+        var canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d");
+        var img = new BPGDecoder(ctx);
+
+        // Insert the image at the end of the line
+        if (isThumbnail) {
+            imagesBuffer.push(dts);
+        }
+
+        img.onload = function() {
+            canvas.height = this.imageData.height;
+            canvas.width = this.imageData.width;
+            ctx.putImageData(this.imageData, 0, 0);
+
+            // Thumbnails in timeline 
+            if (isThumbnail) {
+			    var thumbnail;
+				var timeline = document.getElementById("timeline");
+
+                // Remove first element of the line and check if it is the same decoded
+                for (var imageBufferedDTS = imagesBuffer.shift();
+                dts !== imageBufferedDTS;
+                imageBufferedDTS = imagesBuffer.shift()) {
+                    thumbnail = buildThumbnail(bpg, this.imageData, imageBufferedDTS);
+                    timeline.appendChild(thumbnail);
+                }
+
+                thumbnail = buildThumbnail(bpg, this.imageData, dts, canvas);
+                timeline.appendChild(thumbnail);
+            }
+            // Image
+            else {
+                buildImageDiv(bpg, this.imageData, canvas);
+            }
+        };
+
+        img.load(url);
+    }
+    else {
+        throw("Can't create object URL.");
+    }
+}
+
+function buildThumbnail(bpg, imageData, dts, canvas) {
+    // Update the progress bar
+    timeProgress = dts;
+    progressBar.progressbar({ value: Math.ceil(100*timeProgress/totalDuration) });
+
+    // Container
+    var thumbnail = document.createElement("div");
+    thumbnail.style.display = "inline-block";
+    thumbnail.style.position = "relative"
+
+    // Timestamp
+    var timestamp = document.createElement("span");
+    timestamp.innerHTML = Log.getDurationString(dts);
+    timestamp.className = "timestamp";
+    thumbnail.appendChild(timestamp);
+    
+    var canvasTimeline = document.createElement("canvas");
+    var sF = 100.0 / imageData.height;
+    canvasTimeline.className = "thumbnail";
+    canvasTimeline.height = 100;
+    canvasTimeline.width = imageData.width * sF;
+    canvasTimeline.id = "canvasThumbnail" + dts;
+    var ctxTimeline = canvasTimeline.getContext("2d");
+    if (canvas) { 
+        ctxTimeline.scale(sF, sF);
+        ctxTimeline.drawImage(canvas, 0, 0);
+        canvasTimeline.addEventListener("click", function() {buildImageDiv(bpg, canvas);}, false);
+        canvasTimeline.addEventListener("mouseover", function() {$(this).addClass("selected-thumbnail");}, false);
+        canvasTimeline.addEventListener("mouseout", function() {$(this).removeClass("selected-thumbnail");}, false);
+    } else {
+        ctxTimeline.font = "10px Arial";
+        ctxTimeline.textAlign = "center";
+        ctxTimeline.textBaseline = "middle";
+        ctxTimeline.fillStyle = "red";
+        ctxTimeline.fillText("Could not decode image", (canvasTimeline.width / 2), (canvasTimeline.height / 2));
+    }
+    thumbnail.appendChild(canvasTimeline);
+
+    return thumbnail;
+}
+
+function buildImageDiv(bpg, imageData, canvas) {
+
+    // Container
+    var image = document.getElementById("image");
+
+    // Buttons
+    var downloadButton = document.createElement("button");
+    downloadButton.style.cssText = "position: absolute; bottom: 0px; left: 0px;"
+    downloadButton.innerHTML = "<img src='download_icon.png'>";
+    downloadButton.addEventListener("click", function() {saveData(bpg.toBitStream().dataView.buffer, "image.bpg");}, false);
+
+    var closeButton = document.createElement("button");
+    closeButton.style.cssText = "position: absolute; top: 0px; right: 0px;"
+    closeButton.innerHTML = "<img src='close_icon.png'>";
+    closeButton.addEventListener("click", function() {image.innerHTML = ""; $("#popup").hide();}, false);
+
+    // Canvas configuration
+    var canvasImage = document.createElement("canvas");
+    canvasImage.height = imageData.height;
+    canvasImage.width = imageData.width;
+    var ctxImage = canvasImage.getContext("2d");
+    ctxImage.drawImage(canvas, 0, 0);
+
+    // Inclusions
+    image.appendChild(downloadButton);
+    image.appendChild(closeButton);
+    image.appendChild(canvasImage);
+
+    // Popup
+    $("#popup").show();
 }

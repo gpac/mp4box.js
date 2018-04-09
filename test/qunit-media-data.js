@@ -52,7 +52,9 @@ var testFiles = [
 	{ // 11
 		desc: "Incomplete file from torrent",
 		url: mediaTestBaseUrl + 'mp4/as2-incomplete.mp4'
-	},
+	}
+/*,
+
 	{ // 12 
 		desc: "File with negative CTS-DTS offsets",
 		url: mediaTestBaseUrl + 'mp4/negctts.mp4'
@@ -65,4 +67,4 @@ var testFiles = [
 		desc: "File with negative CTS-DTS offsets and no default flags in fragments",
 		url: mediaTestBaseUrl + 'mp4/negctts_noFragsDefault.mp4'
 	}
-];
+ */];

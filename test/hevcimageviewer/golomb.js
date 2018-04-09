@@ -1,9 +1,8 @@
-/* MP4box/BPG 
- * 2015 - Wesley Marques Dias
- * BitStream
- */
+if (typeof require !== 'undefined') {
+    var jDataView = require('../lib/jdataview/jdataview.js');
+}
 
-var BitStream = function(arrayBuffer) {
+var GolombBitStream = function(arrayBuffer) {
     this.dataView = new jDataView(arrayBuffer);
 
     this.avcGolombBits = [
@@ -27,7 +26,7 @@ var BitStream = function(arrayBuffer) {
 }
 
 // Function that encodes a number into a Exp-Golomb code (unsigned order k=0)
-BitStream.prototype.numToExpGolomb = function(num) {
+GolombBitStream.prototype.numToExpGolomb = function(num) {
     var length = 1;
     var temp = ++num;
 
@@ -38,10 +37,11 @@ BitStream.prototype.numToExpGolomb = function(num) {
     
     this.dataView.writeUnsigned(0, length >> 1)
     this.dataView.writeUnsigned(num, (length+1) >> 1)
+    return (length >> 1) + ((length+1) >> 1);
 }
 
 // Function that decodes a Exp-Golomb code (unsigned order k=0) on the stream into a number
-BitStream.prototype.expGolombToNum = function(numBits) {
+GolombBitStream.prototype.expGolombToNum = function(numBits) {
     var coded;
     var bits = 0;
     var read;
@@ -61,7 +61,7 @@ BitStream.prototype.expGolombToNum = function(numBits) {
         }
         catch (e) {
             if (e instanceof RangeError) {
-                console.log("BitStream.expGolombToNum(): Not enough bits in bitstream.");
+                console.log("GolombBitStream.expGolombToNum(): Not enough bits in bitstream.");
                 return 0;
             }
         }
@@ -77,7 +77,7 @@ BitStream.prototype.expGolombToNum = function(numBits) {
 }
 
 // Function that decodes a ue7(n) code on the stream into a number
-BitStream.prototype.ue7nToNum = function() {
+GolombBitStream.prototype.ue7nToNum = function() {
     var res = 0;
     var num;
     var initBit = 1;
@@ -92,7 +92,7 @@ BitStream.prototype.ue7nToNum = function() {
 }
 
 // Function that encodes a number into a ue7(n) code on the stream
-BitStream.prototype.numToue7n = function(num) {
+GolombBitStream.prototype.numToue7n = function(num) {
     var numBitsInit = num.toString(2).length;
     var numBytesFinal = Math.ceil(numBitsInit/7);
     var res = 0;
@@ -106,4 +106,9 @@ BitStream.prototype.numToue7n = function(num) {
     }
 
     this.dataView.writeUnsigned(res, numBytesFinal*8);
+    return numBytesFinal*8;
+}
+
+if (typeof exports !== 'undefined') {
+    module.exports = GolombBitStream;  
 }

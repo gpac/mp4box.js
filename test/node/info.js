@@ -1,13 +1,13 @@
 var fs = require('fs');
-var mp4boxModule = require('mp4box');
+var MP4Box = require('../../dist/mp4box.all.js');
 
 if (process.argv.length > 2) {
-	var mp4box = new mp4boxModule.MP4Box();
+	var mp4boxfile = MP4Box.createFile();
 	var arrayBuffer = new Uint8Array(fs.readFileSync(process.argv[2])).buffer;
 	arrayBuffer.fileStart = 0;
 
-	mp4box.appendBuffer(arrayBuffer);
-	console.log(mp4box.getInfo());
+	mp4boxfile.appendBuffer(arrayBuffer);
+	console.log(mp4boxfile.print(MP4Box.Log));
 } else {
 	console.log("usage: node info.js <file>");
 }

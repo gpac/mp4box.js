@@ -174,146 +174,145 @@ ISOFile.process_sdtp = function (sdtp, sample, number) {
 
 /* Build initial sample list from  sample tables */
 ISOFile.prototype.buildSampleLists = function() {	
-	var i, j, k;
-	var trak, stco, stsc, stsz, stts, ctts, stss, stsd, subs, sbgps, sgpds, stdp;
-	var chunk_run_index, chunk_index, last_chunk_in_run, offset_in_chunk, last_sample_in_chunk;
-	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index, subs_entry_index, last_subs_sample_index;
+	var i;
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
-		trak.samples = [];
-		trak.samples_duration = 0;
-		trak.samples_size = 0;
-		stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
-		stsc = trak.mdia.minf.stbl.stsc;
-		stsz = trak.mdia.minf.stbl.stsz || trak.mdia.minf.stbl.stz2;
-		stts = trak.mdia.minf.stbl.stts;
-		ctts = trak.mdia.minf.stbl.ctts;
-		stss = trak.mdia.minf.stbl.stss;
-		stsd = trak.mdia.minf.stbl.stsd;
-		subs = trak.mdia.minf.stbl.subs;
-		stdp = trak.mdia.minf.stbl.stdp;
-		sbgps = trak.mdia.minf.stbl.sbgps;
-		sgpds = trak.mdia.minf.stbl.sgpds;
-		
-		last_sample_in_stts_run = -1;
-		stts_run_index = -1;
-		last_sample_in_ctts_run = -1;
-		ctts_run_index = -1;
-		last_stss_index = 0;
-		subs_entry_index = 0;
-		last_subs_sample_index = 0;		
+		this.buildTrakSampleLists(trak);
+	}
+}
 
-		ISOFile.initSampleGroups(trak, null, sbgps, sgpds);
+ISOFile.prototype.buildTrakSampleLists = function(trak) {	
+	var j, k;
+	var stco, stsc, stsz, stts, ctts, stss, stsd, subs, sbgps, sgpds, stdp;
+	var chunk_run_index, chunk_index, last_chunk_in_run, offset_in_chunk, last_sample_in_chunk;
+	var last_sample_in_stts_run, stts_run_index, last_sample_in_ctts_run, ctts_run_index, last_stss_index, last_subs_index, subs_entry_index, last_subs_sample_index;
 
-		if (typeof stsz === "undefined") {
-			continue;
-		}
+	trak.samples = [];
+	trak.samples_duration = 0;
+	trak.samples_size = 0;
+	stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
+	stsc = trak.mdia.minf.stbl.stsc;
+	stsz = trak.mdia.minf.stbl.stsz || trak.mdia.minf.stbl.stz2;
+	stts = trak.mdia.minf.stbl.stts;
+	ctts = trak.mdia.minf.stbl.ctts;
+	stss = trak.mdia.minf.stbl.stss;
+	stsd = trak.mdia.minf.stbl.stsd;
+	subs = trak.mdia.minf.stbl.subs;
+	stdp = trak.mdia.minf.stbl.stdp;
+	sbgps = trak.mdia.minf.stbl.sbgps;
+	sgpds = trak.mdia.minf.stbl.sgpds;
+	
+	last_sample_in_stts_run = -1;
+	stts_run_index = -1;
+	last_sample_in_ctts_run = -1;
+	ctts_run_index = -1;
+	last_stss_index = 0;
+	subs_entry_index = 0;
+	last_subs_sample_index = 0;		
 
-		/* we build the samples one by one and compute their properties */
-		for (j = 0; j < stsz.sample_sizes.length; j++) {
-			var sample = {};
-			sample.number = j;
-			sample.track_id = trak.tkhd.track_id;
-			sample.timescale = trak.mdia.mdhd.timescale;
-			sample.alreadyRead = 0;
-			trak.samples[j] = sample;
-			/* size can be known directly */
-			sample.size = stsz.sample_sizes[j];
-			trak.samples_size += sample.size;
-			/* computing chunk-based properties (offset, sample description index)*/
-			if (j === 0) {				
-				chunk_index = 1; /* the first sample is in the first chunk (chunk indexes are 1-based) */
-				chunk_run_index = 0; /* the first chunk is the first entry in the first_chunk table */
+	ISOFile.initSampleGroups(trak, null, sbgps, sgpds);
+
+	if (typeof stsz === "undefined") {
+		return;
+	}
+
+	/* we build the samples one by one and compute their properties */
+	for (j = 0; j < stsz.sample_sizes.length; j++) {
+		var sample = {};
+		sample.number = j;
+		sample.track_id = trak.tkhd.track_id;
+		sample.timescale = trak.mdia.mdhd.timescale;
+		sample.alreadyRead = 0;
+		trak.samples[j] = sample;
+		/* size can be known directly */
+		sample.size = stsz.sample_sizes[j];
+		trak.samples_size += sample.size;
+		/* computing chunk-based properties (offset, sample description index)*/
+		if (j === 0) {				
+			chunk_index = 1; /* the first sample is in the first chunk (chunk indexes are 1-based) */
+			chunk_run_index = 0; /* the first chunk is the first entry in the first_chunk table */
+			sample.chunk_index = chunk_index;
+			sample.chunk_run_index = chunk_run_index;
+			last_sample_in_chunk = stsc.samples_per_chunk[chunk_run_index];
+			offset_in_chunk = 0;
+
+			/* Is there another entry in the first_chunk table ? */
+			if (chunk_run_index + 1 < stsc.first_chunk.length) {
+				/* The last chunk in the run is the chunk before the next first chunk */
+				last_chunk_in_run = stsc.first_chunk[chunk_run_index+1]-1; 	
+			} else {
+				/* There is only one entry in the table, it is valid for all future chunks*/
+				last_chunk_in_run = Infinity;
+			}
+		} else {
+			if (j < last_sample_in_chunk) {
+				/* the sample is still in the current chunk */
 				sample.chunk_index = chunk_index;
 				sample.chunk_run_index = chunk_run_index;
-				last_sample_in_chunk = stsc.samples_per_chunk[chunk_run_index];
+			} else {
+				/* the sample is in the next chunk */
+				chunk_index++;
+				sample.chunk_index = chunk_index;
+				/* reset the accumulated offset in the chunk */
 				offset_in_chunk = 0;
-
-				/* Is there another entry in the first_chunk table ? */
-				if (chunk_run_index + 1 < stsc.first_chunk.length) {
-					/* The last chunk in the run is the chunk before the next first chunk */
-					last_chunk_in_run = stsc.first_chunk[chunk_run_index+1]-1; 	
+				if (chunk_index <= last_chunk_in_run) {
+					/* stay in the same entry of the first_chunk table */
+					/* chunk_run_index unmodified */
 				} else {
-					/* There is only one entry in the table, it is valid for all future chunks*/
-					last_chunk_in_run = Infinity;
-				}
-			} else {
-				if (j < last_sample_in_chunk) {
-					/* the sample is still in the current chunk */
-					sample.chunk_index = chunk_index;
-					sample.chunk_run_index = chunk_run_index;
-				} else {
-					/* the sample is in the next chunk */
-					chunk_index++;
-					sample.chunk_index = chunk_index;
-					/* reset the accumulated offset in the chunk */
-					offset_in_chunk = 0;
-					if (chunk_index <= last_chunk_in_run) {
-						/* stay in the same entry of the first_chunk table */
-						/* chunk_run_index unmodified */
+					chunk_run_index++;
+					/* Is there another entry in the first_chunk table ? */
+					if (chunk_run_index + 1 < stsc.first_chunk.length) {
+						/* The last chunk in the run is the chunk before the next first chunk */
+						last_chunk_in_run = stsc.first_chunk[chunk_run_index+1]-1; 	
 					} else {
-						chunk_run_index++;
-						/* Is there another entry in the first_chunk table ? */
-						if (chunk_run_index + 1 < stsc.first_chunk.length) {
-							/* The last chunk in the run is the chunk before the next first chunk */
-							last_chunk_in_run = stsc.first_chunk[chunk_run_index+1]-1; 	
-						} else {
-							/* There is only one entry in the table, it is valid for all future chunks*/
-							last_chunk_in_run = Infinity;
-						}
-						
+						/* There is only one entry in the table, it is valid for all future chunks*/
+						last_chunk_in_run = Infinity;
 					}
-					sample.chunk_run_index = chunk_run_index;
-					last_sample_in_chunk += stsc.samples_per_chunk[chunk_run_index];
+					
 				}
+				sample.chunk_run_index = chunk_run_index;
+				last_sample_in_chunk += stsc.samples_per_chunk[chunk_run_index];
 			}
+		}
 
-			sample.description_index = stsc.sample_description_index[sample.chunk_run_index]-1;
-			sample.description = stsd.entries[sample.description_index];
-			sample.offset = stco.chunk_offsets[sample.chunk_index-1] + offset_in_chunk; /* chunk indexes are 1-based */
-			offset_in_chunk += sample.size;
+		sample.description_index = stsc.sample_description_index[sample.chunk_run_index]-1;
+		sample.description = stsd.entries[sample.description_index];
+		sample.offset = stco.chunk_offsets[sample.chunk_index-1] + offset_in_chunk; /* chunk indexes are 1-based */
+		offset_in_chunk += sample.size;
 
-			/* setting dts, cts, duration and rap flags */
-			if (j > last_sample_in_stts_run) {
-				stts_run_index++;
-				if (last_sample_in_stts_run < 0) {
-					last_sample_in_stts_run = 0;
-				}
-				last_sample_in_stts_run += stts.sample_counts[stts_run_index];				
+		/* setting dts, cts, duration and rap flags */
+		if (j > last_sample_in_stts_run) {
+			stts_run_index++;
+			if (last_sample_in_stts_run < 0) {
+				last_sample_in_stts_run = 0;
 			}
-			if (j > 0) {
-				trak.samples[j-1].duration = stts.sample_deltas[stts_run_index];
-				trak.samples_duration += trak.samples[j-1].duration;
-				sample.dts = trak.samples[j-1].dts + trak.samples[j-1].duration;
-			} else {
-				sample.dts = 0;
-			}
-			if (ctts) {
-				if (j >= last_sample_in_ctts_run) {
-					ctts_run_index++;
-					if (last_sample_in_ctts_run < 0) {
-						last_sample_in_ctts_run = 0;
-					}
-					last_sample_in_ctts_run += ctts.sample_counts[ctts_run_index];				
+			last_sample_in_stts_run += stts.sample_counts[stts_run_index];				
+		}
+		if (j > 0) {
+			trak.samples[j-1].duration = stts.sample_deltas[stts_run_index];
+			trak.samples_duration += trak.samples[j-1].duration;
+			sample.dts = trak.samples[j-1].dts + trak.samples[j-1].duration;
+		} else {
+			sample.dts = 0;
+		}
+		if (ctts) {
+			if (j >= last_sample_in_ctts_run) {
+				ctts_run_index++;
+				if (last_sample_in_ctts_run < 0) {
+					last_sample_in_ctts_run = 0;
 				}
-				sample.cts = trak.samples[j].dts + ctts.sample_offsets[ctts_run_index];
-			} else {
-				sample.cts = sample.dts;
+				last_sample_in_ctts_run += ctts.sample_counts[ctts_run_index];				
 			}
-			if (stss) {
-				if (j == stss.sample_numbers[last_stss_index] - 1) { // sample numbers are 1-based
-					sample.is_sync = true;
-					last_stss_index++;
-				} else {
-					sample.is_sync = false;				
-				}
-			} else {
+			sample.cts = trak.samples[j].dts + ctts.sample_offsets[ctts_run_index];
+		} else {
+			sample.cts = sample.dts;
+		}
+		if (stss) {
+			if (j == stss.sample_numbers[last_stss_index] - 1) { // sample numbers are 1-based
 				sample.is_sync = true;
-			}
-			ISOFile.process_sdtp(trak.mdia.minf.stbl.sdtp, sample, sample.number);
-			if (stdp) {
-				sample.degradation_priority = stdp.priority[j];
+				last_stss_index++;
 			} else {
+				sample.is_sync = false;				
 				sample.degradation_priority = 0;
 			}
 			if (subs) {
@@ -323,14 +322,28 @@ ISOFile.prototype.buildSampleLists = function() {
 					subs_entry_index++;
 				}
 			}
-			if (sbgps.length > 0 || sgpds.length > 0) {
-				ISOFile.setSampleGroupProperties(trak, sample, j, trak.sample_groups_info);
+		} else {
+			sample.is_sync = true;
+		}
+		ISOFile.process_sdtp(trak.mdia.minf.stbl.sdtp, sample, sample.number);
+		if (stdp) {
+			sample.degradation_priority = stdp.priority[j];
+		} else {
+			sample.degradation_priority = 0;
+		}
+		if (subs) {
+			if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index == j) {
+				sample.subsamples = subs.entries[subs_entry_index].subsamples;
+				last_subs_sample_index += subs.entries[subs_entry_index].sample_delta;
 			}
 		}
-		if (j>0) {
-			trak.samples[j-1].duration = Math.max(trak.mdia.mdhd.duration - trak.samples[j-1].dts, 0);
-			trak.samples_duration += trak.samples[j-1].duration;
+		if (sbgps.length > 0 || sgpds.length > 0) {
+			ISOFile.setSampleGroupProperties(trak, sample, j, trak.sample_groups_info);
 		}
+	}
+	if (j>0) {
+		trak.samples[j-1].duration = Math.max(trak.mdia.mdhd.duration - trak.samples[j-1].dts, 0);
+		trak.samples_duration += trak.samples[j-1].duration;
 	}
 }
 

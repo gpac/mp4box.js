@@ -1,10 +1,12 @@
+QUnit.module("MPEG-Conformance");
 function makeBoxParsingTest(fileIndex) {
 	QUnit.asyncTest(conformanceFiles[fileIndex], function( assert ) {
 		var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 		var callback = function (buffer) {
 			window.clearTimeout(timeout);
 			var mbs = new MultiBufferStream();
-			var file = new ISOFile(mbs);
+			var file = MP4Box.createFile();
+			file.stream = mbs;
 			mbs.insertBuffer(buffer);
 			file.parse();
 			file.write(new DataStream(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN));

@@ -1,4 +1,4 @@
-var mp4box;
+var mp4boxfile;
 
 var boxtree;
 var boxtable;
@@ -33,7 +33,7 @@ function drop(e) {
 }
 
 function initialize() {
-	mp4box 	   = new MP4Box(false);	
+	mp4boxfile 	   = MP4Box.createFile(false);	
 }
 
 function parseFile(file) {
@@ -45,19 +45,19 @@ function parseFile(file) {
 	
 	initialize();
 
-	mp4box.onError = function(e) { 
-		console.log("mp4box failed to parse data."); 
+	mp4boxfile.onError = function(e) { 
+		console.log("mp4boxfile failed to parse data."); 
 	};
 
-    var onparsedbuffer = function(mp4box, buffer) {
+    var onparsedbuffer = function(mp4boxfile, buffer) {
     	console.log("Appending buffer with offset "+offset);
 		buffer.fileStart = offset;
-    	mp4box.appendBuffer(buffer);	
+    	mp4boxfile.appendBuffer(buffer);	
 	}
 
 	var onBlockRead = function(evt) {
         if (evt.target.error == null) {
-            onparsedbuffer(mp4box, evt.target.result); // callback for handling read chunk
+            onparsedbuffer(mp4boxfile, evt.target.result); // callback for handling read chunk
             offset += evt.target.result.byteLength;
 			progressbar.progressbar({ value: Math.ceil(100*offset/fileSize) });
         } else {
@@ -68,7 +68,7 @@ function parseFile(file) {
         if (offset >= fileSize) {
 			progressbar.progressbar({ value: 100 });
             console.log("Done reading file ("+fileSize+ " bytes) in "+(new Date() - startDate)+" ms");
-			mp4box.flush();
+			mp4boxfile.flush();
             finalizeUI(true);
             return;
         }
@@ -97,13 +97,13 @@ function httpload(url) {
 		function (response, end, error) { 
 			if (response) {
 				progressbar.progressbar({ value: Math.ceil(100*downloader.chunkStart/downloader.totalLength) });
-				mp4box.appendBuffer(response);
+				mp4boxfile.appendBuffer(response);
 				nextStart += chunkSize;				
 			}
 			if (end) {
 				progressbar.progressbar({ value: 100 });
 	            console.log("Done reading file ("+downloader.totalLength+ " bytes) in "+(new Date() - startDate)+" ms");
-				mp4box.flush();
+				mp4boxfile.flush();
 				finalizeUI(true);
 			} else {
 				downloader.setChunkStart(nextStart); 
@@ -211,7 +211,7 @@ function createBoxTreeView(treeboxes) {
 }
 
 function createBoxView() {
-	var treeboxes = getFancyTreeData(mp4box.inputIsoFile.boxes);
+	var treeboxes = getFancyTreeData(mp4boxfile.boxes);
 	createBoxTreeView(treeboxes);
 	var boxnodes = ({ title: "file", children: treeboxes });
 	createBoxTreeMapSVG(boxnodes);
@@ -228,9 +228,9 @@ function finalizeUI(success) {
 	$("#LoadButton").button("enable");
 	if (success) {
 		createBoxView();
-		buildItemTable(mp4box.inputIsoFile.items);
+		buildItemTable(mp4boxfile.items);
 		buildSampleView();
-		displayMovieInfo(mp4box.getInfo(), document.getElementById("movieview"), false);
+		displayMovieInfo(mp4boxfile.getInfo(), document.getElementById("movieview"), false);
 	} else {
 		resetBoxView();
 		$("#itemview").html('');
@@ -317,12 +317,12 @@ function buildSampleTrackView(info, trackSelector, track_index) {
 			}
 
 			if ($("#samplegraph").is(':visible')) {
-			 	graph.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
+			 	graph.data = mp4boxfile.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
 				graph.update();
 			}
 
 			if ($("#sampletimeline").is(':visible')) {
-			 	timeline.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
+			 	timeline.data = mp4boxfile.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
 				timeline.update();
 			}
 
@@ -338,18 +338,18 @@ function buildSampleTrackView(info, trackSelector, track_index) {
   	buildSampleTableInfo(info.tracks[track_index].id, trackSelector.startSample, trackSelector.endSample);
 
  	graph = new SampleGraph();
- 	graph.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
+ 	graph.data = mp4boxfile.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
 	graph.update();
 
  	timeline = new SampleTimeline();
- 	timeline.data = mp4box.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
+ 	timeline.data = mp4boxfile.getTrackSamplesInfo(info.tracks[track_index].id).slice(trackSelector.startSample, trackSelector.endSample);
 	timeline.update();
 
 	buildSampleMap(trackSelector.startSample, trackSelector.endSample);
 }
 
 function buildSampleView() {
-	var info = mp4box.getInfo();
+	var info = mp4boxfile.getInfo();
 	if (info.tracks) {
 		$("#trackinfo").addClass("ui-widget ui-widget-content ui-corner-all");
 		$("#sample-range-value").addClass("ui-widget ui-widget-content ui-corner-all");
@@ -396,7 +396,7 @@ function buildSampleTableInfo(track_id, start, end) {
 		return html;
 	}
 
-	trak = mp4box.inputIsoFile.getTrackById(track_id);
+	trak = mp4boxfile.getTrackById(track_id);
 
 	html = "<div style='margin-top: 10px;margin-bottom: 10px;'>Show sample properties: ";
 	for (prop in properties) {
@@ -437,7 +437,7 @@ function buildSampleTableInfo(track_id, start, end) {
 	html += "</thead>";
 	html += "<tbody>";
 
-	samples = mp4box.getTrackSamplesInfo(track_id);
+	samples = mp4boxfile.getTrackSamplesInfo(track_id);
 	if (samples.length < end) end = samples.length;
 	for (i = start; i < end; i++) {
 		sample = samples[i];
@@ -608,7 +608,7 @@ window.onload = function () {
 
 function displayItemContent(id) {
 	var string;
-	var item = mp4box.inputIsoFile.getItem(id);	
+	var item = mp4boxfile.getItem(id);	
 	console.log("Item "+id+", content:");
 	switch (item.content_type) {
 		case "text/plain":
@@ -622,7 +622,7 @@ function displayItemContent(id) {
 			console.log("Cannot display binary data");
 
 	}
-	//mp4box.inputIsoFile.releaseItem(id);
+	//mp4boxfile.releaseItem(id);
 }
 
 function createBoxTreeMapSVG(boxnodes) {
@@ -816,13 +816,13 @@ function createBoxPartition(boxnodes) {
 }
 
 function getAllSamples(start, end) {
-	var info = mp4box.getInfo();
+	var info = mp4boxfile.getInfo();
 	var all = [];
 	var samples, s;
 	var i, j;
 
 	for (i = 0; i < info.tracks.length; i++) {
-		samples = mp4box.getTrackSamplesInfo(info.tracks[i].id);
+		samples = mp4boxfile.getTrackSamplesInfo(info.tracks[i].id);
 		for (j = start; j < (samples.length > end ? end : samples.length); j++) {
 			s = samples[j];  
 			s.track = info.tracks[i].id;

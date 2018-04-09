@@ -1,4 +1,4 @@
-var segments = {
+/*var segments = {
 	mime: 'video/mp4; codecs="avc1.640029"',
 	init: "init.mp4",
 	segs: [ "1.m4s", "2.m4s"]
@@ -16,7 +16,7 @@ var segments2 = {
 	segs: [ "http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-h264bl_low-1.m4s", 
 			"http://download.tsi.telecom-paristech.fr/gpac/DASH_CONFORMANCE/TelecomParisTech/mp4-live/mp4-live-h264bl_low-2.m4s"]
 };
-
+*/
 
 function getFile(url, callback) {
 	var xhr = new XMLHttpRequest();
@@ -55,7 +55,7 @@ function onSourceClose(e) {
 
 function onSourceOpen(e) {
 	var ms = e.target;
-	sb = ms.addSourceBuffer(segments.mime);
+	sb = ms.addSourceBuffer(document.getElementById("mime").value);
 	sb.ms = ms;
 	sb.addEventListener('updateend', onUpdateEnd.bind(sb));
 	/*

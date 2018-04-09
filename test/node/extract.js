@@ -1,24 +1,24 @@
 var fs = require('fs');
-var mp4boxModule = require('mp4box');
+var MP4Box = require('mp4box');
 
 mp4boxModule.Log.setLogLevel(mp4boxModule.Log.debug);
 
 if (process.argv.length > 3) {
-	var mp4box = new mp4boxModule.MP4Box();
-	mp4box.onReady = function(info) {		
+	var mp4boxfile = MP4Box.createFile();
+	mp4boxfile.onReady = function(info) {		
 		var found = false;
 		for (var i = 0; i < info.tracks.length; i++) {
 			if (info.tracks[i].id == process.argv[3]) {
-				mp4box.setExtractionOptions(info.tracks[i].id);  
+				mp4boxfile.setExtractionOptions(info.tracks[i].id);  
 				found = true;
 			}
 		}
 		if (found === false) {
 			console.log("Track id "+process.argv[3]+" not found in file "+process.argv[2]);
 		}
-		mp4box.start();
+		mp4boxfile.start();
 	};
-	mp4box.onSamples = function (id, user, samples) {
+	mp4boxfile.onSamples = function (id, user, samples) {
     	console.log("Received "+samples.length+" samples on track "+id+(user ? " for object "+user: ""));
     	for (var i = 0; i < samples.length; i++) {
     		console.log("Writing sample #"+i+" of length "+samples[i].data.byteLength);
@@ -37,7 +37,7 @@ if (process.argv.length > 3) {
 	}
 	var arrayBuffer = new Uint8Array(fs.readFileSync(process.argv[2])).buffer;
 	arrayBuffer.fileStart = 0;
-	mp4box.appendBuffer(arrayBuffer);	
+	mp4boxfile.appendBuffer(arrayBuffer);	
 } else {
 	console.log("usage: node extract.js <file> <trackid>");
 }

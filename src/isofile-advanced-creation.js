@@ -1,12 +1,17 @@
 ISOFile.prototype.add = BoxParser.Box.prototype.add;
+ISOFile.prototype.addBox = BoxParser.Box.prototype.addBox;
 
-ISOFile.prototype.init = function () {
+ISOFile.prototype.init = function (_options) {
+	var options = _options || {}; 
+	var ftyp = this.add("ftyp").set("major_brand", (options.brands && options.brands[0]) || "iso4")
+							   .set("minor_version", 0)
+							   .set("compatible_brands", options.brands || ["iso4"]);
 	var moov = this.add("moov");
-	moov.add("mvhd").set("timescale",600)
-					.set("rate", 1)
+	moov.add("mvhd").set("timescale", options.timescale || 600)
+					.set("rate", options.rate || 1)
 					.set("creation_time", 0)
 					.set("modification_time", 0)
-					.set("duration", 0)
+					.set("duration", options.duration || 0)
 					.set("volume", 1)
 					.set("matrix", [ 0, 0, 0, 0, 0, 0, 0, 0, 0])
 					.set("next_track_id", 1);
@@ -16,7 +21,7 @@ ISOFile.prototype.init = function () {
 
 ISOFile.prototype.addTrack = function (_options) {
 	if (!this.moov) {
-		this.init();
+		this.init(_options);
 	}
 
 	var options = _options || {}; 
@@ -27,11 +32,14 @@ ISOFile.prototype.addTrack = function (_options) {
 
 	var trak = this.moov.add("trak");
 	this.moov.mvhd.next_track_id = options.id+1;
-	trak.add("tkhd").set("creation_time",0)
+	trak.add("tkhd").set("flags",BoxParser.TKHD_FLAG_ENABLED | 
+								 BoxParser.TKHD_FLAG_IN_MOVIE | 
+								 BoxParser.TKHD_FLAG_IN_PREVIEW)
+					.set("creation_time",0)
 					.set("modification_time", 0)
 					.set("track_id", options.id)
-					.set("duration", 0)
-					.set("layer", 0)
+					.set("duration", options.duration || 0)
+					.set("layer", options.layer || 0)
 					.set("alternate_group", 0)
 					.set("volume", 1)
 					.set("matrix", [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
@@ -42,7 +50,7 @@ ISOFile.prototype.addTrack = function (_options) {
 	mdia.add("mdhd").set("creation_time", 0)
 					.set("modification_time", 0)
 					.set("timescale", options.timescale || 1)
-					.set("duration", 0)
+					.set("duration", options.media_duration || 0)
 					.set("language", options.language || 0);
 
 	mdia.add("hdlr").set("handler", options.hdlr || "vide")
@@ -51,7 +59,9 @@ ISOFile.prototype.addTrack = function (_options) {
 	mdia.add("elng").set("extended_language", options.language || "fr-FR");
 
 	var minf = mdia.add("minf");
-	var sample_entry = new BoxParser[options.type+"SampleEntry"]();
+	if (BoxParser[options.type+"SampleEntry"] === undefined) return;
+	var sample_description_entry = new BoxParser[options.type+"SampleEntry"]();
+	sample_description_entry.data_reference_index = 1;
 	var media_type = "";
 	for (var i = 0; i < BoxParser.sampleEntryCodes.length; i++) {
 		var code = BoxParser.sampleEntryCodes[i];
@@ -63,29 +73,39 @@ ISOFile.prototype.addTrack = function (_options) {
 	switch(media_type) {
 		case "Visual":
 			minf.add("vmhd").set("graphicsmode",0).set("opcolor", [ 0, 0, 0 ]);
-			sample_entry.set("width", options.width)
+			sample_description_entry.set("width", options.width)
 						.set("height", options.height)
 						.set("horizresolution", 0x48<<16)
 						.set("vertresolution", 0x48<<16)
 						.set("frame_count", 1)
 						.set("compressorname", options.type+" Compressor")
 						.set("depth", 0x18);
-			sample_entry.add("avcC").set("SPS", [])
-									.set("PPS", [])
-									.set("configurationVersion", 0)
-									.set("AVCProfileIndication",0)
-									.set("profile_compatibility", 0)
-									.set("AVCLevelIndication" ,0)
-									.set("lengthSizeMinusOne", 0);
+		// sample_description_entry.add("avcC").set("SPS", [])
+		// 						.set("PPS", [])
+		// 						.set("configurationVersion", 1)
+		// 						.set("AVCProfileIndication",0)
+		// 						.set("profile_compatibility", 0)
+		// 						.set("AVCLevelIndication" ,0)
+		// 						.set("lengthSizeMinusOne", 0);
 			break;
 		case "Audio":
-			minf.add("smhd");
+			minf.add("smhd").set("balance", options.balance || 0);
+			sample_description_entry.set("channel_count", options.channel_count || 2)
+						.set("samplesize", options.samplesize || 16)
+						.set("samplerate", options.samplerate || 1<<16);
 			break;
 		case "Hint":
-			minf.add("hmhd");
+			minf.add("hmhd"); // TODO: add properties
 			break;
 		case "Subtitle":
 			minf.add("sthd");
+			switch (options.type) {
+				case "stpp":
+					sample_description_entry.set("namespace", options.namespace || "nonamespace")
+								.set("schema_location", options.schema_location || "")
+								.set("auxiliary_mime_types", options.auxiliary_mime_types || "");
+					break;
+			}
 			break;
 		case "Metadata":
 			minf.add("nmhd");
@@ -97,30 +117,92 @@ ISOFile.prototype.addTrack = function (_options) {
 			minf.add("nmhd");
 			break;
 	}
+	if (options.description) {
+		sample_description_entry.addBox(options.description);
+	}
 	minf.add("dinf").add("dref").addEntry((new BoxParser["url Box"]()).set("flags", 0x1));
-	var stbl = mdia.add("stbl");
-	stbl.add("stsd").addEntry(sample_entry);
+	var stbl = minf.add("stbl");
+	stbl.add("stsd").addEntry(sample_description_entry);
 	stbl.add("stts").set("sample_counts", [])
 					.set("sample_deltas", []);
 	stbl.add("stsc").set("first_chunk", [])
 					.set("samples_per_chunk", [])
 					.set("sample_description_index", []);
+	stbl.add("stco").set("chunk_offsets", []);
+	stbl.add("stsz").set("sample_sizes", []);
 
 	this.moov.mvex.add("trex").set("track_id", options.id)
-							  .set("default_sample_description_index", options.default_sample_description_index || 0)
+							  .set("default_sample_description_index", options.default_sample_description_index || 1)
 							  .set("default_sample_duration", options.default_sample_duration || 0)
 							  .set("default_sample_size", options.default_sample_size || 0)
 							  .set("default_sample_flags", options.default_sample_flags || 0);
-	return trak;
+	this.buildTrakSampleLists(trak);
+	return options.id;
 }
 
-ISOFile.prototype.getBuffer = function() {
-	var stream = new DataStream();
+BoxParser.Box.prototype.computeSize = function(stream_) {
+	var stream = stream_ || new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
 	this.write(stream);
-	return stream.buffer;
 }
 
-ISOFile.prototype.addSample = function (trak, data, options) {
+ISOFile.prototype.addSample = function (track_id, data, _options) {
+	var options = _options || {};
+	var sample = {};
+	var trak = this.getTrackById(track_id);
+	if (trak === null) return;
+    sample.number = trak.samples.length;
+	sample.track_id = trak.tkhd.track_id;
+	sample.timescale = trak.mdia.mdhd.timescale;
+	sample.description_index = (options.sample_description_index ? options.sample_description_index - 1: 0);
+	sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
+	sample.data = data;
+	sample.size = data.length;
+	sample.alreadyRead = sample.size;
+	sample.duration = options.duration || 1;
+	sample.cts = options.cts || 0;
+	sample.dts = options.dts || 0;
+	sample.is_sync = options.is_sync || false;
+	sample.is_leading = options.is_leading || 0;
+	sample.depends_on = options.depends_on || 0;
+	sample.is_depended_on = options.is_depended_on || 0;
+	sample.has_redundancy = options.has_redundancy || 0;
+	sample.degradation_priority = options.degradation_priority || 0;
+	sample.offset = 0;
+	sample.subsamples = options.subsamples;
+	trak.samples.push(sample);
+	trak.samples_size += sample.size;
+	trak.samples_duration += sample.duration;
+
+	this.processSamples();
 	
+	var moof = ISOFile.createSingleSampleMoof(sample);
+	this.addBox(moof);
+	moof.computeSize();
+	/* adjusting the data_offset now that the moof size is known*/
+	moof.trafs[0].truns[0].data_offset = moof.size+8; //8 is mdat header
+	this.add("mdat").data = data;
+	return sample;
 }
+
+ISOFile.createSingleSampleMoof = function(sample) {
+	var moof = new BoxParser.moofBox();
+	moof.add("mfhd").set("sequence_number", this.nextMoofNumber);
+	this.nextMoofNumber++;
+	var traf = moof.add("traf");
+	traf.add("tfhd").set("track_id", sample.track_id)
+					.set("flags", BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
+	traf.add("tfdt").set("baseMediaDecodeTime", sample.dts);
+	traf.add("trun").set("flags", BoxParser.TRUN_FLAGS_DATA_OFFSET | BoxParser.TRUN_FLAGS_DURATION | 
+				 				  BoxParser.TRUN_FLAGS_SIZE | BoxParser.TRUN_FLAGS_FLAGS | 
+				 				  BoxParser.TRUN_FLAGS_CTS_OFFSET)
+					.set("data_offset",0)
+					.set("first_sample_flags",0)
+					.set("sample_count",1)
+					.set("sample_duration",[sample.duration])
+					.set("sample_size",[sample.size])
+					.set("sample_flags",[0])
+					.set("sample_composition_time_offset", [sample.cts - sample.dts]);
+	return moof;
+}
+
