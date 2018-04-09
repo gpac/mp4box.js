@@ -31,7 +31,7 @@ mp4boxfile.onReady = function (info) {
 	}
 }
 
-mp4boxfile.onSegment = function (id, user, arrayBuffer, sampleNum) {	
+mp4boxfile.onSegment = function (id, user, arrayBuffer, sampleNum) {
 	console.log("New segment created for track "+id+", up to sample "+sampleNum);
 	out.write(toBuffer(arrayBuffer));
 }

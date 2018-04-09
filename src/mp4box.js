@@ -1,8 +1,8 @@
-/* 
+/*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
-var MP4Box = {}
+var MP4Box = {};
 
 MP4Box.createFile = function (_keepMdatData, _stream) {
 	/* Boolean indicating if bytes containing media data should be kept in memory */
@@ -13,5 +13,5 @@ MP4Box.createFile = function (_keepMdatData, _stream) {
 }
 
 if (typeof exports !== 'undefined') {
-	exports.createFile = MP4Box.createFile;	
+	exports.createFile = MP4Box.createFile;
 }
