@@ -1,7 +1,6 @@
-BoxParser.drefBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("dref", function(stream) {
 	var ret;
 	var box;
-	this.parseFullHeader(stream);
 	this.entries = [];
 	var entry_count = stream.readUint32();
 	for (var i = 0; i < entry_count; i++) {
@@ -13,5 +12,5 @@ BoxParser.drefBox.prototype.parse = function(stream) {
 			return;
 		}
 	}
-}
+});
 

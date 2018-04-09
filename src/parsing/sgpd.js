@@ -1,11 +1,10 @@
-BoxParser.sgpdBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("sgpd", function(stream) {
 	this.grouping_type = stream.readString(4);
 	Log.debug("BoxParser", "Found Sample Groups of type "+this.grouping_type);
 	if (this.version === 1) {
 		this.default_length = stream.readUint32();
 	} else {
-		this.default_length = 0;		
+		this.default_length = 0;
 	}
 	if (this.version >= 2) {
 		this.default_group_description_index = stream.readUint32();
@@ -15,9 +14,9 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 	for (var i = 0; i < entry_count; i++) {
 		var entry;
 		if (BoxParser[this.grouping_type+"SampleGroupEntry"]) {
-			entry = new BoxParser[this.grouping_type+"SampleGroupEntry"](this.grouping_type);	
+			entry = new BoxParser[this.grouping_type+"SampleGroupEntry"](this.grouping_type);
 		}  else {
-			entry = new BoxParser.SampleGroupEntry(this.grouping_type);	
+			entry = new BoxParser.SampleGroupEntry(this.grouping_type);
 		}
 		this.entries.push(entry);
 		if (this.version === 1) {
@@ -27,7 +26,7 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 				entry.description_length = this.default_length;
 			}
 		} else {
-			entry.description_length = this.default_length;			
+			entry.description_length = this.default_length;
 		}
 		if (entry.write === BoxParser.SampleGroupEntry.prototype.write) {
 			Log.warn("BoxParser", " SampleEntry for type "+this.grouping_type+" writing not yet implemented, keeping unparsed data in memory for later write");
@@ -38,5 +37,5 @@ BoxParser.sgpdBox.prototype.parse = function(stream) {
 		}
 		entry.parse(stream);
 	}
-}
+});
 

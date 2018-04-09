@@ -1,4 +1,4 @@
-BoxParser["sdp Box"].prototype.parse = function(stream) {
+BoxParser.createBoxCtor("sdp ", function(stream) {
 	this.sdptext = stream.readString(this.size - this.hdr_size);
-}
+});
 

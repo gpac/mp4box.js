@@ -1,5 +1,4 @@
-BoxParser.saioBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("saio", function(stream) {
 	if (this.flags & 0x1) {
 		this.aux_info_type = stream.readUint32();
 		this.aux_info_type_parameter = stream.readUint32();
@@ -13,4 +12,4 @@ BoxParser.saioBox.prototype.parse = function(stream) {
 			this.offset[i] = stream.readUint64();
 		}
 	}
-}
+});

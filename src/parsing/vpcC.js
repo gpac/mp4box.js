@@ -1,5 +1,4 @@
-BoxParser.vpcCBox.prototype.parse = function (stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("vpcC", function (stream) {
 	this.profile = stream.readUint8();
 	this.level = stream.readUint8();
 	var tmp = stream.readUint8();
@@ -11,4 +10,4 @@ BoxParser.vpcCBox.prototype.parse = function (stream) {
 	this.videoFullRangeFlag = tmp & 0x1;
 	var codecIntializationDataSize = stream.readUint16();
 	this.codecIntializationData = stream.readUint8Array(codecIntializationDataSize);
-}
+});

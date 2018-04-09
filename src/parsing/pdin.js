@@ -1,5 +1,4 @@
-BoxParser.pdinBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("pdin", function(stream) {
 	var count = (this.size - this.hdr_size)/8;
 	this.rate = [];
 	this.initial_delay = [];
@@ -7,5 +6,5 @@ BoxParser.pdinBox.prototype.parse = function(stream) {
 		this.rate[i] = stream.readUint32();
 		this.initial_delay[i] = stream.readUint32();
 	}
-}
+});
 

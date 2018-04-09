@@ -1,6 +1,4 @@
-BoxParser.mvhdBox.prototype.parse = function(stream) {
-	this.flags = 0;
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("mvhd", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -19,5 +17,4 @@ BoxParser.mvhdBox.prototype.parse = function(stream) {
 	this.matrix = stream.readUint32Array(9);
 	stream.readUint32Array(6);
 	this.next_track_id = stream.readUint32();
-}
-
+});

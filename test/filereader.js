@@ -146,11 +146,13 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 	}
 	html += '<tbody>';
 	for (prop in box) {
-		if (["hdr_size", "start", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents", "associations"].indexOf(prop) > -1) {
+		if (["hdr_size", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents", "associations", "esd", "descs"].indexOf(prop) > -1) {
 			continue;
 		} else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
 			continue;
 		} else if (box[prop] instanceof BoxParser.Box) {
+			continue;
+		} else if (typeof box[prop] === "undefined") {
 			continue;
 		} else if (typeof box[prop] === "function") {
 			continue;
@@ -162,7 +164,16 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 			html += prop;
 			html += '</code></td>';
 			html += '<td><code>';
-			html += box[prop];
+			if (prop === "data") {
+				for (var i = 0; i < box[prop].length; i++) {
+					var j = box[prop][i];
+					var hex = j.toString(16);
+					html += (hex.length === 1 ? "0"+hex : hex);
+					if (i%4 === 3) html += ' ';
+				}
+			} else {
+				html += box[prop];
+			}
 			html += '</code></td>';
 			html += '</tr>';
 		}
@@ -184,7 +195,28 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 	return html;
 }
 
-function getFancyTreeData(boxes) {
+function getFancyTreeDataFromDescChildren(descs) {
+	var array = [];
+	for (var i = 0; i < descs.length; i++) {
+		fancytree_node = getFancyTreeDataFromDesc(descs[i])[0];
+		array.push(fancytree_node);
+	}
+	return array;
+}
+
+function getFancyTreeDataFromDesc(desc) {
+	var array = [];
+	var fancytree_node = {};
+	array.push(fancytree_node);
+	var parser = new MPEG4DescriptorParser();
+	fancytree_node.title = parser.getDescriptorName(desc.tag);
+	fancytree_node.data = { 'box': desc };
+	fancytree_node.folder = true;
+	fancytree_node.children = getFancyTreeDataFromDescChildren(desc.descs);
+	return array;
+}
+
+function getFancyTreeDataFromBoxes(boxes) {
 	var array = [];
 	for (var i = 0; i < boxes.length; i++) {
 		var box = boxes[i];
@@ -193,12 +225,16 @@ function getFancyTreeData(boxes) {
 		fancytree_node.title = box.type || i;
 		fancytree_node.data = { 'box': box };
 		var child_prop_names = [ "boxes", "entries", "references", "subsamples",
-								 "items", "item_infos", "extents", "associations"];
+								 "items", "item_infos", "extents", "associations", "subsegments", "ranges", "seekLists", "seekPoints", "esd"];
 		for (var j = 0; j < child_prop_names.length; j++) {
 			var name = child_prop_names[j];
 			if (box[name]) {
-				fancytree_node.children = getFancyTreeData(box[name]);
 				fancytree_node.folder = true;
+				if (name === "esd") {
+					fancytree_node.children = getFancyTreeDataFromDesc(box[name]);
+				} else {
+					fancytree_node.children = getFancyTreeDataFromBoxes(box[name]);
+				}
 			}
 		}
 	}
@@ -211,7 +247,7 @@ function createBoxTreeView(treeboxes) {
 }
 
 function createBoxView() {
-	var treeboxes = getFancyTreeData(mp4boxfile.boxes);
+	var treeboxes = getFancyTreeDataFromBoxes(mp4box.inputIsoFile.boxes);
 	createBoxTreeView(treeboxes);
 	var boxnodes = ({ title: "file", children: treeboxes });
 	createBoxTreeMapSVG(boxnodes);
@@ -264,7 +300,7 @@ function buildItemTable(items) {
 		html += "<td>"+(item.primary ? "Yes" : "No")+"</td>";
 		html += "<td>"+(item.protection ? item.protection : "No")+"</td>";
 		html += "<td>";
-		for (j = 0; j < item.extents.length; j++) {
+		for (j = 0; j < (item.extents ? item.extents.length : 0); j++) {
 			html+= "["+item.extents[j].offset+"-"+(item.extents[j].offset+item.extents[j].length-1)+"] "
 		}
 		html += "</td>";

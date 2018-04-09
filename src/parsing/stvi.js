@@ -1,5 +1,4 @@
-BoxParser.stviBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("stvi", function(stream) {
 	var tmp32 = stream.readUint32();
 	this.single_view_allowed = tmp32 & 0x3;
 	this.stereo_scheme = stream.readUint32();
@@ -17,6 +16,6 @@ BoxParser.stviBox.prototype.parse = function(stream) {
 		} else {
 			return;
 		}
-	}		
-}
+	}
+});
 

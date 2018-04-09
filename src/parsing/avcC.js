@@ -1,4 +1,4 @@
-BoxParser.avcCBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("avcC", function(stream) {
 	var i;
 	var nb_nalus;
 	var length;
@@ -10,7 +10,7 @@ BoxParser.avcCBox.prototype.parse = function(stream) {
 	this.lengthSizeMinusOne = (stream.readUint8() & 0x3);
 	nb_nalus = (stream.readUint8() & 0x1F);
 	toparse = this.size - this.hdr_size - 6;
-	this.SPS = new Array(nb_nalus); 
+	this.SPS = new Array(nb_nalus);
 	for (i = 0; i < nb_nalus; i++) {
 		length = stream.readUint16();
 		this.SPS[i] = stream.readUint8Array(length);
@@ -18,7 +18,7 @@ BoxParser.avcCBox.prototype.parse = function(stream) {
 	}
 	nb_nalus = stream.readUint8();
 	toparse--;
-	this.PPS = new Array(nb_nalus); 
+	this.PPS = new Array(nb_nalus);
 	for (i = 0; i < nb_nalus; i++) {
 		length = stream.readUint16();
 		this.PPS[i] = stream.readUint8Array(length);
@@ -27,5 +27,5 @@ BoxParser.avcCBox.prototype.parse = function(stream) {
 	if (toparse>0) {
 		this.ext = stream.readUint8Array(toparse);
 	}
-}
+});
 

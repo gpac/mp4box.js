@@ -1,4 +1,4 @@
-BoxParser.rashSampleGroupEntry.prototype.parse = function(stream) {
+BoxParser.createSampleGroupCtor("rash", function(stream) {
 	this.operation_point_count = stream.readUint16();
 	if (this.description_length !== 2+(this.operation_point_count === 1?2:this.operation_point_count*6)+9) {
 		Log.warn("BoxParser", "Mismatch in "+this.grouping_type+" sample group length");
@@ -18,5 +18,5 @@ BoxParser.rashSampleGroupEntry.prototype.parse = function(stream) {
 		this.minimum_bitrate = stream.readUint32();
 		this.discard_priority = stream.readUint8();
 	}
-}
+});
 

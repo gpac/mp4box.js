@@ -1,6 +1,5 @@
-BoxParser.iinfBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("iinf", function(stream) {
 	var ret;
-	this.parseFullHeader(stream);
 	if (this.version === 0) {
 		this.entry_count = stream.readUint16();
 	} else {
@@ -18,5 +17,5 @@ BoxParser.iinfBox.prototype.parse = function(stream) {
 			return;
 		}
 	}
-}
+});
 

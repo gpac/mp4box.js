@@ -1,3 +1,15 @@
+BoxParser.SAMPLE_ENTRY_TYPE_VISUAL 		= "Visual";
+BoxParser.SAMPLE_ENTRY_TYPE_AUDIO 		= "Audio";
+BoxParser.SAMPLE_ENTRY_TYPE_HINT 		= "Hint";
+BoxParser.SAMPLE_ENTRY_TYPE_METADATA 	= "Metadata";
+BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE 	= "Subtitle";
+BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM 		= "System";
+
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_HINT);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM);
+
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	stream.readUint8Array(6);
 	this.data_reference_index = stream.readUint16();
@@ -30,13 +42,17 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 		} else {
 			return;
 		}
-	}	
+	}
 }
 
+<<<<<<< Updated upstream
 BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
 	var compressorname_length;
+=======
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, function(stream) {
+>>>>>>> Stashed changes
 	this.parseHeader(stream);
-	stream.readUint16(); 
+	stream.readUint16();
 	stream.readUint16();
 	stream.readUint32Array(3);
 	this.width = stream.readUint16();
@@ -53,9 +69,9 @@ BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
 	this.depth = stream.readUint16();
 	stream.readUint16();
 	this.parseFooter(stream);
-}
+});
 
-BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, function(stream) {
 	this.parseHeader(stream);
 	stream.readUint32Array(2);
 	this.channel_count = stream.readUint16();
@@ -64,5 +80,9 @@ BoxParser.AudioSampleEntry.prototype.parse = function(stream) {
 	stream.readUint16();
 	this.samplerate = (stream.readUint32()/(1<<16));
 	this.parseFooter(stream);
-}
+});
 
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "avc1");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "av01");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "hvc1");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, "mp4a");

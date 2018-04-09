@@ -1,6 +1,5 @@
-BoxParser.tfhdBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("tfhd", function(stream) {
 	var readBytes = 0;
-	this.parseFullHeader(stream);
 	this.track_id = stream.readUint32();
 	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET)) {
 		this.base_data_offset = stream.readUint64();
@@ -32,5 +31,5 @@ BoxParser.tfhdBox.prototype.parse = function(stream) {
 	} else {
 		this.default_sample_flags = 0;
 	}
-}
+});
 

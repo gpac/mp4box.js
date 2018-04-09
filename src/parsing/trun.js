@@ -1,6 +1,5 @@
-BoxParser.trunBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("trun", function(stream) {
 	var readBytes = 0;
-	this.parseFullHeader(stream);
 	this.sample_count = stream.readUint32();
 	readBytes+= 4;
 	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) ) {
@@ -39,5 +38,5 @@ BoxParser.trunBox.prototype.parse = function(stream) {
 			}
 		}
 	}
-}
+});
 

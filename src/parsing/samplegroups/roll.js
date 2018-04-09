@@ -1,4 +1,4 @@
-BoxParser.rollSampleGroupEntry.prototype.parse = function(stream) {
+BoxParser.createSampleGroupCtor("roll", function(stream) {
 	this.roll_distance = stream.readInt16();
-}
+});
 

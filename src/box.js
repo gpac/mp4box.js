@@ -6,45 +6,12 @@ var BoxParser = {
 	ERR_INVALID_DATA : -1,
 	ERR_NOT_ENOUGH_DATA : 0,
 	OK : 1,
-	boxCodes : [
-				 "mdat", "idat", "free", "skip",
-				 "avcC", "hvcC", "ftyp", "styp",
-				 "payl", "vttC",
-				 "sdp ",
-				 "btrt", "frma",
-				 "trpy", "tpyl", "totl", "tpay", "dmed", "dimm", "drep", "nump", "npck", "maxr", "tmin", "tmax", "dmax", "pmax", "payt",
-				 "vmhd", "smhd", "hmhd", // full boxes not yet parsed
-				 "idat", "meco",
-				 "udta", "strk",
-				 "free", "skip",
-				 "clap", "pasp", "colr"
-			   ],
-	fullBoxCodes : [ "mvhd", "tkhd", "mdhd", "hdlr", "vmhd", "smhd", "hmhd", "nmhd", "sthd", "url ", "urn ",
-				  "ctts", "cslg", "stco", "co64", "stsc", "stss", "stsz", "stz2", "stts", "stsh",
-				  "mehd", "trex", "mfhd", "tfhd", "trun", "tfdt",
-				  "esds", "subs",
-				  "txtC",
-				  "sidx", "emsg", "prft", "pssh",
-				  "elst", "dref",
-				  "sbgp", "sgpd",
-				  "cprt",
-				  "iods",
-				  "ssix", "tfra", "mfro", "pdin", "tsel",
-				  "trep", "leva", "stri", "stsg",
-				  "schm",
-				  "stvi",
-				  "padb", "stdp", "sdtp", "saio", "saiz",
-				  "meta", "xml ", "bxml", "iloc", "pitm", "ipro", "iinf", "infe", "mere",
-				  "kind", "elng",
-				  "ipma", "pixi", "ispe",
-				  "sthd",
-				  "tenc",
-				  "vpcC",
-				  "dfLa"
-				  /* missing "stsd", "iref", : special case full box and container */
-				],
-	containerBoxCodes : [
-		[ "moov", [ "trak", "sidx" ] ],
+
+	// Boxes to be created with default parsing
+	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "udta", "strk" ],
+	FULL_BOXES: [ "smhd", "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere", "tenc", "vpcC" ],
+	CONTAINER_BOXES: [
+		[ "moov", [ "trak" ] ],
 		[ "trak" ],
 		[ "edts" ],
 		[ "mdia" ],
@@ -71,112 +38,44 @@ var BoxParser = {
 		[ "iprp", ["ipma"] ],
 		[ "ipco"]
 	],
-	sampleEntryCodes : [
-		/* 4CC as registered on http://mp4ra.org/codecs.html */
-		{ prefix: "Visual", types: [ "mp4v", "avc1", "avc2", "avc3", "avc4", "avcp", "drac", "encv", "mjp2", "mvc1", "mvc2", "resv", "s263", "svc1", "vc-1", "hvc1", "hev1"  ] },
-		{ prefix: "Audio", 	types: [ "mp4a", "ac-3", "alac", "dra1", "dtsc", "dtse", "dtsh", "dtsl", "ec-3", "enca", "g719", "g726", "m4ae", "mlpa",  "raw ", "samr", "sawb", "sawp", "sevc", "sqcp", "ssmv", "twos", ".mp3", "fLaC" ] },
-		{ prefix: "Hint", 	types: [ "fdp ", "m2ts", "pm2t", "prtp", "rm2t", "rrtp", "rsrp", "rtp ", "sm2t", "srtp" ] },
-		{ prefix: "Metadata", types: [ "metx", "mett", "urim" ] },
-		{ prefix: "Subtitle", types: [ "stpp", "wvtt", "sbtt", "tx3g", "stxt" ] },
-		{ prefix: "System", types: [ "mp4s"] }
-	],
-	sampleGroupEntryCodes: [
-		"roll", "prol", "alst", "rap ", "tele", "avss", "avll", "sync", "tscl", "tsas", "stsa", "scif", "mvif", "scnm", "dtrt", "vipr", "tele", "rash", "seig"
-	],
-	trackGroupTypes: [ "msrc" ],
+	// Boxes effectively created
+	boxCodes : [],
+	fullBoxCodes : [],
+	containerBoxCodes : [],
+	sampleEntryCodes : {},
+	sampleGroupEntryCodes: [],
+	trackGroupTypes: [],
+	UUIDBoxes: {},
+	UUIDs: [],
 	initialize: function() {
-		var i, j;
-		var length;
 		BoxParser.FullBox.prototype = new BoxParser.Box();
 		BoxParser.ContainerBox.prototype = new BoxParser.Box();
 		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
 		BoxParser.TrackGroupTypeBox.prototype = new BoxParser.FullBox();
+
 		/* creating constructors for simple boxes */
-		length = BoxParser.boxCodes.length;
-		for (i=0; i<length; i++) {
-			BoxParser[BoxParser.boxCodes[i]+"Box"] = (function (j) { /* creating a closure around the iterating value of i */
-				return function(size) {
-					BoxParser.Box.call(this, BoxParser.boxCodes[j], size);
-				}
-			})(i);
-			BoxParser[BoxParser.boxCodes[i]+"Box"].prototype = new BoxParser.Box();
-		}
-		/* creating constructors for full boxes */
-		length = BoxParser.fullBoxCodes.length;
-		for (i=0; i<length; i++) {
-			BoxParser[BoxParser.fullBoxCodes[i]+"Box"] = (function (j) {
-				return function(size) {
-					BoxParser.FullBox.call(this, BoxParser.fullBoxCodes[j], size);
-				}
-			})(i);
-			BoxParser[BoxParser.fullBoxCodes[i]+"Box"].prototype = new BoxParser.FullBox();
-		}
-		/* creating constructors for container boxes */
-		length = BoxParser.containerBoxCodes.length;
-		for (i=0; i<length; i++) {
-			BoxParser[BoxParser.containerBoxCodes[i][0]+"Box"] = (function (j, subBoxNames) {
-				return function(size) {
-					BoxParser.ContainerBox.call(this, BoxParser.containerBoxCodes[j][0], size);
-					if (subBoxNames) {
-						this.subBoxNames = subBoxNames;
-						var nbSubBoxes = subBoxNames.length;
-						for (var k = 0; k<nbSubBoxes; k++) {
-							this[subBoxNames[k]+"s"] = [];
-						}
-					}
-				}
-			})(i, BoxParser.containerBoxCodes[i][1]);
-			BoxParser[BoxParser.containerBoxCodes[i][0]+"Box"].prototype = new BoxParser.ContainerBox();
-		}
-		/* creating constructors for stsd entries  */
-		length = BoxParser.sampleEntryCodes.length;
-		for (j = 0; j < length; j++) {
-			var prefix = BoxParser.sampleEntryCodes[j].prefix;
-			var types = BoxParser.sampleEntryCodes[j].types;
-			var nb_types = types.length;
-			BoxParser[prefix+"SampleEntry"] = function(type, size) { BoxParser.SampleEntry.call(this, type, size); };
-			BoxParser[prefix+"SampleEntry"].prototype = new BoxParser.SampleEntry();
-			for (i=0; i<nb_types; i++) {
-				BoxParser[types[i]+"SampleEntry"] = (function (k, l) {
-					return function(size) {
-						BoxParser[BoxParser.sampleEntryCodes[k].prefix+"SampleEntry"].call(this, BoxParser.sampleEntryCodes[k].types[l], size);
-					}
-				})(j, i);
-				BoxParser[types[i]+"SampleEntry"].prototype = new BoxParser[prefix+"SampleEntry"]();
-			}
-		}
-		/* creating constructors for stsd entries  */
-		length = BoxParser.sampleGroupEntryCodes.length;
-		for (i = 0; i < length; i++) {
-			BoxParser[BoxParser.sampleGroupEntryCodes[i]+"SampleGroupEntry"] = (function (j) {
-				return function(size) {
-					BoxParser.SampleGroupEntry.call(this, BoxParser.sampleGroupEntryCodes[j], size);
-				}
-			})(i);
-			BoxParser[BoxParser.sampleGroupEntryCodes[i]+"SampleGroupEntry"].prototype = new BoxParser.SampleGroupEntry();
-		}
-		/* creating constructors for track groups  */
-		length = BoxParser.trackGroupTypes.length;
-		for (i = 0; i < length; i++) {
-			BoxParser[BoxParser.trackGroupTypes[i]+"Box"] = (function (j) {
-				return function(size) {
-					BoxParser.TrackGroupTypeBox.call(this, BoxParser.trackGroupTypes[j], size);
-				}
-			})(i);
-			BoxParser[BoxParser.trackGroupTypes[i]+"Box"].prototype = new BoxParser.TrackGroupTypeBox();
-		}
+		BoxParser.BASIC_BOXES.forEach(function(type) {
+			BoxParser.createBoxCtor(type)
+		});
+		BoxParser.FULL_BOXES.forEach(function(type) {
+			BoxParser.createFullBoxCtor(type);
+		});
+		BoxParser.CONTAINER_BOXES.forEach(function(types) {
+			BoxParser.createContainerBoxCtor(types[0], null, types[1]);
+		});
 	},
-	Box: function(_type, _size) {
+	Box: function(_type, _size, _uuid) {
 		this.type = _type;
 		this.size = _size;
+		this.uuid = _uuid;
 	},
-	FullBox: function(type, size) {
-		BoxParser.Box.call(this, type, size);
+	FullBox: function(type, size, uuid) {
+		BoxParser.Box.call(this, type, size, uuid);
 		this.flags = 0;
 		this.version = 0;
 	},
-	ContainerBox: function(type, size) {
-		BoxParser.Box.call(this, type, size);
+	ContainerBox: function(type, size, uuid) {
+		BoxParser.Box.call(this, type, size, uuid);
 		this.boxes = [];
 	},
 	SampleEntry: function(type, size, hdr_size, start) {
@@ -190,6 +89,90 @@ var BoxParser = {
 	},
 	TrackGroupTypeBox: function(type, size) {
 		BoxParser.FullBox.call(this, type, size);
+	},
+	createBoxCtor: function(type, parseMethod){
+		BoxParser.boxCodes.push(type);
+		BoxParser[type+"Box"] = function(size) {
+			BoxParser.Box.call(this, type, size);
+		}
+		BoxParser[type+"Box"].prototype = new BoxParser.Box();
+		if (parseMethod) BoxParser[type+"Box"].prototype.parse = parseMethod;
+	},
+	createFullBoxCtor: function(type, parseMethod) {
+		//BoxParser.fullBoxCodes.push(type);
+		BoxParser[type+"Box"] = function(size) {
+			BoxParser.FullBox.call(this, type, size);
+		}
+		BoxParser[type+"Box"].prototype = new BoxParser.FullBox();
+		BoxParser[type+"Box"].prototype.parse = function(stream) {
+			this.parseFullHeader(stream);
+			if (parseMethod) {
+				parseMethod.call(this, stream);
+			}
+		};
+	},
+	createContainerBoxCtor: function(type, parseMethod, subBoxNames) {
+		//BoxParser.containerBoxCodes.push(type);
+		BoxParser[type+"Box"] = function(size) {
+			BoxParser.ContainerBox.call(this, type, size);
+			if (subBoxNames) {
+				this.subBoxNames = subBoxNames;
+				var nbSubBoxes = subBoxNames.length;
+				for (var k = 0; k<nbSubBoxes; k++) {
+					this[subBoxNames[k]+"s"] = [];
+				}
+			}
+		}
+		BoxParser[type+"Box"].prototype = new BoxParser.ContainerBox();
+		if (parseMethod) BoxParser[type+"Box"].prototype.parse = parseMethod;
+	},
+	createMediaSampleEntryCtor: function(mediaType, parseMethod) {
+		BoxParser.sampleEntryCodes[mediaType] = [];
+		BoxParser[mediaType+"SampleEntry"] = function(type, size) {
+			BoxParser.SampleEntry.call(this, type, size);
+		};
+		BoxParser[mediaType+"SampleEntry"].prototype = new BoxParser.SampleEntry();
+		if (parseMethod) BoxParser[mediaType+"SampleEntry"].prototype .parse = parseMethod;
+	},
+	createSampleEntryCtor: function(mediaType, type, parseMethod) {
+		//BoxParser.sampleEntryCodes[mediaType].push(type);
+		BoxParser[type+"SampleEntry"] = function(size) {
+			BoxParser[mediaType+"SampleEntry"].call(this, type, size);
+		};
+		BoxParser[type+"SampleEntry"].prototype = new BoxParser[mediaType+"SampleEntry"]();
+		if (parseMethod) BoxParser[type+"SampleEntry"].prototype.parse = parseMethod;
+	},
+	createSampleGroupCtor: function(type, parseMethod) {
+		//BoxParser.sampleGroupEntryCodes.push(type);
+		BoxParser[type+"SampleGroupEntry"] = function(size) {
+			BoxParser.SampleGroupEntry.call(this, type, size);
+		}
+		BoxParser[type+"SampleGroupEntry"].prototype = new BoxParser.SampleGroupEntry();
+		if (parseMethod) BoxParser[type+"SampleGroupEntry"].prototype.parse = parseMethod;
+	},
+	createTrackGroupCtor: function(type, parseMethod) {
+		//BoxParser.trackGroupTypes.push(type);
+		BoxParser[type+"TrackGroupTypeBox"] = function(size) {
+			BoxParser.TrackGroupTypeBox.call(this, type, size);
+		}
+		BoxParser[type+"TrackGroupTypeBox"].prototype = new BoxParser.TrackGroupTypeBox();
+		if (parseMethod) BoxParser[type+"TrackGroupTypeBox"].prototype.parse = parseMethod;
+	},
+	createUUIDBox: function(uuid, isFullBox, isContainerBox, parseMethod) {
+		//BoxParser.UUIDs.push(uuid);
+		BoxParser.UUIDBoxes[uuid] = function(size) {
+			if (isFullBox) {
+				BoxParser.FullBox.call(this, "uuid", size, uuid);
+			} else {
+				if (isContainerBox) {
+					BoxParser.ContainerBox.call(this, "uuid", size, uuid);
+				} else {
+					BoxParser.Box.call(this, "uuid", size, uuid);
+				}
+			}
+		}
+		BoxParser.UUIDBoxes[uuid].prototype = (isFullBox ? new BoxParser.FullBox() : (isContainerBox ? new BoxParser.ContainerBox() : new BoxParser.Box()));
+		if (parseMethod) BoxParser.UUIDBoxes[uuid].prototype.parse = parseMethod;
 	}
 }
 

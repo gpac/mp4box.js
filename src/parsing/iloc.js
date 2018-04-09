@@ -1,6 +1,5 @@
-BoxParser.ilocBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("iloc", function(stream) {
 	var byte;
-	this.parseFullHeader(stream);
 	byte = stream.readUint8();
 	this.offset_size = (byte >> 4) & 0xF;
 	this.length_size = byte & 0xF;
@@ -9,7 +8,7 @@ BoxParser.ilocBox.prototype.parse = function(stream) {
 	if (this.version === 1 || this.version === 2) {
 		this.index_size = byte & 0xF;
 	} else {
-		this.index_size = 0;		
+		this.index_size = 0;
 		// reserved = byte & 0xF;
 	}
 	this.items = [];
@@ -96,5 +95,5 @@ BoxParser.ilocBox.prototype.parse = function(stream) {
 			}
 		}
 	}
-}
+});
 

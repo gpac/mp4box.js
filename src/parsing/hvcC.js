@@ -1,4 +1,4 @@
-BoxParser.hvcCBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("hvcC", function(stream) {
 	var i, j;
 	var nb_nalus;
 	var length;
@@ -39,5 +39,5 @@ BoxParser.hvcCBox.prototype.parse = function(stream) {
 			nalu.data   = stream.readUint8Array(length);
 		}
 	}
-}
+});
 

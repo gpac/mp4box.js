@@ -1,4 +1,2 @@
-BoxParser.sthdBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
-}
+BoxParser.createFullBoxCtor("sthd");
 

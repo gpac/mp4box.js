@@ -1,5 +1,4 @@
-BoxParser.txtCBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("txtC", function(stream) {
 	this.config = stream.readCString();
-}
+});
 

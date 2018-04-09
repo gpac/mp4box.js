@@ -1,5 +1,4 @@
-BoxParser.mfhdBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("mfhd", function(stream) {
 	this.sequence_number = stream.readUint32();
-}
+});
 

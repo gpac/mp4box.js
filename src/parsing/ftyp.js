@@ -1,4 +1,4 @@
-BoxParser.ftypBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("ftyp", function(stream) {
 	var toparse = this.size - this.hdr_size;
 	this.major_brand = stream.readString(4);
 	this.minor_version = stream.readUint32();
@@ -10,5 +10,5 @@ BoxParser.ftypBox.prototype.parse = function(stream) {
 		toparse -= 4;
 		i++;
 	}
-}
+});
 

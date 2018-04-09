@@ -1,4 +1,4 @@
-BoxParser.tpayBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("tpay", function(stream) {
 	this.bytessent = stream.readUint32();
-}
+});
 

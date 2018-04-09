@@ -1,5 +1,4 @@
-BoxParser.sbgpBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("sbgp", function(stream) {
 	this.grouping_type = stream.readString(4);
 	if (this.version === 1) {
 		this.grouping_type_parameter = stream.readUint32();
@@ -14,5 +13,5 @@ BoxParser.sbgpBox.prototype.parse = function(stream) {
 		entry.sample_count = stream.readInt32();
 		entry.group_description_index = stream.readInt32();
 	}
-}
+});
 

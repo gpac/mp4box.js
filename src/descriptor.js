@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
@@ -14,9 +14,13 @@ var MPEG4DescriptorParser = function () {
 	descTagToName[DecSpecificInfoTag] 		= "DecoderSpecificInfo";
 	descTagToName[SLConfigDescrTag] 		= "SLConfigDescriptor";
 
+	this.getDescriptorName = function(tag) {
+		return descTagToName[tag];
+	}
+
 	var that = this;
 	var classes = {};
-		
+
 	this.parseOneDescriptor = function (stream) {
 		var hdrSize = 0;
 		var size = 0;
@@ -27,11 +31,11 @@ var MPEG4DescriptorParser = function () {
 		hdrSize++;
 		byteRead = stream.readUint8();
 		hdrSize++;
-		while (byteRead & 0x80) {		
+		while (byteRead & 0x80) {
 			size = (byteRead & 0x7F)<<7;
 			byteRead = stream.readUint8();
 			hdrSize++;
-		} 
+		}
 		size += byteRead & 0x7F;
 		Log.debug("MPEG4DescriptorParser", "Found "+(descTagToName[tag] || "Descriptor "+tag)+", size "+size+" at position "+stream.getPosition());
 		if (descTagToName[tag]) {
@@ -73,7 +77,7 @@ var MPEG4DescriptorParser = function () {
 	classes.ES_Descriptor = function (size) {
 		classes.Descriptor.call(this, ES_DescrTag, size);
 	}
-	
+
 	classes.ES_Descriptor.prototype = new classes.Descriptor();
 
 	classes.ES_Descriptor.prototype.parse = function(stream) {
@@ -101,7 +105,7 @@ var MPEG4DescriptorParser = function () {
 		}
 		this.parseRemainingDescriptors(stream);
 	}
-	
+
 	classes.ES_Descriptor.prototype.getOTI = function(stream) {
 		var dcd = this.findDescriptor(DecoderConfigDescrTag);
 		if (dcd) {
@@ -121,10 +125,10 @@ var MPEG4DescriptorParser = function () {
 			return null;
 		}
 	}
-	
+
 	classes.DecoderConfigDescriptor = function (size) {
 		classes.Descriptor.call(this, DecoderConfigDescrTag, size);
-	}	
+	}
 	classes.DecoderConfigDescriptor.prototype = new classes.Descriptor();
 
 	classes.DecoderConfigDescriptor.prototype.parse = function(stream) {
@@ -146,7 +150,7 @@ var MPEG4DescriptorParser = function () {
 		classes.Descriptor.call(this, SLConfigDescrTag, size);
 	}
 	classes.SLConfigDescriptor.prototype = new classes.Descriptor();
-	
+
 	return this;
 }
 

@@ -1,4 +1,4 @@
-BoxParser.scnmSampleGroupEntry.prototype.parse = function(stream) {
+BoxParser.createSampleGroupCtor("scnm", function(stream) {
 	Log.warn("BoxParser", "Sample Group type: "+this.grouping_type+" not fully parsed");
-}
+});
 

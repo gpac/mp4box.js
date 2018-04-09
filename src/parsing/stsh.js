@@ -1,7 +1,6 @@
-BoxParser.stshBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("stsh", function(stream) {
 	var entry_count;
 	var i;
-	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
 	this.shadowed_sample_numbers = [];
 	this.sync_sample_numbers = [];
@@ -11,5 +10,5 @@ BoxParser.stshBox.prototype.parse = function(stream) {
 			this.sync_sample_numbers.push(stream.readUint32());
 		}
 	}
-}
+});
 

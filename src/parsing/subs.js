@@ -1,8 +1,7 @@
-BoxParser.subsBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("subs", function(stream) {
 	var i,j;
 	var entry_count;
 	var subsample_count;
-	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
 	this.entries = [];
 	for (i = 0; i < entry_count; i++) {
@@ -26,5 +25,5 @@ BoxParser.subsBox.prototype.parse = function(stream) {
 			}
 		}
 	}
-}
+});
 

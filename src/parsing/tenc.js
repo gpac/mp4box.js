@@ -1,5 +1,4 @@
-BoxParser.tencBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("tenc", function(stream) {
 	stream.readUint8(); // reserved
 	if (this.version === 0) {
 		stream.readUint8();
@@ -15,4 +14,4 @@ BoxParser.tencBox.prototype.parse = function(stream) {
 		this.default_constant_IV_size = stream.readUint8();
 		this.default_constant_IV = stream.readUint8Array(this.default_constant_IV_size);
 	}
-}
+});

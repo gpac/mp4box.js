@@ -1,4 +1,4 @@
-BoxParser.totlBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("totl",function(stream) {
 	this.bytessent = stream.readUint32();
-}
+});
 

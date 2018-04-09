@@ -1,14 +1,9 @@
-BoxParser.stsdBox = function(size) {
-	BoxParser.FullBox.call(this, "stsd", size);
-	this.entries = [];
-};
-BoxParser.stsdBox.prototype = new BoxParser.FullBox();
-BoxParser.stsdBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("stsd", function(stream) {
 	var i;
 	var ret;
 	var entryCount;
 	var box;
-	this.parseFullHeader(stream);
+	this.entries = [];
 	entryCount = stream.readUint32();
 	for (i = 1; i <= entryCount; i++) {
 		ret = BoxParser.parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
@@ -30,6 +25,6 @@ BoxParser.stsdBox.prototype.parse = function(stream) {
 		} else {
 			return;
 		}
-	} 
-}
+	}
+});
 

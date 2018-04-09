@@ -1,13 +1,8 @@
-BoxParser.irefBox = function(size) {
-	BoxParser.FullBox.call(this, "iref", size);
-	this.references = [];
-}	
-BoxParser.irefBox.prototype = new BoxParser.FullBox();
-BoxParser.irefBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("iref", function(stream) {
 	var ret;
 	var entryCount;
 	var box;
-	this.parseFullHeader(stream);
+	this.references = [];
 
 	while (stream.getPosition() < this.start+this.size) {
 		ret = BoxParser.parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
@@ -27,4 +22,4 @@ BoxParser.irefBox.prototype.parse = function(stream) {
 			return;
 		}
 	}
-}
+});

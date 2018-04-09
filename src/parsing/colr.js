@@ -1,4 +1,4 @@
-BoxParser.colrBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("colr", function(stream) {
 	this.colour_type = stream.readString(4);
 	if (this.colour_type === 'nclx') {
 		this.colour_primaries = stream.readUint16();
@@ -11,4 +11,4 @@ BoxParser.colrBox.prototype.parse = function(stream) {
 	} else if (this.colour_type === 'prof') {
 		this.ICC_profile = stream.readUint8Array(this.size - 4);
 	}
-}
+});

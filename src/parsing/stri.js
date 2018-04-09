@@ -1,5 +1,4 @@
-BoxParser.striBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("stri", function(stream) {
 	this.switch_group = stream.readUint16();
 	this.alternate_group = stream.readUint16();
 	this.sub_track_id = stream.readUint32();
@@ -8,5 +7,5 @@ BoxParser.striBox.prototype.parse = function(stream) {
 	for (var i = 0; i < count; i++) {
 		this.attribute_list[i] = stream.readUint32();
 	}
-}
+});
 

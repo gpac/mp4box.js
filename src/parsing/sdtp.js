@@ -1,6 +1,5 @@
-BoxParser.sdtpBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("sdtp", function(stream) {
 	var tmp_byte;
-	this.parseFullHeader(stream);
 	var count = (this.size - this.hdr_size);
 	this.is_leading = [];
 	this.sample_depends_on = [];
@@ -13,5 +12,5 @@ BoxParser.sdtpBox.prototype.parse = function(stream) {
 		this.sample_is_depended_on[i] = (tmp_byte >> 2) & 0x3;
 		this.sample_has_redundancy[i] = tmp_byte & 0x3;
 	}
-}
+});
 

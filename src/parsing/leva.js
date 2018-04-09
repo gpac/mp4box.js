@@ -1,5 +1,4 @@
-BoxParser.levaBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("leva", function(stream) {
 	var count = stream.readUint8();
 	this.levels = [];
 	for (var i = 0; i < count; i++) {
@@ -28,5 +27,5 @@ BoxParser.levaBox.prototype.parse = function(stream) {
 				Log.warn("BoxParser", "Unknown leva assignement type");
 		}
 	}
-}
+});
 

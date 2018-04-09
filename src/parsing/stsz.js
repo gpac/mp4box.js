@@ -1,6 +1,5 @@
-BoxParser.stszBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("stsz", function(stream) {
 	var i;
-	this.parseFullHeader(stream);
 	this.sample_sizes = [];
 	if (this.version === 0) {
 		this.sample_size = stream.readUint32();
@@ -10,8 +9,8 @@ BoxParser.stszBox.prototype.parse = function(stream) {
 		} else {
 			for (i = 0; i < this.sample_count; i++) {
 				this.sample_sizes[i] = this.sample_size;
-			}		
+			}
 		}
 	}
-}
+});
 

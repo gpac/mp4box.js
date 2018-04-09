@@ -1,4 +1,4 @@
-BoxParser.frmaBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("frma", function(stream) {
 	this.data_format = stream.readString(4);
-}
+});
 

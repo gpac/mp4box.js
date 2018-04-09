@@ -22,9 +22,10 @@ module.exports = function(config) {
           '../src/buffer.js',                    // multi-buffer datastream
           '../src/descriptor.js',                // MPEG-4 descriptor parsing
           '../src/box.js',                       // core code for box definitions
-          '../src/box-codecs.js',                // core code for box definitions
-          '../src/box-parse.js',                 // basic box parsing code 
+          '../src/box-parse.js',                 // basic box parsing code
+          '../src/parsing/sampleentries/sampleentry.js',              // box-specific parsing code
           '../src/parsing/**/*.js',              // box-specific parsing code
+          '../src/box-codecs.js',                // core code for box definitions
           '../src/box-write.js',                 // box writing code
           '../src/writing/**/*.js',              // box-specific writing code
           '../src/box-unpack.js',                // box code for sample manipulation

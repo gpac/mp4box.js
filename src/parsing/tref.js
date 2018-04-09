@@ -10,7 +10,7 @@ BoxParser.trefBox.prototype.parse = function(stream) {
 				box.parseDataAndRewind(stream);
 			}
 			box.parse(stream);
-			this.boxes.push(box);			
+			this.boxes.push(box);
 		} else {
 			return;
 		}

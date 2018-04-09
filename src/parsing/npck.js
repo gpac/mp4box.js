@@ -1,4 +1,4 @@
-BoxParser.npckBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("npck", function(stream) {
 	this.packetssent = stream.readUint32();
-}
+});
 

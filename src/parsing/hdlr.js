@@ -1,5 +1,4 @@
-BoxParser.hdlrBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("hdlr", function(stream) {
 	if (this.version === 0) {
 		stream.readUint32();
 		this.handler = stream.readString(4);
@@ -8,6 +7,6 @@ BoxParser.hdlrBox.prototype.parse = function(stream) {
 		if (this.name[this.name.length-1]==='\0') {
 			this.name = this.name.slice(0,-1);
 		}
-	} 
-}
+	}
+});
 

@@ -1,5 +1,4 @@
-BoxParser.mdhdBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("mdhd", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -13,5 +12,5 @@ BoxParser.mdhdBox.prototype.parse = function(stream) {
 	}
 	this.parseLanguage(stream);
 	stream.readUint16();
-}
+});
 

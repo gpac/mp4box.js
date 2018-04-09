@@ -1,4 +1,4 @@
-BoxParser.numpBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("nump", function(stream) {
 	this.packetssent = stream.readUint64();
-}
+});
 

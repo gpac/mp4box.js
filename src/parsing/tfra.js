@@ -1,5 +1,4 @@
-BoxParser.tfraBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("tfra", function(stream) {
 	this.track_ID = stream.readUint32();
 	stream.readUint24();
 	var tmp_byte = stream.readUint8();
@@ -20,5 +19,5 @@ BoxParser.tfraBox.prototype.parse = function(stream) {
 		this.trun_number = stream["readUint"+(8*(this.length_size_of_trun_num+1))]();
 		this.sample_number = stream["readUint"+(8*(this.length_size_of_sample_num+1))]();
 	}
-}
+});
 

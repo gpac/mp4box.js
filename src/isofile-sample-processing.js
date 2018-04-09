@@ -443,7 +443,7 @@ ISOFile.prototype.updateSampleLists = function() {
 						sample.is_depended_on = (sample_flags >> 22 & 0x3);
 						sample.has_redundancy = (sample_flags >> 20 & 0x3);
 						sample.degradation_priority = (sample_flags & 0xFFFF);
-						ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
+						//ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
 						var bdop = (traf.tfhd.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET) ? true : false;
 						var dbim = (traf.tfhd.flags & BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF) ? true : false;
 						var dop = (trun.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET) ? true : false;

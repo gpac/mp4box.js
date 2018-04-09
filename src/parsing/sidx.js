@@ -1,5 +1,4 @@
-BoxParser.sidxBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("sidx", function(stream) {
 	this.reference_ID = stream.readUint32();
 	this.timescale = stream.readUint32();
 	if (this.version === 0) {
@@ -24,5 +23,5 @@ BoxParser.sidxBox.prototype.parse = function(stream) {
 		ref.SAP_type = (tmp_32 >> 28) & 0x7;
 		ref.SAP_delta_time = tmp_32 & 0xFFFFFFF;
 	}
-}
+});
 

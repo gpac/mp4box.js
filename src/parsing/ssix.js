@@ -1,5 +1,4 @@
-BoxParser.ssixBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("ssix", function(stream) {
 	this.subsegments = [];
 	var subsegment_count = stream.readUint32();
 	for (var i = 0; i < subsegment_count; i++) {
@@ -14,5 +13,5 @@ BoxParser.ssixBox.prototype.parse = function(stream) {
 			range.range_size = stream.readUint24();
 		}
 	}
-}
+});
 

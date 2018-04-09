@@ -1,4 +1,4 @@
-BoxParser.avssSampleGroupEntry.prototype.parse = function(stream) {
+BoxParser.createSampleGroupCtor("avss", function(stream) {
 	this.subSequenceIdentifier = stream.readUint16();
 	this.layerNumber = stream.readUint8();
 	var tmp_byte = stream.readUint8();
@@ -21,5 +21,5 @@ BoxParser.avssSampleGroupEntry.prototype.parse = function(stream) {
 		dependencyInfo.layerNumber = stream.readUint8();
 		dependencyInfo.subSequenceIdentifier = stream.readUint16();
 	}
-}
+});
 

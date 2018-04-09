@@ -1,8 +1,7 @@
-BoxParser.sttsBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("stts", function(stream) {
 	var entry_count;
 	var i;
 	var delta;
-	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
 	this.sample_counts = [];
 	this.sample_deltas = [];
@@ -17,5 +16,5 @@ BoxParser.sttsBox.prototype.parse = function(stream) {
 			this.sample_deltas.push(delta);
 		}
 	}
-}
+});
 

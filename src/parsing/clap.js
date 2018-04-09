@@ -1,4 +1,4 @@
-BoxParser.clapBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("clap", function(stream) {
 	this.cleanApertureWidthN = stream.readUint32();
 	this.cleanApertureWidthD = stream.readUint32();
 	this.cleanApertureHeightN = stream.readUint32();
@@ -7,4 +7,4 @@ BoxParser.clapBox.prototype.parse = function(stream) {
 	this.horizOffD = stream.readUint32();
 	this.vertOffN = stream.readUint32();
 	this.vertOffD = stream.readUint32();
-}
+});

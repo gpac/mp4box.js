@@ -573,6 +573,10 @@ DataStream.prototype.readUint64 = function () {
 	return (this.readUint32()*MAX_SIZE)+this.readUint32();
 }
 
+DataStream.prototype.readInt64 = function () {
+  return (this.readUint32()*MAX_SIZE)+this.readUint32();
+}
+
 DataStream.prototype.readUint24 = function () {
 	return (this.readUint8()<<16)+(this.readUint8()<<8)+this.readUint8();
 }

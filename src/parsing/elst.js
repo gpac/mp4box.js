@@ -1,5 +1,4 @@
-BoxParser.elstBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("elst", function(stream) {
 	this.entries = [];
 	var entry_count = stream.readUint32();
 	for (var i = 0; i < entry_count; i++) {
@@ -15,5 +14,5 @@ BoxParser.elstBox.prototype.parse = function(stream) {
 		entry.media_rate_integer = stream.readInt16();
 		entry.media_rate_fraction = stream.readInt16();
 	}
-}
+});
 

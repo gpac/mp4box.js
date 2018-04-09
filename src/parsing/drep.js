@@ -1,4 +1,4 @@
-BoxParser.drepBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("drep", function(stream) {
 	this.bytessent = stream.readUint64();
-}
+});
 

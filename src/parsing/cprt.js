@@ -1,6 +1,5 @@
-BoxParser.cprtBox.prototype.parse = function (stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("cprt", function (stream) {
 	this.parseLanguage(stream);
 	this.notice = stream.readCString();
-}
+});
 

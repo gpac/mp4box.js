@@ -1,5 +1,4 @@
-BoxParser.prftBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("prft", function(stream) {
 	this.ref_track_id = stream.readUint32();
 	this.ntp_timestamp = stream.readUint64();
 	if (this.version === 0) {
@@ -7,5 +6,5 @@ BoxParser.prftBox.prototype.parse = function(stream) {
 	} else {
 		this.media_time = stream.readUint64();
 	}
-}
+});
 

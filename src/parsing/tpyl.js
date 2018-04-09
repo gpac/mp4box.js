@@ -1,4 +1,4 @@
-BoxParser.tpylBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("tpyl", function(stream) {
 	this.bytessent = stream.readUint64();
-}
+});
 

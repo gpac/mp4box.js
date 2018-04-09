@@ -1,4 +1,4 @@
-BoxParser.tmaxBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("tmax", function(stream) {
 	this.time = stream.readUint32();
-}
+});
 

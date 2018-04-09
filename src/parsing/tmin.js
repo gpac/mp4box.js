@@ -1,4 +1,4 @@
-BoxParser.tminBox.prototype.parse = function(stream) {
+BoxParser.createBoxCtor("tmin", function(stream) {
 	this.time = stream.readUint32();
-}
+});
 

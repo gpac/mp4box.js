@@ -1,6 +1,5 @@
-BoxParser.ipmaBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("ipma", function(stream) {
 	var i, j;
-	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
 	this.associations = [];
 	for(i=0; i<entry_count; i++) {
@@ -20,7 +19,7 @@ BoxParser.ipmaBox.prototype.parse = function(stream) {
 			var essential = (tmp & 0x80) >> 7;
 			var property_index;
 			if (this.flags & 0x1) {
-				property_index = (tmp & 0x7F) << 8 | stream.readUint8();				
+				property_index = (tmp & 0x7F) << 8 | stream.readUint8();
 			} else {
 				property_index = (tmp & 0x7F);
 			}
@@ -28,4 +27,5 @@ BoxParser.ipmaBox.prototype.parse = function(stream) {
 			p.push(essential === 1);
 		}
 	}
-}
+});
+

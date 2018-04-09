@@ -1,5 +1,5 @@
-BoxParser.wvttSampleEntry.prototype.parse = function(stream) {
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA, "wvtt", function(stream) {
 	this.parseHeader(stream);
 	this.parseFooter(stream);
-}
+});
 

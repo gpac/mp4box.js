@@ -1,5 +1,4 @@
-BoxParser.tkhdBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("tkhd", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -21,5 +20,5 @@ BoxParser.tkhdBox.prototype.parse = function(stream) {
 	this.matrix = stream.readInt32Array(9);
 	this.width = stream.readUint32();
 	this.height = stream.readUint32();
-}
+});
 

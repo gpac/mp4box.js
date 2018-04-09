@@ -1,5 +1,4 @@
-BoxParser.infeBox.prototype.parse = function(stream) {
-	this.parseFullHeader(stream);
+BoxParser.createFullBoxCtor("infe", function(stream) {
 	if (this.version === 0 || this.version === 1) {
 		this.item_ID = stream.readUint16();
 		this.item_protection_index = stream.readUint16();
@@ -29,4 +28,4 @@ BoxParser.infeBox.prototype.parse = function(stream) {
 			this.item_uri_type = stream.readCString();
 		}
 	}
-}
+});

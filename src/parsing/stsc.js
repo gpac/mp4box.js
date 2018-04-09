@@ -1,7 +1,6 @@
-BoxParser.stscBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("stsc", function(stream) {
 	var entry_count;
 	var i;
-	this.parseFullHeader(stream);
 	entry_count = stream.readUint32();
 	this.first_chunk = [];
 	this.samples_per_chunk = [];
@@ -13,5 +12,5 @@ BoxParser.stscBox.prototype.parse = function(stream) {
 			this.sample_description_index.push(stream.readUint32());
 		}
 	}
-}
+});
 
