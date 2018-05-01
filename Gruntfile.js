@@ -79,11 +79,11 @@ module.exports = function(grunt) {
     },
   	jshint: {
       files: [
-        'Gruntfile.js', 
-        'src/**/*.js', 
-        'test/**/*.js', 
-        // Exclude the following from lint 
-        '!test/lib*/**/*.js', 
+        'Gruntfile.js',
+        'src/**/*.js',
+        'test/**/*.js',
+        // Exclude the following from lint
+        '!test/lib*/**/*.js',
         '!test/mp4/**/*.js',
         '!test/trackviewers/**/*.js',
         '!test/coverage/**/*.js',

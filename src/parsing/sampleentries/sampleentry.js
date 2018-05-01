@@ -45,12 +45,7 @@ BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
 	}
 }
 
-<<<<<<< Updated upstream
-BoxParser.VisualSampleEntry.prototype.parse = function(stream) {
-	var compressorname_length;
-=======
 BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, function(stream) {
->>>>>>> Stashed changes
 	this.parseHeader(stream);
 	stream.readUint16();
 	stream.readUint16();
