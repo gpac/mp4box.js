@@ -1,7 +1,7 @@
-BoxParser.dfLaBox.prototype.parse = function(stream) {
+BoxParser.createFullBoxCtor("dfLa", function(stream) {
     var BLOCKTYPE_MASK = 0x7F;
     var LASTMETADATABLOCKFLAG_MASK = 0x80;
-    
+
     var boxesFound = [];
     var knownBlockTypes = [
         "STREAMINFO",
@@ -51,4 +51,4 @@ BoxParser.dfLaBox.prototype.parse = function(stream) {
 
     this.numMetadataBlocks =
         boxesFound.length + " (" + boxesFound.join(", ") + ")";
-};
+});
