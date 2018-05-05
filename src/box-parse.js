@@ -81,12 +81,15 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 			if (type !== "uuid") {
 				Log.warn("BoxParser", "Unknown box type: '"+type+"'");
 				box = new BoxParser.Box(type, size);
+				box.unknown = true;
 			} else {
 				if (BoxParser.UUIDBoxes[uuid]) {
 					box = new BoxParser.UUIDBoxes[uuid](size);
 				} else {
+					Log.warn("BoxParser", "Unknown uuid type: '"+uuid+"'");
 					box = new BoxParser.Box(type, size);
 					box.uuid = uuid;
+					box.unknown = true;
 				}
 			}
 		}
