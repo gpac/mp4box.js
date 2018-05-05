@@ -4,10 +4,10 @@ BoxParser.createFullBoxCtor("stsz", function(stream) {
 	if (this.version === 0) {
 		this.sample_size = stream.readUint32();
 		this.sample_count = stream.readUint32();
-		if (this.sample_size === 0) {
-			this.sample_sizes = stream.readUint32Array(this.sample_count);
-		} else {
-			for (i = 0; i < this.sample_count; i++) {
+		for (i = 0; i < this.sample_count; i++) {
+			if (this.sample_size === 0) {
+				this.sample_sizes.push(stream.readUint32());
+			} else {
 				this.sample_sizes[i] = this.sample_size;
 			}
 		}
