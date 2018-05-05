@@ -162,12 +162,14 @@ BoxParser.ContainerBox.prototype.parse = function(stream) {
 			if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
 				this[this.subBoxNames[this.subBoxNames.indexOf(box.type)]+"s"].push(box);
 			} else {
-				this[box.type] = box;
+				if (box.type !== "uuid") {
+					this[box.type] = box;
+				}
 			}
 		} else {
 			return;
 		}
-	} 
+	}
 }
 
 BoxParser.Box.prototype.parseLanguage = function(stream) {
