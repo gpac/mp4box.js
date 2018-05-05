@@ -4,11 +4,13 @@ BoxParser.SAMPLE_ENTRY_TYPE_HINT 		= "Hint";
 BoxParser.SAMPLE_ENTRY_TYPE_METADATA 	= "Metadata";
 BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE 	= "Subtitle";
 BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM 		= "System";
+BoxParser.SAMPLE_ENTRY_TYPE_TEXT 		= "Text";
 
 BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_HINT);
 BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA);
 BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE);
 BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT);
 
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	stream.readUint8Array(6);
@@ -81,3 +83,12 @@ BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "avc1");
 BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "av01");
 BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "hvc1");
 BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, "mp4a");
+
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "encv");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, "enca");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE, "encu");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM, "encs");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT, "enct");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA, "encm");
+
+
