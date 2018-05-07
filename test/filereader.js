@@ -247,7 +247,7 @@ function createBoxTreeView(treeboxes) {
 }
 
 function createBoxView() {
-	var treeboxes = getFancyTreeDataFromBoxes(mp4box.inputIsoFile.boxes);
+	var treeboxes = getFancyTreeDataFromBoxes(mp4boxfile.boxes);
 	createBoxTreeView(treeboxes);
 	var boxnodes = ({ title: "file", children: treeboxes });
 	createBoxTreeMapSVG(boxnodes);
