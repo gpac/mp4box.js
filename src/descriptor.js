@@ -120,7 +120,11 @@ var MPEG4DescriptorParser = function () {
 		if (!dcd) return null;
 		var dsi = dcd.findDescriptor(DecSpecificInfoTag);
 		if (dsi && dsi.data) {
-			return (dsi.data[0]& 0xF8) >> 3;
+			var audioObjectType = (dsi.data[0]& 0xF8) >> 3;
+			if (audioObjectType === 31 && dsi.data.length >= 2) {
+				audioObjectType = 32 + ((dsi.data[0] & 0x7) << 3) + ((dsi.data[1] & 0xE0) >> 5);
+			}
+			return audioObjectType;
 		} else {
 			return null;
 		}
