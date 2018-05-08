@@ -8,8 +8,8 @@ var BoxParser = {
 	OK : 1,
 
 	// Boxes to be created with default parsing
-	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "udta", "strk" ],
-	FULL_BOXES: [ "smhd", "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere", "tenc", "vpcC" ],
+	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "strk" ],
+	FULL_BOXES: [ "smhd", "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere", "vpcC" ],
 	CONTAINER_BOXES: [
 		[ "moov", [ "trak" ] ],
 		[ "trak" ],
