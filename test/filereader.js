@@ -146,7 +146,7 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 	}
 	html += '<tbody>';
 	for (prop in box) {
-		if (["hdr_size", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents", "associations", "esd", "descs"].indexOf(prop) > -1) {
+		if (["hdr_size", "boxes", "subBoxNames", "entries", "samples", "references", "items", "item_infos", "extents", "associations", "esd", "descs", "levels", "subsegments"].indexOf(prop) > -1) {
 			continue;
 		} else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
 			continue;
@@ -225,7 +225,7 @@ function getFancyTreeDataFromBoxes(boxes) {
 		fancytree_node.title = box.type || i;
 		fancytree_node.data = { 'box': box };
 		var child_prop_names = [ "boxes", "entries", "references", "subsamples",
-								 "items", "item_infos", "extents", "associations", "subsegments", "ranges", "seekLists", "seekPoints", "esd"];
+								 "items", "item_infos", "extents", "associations", "subsegments", "ranges", "seekLists", "seekPoints", "esd", "levels"];
 		for (var j = 0; j < child_prop_names.length; j++) {
 			var name = child_prop_names[j];
 			if (box[name]) {
