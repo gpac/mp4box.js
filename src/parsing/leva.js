@@ -10,10 +10,10 @@ BoxParser.createFullBoxCtor("leva", function(stream) {
 		level.assignment_type = tmp_byte & 0x7F;
 		switch (level.assignment_type) {
 			case 0:
-				level.grouping_type = stream.readUint32();
+				level.grouping_type = stream.readString(4);
 				break;
 			case 1:
-				level.grouping_type = stream.readUint32();
+				level.grouping_type = stream.readString(4);
 				level.grouping_type_parameter = stream.readUint32();
 				break;
 			case 2:
