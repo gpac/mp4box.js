@@ -165,8 +165,11 @@ BoxParser.ContainerBox.prototype.parse = function(stream) {
 			if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
 				this[this.subBoxNames[this.subBoxNames.indexOf(box.type)]+"s"].push(box);
 			} else {
-				if (box.type !== "uuid") {
-					this[box.type] = box;
+				var box_type = box.type !== "uuid" ? box.type : box.uuid;
+				if (this[box_type]) {
+					Log.warn("Box of type "+box_type+" already stored in field of this type");
+				} else {
+					this[box_type] = box;
 				}
 			}
 		} else {
