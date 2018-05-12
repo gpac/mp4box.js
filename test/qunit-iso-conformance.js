@@ -1,4 +1,7 @@
 QUnit.module("MPEG-Conformance");
+
+var DataStream = MP4Box.DataStream;
+
 function makeBoxParsingTest(fileIndex) {
 	QUnit.asyncTest(conformanceFiles[fileIndex], function( assert ) {
 		var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);

@@ -1,3 +1,5 @@
+var Log = MP4Box.Log;
+
 Log.setLogLevel(Log.error);
 var TIMEOUT_MS = 10000;
 var mediaTestBaseUrl = 'http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/';
