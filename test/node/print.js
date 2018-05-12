@@ -1,5 +1,5 @@
 var fs = require('fs');
-var MP4Box = require('../../dist/mp4box.all.js');
+var MP4Box = require('../../');
 
 if (process.argv.length > 2) {
 	if (fs.existsSync(process.argv[2])) {

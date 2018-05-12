@@ -9,7 +9,7 @@
     "streaming"
   ],
   "homepage": "https://github.com/gpac/mp4box.js",
-  "main": "dist/mp4box.all.js",
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/gpac/mp4box.js.git"
