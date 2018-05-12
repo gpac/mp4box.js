@@ -15,7 +15,7 @@ module.exports = function(config) {
         // client configuration
         client: {
           qunit: {
-            testTimeout: 5000
+            testTimeout: 10000
           }
         },
 
