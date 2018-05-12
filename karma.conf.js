@@ -12,6 +12,14 @@ module.exports = function(config) {
         frameworks: ['qunit'],
 
 
+        // client configuration
+        client: {
+          qunit: {
+            testTimeout: 5000
+          }
+        },
+
+
         // list of files / patterns to load in the browser
         files: [
           '../src/log.js',                       // logging system
