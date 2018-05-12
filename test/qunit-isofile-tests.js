@@ -1,5 +1,8 @@
 QUnit.module("Individual Box Parsing");
 
+var MultiBufferStream = MP4Box.MultiBufferStream;
+var MP4BoxStream = MP4Box.MP4BoxStream;
+
 function makeBoxParsingTest(i) {
 	var boxtestIndex = i;
 	QUnit.asyncTest(boxtests[boxtestIndex].boxname, function( assert ) {

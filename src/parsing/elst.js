@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.elstBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.entries = [];

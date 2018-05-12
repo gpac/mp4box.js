@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.vmhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.graphicsmode = stream.readUint16();

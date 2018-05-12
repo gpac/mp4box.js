@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.sbgpBox.prototype.write = function(stream) {
 	this.version = 1;	
 	this.flags = 0;

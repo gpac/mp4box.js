@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.cttsBox.prototype.write = function(stream) {
 	var i;
 	this.version = 0;

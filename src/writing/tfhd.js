@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.tfhdBox.prototype.write = function(stream) {
 	this.version = 0;
 	this.size = 4;

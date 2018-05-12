@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.avcCBox.prototype.parse = function(stream) {
 	var i;
 	var nb_nalus;

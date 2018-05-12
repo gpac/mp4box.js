@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.tfraBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.track_ID = stream.readUint32();

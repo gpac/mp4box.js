@@ -1,3 +1,5 @@
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.sbttSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.content_encoding = stream.readCString();

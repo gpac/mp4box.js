@@ -1,3 +1,7 @@
+var Log = require("./log.js").Log;
+var ISOFile = require('./isofile.js').ISOFile;
+var DataStream = require('./DataStream.js').DataStream;
+
 ISOFile.prototype.items = [];
 /* size of the buffers allocated for samples */
 ISOFile.prototype.itemsDataSize = 0;

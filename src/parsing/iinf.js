@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.iinfBox.prototype.parse = function(stream) {
 	var ret;
 	this.parseFullHeader(stream);

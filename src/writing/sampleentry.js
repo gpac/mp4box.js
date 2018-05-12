@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.SampleEntry.prototype.writeHeader = function(stream) {
 	this.size = 8;
 	BoxParser.Box.prototype.writeHeader.call(this, stream);

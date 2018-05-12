@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.subsBox.prototype.parse = function(stream) {
 	var i,j;
 	var entry_count;

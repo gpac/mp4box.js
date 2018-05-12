@@ -1,3 +1,8 @@
+var Log = require("./log.js").Log;
+var ISOFile = require('./isofile.js').ISOFile;
+var BoxParser = require("./box.js").BoxParser;
+var DataStream = require('./DataStream.js').DataStream;
+
 /* Rewrite the entire file */
 ISOFile.prototype.write = function(outstream) {
 	for (var i=0; i<this.boxes.length; i++) {

@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.TrackReferenceTypeBox = function(type, size, hdr_size, start) {
 	BoxParser.Box.call(this, type, size);
 	this.hdr_size = hdr_size;

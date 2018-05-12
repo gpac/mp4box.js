@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.pixiBox.prototype.parse = function(stream) {
 	var i;
 	this.parseFullHeader(stream);

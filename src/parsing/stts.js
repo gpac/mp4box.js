@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.sttsBox.prototype.parse = function(stream) {
 	var entry_count;
 	var i;

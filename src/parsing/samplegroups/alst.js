@@ -1,3 +1,5 @@
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.alstSampleGroupEntry.prototype.parse = function(stream) {
 	var i;
 	var roll_count = stream.readUint16();

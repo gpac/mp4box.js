@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 // Cannot be fully parsed because Per_Sample_IV_Size needs to be known
 /* BoxParser.sencBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);

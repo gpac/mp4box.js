@@ -1,3 +1,6 @@
+var DataStream = require('./DataStream.js').DataStream;
+var MAX_SIZE = require('./DataStream.js').MAX_SIZE;
+
 /**
   Saves the DataStream contents to the given filename.
   Uses Chrome's anchor download property to initiate download.

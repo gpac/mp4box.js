@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.btrtBox.prototype.parse = function(stream) {
 	this.bufferSizeDB = stream.readUint32();
 	this.maxBitrate = stream.readUint32();

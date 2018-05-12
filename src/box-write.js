@@ -1,3 +1,7 @@
+var Log = require("./log.js").Log;
+var BoxParser = require("./box.js").BoxParser;
+var MAX_SIZE = require('./DataStream.js').MAX_SIZE;
+
 /* 
  * Copyright (c) Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)

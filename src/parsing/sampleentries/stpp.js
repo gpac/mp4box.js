@@ -1,3 +1,5 @@
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.stppSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.namespace = stream.readCString();

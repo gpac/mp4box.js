@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.psshBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.system_id = stream.readUint8Array(16);

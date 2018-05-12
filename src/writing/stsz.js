@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.stszBox.prototype.write = function(stream) {
 	var i;
 	var constant = true;

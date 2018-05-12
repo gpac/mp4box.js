@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.stviBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	var tmp32 = stream.readUint32();

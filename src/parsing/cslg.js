@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.cslgBox.prototype.parse = function(stream) {
 	var entry_count;
 	this.parseFullHeader(stream);

@@ -1,3 +1,5 @@
+var DataStream = require('./DataStream.js').DataStream;
+
 /**
   Reads a struct of data from the DataStream. The struct is defined as
   a flat array of [name, type]-pairs. See the example below:

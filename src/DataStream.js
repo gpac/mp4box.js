@@ -579,4 +579,5 @@ DataStream.prototype.readUint24 = function () {
 
 if (typeof exports !== 'undefined') {
   exports.DataStream = DataStream;  
+  exports.MAX_SIZE = MAX_SIZE;
 }

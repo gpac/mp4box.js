@@ -1,3 +1,7 @@
+var Log = require("./log.js").Log;
+var ISOFile = require('./isofile.js').ISOFile;
+var BoxParser = require("./box.js").BoxParser;
+
 /* position in the current buffer of the beginning of the last box parsed */
 ISOFile.prototype.lastBoxStartPosition = 0;
 /* indicator if the parsing is stuck in the middle of an mdat box */

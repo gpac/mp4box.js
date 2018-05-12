@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.drefBox.prototype.parse = function(stream) {
 	var ret;
 	var box;

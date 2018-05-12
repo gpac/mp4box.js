@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.clapBox.prototype.parse = function(stream) {
 	this.cleanApertureWidthN = stream.readUint32();
 	this.cleanApertureWidthD = stream.readUint32();

@@ -1,3 +1,6 @@
+var Log = require("./log.js").Log;
+var DataStream = require('./DataStream.js').DataStream;
+
 /**
  * MultiBufferStream is a class that acts as a SimpleStream for parsing 
  * It holds several, possibly non-contiguous ArrayBuffer objects, each with a fileStart property 

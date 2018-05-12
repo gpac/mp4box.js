@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.tencBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	stream.readUint8(); // reserved

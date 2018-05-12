@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.trexBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.track_id = stream.readUint32();

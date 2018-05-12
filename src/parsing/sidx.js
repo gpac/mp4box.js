@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.sidxBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.reference_ID = stream.readUint32();

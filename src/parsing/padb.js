@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.padbBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	var sample_count = stream.readUint32();

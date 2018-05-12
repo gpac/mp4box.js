@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.vpcCBox.prototype.parse = function (stream) {
 	this.parseFullHeader(stream);
 	this.profile = stream.readUint8();
