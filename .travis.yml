@@ -2,6 +2,7 @@ language: node_js
 sudo: false
 node_js:
 - '6.0.0'
+- 8
 before_install:
 - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
 - "export CHROME_BIN=chromium-browser"
