@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.hdlrBox.prototype.write = function(stream) {
 	this.size = 5*4+this.name.length+1;
 	this.version = 0;

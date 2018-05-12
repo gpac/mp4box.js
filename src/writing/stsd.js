@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.stsdBox.prototype.write = function(stream) {
 	var i;
 	this.version = 0;

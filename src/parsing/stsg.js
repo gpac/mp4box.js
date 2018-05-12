@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.stsgBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.grouping_type = stream.readUint32();

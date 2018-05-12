@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.sdtpBox.prototype.parse = function(stream) {
 	var tmp_byte;
 	this.parseFullHeader(stream);

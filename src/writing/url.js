@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser["url Box"].prototype.write = function(stream) {
 	this.version = 0;	
 	if (this.location) {

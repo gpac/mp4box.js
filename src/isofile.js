@@ -1,3 +1,7 @@
+var Log = require("./log.js").Log;
+var MultiBufferStream = require('./buffer.js').MultiBufferStream;
+var BoxParser = require("./box.js").BoxParser;
+
 /* 
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
@@ -322,7 +326,7 @@ ISOFile.prototype.getInfo = function() {
 			track.references = [];
 			if (trak.tref) {
 				for (j = 0; j < trak.tref.boxes.length; j++) {
-					ref = {};
+					var ref = {};
 					track.references.push(ref);
 					ref.type = trak.tref.boxes[j].type;
 					ref.track_ids = trak.tref.boxes[j].track_ids;

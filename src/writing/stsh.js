@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.stshBox.prototype.write = function(stream) {
 	var i;
 	this.version = 0;

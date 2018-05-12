@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.dfLaBox.prototype.parse = function(stream) {
     var BLOCKTYPE_MASK = 0x7F;
     var LASTMETADATABLOCKFLAG_MASK = 0x80;
@@ -44,7 +46,7 @@ BoxParser.dfLaBox.prototype.parse = function(stream) {
 
         boxesFound.push(knownBlockTypes[type]);
 
-        if (!!(flagAndType & LASTMETADATABLOCKFLAG_MASK)) {
+        if (flagAndType & LASTMETADATABLOCKFLAG_MASK) {
             break;
         }
     } while (true);

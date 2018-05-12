@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.avcCBox.prototype.write = function(stream) {
 	var i;
 	this.size = 7;

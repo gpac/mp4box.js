@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.saioBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.flags & 0x1) {

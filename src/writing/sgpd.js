@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.sgpdBox.prototype.write = function(stream) {
 	var i;
 	var entry;

@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.ftypBox.prototype.write = function(stream) {
 	this.size = 8+4*this.compatible_brands.length;
 	this.writeHeader(stream);

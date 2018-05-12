@@ -1,3 +1,5 @@
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	stream.readUint8Array(6);
 	this.data_reference_index = stream.readUint16();

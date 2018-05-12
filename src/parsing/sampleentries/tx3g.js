@@ -1,3 +1,5 @@
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.tx3gSampleEntry.prototype.parse = function(stream) {
 	this.parseHeader(stream);
 	this.displayFlags = stream.readUint32();

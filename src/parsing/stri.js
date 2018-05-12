@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.striBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.switch_group = stream.readUint16();

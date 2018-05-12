@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.stsdBox = function(size) {
 	BoxParser.FullBox.call(this, "stsd", size);
 	this.entries = [];

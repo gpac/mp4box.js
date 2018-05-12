@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.pdinBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	var count = (this.size - this.hdr_size)/8;

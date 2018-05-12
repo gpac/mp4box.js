@@ -1,3 +1,5 @@
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.seigSampleGroupEntry.prototype.parse = function(stream) {
 	this.reserved = stream.readUint8();
 	var tmp = stream.readUint8();

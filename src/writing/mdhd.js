@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.mdhdBox.prototype.write = function(stream) {
 	this.size = 4*4+2*2;
 	this.flags = 0;

@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.mdhdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	if (this.version == 1) {

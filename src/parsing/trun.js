@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.trunBox.prototype.parse = function(stream) {
 	var readBytes = 0;
 	this.parseFullHeader(stream);

@@ -1,3 +1,5 @@
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.avssSampleGroupEntry.prototype.parse = function(stream) {
 	this.subSequenceIdentifier = stream.readUint16();
 	this.layerNumber = stream.readUint8();

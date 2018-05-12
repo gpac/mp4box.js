@@ -1,3 +1,5 @@
+var DataStream = require('./DataStream.js').DataStream;
+
 /**
   Maps an Int32Array into the DataStream buffer, swizzling it to native
   endianness in-place. The current offset from the start of the buffer needs to

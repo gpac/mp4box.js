@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.ftypBox.prototype.parse = function(stream) {
 	var toparse = this.size - this.hdr_size;
 	this.major_brand = stream.readString(4);

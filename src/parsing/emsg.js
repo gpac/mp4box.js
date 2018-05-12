@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.emsgBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.scheme_id_uri 				= stream.readCString();

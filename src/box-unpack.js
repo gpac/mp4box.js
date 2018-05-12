@@ -1,3 +1,5 @@
+var BoxParser = require("./box.js").BoxParser;
+
 /* 
  * Copyright (c) Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)

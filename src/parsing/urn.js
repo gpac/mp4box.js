@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser["urn Box"].prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.name = stream.readCString();

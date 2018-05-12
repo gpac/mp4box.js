@@ -1,7 +1,9 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.ipmaBox.prototype.parse = function(stream) {
 	var i, j;
 	this.parseFullHeader(stream);
-	entry_count = stream.readUint32();
+	var entry_count = stream.readUint32();
 	this.associations = [];
 	for(i=0; i<entry_count; i++) {
 		var item_assoc = {};

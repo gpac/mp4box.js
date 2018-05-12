@@ -1,3 +1,5 @@
+var BoxParser = require("./box.js").BoxParser;
+
 BoxParser.SampleEntry.prototype.isVideo = function() {
 	return false;
 }

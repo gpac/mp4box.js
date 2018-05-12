@@ -1,3 +1,8 @@
+var MPEG4DescriptorParser = require('../descriptor.js').MPEG4DescriptorParser;
+var BoxParser = require('../box.js').BoxParser;
+
+var DataStream = require('../DataStream.js').DataStream;
+
 BoxParser.esdsBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	var esd_data = stream.readUint8Array(this.size-this.hdr_size);

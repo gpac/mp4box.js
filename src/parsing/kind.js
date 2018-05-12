@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.kindBox = function(size) {
 	BoxParser.FullBox.call(this, "kind", size);
 	this.schemeURI = "";

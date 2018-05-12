@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.colrBox.prototype.parse = function(stream) {
 	this.colour_type = stream.readString(4);
 	if (this.colour_type === 'nclx') {

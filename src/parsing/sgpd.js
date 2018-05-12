@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.sgpdBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.grouping_type = stream.readString(4);

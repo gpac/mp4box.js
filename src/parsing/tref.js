@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.trefBox.prototype.parse = function(stream) {
 	var ret;
 	var box;

@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.stssBox.prototype.parse = function(stream) {
 	var i;
 	var entry_count;

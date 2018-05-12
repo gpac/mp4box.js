@@ -1,3 +1,6 @@
+var Log = require("../../log.js").Log;
+var BoxParser = require('../../box.js').BoxParser;
+
 BoxParser.rashSampleGroupEntry.prototype.parse = function(stream) {
 	this.operation_point_count = stream.readUint16();
 	if (this.description_length !== 2+(this.operation_point_count === 1?2:this.operation_point_count*6)+9) {

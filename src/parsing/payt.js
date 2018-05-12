@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.paytBox.prototype.parse = function(stream) {
 	this.payloadID = stream.readUint32();
 	var count = stream.readUint8();

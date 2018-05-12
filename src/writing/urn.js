@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser["urn Box"].prototype.write = function(stream) {
 	this.version = 0;	
 	this.flags = 0;

@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.ispeBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.image_width = stream.readUint32();

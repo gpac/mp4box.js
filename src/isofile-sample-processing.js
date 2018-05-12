@@ -1,3 +1,10 @@
+var Log = require("./log.js").Log;
+var ISOFile = require('./isofile.js').ISOFile;
+var BoxParser = require("./box.js").BoxParser;
+var DataStream = require('./DataStream.js').DataStream;
+
+var trak;
+
 /* Index of the last moof box received */
 ISOFile.prototype.lastMoofIndex = 0;
 
@@ -7,7 +14,7 @@ ISOFile.prototype.samplesDataSize = 0;
 /* Resets all sample tables */
 ISOFile.prototype.resetTables = function () {
 	var i;
-	var trak, stco, stsc, stsz, stts, ctts, stss;
+	var stco, stsc, stsz, stts, ctts, stss;
 	this.initial_duration = this.moov.mvhd.duration;
 	this.moov.mvhd.duration = 0;
 	for (i = 0; i < this.moov.traks.length; i++) {

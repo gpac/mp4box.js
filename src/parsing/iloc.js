@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.ilocBox.prototype.parse = function(stream) {
 	var byte;
 	this.parseFullHeader(stream);

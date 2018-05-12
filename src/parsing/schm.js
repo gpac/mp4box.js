@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.schmBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.scheme_type = stream.readString(4);

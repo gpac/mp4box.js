@@ -1,3 +1,5 @@
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.prftBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	this.ref_track_id = stream.readUint32();

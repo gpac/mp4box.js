@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.irefBox = function(size) {
 	BoxParser.FullBox.call(this, "iref", size);
 	this.references = [];

@@ -1,3 +1,7 @@
+var ISOFile = require('./isofile.js').ISOFile;
+var BoxParser = require("./box.js").BoxParser;
+var DataStream = require('./DataStream.js').DataStream;
+
 ISOFile.prototype.add = BoxParser.Box.prototype.add;
 ISOFile.prototype.addBox = BoxParser.Box.prototype.addBox;
 

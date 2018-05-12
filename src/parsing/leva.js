@@ -1,3 +1,6 @@
+var Log = require("../log.js").Log;
+var BoxParser = require('../box.js').BoxParser;
+
 BoxParser.levaBox.prototype.parse = function(stream) {
 	this.parseFullHeader(stream);
 	var count = stream.readUint8();
