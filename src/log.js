@@ -25,6 +25,9 @@ var Log = (function (){
 					console.debug("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
 				}
 			},
+			log : function(module, msg) {
+				this.debug(module.msg)
+			},
 			info : function(module, msg) {
 				if (LOG_LEVEL_INFO >= log_level) {
 					console.info("["+Log.getDurationString(new Date()-start,1000)+"]","["+module+"]",msg);
