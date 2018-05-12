@@ -12,6 +12,14 @@ module.exports = function(config) {
         frameworks: ['qunit'],
 
 
+        // client configuration
+        client: {
+          qunit: {
+            testTimeout: 5000
+          }
+        },
+
+
         // list of files / patterns to load in the browser
         files: [
           '../dist/mp4box.all.js',
