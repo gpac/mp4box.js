@@ -8,12 +8,6 @@ before_install:
 - "export DISPLAY=:99.0"
 - "sh -e /etc/init.d/xvfb start"
 - sleep 3 # give xvfb some time to start
-before_script:
-  - 'npm install -g grunt-cli'
-  - 'npm install grunt'
-  - 'npm install karma'
-  - 'npm install grunt-karma'
-  - 'npm install karma-phantomjs-launcher'
 deploy:
   - provider: releases
     api_key:
