@@ -35,7 +35,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	Log.debug("BoxParser", "Found box of type '"+type+"' and size "+size+" at position "+start);
 	hdr_size = 8;
 	if (type == "uuid") {
-		if ((stream.getEndPosition() - stream.getPosition() < 16*8) || (parentSize -hdr_size < 16*8)) {
+		if ((stream.getEndPosition() - stream.getPosition() < 16) || (parentSize -hdr_size < 16)) {
 			stream.seek(start);
 			Log.debug("BoxParser", "Not enough bytes left in the parent box to parse a UUID box");
 			return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
