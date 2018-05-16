@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
@@ -22,12 +22,12 @@ var ISOFile = function (stream) {
 	/* Callback called when the moov is entirely parsed */
 	this.onReady = null;
 	/* Boolean keeping track of the call to onReady, to avoid double calls */
-	this.readySent = false;	
+	this.readySent = false;
 	/* Callback to call when segments are ready */
 	this.onSegment = null;
 	/* Callback to call when samples are ready */
 	this.onSamples = null;
-	/* Callback to call when there is an error in the parsing or processing of samples */	
+	/* Callback to call when there is an error in the parsing or processing of samples */
 	this.onError = null;
 	/* Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
 	this.sampleListBuilt = false;
@@ -120,7 +120,7 @@ ISOFile.prototype.parse = function() {
 	}
 
 	while (true) {
-		
+
 		if (this.hasIncompleteMdat && this.hasIncompleteMdat()) {
 			if (this.processIncompleteMdat()) {
 				continue;
@@ -132,7 +132,7 @@ ISOFile.prototype.parse = function() {
 				this.saveParsePosition();
 			}
 			ret = BoxParser.parseOneBox(this.stream, parseBoxHeadersOnly);
-			if (ret.code === BoxParser.ERR_NOT_ENOUGH_DATA) {		
+			if (ret.code === BoxParser.ERR_NOT_ENOUGH_DATA) {
 				if (this.processIncompleteBox) {
 					if (this.processIncompleteBox(ret)) {
 						continue;
@@ -143,19 +143,21 @@ ISOFile.prototype.parse = function() {
 					return;
 				}
 			} else {
+				var box_type;
 				/* the box is entirely parsed */
 				box = ret.box;
+				box_type = (box.type !== "uuid" ? box.type : box.uuid);
 				/* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
 				this.boxes.push(box);
 				/* but also store box in a property for more direct access */
-				switch (box.type) {
+				switch (box_type) {
 					case "mdat":
 						this.mdats.push(box);
 						break;
 					case "moof":
 						this.moofs.push(box);
 						break;
-					case "moov":					
+					case "moov":
 						this.moovStartFound = true;
 						if (this.mdats.length === 0) {
 							this.isProgressive = true;
@@ -163,14 +165,14 @@ ISOFile.prototype.parse = function() {
 						/* no break */
 						/* falls through */
 					default:
-						if (this[box.type] !== undefined) {
-							Log.warn("ISOFile", "Duplicate Box of type: "+box.type+", overriding previous occurrence");
+						if (this[box_type] !== undefined) {
+							Log.warn("ISOFile", "Duplicate Box of type: "+box_type+", overriding previous occurrence");
 						}
-						this[box.type] = box;
+						this[box_type] = box;
 						break;
 				}
 				if (this.updateUsedBytes) {
-					this.updateUsedBytes(box, ret);					
+					this.updateUsedBytes(box, ret);
 				}
 			}
 		}
@@ -180,10 +182,10 @@ ISOFile.prototype.parse = function() {
 ISOFile.prototype.checkBuffer = function (ab) {
 	if (ab === null || ab === undefined) {
 		throw("Buffer must be defined and non empty");
-	}	
+	}
 	if (ab.fileStart === undefined) {
 		throw("Buffer must have a fileStart property");
-	}	
+	}
 	if (ab.byteLength === 0) {
 		Log.warn("ISOFile", "Ignoring empty buffer (fileStart: "+ab.fileStart+")");
 		this.stream.logBufferLevel();
@@ -222,17 +224,17 @@ ISOFile.prototype.appendBuffer = function(ab, last) {
 
 	if (this.moov) {
 		/* A moov box has been entirely parsed */
-		
+
 		/* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
 		if (!this.sampleListBuilt) {
 			this.buildSampleLists();
 			this.sampleListBuilt = true;
-		} 
+		}
 
 		/* We update the sample information if there are any new moof boxes */
 		this.updateSampleLists();
-		
-		/* If the application needs to be informed that the 'moov' has been found, 
+
+		/* If the application needs to be informed that the 'moov' has been found,
 		   we create the information object and callback the application */
 		if (this.onReady && !this.readySent) {
 			this.readySent = true;
@@ -248,20 +250,20 @@ ISOFile.prototype.appendBuffer = function(ab, last) {
 			this.nextSeekPosition = undefined;
 		} else {
 			nextFileStart = this.nextParsePosition;
-		}		
+		}
 		if (this.stream.getEndFilePositionAfter) {
 			nextFileStart = this.stream.getEndFilePositionAfter(nextFileStart);
 		}
 	} else {
 		if (this.nextParsePosition) {
-			/* moov has not been parsed but the first buffer was received, 
+			/* moov has not been parsed but the first buffer was received,
 			   the next fetch should probably be the next box start */
 			nextFileStart = this.nextParsePosition;
 		} else {
 			/* No valid buffer has been parsed yet, we cannot know what to parse next */
 			nextFileStart = 0;
 		}
-	}	
+	}
 	if (this.meta) {
 		if (this.flattenItemInfo && !this.itemListBuilt) {
 			this.flattenItemInfo();
@@ -277,7 +279,7 @@ ISOFile.prototype.appendBuffer = function(ab, last) {
 		this.stream.logBufferLevel();
 		this.stream.cleanBuffers();
 		this.stream.logBufferLevel(true);
-		Log.info("ISOFile", "Sample data size in memory: "+this.getAllocatedSampleDataSize()); 			
+		Log.info("ISOFile", "Sample data size in memory: "+this.getAllocatedSampleDataSize());
 	}
 	return nextFileStart;
 }
@@ -297,10 +299,10 @@ ISOFile.prototype.getInfo = function() {
 		movie.isFragmented = (this.moov.mvex != null);
 		if (movie.isFragmented && this.moov.mvex.mehd) {
 			movie.fragment_duration = this.moov.mvex.mehd.fragment_duration;
-		} 
+		}
 		movie.isProgressive = this.isProgressive;
 		movie.hasIOD = (this.moov.iods != null);
-		movie.brands = []; 
+		movie.brands = [];
 		movie.brands.push(this.ftyp.major_brand);
 		movie.brands = movie.brands.concat(this.ftyp.compatible_brands);
 		movie.created = new Date(_1904+this.moov.mvhd.creation_time*1000);
@@ -345,7 +347,7 @@ ISOFile.prototype.getInfo = function() {
 			track.cts_shift = trak.mdia.minf.stbl.cslg;
 			track.duration = trak.mdia.mdhd.duration;
 			track.samples_duration = trak.samples_duration;
-			track.codec = sample_desc.getCodec();	
+			track.codec = sample_desc.getCodec();
 			track.kind = (trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: "", value: ""});
 			track.language = (trak.mdia.elng ? trak.mdia.elng.extended_language : trak.mdia.mdhd.languageString);
 			track.nb_samples = trak.samples.length;
@@ -355,15 +357,15 @@ ISOFile.prototype.getInfo = function() {
 				track.type = "audio";
 				movie.audioTracks.push(track);
 				track.audio = {};
-				track.audio.sample_rate = sample_desc.getSampleRate();		
-				track.audio.channel_count = sample_desc.getChannelCount();		
-				track.audio.sample_size = sample_desc.getSampleSize();		
+				track.audio.sample_rate = sample_desc.getSampleRate();
+				track.audio.channel_count = sample_desc.getChannelCount();
+				track.audio.sample_size = sample_desc.getSampleSize();
 			} else if (sample_desc.isVideo()) {
 				track.type = "video";
 				movie.videoTracks.push(track);
 				track.video = {};
-				track.video.width = sample_desc.getWidth();		
-				track.video.height = sample_desc.getHeight();		
+				track.video.width = sample_desc.getWidth();
+				track.video.height = sample_desc.getHeight();
 			} else if (sample_desc.isSubtitle()) {
 				track.type = "subtitles";
 				movie.subtitleTracks.push(track);
@@ -404,17 +406,17 @@ ISOFile.prototype.processSamples = function(last) {
 	var trak;
 	if (!this.sampleProcessingStarted) return;
 
-	/* For each track marked for fragmentation, 
-	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded) 
+	/* For each track marked for fragmentation,
+	   check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded)
 	   and create a fragment with it */
 	if (this.isFragmentationInitialized && this.onSegment !== null) {
 		for (i = 0; i < this.fragmentedTracks.length; i++) {
 			var fragTrak = this.fragmentedTracks[i];
 			trak = fragTrak.trak;
-			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {				
-				/* The sample information is there (either because the file is not fragmented and this is not the last sample, 
+			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
+				/* The sample information is there (either because the file is not fragmented and this is not the last sample,
 				or because the file is fragmented and the moof for that sample has been received */
-				Log.debug("ISOFile", "Creating media fragment on track #"+fragTrak.id +" for sample "+trak.nextSample); 
+				Log.debug("ISOFile", "Creating media fragment on track #"+fragTrak.id +" for sample "+trak.nextSample);
 				var result = this.createFragment(fragTrak.id, trak.nextSample, fragTrak.segmentStream);
 				if (result) {
 					fragTrak.segmentStream = result;
@@ -426,8 +428,8 @@ ISOFile.prototype.processSamples = function(last) {
 				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
 				if (trak.nextSample % fragTrak.nb_samples === 0 || (last && trak.nextSample >= trak.samples.length)) {
-					Log.info("ISOFile", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+Math.max(0,trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]"); 
-					Log.info("ISOFile", "Sample data size in memory: "+this.getAllocatedSampleDataSize()); 			
+					Log.info("ISOFile", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+Math.max(0,trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]");
+					Log.info("ISOFile", "Sample data size in memory: "+this.getAllocatedSampleDataSize());
 					if (this.onSegment) {
 						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample, (last && trak.nextSample >= trak.samples.length));
 					}
@@ -443,12 +445,12 @@ ISOFile.prototype.processSamples = function(last) {
 	}
 
 	if (this.onSamples !== null) {
-		/* For each track marked for data export, 
+		/* For each track marked for data export,
 		   check if the next sample is there (i.e. has been downloaded) and send it */
 		for (i = 0; i < this.extractedTracks.length; i++) {
 			var extractTrak = this.extractedTracks[i];
 			trak = extractTrak.trak;
-			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {				
+			while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
 				Log.debug("ISOFile", "Exporting on track #"+extractTrak.id +" sample #"+trak.nextSample);
 				var sample = this.getSample(trak, trak.nextSample);
 				if (sample) {
@@ -458,7 +460,7 @@ ISOFile.prototype.processSamples = function(last) {
 					break;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
-					Log.debug("ISOFile", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample); 
+					Log.debug("ISOFile", "Sending samples on track #"+extractTrak.id+" for sample "+trak.nextSample);
 					if (this.onSamples) {
 						this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
 					}
@@ -476,7 +478,7 @@ ISOFile.prototype.processSamples = function(last) {
 /* Find and return specific boxes using recursion and early return */
 ISOFile.prototype.getBox = function(type) {
   var result = this.getBoxes(type, true);
-  return (result.length ? result[0] : null);  
+  return (result.length ? result[0] : null);
 }
 
 ISOFile.prototype.getBoxes = function(type, returnEarly) {
@@ -505,7 +507,7 @@ ISOFile.prototype.getTrackSamplesInfo = function(track_id) {
 ISOFile.prototype.getTrackSample = function(track_id, number) {
 	var track = this.getTrackById(track_id);
 	var sample = this.getSample(track, number);
-	return sample;	
+	return sample;
 }
 
 /* Called by the application to release the resources associated to samples already forwarded to the application */
@@ -547,11 +549,11 @@ ISOFile.prototype.seekTrack = function(time, useRap, trak) {
 	var rap_seek_sample_num = 0;
 	var seek_sample_num = 0;
 	var timescale;
-	
+
 	if (trak.samples.length === 0) {
 		Log.info("ISOFile", "No sample in track, cannot seek! Using time "+Log.getDurationString(0, 1) +" and offset: "+0);
 		return { offset: 0, time: 0 };
-	} 
+	}
 
 	for (j = 0; j < trak.samples.length; j++) {
 		sample = trak.samples[j];
@@ -590,7 +592,7 @@ ISOFile.prototype.seek = function(time, useRap) {
 		throw "Cannot seek: moov not received!";
 	} else {
 		for (i = 0; i<moov.traks.length; i++) {
-			trak = moov.traks[i];			
+			trak = moov.traks[i];
 			trak_seek_info = this.seekTrack(time, useRap, trak);
 			if (trak_seek_info.offset < seek_info.offset) {
 				seek_info.offset = trak_seek_info.offset;
@@ -615,5 +617,5 @@ ISOFile.prototype.seek = function(time, useRap) {
 }
 
 if (typeof exports !== 'undefined') {
-	exports.ISOFile = ISOFile;	
+	exports.ISOFile = ISOFile;
 }
