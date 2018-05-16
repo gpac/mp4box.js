@@ -17,7 +17,7 @@ BoxParser.createFullBoxCtor("stsd", function(stream) {
 				box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start);
 			}
 			if (box.write === BoxParser.SampleEntry.prototype.write) {
-				Log.warn("BoxParser", box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
+				Log.info("BoxParser", "SampleEntry "+box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
 				box.parseDataAndRewind(stream);
 			}
 			box.parse(stream);

@@ -29,7 +29,7 @@ BoxParser.createFullBoxCtor("sgpd", function(stream) {
 			entry.description_length = this.default_length;
 		}
 		if (entry.write === BoxParser.SampleGroupEntry.prototype.write) {
-			Log.warn("BoxParser", " SampleEntry for type "+this.grouping_type+" writing not yet implemented, keeping unparsed data in memory for later write");
+			Log.info("BoxParser", "SampleGroup for type "+this.grouping_type+" writing not yet implemented, keeping unparsed data in memory for later write");
 			// storing data
 			entry.data = stream.readUint8Array(entry.description_length);
 			// rewinding
