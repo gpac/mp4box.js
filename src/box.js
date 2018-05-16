@@ -24,7 +24,7 @@ var BoxParser = {
 		[ "vttc" ],
 		[ "tref" ],
 		[ "iref" ],
-		[ "mfra" ],
+		[ "mfra", [ "tfra" ] ],
 		[ "meco" ],
 		[ "hnti" ],
 		[ "hinf" ],
