@@ -31,6 +31,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	}
 	var size = stream.readUint32();
 	var type = stream.readString(4);
+	var box_type = type;
 	Log.debug("BoxParser", "Found box of type '"+type+"' and size "+size+" at position "+start);
 	hdr_size = 8;
 	if (type == "uuid") {
@@ -41,6 +42,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 		}
 		uuid = BoxParser.parseUUID(stream);
 		hdr_size += 16;
+		box_type = uuid;
 	}
 	if (size == 1) {
 		if ((stream.getEndPosition() - stream.getPosition() < 8) || (parentSize && (parentSize - hdr_size) < 8)) {
@@ -65,7 +67,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	}
 	if (size < hdr_size) {
 		Log.error("BoxParser", "Box of type "+type+" has an invalid size "+size+" (too small to be a box)");
-		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };		
+		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };
 	}
 	if (parentSize && size > parentSize) {
 		Log.error("BoxParser", "Box of type '"+type+"' has a size "+size+" greater than its container size "+parentSize);
@@ -102,16 +104,16 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	/* recording the position of the box in the input stream */
 	box.start = start;
 	if (box.write === BoxParser.Box.prototype.write && box.type !== "mdat") {
-		Log.warn("BoxParser", "'"+box.type+"' box writing not yet implemented, keeping unparsed data in memory for later write");
+		Log.warn("BoxParser", "'"+box_type+"' box writing not yet implemented, keeping unparsed data in memory for later write");
 		box.parseDataAndRewind(stream);
 	}
 	box.parse(stream);
 	diff = stream.getPosition() - (box.start+box.size);
 	if (diff < 0) {
-		Log.warn("BoxParser", "Parsing of box '"+box.type+"' did not read the entire indicated box data size (missing "+(-diff)+" bytes), seeking forward");
+		Log.warn("BoxParser", "Parsing of box '"+box_type+"' did not read the entire indicated box data size (missing "+(-diff)+" bytes), seeking forward");
 		stream.seek(box.start+box.size);
 	} else if (diff > 0) {
-		Log.error("BoxParser", "Parsing of box '"+box.type+"' read "+diff+" more bytes than the indicated box data size, seeking backwards");
+		Log.error("BoxParser", "Parsing of box '"+box_type+"' read "+diff+" more bytes than the indicated box data size, seeking backwards");
 		stream.seek(box.start+box.size);
 	}
 	return { code: BoxParser.OK, box: box, size: box.size };
