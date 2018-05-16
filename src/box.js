@@ -179,7 +179,18 @@ var BoxParser = {
 			}
 		}
 		BoxParser.UUIDBoxes[uuid].prototype = (isFullBox ? new BoxParser.FullBox() : (isContainerBox ? new BoxParser.ContainerBox() : new BoxParser.Box()));
-		if (parseMethod) BoxParser.UUIDBoxes[uuid].prototype.parse = parseMethod;
+		if (parseMethod) {
+			if (isFullBox) {
+				BoxParser.UUIDBoxes[uuid].prototype.parse = function(stream) {
+					this.parseFullHeader(stream);
+					if (parseMethod) {
+						parseMethod.call(this, stream);
+					}
+				}
+			} else {
+				BoxParser.UUIDBoxes[uuid].prototype.parse = parseMethod;
+			}
+		}
 	}
 }
 
