@@ -3,7 +3,7 @@ BoxParser.createBoxCtor("dec3", function(stream) {
 	this.data_rate = tmp_16 >> 3;
 	this.num_ind_sub = tmp_16 & 0x7;
 	this.ind_subs = [];
-	for (var i = 0; i < this.num_ind_sub; i++) {
+	for (var i = 0; i < this.num_ind_sub+1; i++) {
 		var ind_sub = {};
 		this.ind_subs.push(ind_sub);
 		var tmp_byte1 = stream.readUint8();
