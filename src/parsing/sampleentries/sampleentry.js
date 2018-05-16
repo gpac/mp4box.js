@@ -6,12 +6,6 @@ BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE 	= "Subtitle";
 BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM 		= "System";
 BoxParser.SAMPLE_ENTRY_TYPE_TEXT 		= "Text";
 
-BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_HINT);
-BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA);
-BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE);
-BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM);
-BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT);
-
 BoxParser.SampleEntry.prototype.parseHeader = function(stream) {
 	stream.readUint8Array(6);
 	this.data_reference_index = stream.readUint16();
@@ -24,8 +18,7 @@ BoxParser.SampleEntry.prototype.parse = function(stream) {
 }
 
 BoxParser.SampleEntry.prototype.parseDataAndRewind = function(stream) {
-	this.parseHeader(stream);
-	this.data = stream.readUint8Array(this.size - this.hdr_size);
+	this.parse(stream);
 	// restore the header size as if the sample entry header had not been parsed
 	this.hdr_size -= 8;
 	// rewinding
@@ -33,20 +26,17 @@ BoxParser.SampleEntry.prototype.parseDataAndRewind = function(stream) {
 }
 
 BoxParser.SampleEntry.prototype.parseFooter = function(stream) {
-	var ret;
-	var box;
-	while (stream.getPosition() < this.start+this.size) {
-		ret = BoxParser.parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
-		if (ret.code === BoxParser.OK) {
-			box = ret.box;
-			this.boxes.push(box);
-			this[box.type] = box;
-		} else {
-			return;
-		}
-	}
+	BoxParser.ContainerBox.prototype.parse.call(this, stream);
 }
 
+// Base SampleEntry types with default parsing
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_HINT);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM);
+BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT);
+
+//Base SampleEntry types for Audio and Video with specific parsing
 BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, function(stream) {
 	this.parseHeader(stream);
 	stream.readUint16();
@@ -79,16 +69,18 @@ BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, function
 	this.parseFooter(stream);
 });
 
+// Sample entries inheriting from Audio and Video
 BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "avc1");
 BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "av01");
 BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "hvc1");
-BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, "mp4a");
+BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, 	"mp4a");
 
-BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, "encv");
-BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, "enca");
-BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE, "encu");
-BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM, "encs");
-BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT, "enct");
-BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA, "encm");
+// Encrypted sample entries
+BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, 	"encv");
+BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_AUDIO, 	"enca");
+BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE, 	"encu");
+BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM, 	"encs");
+BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT, 		"enct");
+BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA, 	"encm");
 
 

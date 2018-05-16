@@ -11,7 +11,7 @@ var BoxParser = {
 	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "strk" ],
 	FULL_BOXES: [ "smhd", "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere", "vpcC" ],
 	CONTAINER_BOXES: [
-		[ "moov", [ "trak" ] ],
+		[ "moov", [ "trak", "pssh" ] ],
 		[ "trak" ],
 		[ "edts" ],
 		[ "mdia" ],
@@ -50,7 +50,7 @@ var BoxParser = {
 	initialize: function() {
 		BoxParser.FullBox.prototype = new BoxParser.Box();
 		BoxParser.ContainerBox.prototype = new BoxParser.Box();
-		BoxParser.SampleEntry.prototype = new BoxParser.FullBox();
+		BoxParser.SampleEntry.prototype = new BoxParser.Box();
 		BoxParser.TrackGroupTypeBox.prototype = new BoxParser.FullBox();
 
 		/* creating constructors for simple boxes */
@@ -79,10 +79,9 @@ var BoxParser = {
 		this.boxes = [];
 	},
 	SampleEntry: function(type, size, hdr_size, start) {
-		BoxParser.Box.call(this, type, size);
+		BoxParser.ContainerBox.call(this, type, size);
 		this.hdr_size = hdr_size;
 		this.start = start;
-		this.boxes = [];
 	},
 	SampleGroupEntry: function(type) {
 		this.grouping_type = type;
@@ -111,36 +110,44 @@ var BoxParser = {
 			}
 		};
 	},
+	addSubBoxArrays: function(subBoxNames) {
+		if (subBoxNames) {
+			this.subBoxNames = subBoxNames;
+			var nbSubBoxes = subBoxNames.length;
+			for (var k = 0; k<nbSubBoxes; k++) {
+				this[subBoxNames[k]+"s"] = [];
+			}
+		}
+	},
 	createContainerBoxCtor: function(type, parseMethod, subBoxNames) {
 		//BoxParser.containerBoxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
 			BoxParser.ContainerBox.call(this, type, size);
-			if (subBoxNames) {
-				this.subBoxNames = subBoxNames;
-				var nbSubBoxes = subBoxNames.length;
-				for (var k = 0; k<nbSubBoxes; k++) {
-					this[subBoxNames[k]+"s"] = [];
-				}
-			}
+			BoxParser.addSubBoxArrays.call(this, subBoxNames);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.ContainerBox();
 		if (parseMethod) BoxParser[type+"Box"].prototype.parse = parseMethod;
 	},
-	createMediaSampleEntryCtor: function(mediaType, parseMethod) {
+	createMediaSampleEntryCtor: function(mediaType, parseMethod, subBoxNames) {
 		BoxParser.sampleEntryCodes[mediaType] = [];
 		BoxParser[mediaType+"SampleEntry"] = function(type, size) {
 			BoxParser.SampleEntry.call(this, type, size);
+			BoxParser.addSubBoxArrays.call(this, subBoxNames);
 		};
 		BoxParser[mediaType+"SampleEntry"].prototype = new BoxParser.SampleEntry();
 		if (parseMethod) BoxParser[mediaType+"SampleEntry"].prototype .parse = parseMethod;
 	},
-	createSampleEntryCtor: function(mediaType, type, parseMethod) {
-		//BoxParser.sampleEntryCodes[mediaType].push(type);
+	createSampleEntryCtor: function(mediaType, type, parseMethod, subBoxNames) {
+		BoxParser.sampleEntryCodes[mediaType].push(type);
 		BoxParser[type+"SampleEntry"] = function(size) {
 			BoxParser[mediaType+"SampleEntry"].call(this, type, size);
+			BoxParser.addSubBoxArrays.call(this, subBoxNames);
 		};
 		BoxParser[type+"SampleEntry"].prototype = new BoxParser[mediaType+"SampleEntry"]();
 		if (parseMethod) BoxParser[type+"SampleEntry"].prototype.parse = parseMethod;
+	},
+	createEncryptedSampleEntryCtor: function(mediaType, type, parseMethod) {
+		BoxParser.createSampleEntryCtor.call(this, mediaType, type, parseMethod, ["sinf"]);
 	},
 	createSampleGroupCtor: function(type, parseMethod) {
 		//BoxParser.sampleGroupEntryCodes.push(type);
