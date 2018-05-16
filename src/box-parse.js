@@ -75,7 +75,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 	}
 	if (start + size > stream.getEndPosition()) {
 		stream.seek(start);
-		Log.warn("BoxParser", "Not enough data in stream to parse the entire '"+type+"' box");
+		Log.info("BoxParser", "Not enough data in stream to parse the entire '"+type+"' box");
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };
 	}
 	if (headerOnly) {
