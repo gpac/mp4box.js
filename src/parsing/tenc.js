@@ -9,7 +9,7 @@ BoxParser.createFullBoxCtor("tenc", function(stream) {
 	}
 	this.default_isProtected = stream.readUint8();
 	this.default_Per_Sample_IV_Size = stream.readUint8();
-	this.default_KID = stream.readUint8Array(16);
+	this.default_KID = BoxParser.parseHex16(stream);
 	if (this.default_isProtected === 1 && this.default_Per_Sample_IV_Size === 0) {
 		this.default_constant_IV_size = stream.readUint8();
 		this.default_constant_IV = stream.readUint8Array(this.default_constant_IV_size);

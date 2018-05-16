@@ -1,10 +1,10 @@
 BoxParser.createFullBoxCtor("pssh", function(stream) {
-	this.system_id = stream.readUint8Array(16);
+	this.system_id = BoxParser.parseHex16(stream);
 	if (this.version > 0) {
 		var count = stream.readUint32();
 		this.kid = [];
 		for (var i = 0; i < count; i++) {
-			this.kid[i] = stream.readUint8Array(16);
+			this.kid[i] = BoxParser.parseHex16(stream);
 		}
 	}
 	var datasize = stream.readUint32();

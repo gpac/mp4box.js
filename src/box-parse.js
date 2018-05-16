@@ -3,12 +3,16 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 BoxParser.parseUUID = function(stream) {
-	var uuid = ""
+	return BoxParser.parseHex16(stream);
+}
+
+BoxParser.parseHex16 = function(stream) {
+	var hex16 = ""
 	for (var i = 0; i <16; i++) {
 		var hex = stream.readUint8().toString(16);
-		uuid += (hex.length === 1 ? "0"+hex : hex);
+		hex16 += (hex.length === 1 ? "0"+hex : hex);
 	}
-	return uuid;
+	return hex16;
 }
 
 BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
