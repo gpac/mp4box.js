@@ -95,7 +95,7 @@ var MPEG4DescriptorParser = function () {
 			this.URL = stream.readString(l);
 			this.size -= l+1;
 		} else {
-			this.URL = null;
+			this.URL = "";
 		}
 		if (this.flags & 0x20) {
 			this.OCR_ES_ID = stream.readUint16();
