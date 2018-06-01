@@ -160,6 +160,14 @@ MP4BoxStream.prototype.readUint8Array = function(length) {
 MP4BoxStream.prototype.readInt16Array = function(length) {
   var arr = new Int16Array(length);
   for (var i = 0; i < length; i++) {
+    arr[i] = this.readInt16();
+  }
+  return arr;
+}
+
+MP4BoxStream.prototype.readUint16Array = function(length) {
+  var arr = new Int16Array(length);
+  for (var i = 0; i < length; i++) {
     arr[i] = this.readUint16();
   }
   return arr;
