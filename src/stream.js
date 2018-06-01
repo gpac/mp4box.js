@@ -145,6 +145,10 @@ MP4BoxStream.prototype.readInt32 = function() {
   return this.readAnyInt(4, true);
 }
 
+MP4BoxStream.prototype.readInt64 = function() {
+  return this.readAnyInt(8, false);
+}
+
 MP4BoxStream.prototype.readUint8Array = function(length) {
   var arr = new Uint8Array(length);
   for (var i = 0; i < length; i++) {
