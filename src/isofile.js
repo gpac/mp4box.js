@@ -290,7 +290,7 @@ ISOFile.prototype.getInfo = function() {
 	var trak;
 	var track;
 	var sample_desc;
-	var _1904 = (new Date(4, 0, 1, 0, 0, 0, 0).getTime());
+	var _1904 = (new Date('1904-01-01T00:00:00Z').getTime());
 
 	if (this.moov) {
 		movie.hasMoov = true;
