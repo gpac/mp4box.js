@@ -108,16 +108,34 @@ function loadHandler(fileobj, loadbutton, progressbar, progresslabel) {
 }
 
 function createFancyTree(parent, fileobj) {
+	var boxtreeviewdiv = $('<div></div>');
+	boxtreeviewdiv.css("width", "45%");
+	boxtreeviewdiv.css("float", "left");
+	boxtreeviewdiv.css("padding", "1%");
+	parent.append(boxtreeviewdiv);
+
+	var boxtreediv = $('<div></div>');
+	boxtreeviewdiv.append(boxtreediv);
+	boxtreediv.css("width", "30%");
+	boxtreediv.css("float", "left");
+
+	var boxtreetable = $('<div></div>');
+	boxtreeviewdiv.append(boxtreetable);
+	boxtreetable.html(generateBoxTable({}));
+
 	var fancytree_options = {};
 	fancytree_options.autoScroll = true;
 	fancytree_options.source = [];
-	var boxtreediv = $('<div></div>');
-	boxtreediv.css("width", "45%");
-	boxtreediv.css("float", "left");
-	boxtreediv.css("padding", "1%");
-	parent.append(boxtreediv);
+	fancytree_options.activate = function(event, data) {
+		var node = data.node;
+		if( !$.isEmptyObject(node.data) ){
+			boxtreetable.html(generateBoxTable(node.data.box));
+		}
+	};
 	boxtreediv.fancytree(fancytree_options);
 	fileobj.fancytree = boxtreediv.fancytree('getTree');
+
+
 }
 
 window.onload = function () {
@@ -134,17 +152,33 @@ window.onload = function () {
 	}
 }
 
-function getFancyTreeDataFromBoxes(boxes, expected_boxes) {
+function getFancyTreeDiffedDataFromBoxes(boxes, expected_boxes) {
 	var array = [];
+	var expected_boxes_compared = [];
+	if (expected_boxes) {
+		for (var j = 0; j < expected_boxes.length; j++) {
+			expected_boxes_compared[j] = false;
+		}
+	}
 	for (var i = 0; i < boxes.length; i++) {
 		var box = boxes[i];
-		var expected_box = (expected_boxes ? expected_boxes[i] : undefined);
+		var expected_box = undefined;
+		if (expected_boxes) {
+			for (var j = 0; j < expected_boxes.length; j++) {
+				if (expected_boxes[j].type === box.type && expected_boxes[j].uuid === box.uuid && !expected_boxes_compared[j]) {
+					expected_box = expected_boxes[j];
+					expected_boxes_compared[j] = true;
+					break;
+				}
+			}
+		}
 		var fancytree_node = {};
 		array.push(fancytree_node);
 		fancytree_node.title = box.type || i;
 		fancytree_node.data = { 'box': box };
-		if (!mp4box_box_equal(box, expected_box)) {
-			fancytree_node.extraClasses = 'treediff';
+		if (!expected_box || !mp4box_box_equal_fields(box, expected_box)) {
+			fancytree_node.extraClasses = 'fields_diff';
+			array.diff = true;
 		}
 		var child_prop_names = [ "boxes", "entries", "references", "subsamples",
 								 "items", "item_infos", "extents", "associations", "subsegments", "ranges", "seekLists", "seekPoints", "esd", "levels"];
@@ -155,7 +189,13 @@ function getFancyTreeDataFromBoxes(boxes, expected_boxes) {
 				if (name === "esd") {
 					fancytree_node.children = getFancyTreeDataFromDesc(box[name], expected_box ? expected_box[name] : expected_box);
 				} else {
-					fancytree_node.children = getFancyTreeDataFromBoxes(box[name], expected_box ? expected_box[name] : expected_box);
+					fancytree_node.children = getFancyTreeDiffedDataFromBoxes(box[name], expected_box ? expected_box[name] : expected_box);
+				}
+				if (fancytree_node.children.diff) {
+					if (fancytree_node.extraClasses !== 'fields_diff') {
+						fancytree_node.extraClasses = 'children_diff';
+					}
+					array.diff = true;
 				}
 			}
 		}
@@ -169,10 +209,10 @@ function finalizeUI(fileobj, loadbutton, success) {
 
 		if (file_a.mp4boxfile != null && file_b.mp4boxfile != null) {
 
-			var treeboxes = getFancyTreeDataFromBoxes(file_a.mp4boxfile.boxes, file_b.mp4boxfile.boxes);
+			var treeboxes = getFancyTreeDiffedDataFromBoxes(file_a.mp4boxfile.boxes, file_b.mp4boxfile.boxes);
 			file_a.fancytree.reload(treeboxes);
 
-			var treeboxes = getFancyTreeDataFromBoxes(file_b.mp4boxfile.boxes, file_a.mp4boxfile.boxes);
+			var treeboxes = getFancyTreeDiffedDataFromBoxes(file_b.mp4boxfile.boxes, file_a.mp4boxfile.boxes);
 			file_b.fancytree.reload(treeboxes);
 
 			if (mp4box_file_equal(file_a.mp4boxfile, file_b.mp4boxfile)) {
@@ -199,9 +239,9 @@ function createLoadBar(parent, label, id, fileobj) {
 	selectdiv.append(loadbarlabel);
 
 	var loadbarselect = $('<select name="'+id+'input_type" id="input_type">\
-			      <option>File</option>\
+			      <option selected="selected">File</option>\
 			      <option>URL</option>\
-			      <option selected="selected">Example</option>\
+			      <option>Example</option>\
 			    </select>');
 	selectdiv.append(loadbarselect);
 
@@ -212,9 +252,13 @@ function createLoadBar(parent, label, id, fileobj) {
 	var loadbarfileswitch = $('<div></div>');
 	loadbarfileswitch.attr('id', id+'_tabs-file');
 	loadbarswitch.append(loadbarfileswitch);
-	loadbarfileswitch.hide();
+	loadbarfileswitch.show();
 
 	var loadbarfileinput = $('<input type="file" id="'+id+'_fileinput">');
+	loadbarfileinput[0].onchange = function(e) {
+		fileobj.objectToLoad = loadbarfileinput[0].files[0];
+		fileobj.objectIsFile = true;
+	}
 	loadbarfileinput.width(500);
 	loadbarfileinput.button();
 
@@ -230,15 +274,15 @@ function createLoadBar(parent, label, id, fileobj) {
 	loadbarurlinput.addClass("ui-widget ui-widget-content ui-corner-all");
 
 	loadbarurlinput[0].onchange = function(e) {
-		fileobj.objectToLoad = urlinput.val();
+		fileobj.objectToLoad = loadbarurlinput.val();
 		fileobj.objectIsFile = false;
-		console.log(fileobj.objectIsFile, fileobj.objectToLoad);
 	}
 	loadbarurlswitch.append(loadbarurlinput);
 
 	var loadbarexampleswitch = $('<div></div>');
 	loadbarexampleswitch.attr('id', id+'_tabs-example');
 	loadbarswitch.append(loadbarexampleswitch);
+	loadbarexampleswitch.hide();
 
 	var loadbarexampleselect = $('<select id="'+id+'_urlSelector"></select>');
 	loadbarexampleswitch.append(loadbarexampleselect);
@@ -305,7 +349,8 @@ var MP4BOX_BOXES_PROP_NAMES = [ "boxes", "entries", "references", "subsamples",
 					 	 "subsegments", "ranges", "seekLists", "seekPoints",
 					 	 "esd", "levels"];
 
-var MP4BOX_PRIMITIVE_ARRAY_PROP_NAMES = [ "compatible_brands" ];
+var MP4BOX_PRIMITIVE_ARRAY_PROP_NAMES = [ "compatible_brands", "matrix", "opcolor", "sample_counts", "sample_counts", "sample_deltas",
+"first_chunk", "samples_per_chunk", "sample_sizes", "chunk_offsets", "sample_offsets", "sample_description_index", "sample_duration" ];
 
 function mp4box_box_equal_fields(box_a, box_b) {
 	if (box_a && !box_b) return false;
@@ -326,7 +371,7 @@ function mp4box_box_equal_fields(box_a, box_b) {
 			(box_b.subBoxNames && box_b.subBoxNames.indexOf(prop.slice(0,4)) > -1))  {
 			continue;
 		} else {
-			if (prop === "data") {
+			if (prop === "data" || prop === "start" || prop === "size" || prop === "creation_time" || prop === "modification_time") {
 				continue;
 			} else if (MP4BOX_PRIMITIVE_ARRAY_PROP_NAMES.indexOf(prop) > -1) {
 				continue;
