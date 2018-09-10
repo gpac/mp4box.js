@@ -35,4 +35,9 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
-
+  - provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN
+    keep-history: true
+    on:
+      branch: master
