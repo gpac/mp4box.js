@@ -14,7 +14,7 @@ It can be used to:
 - [segment](#segmentation) an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - [extract](#extraction) samples from an MP4 to create TextTracks.
 
-A Player demo is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/), a File Analyzer is available [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/filereader.html), and some QUnit tests are [here](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/qunit.html)
+A Player demo is available [here](./test/index.html), a File Analyzer is available [here](./test/filereader.html), and some QUnit tests are [here](./test/qunit.html)
 
 On this page, you'll find documentation on how to [build MP4box.js](#build), [use it in a browser](#browser-usage) or [in Node JS](#node-usage) or [contribute](#contribute).
 
@@ -22,7 +22,7 @@ API
 ===
 
 ### Getting Information ###
-Similar to `MP4Box -info file.mp4`, MP4Box.js can provide general information about the file (duration, number and types of tracks ...). For that, create an MP4Box object, set the `onReady` callback and provide data in the form of ArrayBuffer objects. MP4Box.js supports progressive parsing. You can provide small buffers at a time, the callback will be called when the 'moov' box is parsed.
+Similar to `MP4Box -info file.mp4`, MP4Box.js can provide general information about the file (duration, number and types of tracks ...). For that, create an MP4Box ISOFile object, set the `onReady` callback and provide data in the form of ArrayBuffer objects. MP4Box.js supports progressive parsing. You can provide small buffers at a time, the callback will be called when the 'moov' box is parsed.
 
 ```javascript
 var MP4Box = require('mp4box'); // Or whatever import method you prefer.
@@ -176,7 +176,7 @@ Indicates that no more data will be received and that all remaining samples shou
 ### Segmentation ###
 
 ```javascript
-var mp4box = new MP4Box();
+var mp4box = MP4Box.createFile();
 mp4boxfile.onReady = function(info) {
   ...
   mp4boxfile.onSegment = function (id, user, buffer) {}
@@ -235,7 +235,7 @@ Indicates that the application is ready to receive segments. Returns an array of
 ### Extraction ###
 It is possible to extract the samples of a track, in a similar manner to the segmentation process.
 ```javascript
-var mp4box = new MP4Box();
+var mp4box = MP4Box.createFile();
 mp4boxfile.onReady = function(info) {
   ...
   /* create a texttrack */
