@@ -6,7 +6,7 @@
 *.xml
 node_modules/*
 dist/
-test/lib*/
+test/lib_*/
 test/coverage/
 test/mp4/
 test/ff-conformance/
