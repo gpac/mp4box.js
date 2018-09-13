@@ -12,9 +12,6 @@ file_b.fancytree = null;
 
 Log.setLogLevel(Log.debug);
 
-var chunkSize  = 1024 * 1024; // bytes
-
-
 window.onload = function () {
 	createLoadBar($('#menubar'), "File A", "fileA", file_a, finalizeDiffUI);
 	createLoadBar($('#menubar'), "File B", "fileB", file_b, finalizeDiffUI);
