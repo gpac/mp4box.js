@@ -20,6 +20,7 @@ Demos
 =====
 * [A player that performes on-the-fly fragmentation](./test/index.html)
 * [A file inspection tool](./test/filereader.html)
+* [A file diff tool](./test/filediff.html)
 * [QUnit tests](./test/qunit.html)
 
 API
