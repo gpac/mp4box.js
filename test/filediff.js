@@ -153,18 +153,19 @@ window.onload = function () {
 }
 
 function getFancyTreeDiffedDataFromBoxes(boxes, expected_boxes) {
+	var j;
 	var array = [];
 	var expected_boxes_compared = [];
 	if (expected_boxes) {
-		for (var j = 0; j < expected_boxes.length; j++) {
+		for (j = 0; j < expected_boxes.length; j++) {
 			expected_boxes_compared[j] = false;
 		}
 	}
 	for (var i = 0; i < boxes.length; i++) {
 		var box = boxes[i];
-		var expected_box = undefined;
+		var expected_box;
 		if (expected_boxes) {
-			for (var j = 0; j < expected_boxes.length; j++) {
+			for (j = 0; j < expected_boxes.length; j++) {
 				if (expected_boxes[j].type === box.type && expected_boxes[j].uuid === box.uuid && !expected_boxes_compared[j]) {
 					expected_box = expected_boxes[j];
 					expected_boxes_compared[j] = true;
@@ -182,7 +183,7 @@ function getFancyTreeDiffedDataFromBoxes(boxes, expected_boxes) {
 		}
 		var child_prop_names = [ "boxes", "entries", "references", "subsamples",
 								 "items", "item_infos", "extents", "associations", "subsegments", "ranges", "seekLists", "seekPoints", "esd", "levels"];
-		for (var j = 0; j < child_prop_names.length; j++) {
+		for (j = 0; j < child_prop_names.length; j++) {
 			var name = child_prop_names[j];
 			if (box[name]) {
 				fancytree_node.folder = true;
@@ -212,7 +213,7 @@ function finalizeUI(fileobj, loadbutton, success) {
 			var treeboxes = getFancyTreeDiffedDataFromBoxes(file_a.mp4boxfile.boxes, file_b.mp4boxfile.boxes);
 			file_a.fancytree.reload(treeboxes);
 
-			var treeboxes = getFancyTreeDiffedDataFromBoxes(file_b.mp4boxfile.boxes, file_a.mp4boxfile.boxes);
+			treeboxes = getFancyTreeDiffedDataFromBoxes(file_b.mp4boxfile.boxes, file_a.mp4boxfile.boxes);
 			file_b.fancytree.reload(treeboxes);
 
 			if (mp4box_file_equal(file_a.mp4boxfile, file_b.mp4boxfile)) {
@@ -238,11 +239,12 @@ function createLoadBar(parent, label, id, fileobj) {
 	var loadbarlabel = $('<label for="'+id+'_input_type">'+label+': </label>');
 	selectdiv.append(loadbarlabel);
 
-	var loadbarselect = $('<select name="'+id+'input_type" id="input_type">\
-			      <option selected="selected">File</option>\
-			      <option>URL</option>\
-			      <option>Example</option>\
-			    </select>');
+	var loadbarHTML = '<select name="'+id+'input_type" id="input_type">'+
+						'<option selected="selected">File</option>'+
+						'<option>URL</option>'+
+						'<option>Example</option>'+
+						'</select>';
+	var loadbarselect = $(loadbarHTML);
 	selectdiv.append(loadbarselect);
 
 	var loadbarswitch = $('<div></div>');
