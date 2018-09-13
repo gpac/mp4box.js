@@ -616,6 +616,19 @@ ISOFile.prototype.seek = function(time, useRap) {
 	}
 }
 
+ISOFile.prototype.equal = function(b) {
+	var box_index = 0;
+	while (box_index < this.boxes.length && box_index < b.boxes.length) {
+		var a_box = this.boxes[box_index];
+		var b_box = b.boxes[box_index];
+		if (!BoxParser.boxEqual(a_box, b_box)) {
+			return false;
+		}
+		box_index++;
+	}
+	return true;
+}
+
 if (typeof exports !== 'undefined') {
 	exports.ISOFile = ISOFile;
 }
