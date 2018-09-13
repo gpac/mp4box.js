@@ -14,9 +14,13 @@ It can be used to:
 - [segment](#segmentation) an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - [extract](#extraction) samples from an MP4 to create TextTracks.
 
-A Player demo is available [here](./test/index.html), a File Analyzer is available [here](./test/filereader.html), and some QUnit tests are [here](./test/qunit.html)
-
 On this page, you'll find documentation on how to [build MP4box.js](#build), [use it in a browser](#browser-usage) or [in Node JS](#node-usage) or [contribute](#contribute).
+
+Demos
+=====
+* [A player that performes on-the-fly fragmentation](./test/index.html)
+* [A file inspection tool](./test/filereader.html)
+* [QUnit tests](./test/qunit.html)
 
 API
 ===
