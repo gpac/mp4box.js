@@ -18,7 +18,7 @@ On this page, you'll find documentation on how to [build MP4box.js](#build), [us
 
 Demos
 =====
-* [A player that performes on-the-fly fragmentation](./test/index.html)
+* [A player that performs on-the-fly fragmentation](./test/index.html)
 * [A file inspection tool](./test/filereader.html)
 * [A file diff tool](./test/filediff.html)
 * [QUnit tests](./test/qunit.html)
