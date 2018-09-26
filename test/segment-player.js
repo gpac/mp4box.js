@@ -22,17 +22,16 @@ function getFile(url, callback) {
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, true);
 	xhr.responseType = "arraybuffer";
-	xhr.onreadystatechange = function (e) { 
+	xhr.onreadystatechange = function (e) {
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
-			callback(xhr.response); 
+			callback(xhr.response);
 		}
 	};
 	xhr.send();
 }
 
-window.onload = function () {
+function initializeMSEEME(){
 	video = document.getElementById('v');
-
 	mediaSource = new MediaSource();
 	mediaSource.video = video;
 	video.ms = mediaSource;
@@ -40,7 +39,7 @@ window.onload = function () {
 	mediaSource.addEventListener("sourceclose", onSourceClose);
 	video.src = window.URL.createObjectURL(mediaSource);
 	if (initializeEME) {
-		initializeEME(video);
+		initializeEME(video, document.getElementById("mime").value, document.getElementById("key").value);
     }
 	document.getElementById('dropArea').addEventListener('dragover', dragenter);
 	document.getElementById('dropArea').addEventListener('dragenter', dragenter);

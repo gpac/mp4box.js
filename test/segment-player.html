@@ -6,11 +6,13 @@
 		<script src="segment-player.js"></script>
     </head>
 	<body>
-		<label>MIME type: <input text="type" name="mime" id="mime" style="width: 50%;" value='video/mp4; codecs="avc1.640029"'></label>
-		<video id="v" width="640" height="480" autoplay controls> </video>
+		<label>MIME type: <input text="type" name="mime" id="mime" style="width: 50%;" value='video/mp4; codecs="avc1.640029"'></label><br>
+		<label>Encryption key (16 bytes hex): <input text="type" name="key" id="key" style="width: 50%;" value='00000000000000000000000000000000'></label><br>
+		<button onclick="initializeMSEEME()">Initialize MSE/EME (ClearKey DRM System)</button><br>
 		<div id='dropArea' style="width: 100%; height: 10%; background-color: lightgrey">
-		<input id="fileinput" type="file" onchange='drop()'>Drop segments here</input>
-		<div id="status">Nothing</div>
+		<input id="fileinput" type="file" onchange='drop()'> or drop segments here</input>
+		<div id="status">No segment yet loaded</div>
 		</div>
+		<video id="v" width="640" height="480" autoplay controls> </video>
 	</body>
 </html>
