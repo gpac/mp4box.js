@@ -11,14 +11,14 @@
 		<p>Usage:</p>
 		<ul>
 			<li>set the MIME type of your file,</li>
-			<li>set the encryption key if encryption is used<br>Note that playback will only work if your file contains a <a href="https://w3c.github.io/encrypted-media/format-registry/initdata/cenc.html#common-system">Common System ID pssh</a></li>
+			<li>if your file is encrypted, tick the checkbox and set the encryption key <br>Note that playback will only work if your file contains a <a href="https://w3c.github.io/encrypted-media/format-registry/initdata/cenc.html#common-system">Common System ID pssh</a></li>
 			<li>Click the Initialize button</li>
 			<li>Load or drag and drop your file(s) as you would like them to be appended to the SourceBuffer</li>
 		</ul>
 		<p>Note: Nothing is uploaded to any server. All processing is done in your browser</p>
 		<div>
 			<p><label>MIME type: <input text="type" name="mime" id="mime" style="width: 50%;" value='video/mp4; codecs="avc1.640029"'></label></p>
-			<p><label>Encryption key (16 bytes hex): <input text="type" name="key" id="key" style="width: 50%;" value='00000000000000000000000000000000'></label></p>
+			<p><label>Encryption key (16 bytes hex): <input type="checkbox" name="encryption_enabled" id="encryption_enabled"> <input text="type" name="key" id="key" style="width: 50%;" value='00000000000000000000000000000000'></label></p>
 			<p><button onclick="initializeMSEEME()">Initialize MSE/EME (ClearKey DRM System)</button></p>
 			<div id='dropArea' style="width: 100%; height: 10%; background-color: lightgrey">
 			<input id="fileinput" type="file" onchange='drop()'> or drop segments here</input>

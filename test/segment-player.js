@@ -38,7 +38,7 @@ function initializeMSEEME(){
 	mediaSource.addEventListener("sourceopen", onSourceOpen);
 	mediaSource.addEventListener("sourceclose", onSourceClose);
 	video.src = window.URL.createObjectURL(mediaSource);
-	if (initializeEME) {
+	if (initializeEME && document.getElementById("encryption_enabled").checked) {
 		initializeEME(video, document.getElementById("mime").value, document.getElementById("key").value);
     }
 	document.getElementById('dropArea').addEventListener('dragover', dragenter);
