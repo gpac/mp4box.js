@@ -70,6 +70,27 @@ ISOFile.prototype.flattenItemInfo = function() {
 			}
 		}
 	}
+	if (meta.iprp) {
+		for (var k = 0; k < meta.iprp.ipmas.length; k++) {
+			var ipma = meta.iprp.ipmas[k];
+			for (i = 0; i < ipma.associations.length; i++) {
+				var association = ipma.associations[i];
+				item = items[association.id];
+				if (item.properties === undefined) {
+					item.properties = {};
+					item.properties.boxes = [];
+				}
+				for (j = 0; j < association.props.length; j++) {
+					var propEntry = association.props[j];
+					if (propEntry.property_index > 0) {
+						var propbox = meta.iprp.ipco.boxes[propEntry.property_index-1];
+						item.properties[propbox.type] = propbox;
+						item.properties.boxes.push(propbox);
+					}
+				}
+			}
+		}
+	}
 }
 
 ISOFile.prototype.getItem = function(item_id) {	

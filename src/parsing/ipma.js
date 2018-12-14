@@ -14,17 +14,14 @@ BoxParser.createFullBoxCtor("ipma", function(stream) {
 		item_assoc.props = [];
 		for (j = 0; j < association_count; j++) {
 			var tmp = stream.readUint8();
-			var p = [];
+			var p = {};
 			item_assoc.props.push(p);
-			var essential = (tmp & 0x80) >> 7;
-			var property_index;
+			p.essential = ((tmp & 0x80) >> 7) === 1;
 			if (this.flags & 0x1) {
-				property_index = (tmp & 0x7F) << 8 | stream.readUint8();
+				p.property_index = (tmp & 0x7F) << 8 | stream.readUint8();
 			} else {
-				property_index = (tmp & 0x7F);
+				p.property_index = (tmp & 0x7F);
 			}
-			p.push(property_index);
-			p.push(essential === 1);
 		}
 	}
 });

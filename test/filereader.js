@@ -48,6 +48,7 @@ function buildItemTable(items) {
 	html += "<th>Protected</th>";
 	html += "<th>Byte ranges</th>";
 	html += "<th>References [type, item ID]</th>";
+	html += "<th>Properties [type]</th>";
 	html += "</tr>";
 	html += "</thead>";
 	html += "<tbody>";
@@ -68,6 +69,13 @@ function buildItemTable(items) {
 		if (item.ref_to) {
 			for (j = 0; j < item.ref_to.length; j++) {
 				html+= "["+item.ref_to[j].type+", "+item.ref_to[j].id+"] "
+			}
+		}
+		html += "</td>";
+		html += "<td>";
+		if (item.properties) {
+			for (j = 0; j < item.properties.boxes.length; j++) {
+				html+= ""+item.properties.boxes[j].type+" "
 			}
 		}
 		html += "</td>";
