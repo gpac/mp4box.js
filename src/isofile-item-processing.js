@@ -36,26 +36,24 @@ ISOFile.prototype.flattenItemInfo = function() {
 				Log.warn("Item storage with reference to other files: not supported");
 				item.source = meta.dinf.boxes[itemloc.data_reference_index-1];
 			}
-			if (itemloc.construction_method !== undefined) {
+			switch(itemloc.construction_method) {
+				case 0: // offset into the file referenced by the data reference index
+				break;
+				case 1: // offset into the idat box of this meta box
 				Log.warn("Item storage with construction_method : not supported");
-				switch(itemloc.construction_method) {
-					case 0: // offset into the file referenced by the data reference index
-					break;
-					case 1: // offset into the idat box of this meta box
-					break;
-					case 2: // offset into another item
-					break;
-				}
-			} else {
-				item.extents = [];
-				item.size = 0;
-				for (j = 0; j < itemloc.extents.length; j++) {
-					item.extents[j] = {};
-					item.extents[j].offset = itemloc.extents[j].extent_offset + itemloc.base_offset;
-					item.extents[j].length = itemloc.extents[j].extent_length;
-					item.extents[j].alreadyRead = 0;
-					item.size += item.extents[j].length;
-				}
+				break;
+				case 2: // offset into another item
+				Log.warn("Item storage with construction_method : not supported");
+				break;
+			}
+			item.extents = [];
+			item.size = 0;
+			for (j = 0; j < itemloc.extents.length; j++) {
+				item.extents[j] = {};
+				item.extents[j].offset = itemloc.extents[j].extent_offset + itemloc.base_offset;
+				item.extents[j].length = itemloc.extents[j].extent_length;
+				item.extents[j].alreadyRead = 0;
+				item.size += item.extents[j].length;
 			}
 		}
 	}

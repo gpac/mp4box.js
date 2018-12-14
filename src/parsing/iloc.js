@@ -32,7 +32,9 @@ BoxParser.createFullBoxCtor("iloc", function(stream) {
 		}
 		if (this.version === 1 || this.version === 2) {
 			item.construction_method = (stream.readUint16() & 0xF);
-		} 
+		} else {
+			item.construction_method = 0;
+		}
 		item.data_reference_index = stream.readUint16();
 		switch(this.base_offset_size) {
 			case 0:
