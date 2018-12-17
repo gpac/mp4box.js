@@ -384,20 +384,22 @@ ISOFile.prototype.getInfo = function() {
 		movie.hasMoov = false;
 	}
 	movie.mime = "";
-	if (movie.videoTracks.length > 0) {
-		movie.mime += 'video/mp4; codecs=\"';
-	} else if (movie.audioTracks.length > 0) {
-		movie.mime += 'audio/mp4; codecs=\"';
-	} else {
-		movie.mime += 'application/mp4; codecs=\"';
+	if (movie.hasMoov && movie.tracks) {
+		if (movie.videoTracks && movie.videoTracks.length > 0) {
+			movie.mime += 'video/mp4; codecs=\"';
+		} else if (movie.audioTracks && movie.audioTracks.length > 0) {
+			movie.mime += 'audio/mp4; codecs=\"';
+		} else {
+			movie.mime += 'application/mp4; codecs=\"';
+		}
+		for (i = 0; i < movie.tracks.length; i++) {
+			if (i !== 0) movie.mime += ',';
+			movie.mime+= movie.tracks[i].codec;
+		}
+		movie.mime += '\"; profiles=\"';
+		movie.mime += this.ftyp.compatible_brands.join();
+		movie.mime += '\"';
 	}
-	for (i = 0; i < movie.tracks.length; i++) {
-		if (i !== 0) movie.mime += ',';
-		movie.mime+= movie.tracks[i].codec;
-	}
-	movie.mime += '\"; profiles=\"';
-	movie.mime += this.ftyp.compatible_brands.join();
-	movie.mime += '\"';
 	return movie;
 }
 
