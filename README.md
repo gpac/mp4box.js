@@ -124,7 +124,7 @@ The `info` argument is an object with the following structure.
 - **isProgressive**: boolean, indicating if the file can be played progressively,
 - **isFragmented**: boolean, indicating if the file is already fragmented,
 - **fragment_duration**: Number, giving the duration of the fragmented part of the file, in timescale units,
-- **hasIOD**: boolean, indicating if the the file contains an MPEG-4 Initial Object Descriptor
+- **hasIOD**: boolean, indicating if the file contains an MPEG-4 Initial Object Descriptor
 - **tracks**: Array of track information objects
 
 Track information object:
@@ -135,7 +135,7 @@ Track information object:
 - **timescale**: Number, indicating the track timescale, as given in the track header,
 - **duration**: Number, providing the duration of the (unfragmented part of) track, in timescale units,
 - **bitrate**: Number, providing the bitrate of the track in bits per second,
-- **nb_samples**: Number, giving the number of track samples (ie. frames),
+- **nb_samples**: Number, giving the number of track samples (i.e. frames),
 - **codec**: String, giving the MIME codecs parameter for this track (e.g. "avc1.42c00d" or "mp4a.40.2"), to be used to create SourceBuffer objects with [Media Source Extensions](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
 - **language**: String, giving the 3-letter language code,
 - **track_width**: Number, width of the track as indicated in the track header,
@@ -154,7 +154,7 @@ Audio-specific information object:
 - **sample_size**: Number, size in bits of an uncompressed audio sample as indicated in the media header,
 
 #### onError(e) ####
-Indicates that an error has occured during the processing. `e` is a String.
+Indicates that an error has occurred during the processing. `e` is a String.
 ```javascript
 mp4boxfile.onError = function (e) {
 	console.log("Received Error Message "+e);
@@ -254,7 +254,7 @@ mp4boxfile.onReady = function(info) {
 
 #### setExtractionOptions(track_id, user, options) ####
 Indicates that the track with the given `track_id` for which samples should be extracted, with the given options. When samples are ready, the callback [onSamples](#onsamplesid-user-samples) is called with the `user` parameter. The `options` argument is an object with the following properties:
-- **nbSamples**: Number, representing the number of samples per callback callt. If not enough data is received to extract the number of samples, the samples received so far are kept. If not provided, the default is 1000.
+- **nbSamples**: Number, representing the number of samples per callback call. If not enough data is received to extract the number of samples, the samples received so far are kept. If not provided, the default is 1000.
 - **rapAlignement**: boolean, indicating if sample arrays should start with a RAP. If not provided, the default is true.
 
 ```javascript
