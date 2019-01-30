@@ -9,7 +9,7 @@ BoxParser.createUUIDBox("d4807ef2ca3946958e5426cb9e46a79f", true, false, functio
 
         if (this.version === 1) {
             absolute_time = stream.readUint64();
-            duration = stream.readUint64();
+            absolute_duration = stream.readUint64();
         } else {
             absolute_time = stream.readUint32();
             absolute_duration = stream.readUint32();
