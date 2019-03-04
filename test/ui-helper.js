@@ -133,6 +133,10 @@ function parseFile(fileobj, progressbar, progresslabel, loadbutton, finalizeUI) 
 		console.log("Failed to parse ISOBMFF data");
 	};
 
+	fileobj.mp4boxfile.onSidx = function(sidx) {
+		console.log(sidx);
+	};
+
     var onparsedbuffer = function(mp4boxfileobj, buffer) {
     	console.log("Appending buffer with offset "+offset);
 		buffer.fileStart = offset;
