@@ -43,6 +43,10 @@ var ISOFile = function (stream) {
 	this.nextMoofNumber = 0;
 	/* Boolean indicating if the initial list of items has been produced */
 	this.itemListBuilt = false;
+	/* Callback called when the sidx box is entirely parsed */
+	this.onSidx = null;
+	/* Boolean keeping track of the call to onSidx, to avoid double calls */
+	this.sidxSent = false;
 }
 
 ISOFile.prototype.setSegmentOptions = function(id, user, options) {
@@ -262,6 +266,12 @@ ISOFile.prototype.appendBuffer = function(ab, last) {
 		} else {
 			/* No valid buffer has been parsed yet, we cannot know what to parse next */
 			nextFileStart = 0;
+		}
+	}
+	if (this.sidx) {
+		if (this.onSidx && !this.sidxSent) {
+			this.onSidx(this.sidx);
+			this.sidxSent = true;
 		}
 	}
 	if (this.meta) {

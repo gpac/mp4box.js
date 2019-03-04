@@ -519,6 +519,9 @@ function load() {
 			initAllButton.disabled = false;
 		}
 	}
+	mp4boxfile.onSidx = function(sidx) {
+		console.log(sidx);
+	}
 	mp4boxfile.onItem = function(item) {
 		var metaHandler = this.getMetaHandler();
 		if (metaHandler.startsWith("mif1")) {
