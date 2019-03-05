@@ -85,4 +85,6 @@ BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM, 	"e
 BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT, 		"enct");
 BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA, 	"encm");
 
+// Restricted sample entries
+BoxParser.createRestrictedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, 	"resv");
 

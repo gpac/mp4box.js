@@ -183,13 +183,14 @@ BoxParser.av01SampleEntry.prototype.getCodec = function() {
 
 BoxParser.encvSampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
-	if (this.sinfs[0] &&
-		this.sinfs[0].frma && this.sinfs[0].frma.data_format &&
-		this.sinfs[0].schm && this.sinfs[0].schm.scheme_type &&
-		BoxParser[this.sinfs[0].frma.data_format + "SampleEntry"]) {
+	var transBox = (this.sinfs || this.rinfs)[0];
+	if (transBox &&
+		transBox.frma && transBox.frma.data_format &&
+		transBox.schm && transBox.schm.scheme_type &&
+		BoxParser[transBox.frma.data_format + "SampleEntry"]) {
 		var backupType = this.type;
-		this.type = this.sinfs[0].frma.data_format;
-		var scheme = this.sinfs[0].schm.scheme_type;
+		this.type = transBox.frma.data_format;
+		var scheme = transBox.schm.scheme_type;
 		var fullCodec = baseCodec+"."+scheme+"."+BoxParser[this.type + "SampleEntry"].prototype.getCodec.call(this);
 		this.type = backupType;
 		return fullCodec;
@@ -203,3 +204,5 @@ BoxParser.encuSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototy
 BoxParser.encsSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
 BoxParser.enctSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
 BoxParser.encmSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
+
+BoxParser.resvSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;

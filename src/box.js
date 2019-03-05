@@ -149,6 +149,9 @@ var BoxParser = {
 	createEncryptedSampleEntryCtor: function(mediaType, type, parseMethod) {
 		BoxParser.createSampleEntryCtor.call(this, mediaType, type, parseMethod, ["sinf"]);
 	},
+	createRestrictedSampleEntryCtor: function(mediaType, type, parseMethod) {
+		BoxParser.createSampleEntryCtor.call(this, mediaType, type, parseMethod, ["rinf"]);
+	},
 	createSampleGroupCtor: function(type, parseMethod) {
 		//BoxParser.sampleGroupEntryCodes.push(type);
 		BoxParser[type+"SampleGroupEntry"] = function(size) {
