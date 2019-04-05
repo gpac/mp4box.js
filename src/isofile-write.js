@@ -99,16 +99,20 @@ ISOFile.prototype.initializeSegmentation = function() {
 	for (i = 0; i < this.fragmentedTracks.length; i++) {
 		var moov = new BoxParser.moovBox();
 		moov.mvhd = this.moov.mvhd;
-	    moov.boxes.push(moov.mvhd);
+		moov.boxes.push(moov.mvhd);
 
-      // Ensure pssh boxes are pushed into the generated moov box.
-      if (this.moov.psshs) {
-        moov.boxes.push.apply(moov.boxes, this.moov.psshs);
-      }
+		moov.boxes.push(this.moov.mvex);
 
 		trak = this.getTrackById(this.fragmentedTracks[i].id);
 		moov.boxes.push(trak);
 		moov.traks.push(trak);
+
+		// Ensure pssh boxes are pushed into the generated moov box.
+		if (this.moov.psshs) {
+			moov.psshs = this.moov.psshs;
+			moov.boxes.push.apply(moov.boxes, this.moov.psshs);
+		}
+
 		seg = {};
 		seg.id = trak.tkhd.track_id;
 		seg.user = this.fragmentedTracks[i].user;
