@@ -17,18 +17,28 @@ ISOFile.prototype.createFragment = function(track_id, sampleNumber, stream_) {
 		}
 		return null;
 	}
-	
+
 	var stream = stream_ || new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
 
 	var moof = ISOFile.createSingleSampleMoof(sample);
+
+	// Extract sample encryption.
+	var senc = this.getBox('senc');
+
+	// Add sample encryption if it exists.
+	if (senc) {
+		moof.trafs[0].senc = senc;
+		moof.trafs[0].boxes.push(senc);
+	}
+
 	moof.write(stream);
 
 	/* adjusting the data_offset now that the moof size is known*/
 	moof.trafs[0].truns[0].data_offset = moof.size+8; //8 is mdat header
 	Log.debug("MP4Box", "Adjusting data_offset with new value "+moof.trafs[0].truns[0].data_offset);
 	stream.adjustUint32(moof.trafs[0].truns[0].data_offset_position, moof.trafs[0].truns[0].data_offset);
-		
+
 	var mdat = new BoxParser.mdatBox();
 	mdat.data = sample.data;
 	mdat.write(stream);
@@ -47,7 +57,7 @@ ISOFile.writeInitializationSegment = function(ftyp, moov, total_duration, sample
 	var stream = new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
 	ftyp.write(stream);
-	
+
 	/* we can now create the new mvex box */
 	var mvex = moov.add("mvex");
 	if (total_duration) {
@@ -70,7 +80,7 @@ ISOFile.prototype.save = function(name) {
 	var stream = new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
 	this.write(stream);
-	stream.save(name);	
+	stream.save(name);
 }
 
 ISOFile.prototype.getBuffer = function() {
@@ -91,11 +101,11 @@ ISOFile.prototype.initializeSegmentation = function() {
 		Log.warn("MP4Box", "No segmentation callback set!");
 	}
 	if (!this.isFragmentationInitialized) {
-		this.isFragmentationInitialized = true;		
+		this.isFragmentationInitialized = true;
 		this.nextMoofNumber = 0;
 		this.resetTables();
-	}	
-	initSegs = [];	
+	}
+	initSegs = [];
 	for (i = 0; i < this.fragmentedTracks.length; i++) {
 		var moov = new BoxParser.moovBox();
 		moov.mvhd = this.moov.mvhd;
