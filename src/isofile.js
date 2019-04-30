@@ -575,7 +575,7 @@ ISOFile.prototype.seekTrack = function(time, useRap, trak) {
 		} else if (sample.cts > time * sample.timescale) {
 			seek_sample_num = j-1;
 			break;
-		} 
+		}
 		if (useRap && sample.is_sync) {
 			rap_seek_sample_num = j;
 		}
@@ -586,6 +586,10 @@ ISOFile.prototype.seekTrack = function(time, useRap, trak) {
 	time = trak.samples[seek_sample_num].cts;
 	trak.nextSample = seek_sample_num;
 	while (trak.samples[seek_sample_num].alreadyRead === trak.samples[seek_sample_num].size) {
+		// No remaining samples to look for, all are downloaded.
+		if (!trak.samples[seek_sample_num + 1]) {
+			break;
+		}
 		seek_sample_num++;
 	}
 	seek_offset = trak.samples[seek_sample_num].offset+trak.samples[seek_sample_num].alreadyRead;
