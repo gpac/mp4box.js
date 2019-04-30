@@ -88,7 +88,10 @@ BoxParser.decimalToHex = function(d, padding) {
 	return hex;
 }
 
-BoxParser.avc1SampleEntry.prototype.getCodec = function() {
+BoxParser.avc1SampleEntry.prototype.getCodec =
+BoxParser.avc2SampleEntry.prototype.getCodec =
+BoxParser.avc3SampleEntry.prototype.getCodec =
+BoxParser.avc4SampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.avcC) {
 		return baseCodec+"."+BoxParser.decimalToHex(this.avcC.AVCProfileIndication)+
@@ -99,6 +102,7 @@ BoxParser.avc1SampleEntry.prototype.getCodec = function() {
 	}
 }
 
+BoxParser.hev1SampleEntry.prototype.getCodec =
 BoxParser.hvc1SampleEntry.prototype.getCodec = function() {
 	var i;
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
