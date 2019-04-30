@@ -166,7 +166,7 @@ var BoxParser = {
 		if (parseMethod) BoxParser[type+"TrackGroupTypeBox"].prototype.parse = parseMethod;
 	},
 	createUUIDBox: function(uuid, isFullBox, isContainerBox, parseMethod) {
-		//BoxParser.UUIDs.push(uuid);
+		BoxParser.UUIDs.push(uuid);
 		BoxParser.UUIDBoxes[uuid] = function(size) {
 			if (isFullBox) {
 				BoxParser.FullBox.call(this, "uuid", size, uuid);
