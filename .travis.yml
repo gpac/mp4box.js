@@ -12,7 +12,7 @@ before_deploy:
 deploy:
   - provider: releases
     api_key:
-      secure: FJF3zi4Rk+sHkBsRyNF7IanjGgcQvRX87Mvykp6Afd8t/B+WeDfbxGrqyyHjANgDcUSquFoJZlIt8lQ+Jy8V0rog9M1be+HpENOHOnyYnnrTrgL+ZodZrYJ5Mfbjdd451MTZCcxAFGyCxBvYz/pUWA0wDq9/7WFmF0hGVWevAio=
+      secure: "MLMEXZvtp5LVsVrwDbpX992YFT8DpOKgWILsVZjo/S2GXxWBzouYLzxIrDgIHuplj/J18+9psgntuLgcXu/ffrUh167M6c0mwVSlvJySbJwJm/3Vl+i5IiDII5rXgG0QkNtHpYbR+O8YLzFl4+wtE25TDDWpQMvimc2rOrthz4c="
     file:
       - dist/mp4box.all.js
       - dist/mp4box.all.min.js
