@@ -164,7 +164,7 @@ mp4boxfile.onError = function (e) {
 #### appendBuffer(data) ####
 Provides an ArrayBuffer to parse from. The ArrayBuffer must have a `fileStart` (Number) property indicating the 0-based position of first byte of the ArrayBuffer in the original file. Returns the offset (in the original file) that is expected to be the `fileStart` value of the next buffer. This is particularly useful when the moov box is not at the beginning of the file.
 ```javascript
-var ab = getArrayBuffer();
+var ab = getArrayBuffer(); // any of your own method that returns an ArrayBuffer
 ab.fileStart = 0;
 var nextBufferStart = mp4boxfile.appendBuffer(ab);
 ```
