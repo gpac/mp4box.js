@@ -10,8 +10,12 @@ DataStream.prototype.save = function(filename) {
   if (window.URL && URL.createObjectURL) {
       var url = window.URL.createObjectURL(blob);
       var a = document.createElement('a');
+      // Required in Firefox:
+      document.body.appendChild(a);
       a.setAttribute('href', url);
       a.setAttribute('download', filename);
+      // Required in Firefox:
+      a.setAttribute('target', '_self');
       a.click();
       window.URL.revokeObjectURL(url);
   } else {
