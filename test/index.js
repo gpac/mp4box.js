@@ -317,7 +317,7 @@ function addBuffer(video, mp4track) {
 				break;
 			}
 		}
-		if (!foundTextTrack) {
+		if ((!foundTextTrack) && (html5TrackKind !== "")) {
 			var texttrack = video.addTextTrack(html5TrackKind, mp4track.name, mp4track.language);
 			texttrack.id = track_id;
 			texttrack.mode = "showing";
