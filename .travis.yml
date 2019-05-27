@@ -25,6 +25,7 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
+      node_js: node
   - provider: npm
     email: cyril.concolato@telecom-paristech.fr
     api_key:
@@ -32,9 +33,11 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
+      node_js: node
   - provider: pages
     skip_cleanup: true
     github_token: $GITHUB_TOKEN
     keep_history: true
     on:
       branch: master
+      node_js: node
