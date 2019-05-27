@@ -3,7 +3,7 @@ QUnit.module("File Creation");
 QUnit.test("addSample and segmentation", function( assert ) {
 	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
 	var f = MP4Box.createFile();
-	f.onSegment = function(id, user, buffer, sampleNum) {		
+	f.onSegment = function(id, user, buffer, sampleNum) {
 		window.clearTimeout(timeout);
 		console.log("Received segment for track "+id);
 		assert.ok(true, "Segment received");

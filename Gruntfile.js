@@ -56,7 +56,7 @@ module.exports = function(grunt) {
               'src/parsing/tfdt.js',
               'src/parsing/trun.js',
               'src/isofile.js',
-              'src/box-print.js',                 
+              'src/box-print.js',
               'src/mp4box.js'
         ],
         dest: 'dist/<%= pkg.name %>.simple.js'
@@ -94,10 +94,10 @@ module.exports = function(grunt) {
         eqeqeq: false,
         asi: true,
         //verbose: true,
-	loopfunc: true,
+	      loopfunc: true,
         eqnull: true,
-	reporterOutput: "",
-        globals: {
+	      reporterOutput: "",
+          globals: {
         }
       }
     },

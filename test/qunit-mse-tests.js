@@ -21,10 +21,10 @@ QUnit.asyncTest( "Appending init segment", function( assert ) {
 	function onInitAppended(e) {
 		window.clearTimeout(timeout);
 		assert.equal(ms.readyState, "open", "MSE opened after init append");
-		QUnit.start();					
+		QUnit.start();
 	}
 
-	mp4boxfile.onReady = function(info) { 
+	mp4boxfile.onReady = function(info) {
 		track_id = info.tracks[0].id;
 		mp4boxfile.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
 		var initSegs = mp4boxfile.initializeSegmentation();
@@ -35,7 +35,7 @@ QUnit.asyncTest( "Appending init segment", function( assert ) {
 	}
 
 	function onSourceOpen(e) {
-		getFile(testFiles[index].url, function (buffer) {			
+		getFile(testFiles[index].url, function (buffer) {
 			mp4boxfile.appendBuffer(buffer);
 		});
 	}

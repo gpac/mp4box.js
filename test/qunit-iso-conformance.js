@@ -21,7 +21,7 @@ function makeBoxParsingTest(fileIndex) {
 	});
 }
 
-/* 
+/*
 var conformanceFiles = [];
 var xhr = new XMLHttpRequest();
 xhr.open('GET', 'iso-conformance-files.js', false);

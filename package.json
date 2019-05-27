@@ -25,25 +25,28 @@
   "license": "BSD-3-Clause",
   "devDependencies": {
     "blanket": "^1.2.3",
-    "grunt": "^0.4.5",
-    "grunt-bump": "^0.3.1",
+    "grunt": "^1.0.4",
+    "grunt-bump": "^0.8.0",
     "grunt-cli": "^1.2.0",
-    "grunt-contrib-concat": "^0.5.0",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-qunit": "^0.5.2",
-    "grunt-contrib-uglify": "^0.6.0",
-    "grunt-contrib-watch": "^0.6.1",
-    "grunt-karma": "^0.11.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-jshint": "^2.1.0",
+    "grunt-contrib-qunit": "^3.1.0",
+    "grunt-contrib-uglify": "^4.0.1",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-karma": "^3.0.2",
     "grunt-karma-coveralls": "^2.5.4",
-    "karma": "^0.12.35",
-    "karma-chrome-launcher": "^0.1.12",
-    "karma-coverage": "^0.5.5",
-    "karma-firefox-launcher": "^0.1.6",
+    "karma": "^4.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-coverage": "^1.1.2",
+    "karma-firefox-launcher": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-qunit": "^0.1.4",
     "qunitjs": "^1.23.0"
   },
   "scripts": {
     "test": "grunt test --verbose"
+  },
+  "dependencies": {
+    "npm": "^6.9.0"
   }
 }

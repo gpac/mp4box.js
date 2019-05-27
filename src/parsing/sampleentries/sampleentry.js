@@ -18,7 +18,8 @@ BoxParser.SampleEntry.prototype.parse = function(stream) {
 }
 
 BoxParser.SampleEntry.prototype.parseDataAndRewind = function(stream) {
-	this.parse(stream);
+	this.parseHeader(stream);
+	this.data = stream.readUint8Array(this.size - this.hdr_size);
 	// restore the header size as if the sample entry header had not been parsed
 	this.hdr_size -= 8;
 	// rewinding

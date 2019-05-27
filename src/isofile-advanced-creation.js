@@ -63,11 +63,13 @@ ISOFile.prototype.addTrack = function (_options) {
 	var sample_description_entry = new BoxParser[options.type+"SampleEntry"]();
 	sample_description_entry.data_reference_index = 1;
 	var media_type = "";
-	for (var i = 0; i < BoxParser.sampleEntryCodes.length; i++) {
-		var code = BoxParser.sampleEntryCodes[i];
-		if (code.types.indexOf(options.type) > -1) {
-			media_type = code.prefix;
-			break;
+	for (var mediaType in BoxParser.sampleEntryCodes) {
+		var codes = BoxParser.sampleEntryCodes[mediaType];
+		for (var i = 0; i < codes.length; i++) {
+			if (codes.indexOf(options.type) > -1) {
+				media_type = mediaType;
+				break;
+			}
 		}
 	}
 	switch(media_type) {

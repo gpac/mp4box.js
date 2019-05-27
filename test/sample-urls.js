@@ -1,5 +1,5 @@
 var sampleUrls = [
-	{ 
+	{
 		groupName: "Non-fragmented files",
 		urls: [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/h264bl.mp4", desc: "Video Counter (10min, unfragmented, AVC Baseline)"},
@@ -12,7 +12,7 @@ var sampleUrls = [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/sintel-1024-surround.mp4", desc: "Sintel 1024 Surround"},
 		]
 	},
-	{ 
+	{
 		groupName: "Non-fragmented files (require disabling CORS)",
 		urls: [
 			{ url: "https://a0.muscache.com/airbnb/static/Paris-P1-1.mp4", desc: "AirBnB Paris video"},
@@ -21,7 +21,7 @@ var sampleUrls = [
 			{ url: "http://content.jwplatform.com/videos/HkauGhRi-640.mp4", desc: "JWPlayer video"},
 		]
 	},
-	{ 
+	{
 		groupName: "Fragmented files",
 		urls: [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/a.mp4", desc: "Video Counter (10min, fragmented, AVC Baseline)"},
@@ -32,7 +32,7 @@ var sampleUrls = [
 			{ url: "https://storage.googleapis.com/media-session/flac.mp4", desc: "FLAC in ISO-BMFF"}
 		]
 	},
-	{ 
+	{
 		groupName: "Multi-track files (require track selection)",
 		urls: [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/2v.mp4", desc: "2 videos (unfragmented, AVC+AVC)"},
@@ -40,7 +40,7 @@ var sampleUrls = [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/bbb_sunflower_1080p_30fps_normal.mp4", desc: "Big Buck Bunny (10 min, unfragmented, AVC+AAC+AC3, 263 MB)"},
 		]
 	},
-	{ 
+	{
 		groupName: "Synchronized Graphics Experiments",
 		urls: [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/ancient-sun.mp4", desc: "Audio with background, beat and lyrics overlays"},
@@ -48,14 +48,14 @@ var sampleUrls = [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/helloTeaser.mp4", desc: "Video with 3D graphical overlays"},
 		]
 	},
-	{ 
+	{
 		groupName: "Packaging Web Resources",
 		urls: [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/video-with-html.mp4", desc: "Video with HTML/CSS items"},
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/Anand-Carlsen2014.mp4", desc: "Video with many web assets (JS, CSS, PNG, WebVTT)"},
 		]
 	},
-	{ 
+	{
 		groupName: "HTML 5 Track Kinds",
 		urls: [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/html5-kind/video-kind-alternative.mp4", desc: "Video with alternative kind"},
@@ -74,7 +74,7 @@ var sampleUrls = [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/html5-kind/audio-kind-empty.mp4", desc: "Audio with empty kind"},
 		]
 	},
-	{ 
+	{
 		groupName: "For Internal Testing",
 		urls: [
 			{ url: "https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/mp4/meta/meta-file-single-item.mp4", desc: "Basic 'meta' test", playable: false },
@@ -139,4 +139,4 @@ function buildUrlList(urlSelector, addNonPlayable) {
 			}
 		}
 	}
-}	
+}

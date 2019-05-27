@@ -12,8 +12,8 @@ var boxtests = [
 			compatible_brands: [ "avc1", "iso5", "dsms", "msix", "dash"]
 		}
 	},
-	{ 
-		url: mediaTestBaseUrl + "mp4/box/sidx.mp4",	
+	{
+		url: mediaTestBaseUrl + "mp4/box/sidx.mp4",
 		rangeStart: 1566,
 		rangeSize: 152,
 		boxname: "sidx",
@@ -27,7 +27,7 @@ var boxtests = [
 			earliest_presentation_time: 0,
 			first_offset: 0,
 			references: [
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 776279,
 					subsegment_duration: 224,
@@ -35,7 +35,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 298018,
 					subsegment_duration: 110,
@@ -43,7 +43,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 151055,
 					subsegment_duration: 62,
@@ -51,7 +51,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 583055,
 					subsegment_duration: 130,
@@ -59,7 +59,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 310294,
 					subsegment_duration: 45,
@@ -67,7 +67,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 353217,
 					subsegment_duration: 50,
@@ -75,7 +75,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 229078,
 					subsegment_duration: 37,
@@ -83,7 +83,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 685457,
 					subsegment_duration: 114,
@@ -91,7 +91,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 746586,
 					subsegment_duration: 250,
@@ -99,7 +99,7 @@ var boxtests = [
 					SAP_type: 1,
 					SAP_delta_time: 0
 				},
-				{ 
+				{
 					reference_type: 0,
 					referenced_size: 228474,
 					subsegment_duration: 231,
@@ -125,7 +125,7 @@ var boxtests = [
 			timescale:	1,
 			presentation_time_delta:	1,
 			event_duration:	1,
-			id:	1							
+			id:	1
 		}
 	}
 ];

@@ -45,7 +45,7 @@ function checkBoxData(assert, box, data) {
 				var dataentry = data[prop][i];
 				assert.deepEqual(boxentry, dataentry, "Box property "+prop+", entry #"+i+" deep equality");
 			}
-		} else if (data[prop].byteLength) {
+		} else if (data[prop] && data[prop].byteLength) {
 			var uint8data = new Uint8Array(data[prop]);
 			var uint8box = new Uint8Array(box[prop]);
 			var equal = true;

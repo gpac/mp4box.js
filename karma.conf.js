@@ -15,7 +15,7 @@ module.exports = function(config) {
         // client configuration
         client: {
           qunit: {
-            testTimeout: 5000
+            testTimeout: 20000
           }
         },
 
@@ -93,7 +93,6 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        // 
         //browsers: ['Chrome', 'Firefox'],
         browsers: ['Chrome'],
 
@@ -106,7 +105,7 @@ module.exports = function(config) {
         //browserDisconnectTolerance : 1, // default 0
         //browserNoActivityTimeout : 60000, //default 10000
         browserNoActivityTimeout: 30000,
-        
+
         customLaunchers: {
             Chrome_travis_ci: {
                 base: 'Chrome',
@@ -115,7 +114,7 @@ module.exports = function(config) {
         },
 
         coverageReporter: {
-          reporters: [ 
+          reporters: [
             { type: "lcov", dir: "coverage/" },
             { type: 'text-summary' }
           ]
