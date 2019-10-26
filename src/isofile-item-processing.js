@@ -224,3 +224,30 @@ ISOFile.prototype.getPrimaryItem = function() {
 	}
 }
 
+ISOFile.prototype.itemToFragmentedTrackFile = function(_options) {
+	var options = _options || {};
+	var item = null;
+	if (options.itemId) {
+		item = this.getItem(options.itemId);
+	} else {
+		item = this.getPrimaryItem();
+	}
+	if (item == null) return null;
+
+	var file = new ISOFile();
+	file.discardMdatData = false;
+	// assuming the track type is the same as the item type
+	var trackOptions = { type: item.type, description_boxes: item.properties.boxes};
+	if (item.properties.ispe) {
+		trackOptions.width = item.properties.ispe.image_width;
+		trackOptions.height = item.properties.ispe.image_height;
+	}
+	var trackId = file.addTrack(trackOptions);
+	if (trackId) {
+		file.addSample(trackId, item.data);
+		return file;
+	} else {
+		return null;
+	}
+}
+
