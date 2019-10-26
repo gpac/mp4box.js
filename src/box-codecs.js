@@ -177,12 +177,12 @@ BoxParser.av01SampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	var bitdepth;
 	if (this.av1C.seq_profile === 2 && this.av1C.high_bitdepth === 1) {
-		bitdepth = (this.av1C.twelve_bit === 1) ? 12 : 10;
+		bitdepth = (this.av1C.twelve_bit === 1) ? "12" : "10";
 	} else if ( this.av1C.seq_profile <= 2 ) {
-		bitdepth = (this.av1C.high_bitdepth === 1) ? 10 : 8;
+		bitdepth = (this.av1C.high_bitdepth === 1) ? "10" : "08";
 	}
 	// TODO need to parse the SH to find color config
-	return baseCodec+"."+this.av1C.seq_profile+"."+this.av1C.seq_level_idx_0+(this.av1C.seq_tier_0?"H":"M")+"."+bitdepth+"."+this.av1C.monochrome+"."+this.av1C.chroma_subsampling_x+""+this.av1C.chroma_subsampling_y+""+this.av1C.chroma_sample_position;
+	return baseCodec+"."+this.av1C.seq_profile+"."+this.av1C.seq_level_idx_0+(this.av1C.seq_tier_0?"H":"M")+"."+bitdepth;//+"."+this.av1C.monochrome+"."+this.av1C.chroma_subsampling_x+""+this.av1C.chroma_subsampling_y+""+this.av1C.chroma_sample_position;
 }
 
 
