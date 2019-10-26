@@ -21,6 +21,7 @@ Demos
 * [A player that performs on-the-fly fragmentation](./test/index.html)
 * [A file inspection tool](./test/filereader.html)
 * [A file diff tool](./test/filediff.html)
+* [An MSE-based AVIF viewing tool](./test/mse-avif-viewer.html)
 * [QUnit tests](./test/qunit.html)
 
 API
