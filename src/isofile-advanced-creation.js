@@ -122,6 +122,11 @@ ISOFile.prototype.addTrack = function (_options) {
 	if (options.description) {
 		sample_description_entry.addBox(options.description);
 	}
+	if (options.description_boxes) {
+		options.description_boxes.forEach(function (b) {
+			sample_description_entry.addBox(b);
+		});
+	}
 	minf.add("dinf").add("dref").addEntry((new BoxParser["url Box"]()).set("flags", 0x1));
 	var stbl = minf.add("stbl");
 	stbl.add("stsd").addEntry(sample_description_entry);
