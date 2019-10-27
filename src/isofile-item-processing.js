@@ -112,7 +112,7 @@ ISOFile.prototype.getItem = function(item_id) {
 	}
 
 	/* The item has only been partially fetched, we need to check in all buffers to find the remaining extents*/
-	
+
 	for (var i = 0; i < item.extents.length; i++) {
 		var extent = item.extents[i];
 		if (extent.alreadyRead === extent.length) {
@@ -136,15 +136,15 @@ ISOFile.prototype.getItem = function(item_id) {
 					buffer.usedBytes += extent.length - extent.alreadyRead;
 					this.stream.logBufferLevel();
 
+					item.alreadyRead += (extent.length - extent.alreadyRead);
 					extent.alreadyRead = extent.length;
-					item.alreadyRead += extent.length;
 				} else {
-					/* the sample does not end in this buffer */				
-					
+					/* the sample does not end in this buffer */
+
 					Log.debug("ISOFile","Getting item #"+item_id+" extent #"+i+" partial data (alreadyRead: "+extent.alreadyRead+" offset: "+
 						(extent.offset+extent.alreadyRead - buffer.fileStart)+" read size: "+lengthAfterStart+
 						" full extent size: "+extent.length+" full item size: "+item.size+")");
-					
+
 					DataStream.memcpy(item.data.buffer, item.alreadyRead, 
 					                  buffer, extent.offset+extent.alreadyRead - buffer.fileStart, lengthAfterStart);
 					extent.alreadyRead += lengthAfterStart;
