@@ -317,7 +317,7 @@ In this ```all``` version, this code uses [DataStream.js](https://github.com/kig
 
 Browser Usage
 =======
-In order to use the `MP4Box.js` in a browser, use grunt to build a single-file library (see above) or use a pre-built version from the [demo](http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/) page.
+In order to use the `MP4Box.js` in a browser, use grunt to build a single-file library (see above) or use a pre-built version from the [demo](https://gpac.github.io/mp4box.js/#demos) page.
 
 ```html
 <html>
