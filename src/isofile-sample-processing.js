@@ -175,6 +175,7 @@ ISOFile.process_sdtp = function (sdtp, sample, number) {
 /* Build initial sample list from  sample tables */
 ISOFile.prototype.buildSampleLists = function() {	
 	var i;
+	var trak;
 	for (i = 0; i < this.moov.traks.length; i++) {
 		trak = this.moov.traks[i];
 		this.buildTrakSampleLists(trak);
