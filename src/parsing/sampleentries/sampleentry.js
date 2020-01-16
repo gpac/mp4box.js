@@ -39,6 +39,7 @@ BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT);
 
 //Base SampleEntry types for Audio and Video with specific parsing
 BoxParser.createMediaSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_VISUAL, function(stream) {
+	var compressorname_length;
 	this.parseHeader(stream);
 	stream.readUint16();
 	stream.readUint16();
