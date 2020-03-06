@@ -398,6 +398,7 @@ ISOFile.prototype.updateSampleLists = function() {
 					var trun = traf.truns[j];
 					for (k = 0; k < trun.sample_count; k++) {
 						sample = {};
+						sample.moof_number = this.lastMoofIndex;
 						sample.number_in_traf = traf.sample_number;
 						traf.sample_number++;
 			            sample.number = trak.samples.length;
