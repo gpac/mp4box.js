@@ -27,11 +27,13 @@ function finalizeAnalyzerUI(fileobj, loadbutton, success) {
 		buildItemTable(fileobj.mp4boxfile.items);
 		buildSampleView();
 		displayMovieInfo(fileobj.mp4boxfile.getInfo(), document.getElementById("movieview"), false);
+		buildSegmentTable(fileobj.mp4boxfile.sidx, fileobj.mp4boxfile.boxes)
 	} else {
 		resetBoxView();
 		$("#itemview").html('');
 		resetSampleView();
 		$("#movieview").html('');
+		$("#segmentview").html('');
 	}
 }
 
@@ -182,7 +184,7 @@ function buildSampleTableInfo(track_id, start, end) {
 	var html;
 	var i, j;
 	var samples;
-	var properties = ["number", "dts", "cts", "offset", "size", "is_sync", "is_leading", "depends_on", "is_depended_on",
+	var properties = ["number", "dts", "cts", "offset", "size", "moof_number", "is_sync", "is_leading", "depends_on", "is_depended_on",
 					  "has_redundancy", "degradation_priority"];
 	var prop;
 	var sample;
@@ -281,6 +283,69 @@ function buildSampleTableInfo(track_id, start, end) {
 	html += "</table>";
 	$("#sampletable").html(html);
 }
+
+function buildSegmentTable(sidx, boxes) {
+	var i, j, segment, prop, time, offset, moof;
+	if (!sidx || !sidx.references || sidx.references.length === 0) return;
+	var html = "";
+	html += "<table>";
+	html += "<thead>";
+	html += "<tr>";
+	segment = sidx.references[0];
+	for (prop in segment) {
+		html += "<td>"+prop+"</td>";
+	}
+	html += "<td>"+"segment start"+"</td>";
+	html += "<td>"+"segment offset"+"</td>";
+	html += "<td>"+"tfdt baseMediaDecodeTime"+"</td>";
+	html += "</tr>";
+	html += "</thead>";
+	html += "<tbody>";
+	time = 0;
+	j = 0;
+	offset = sidx.start + sidx.size + sidx.first_offset;
+	moof = null;
+	for (i = 0; i < sidx.references.length; i++) {
+		segment = sidx.references[i];
+		html += "<tr>";
+		for (prop in segment) {
+			html += "<td>"+segment[prop];
+			if (prop == "subsegment_duration" || prop == "SAP_delta_time") {
+				html += " - "+Log.getDurationString(segment[prop], sidx.timescale);
+			}
+			html += "</td>";
+		}
+		html += "<td>"+time+" - "+Log.getDurationString(time, sidx.timescale)+"</td>";
+		time += segment.subsegment_duration;
+		while (j < boxes.length) {
+			if (boxes[j].start === offset) {
+				while(j < boxes.length) {
+					if (boxes[j].type === 'moof') {
+						moof = boxes[j];
+						break;
+					} else {
+						j++;
+					}
+				}
+				break;
+			} else {
+				j++;
+			}
+		}
+		offset += segment.referenced_size;
+		html += "<td>"+offset+"</td>";
+		if (moof && moof.trafs && moof.trafs[0] && moof.trafs[0].tfdt) {
+			html += "<td>"+(moof.trafs[0].tfdt.baseMediaDecodeTime)+" - "+Log.getDurationString(moof.trafs[0].tfdt.baseMediaDecodeTime, sidx.timescale)+"</td>";
+		}
+		moof = null;
+		html += "</tr>";
+	}
+
+	html += "</tbody>";
+	html += "</table>";
+	$("#segmentview").html(html);
+}
+
 
 window.onload = function () {
 
