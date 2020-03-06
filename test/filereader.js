@@ -27,7 +27,7 @@ function finalizeAnalyzerUI(fileobj, loadbutton, success) {
 		buildItemTable(fileobj.mp4boxfile.items);
 		buildSampleView();
 		displayMovieInfo(fileobj.mp4boxfile.getInfo(), document.getElementById("movieview"), false);
-		buildSegmentTable(fileobj.mp4boxfile.sidx, fileobj.mp4boxfile.boxes)
+		buildSegmentTable(fileobj.mp4boxfile.sidx, fileobj.mp4boxfile.boxes, fileobj.mp4boxfile);
 	} else {
 		resetBoxView();
 		$("#itemview").html('');
@@ -284,7 +284,7 @@ function buildSampleTableInfo(track_id, start, end) {
 	$("#sampletable").html(html);
 }
 
-function buildSegmentTable(sidx, boxes) {
+function buildSegmentTable(sidx, boxes, isofile) {
 	var i, j, segment, prop, time, offset, moof;
 	if (!sidx || !sidx.references || sidx.references.length === 0) return;
 	var html = "";
@@ -335,7 +335,9 @@ function buildSegmentTable(sidx, boxes) {
 		offset += segment.referenced_size;
 		html += "<td>"+offset+"</td>";
 		if (moof && moof.trafs && moof.trafs[0] && moof.trafs[0].tfdt) {
-			html += "<td>"+(moof.trafs[0].tfdt.baseMediaDecodeTime)+" - "+Log.getDurationString(moof.trafs[0].tfdt.baseMediaDecodeTime, sidx.timescale)+"</td>";
+			var trak = isofile.getTrackById(moof.trafs[0].tfhd.track_id);
+			var trak_timescale = trak.mdia.mdhd.timescale;
+			html += "<td>"+(moof.trafs[0].tfdt.baseMediaDecodeTime)+" - "+Log.getDurationString(moof.trafs[0].tfdt.baseMediaDecodeTime, trak_timescale)+"</td>";
 		}
 		moof = null;
 		html += "</tr>";
