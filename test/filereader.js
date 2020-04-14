@@ -292,6 +292,7 @@ function buildSegmentTable(sidx, boxes, isofile) {
 	html += "<thead>";
 	html += "<tr>";
 	segment = sidx.references[0];
+	html += "<td>Segment Number</td>";
 	for (prop in segment) {
 		html += "<td>"+prop+"</td>";
 	}
@@ -308,6 +309,7 @@ function buildSegmentTable(sidx, boxes, isofile) {
 	for (i = 0; i < sidx.references.length; i++) {
 		segment = sidx.references[i];
 		html += "<tr>";
+		html += "<td>"+i+"</td>";
 		for (prop in segment) {
 			html += "<td>"+segment[prop];
 			if (prop == "subsegment_duration" || prop == "SAP_delta_time") {
