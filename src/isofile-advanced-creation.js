@@ -183,7 +183,7 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 
 	this.processSamples();
 	
-	var moof = ISOFile.createSingleSampleMoof(sample);
+	var moof = this.createSingleSampleMoof(sample);
 	this.addBox(moof);
 	moof.computeSize();
 	/* adjusting the data_offset now that the moof size is known*/
@@ -192,7 +192,7 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 	return sample;
 }
 
-ISOFile.createSingleSampleMoof = function(sample) {
+ISOFile.prototype.createSingleSampleMoof = function(sample) {
 	var moof = new BoxParser.moofBox();
 	moof.add("mfhd").set("sequence_number", this.nextMoofNumber);
 	this.nextMoofNumber++;

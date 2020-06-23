@@ -21,7 +21,7 @@ ISOFile.prototype.createFragment = function(track_id, sampleNumber, stream_) {
 	var stream = stream_ || new DataStream();
 	stream.endianness = DataStream.BIG_ENDIAN;
 
-	var moof = ISOFile.createSingleSampleMoof(sample);
+	var moof = this.createSingleSampleMoof(sample);
 	moof.write(stream);
 
 	/* adjusting the data_offset now that the moof size is known*/
