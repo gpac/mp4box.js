@@ -119,7 +119,7 @@ Object.defineProperty(DataStream.prototype, 'buffer',
     },
     set: function(v) {
       this._buffer = v;
-      this._dataView = new DataView(this._buffer, this._byteOffset);
+      this._dataView = this.dataViewSafely(this._buffer, this._byteOffset);
       this._byteLength = this._buffer.byteLength;
     } });
 
@@ -134,7 +134,7 @@ Object.defineProperty(DataStream.prototype, 'byteOffset',
     },
     set: function(v) {
       this._byteOffset = v;
-      this._dataView = new DataView(this._buffer, this._byteOffset);
+      this._dataView = this.dataViewSafely(this._buffer, this._byteOffset);
       this._byteLength = this._buffer.byteLength;
     } });
 
@@ -150,7 +150,7 @@ Object.defineProperty(DataStream.prototype, 'dataView',
     set: function(v) {
       this._byteOffset = v.byteOffset;
       this._buffer = v.buffer;
-      this._dataView = new DataView(this._buffer, this._byteOffset);
+      this._dataView = this.dataViewSafely(this._buffer, this._byteOffset);
       this._byteLength = this._byteOffset + v.byteLength;
     } });
 
@@ -579,6 +579,22 @@ DataStream.prototype.readInt64 = function () {
 
 DataStream.prototype.readUint24 = function () {
 	return (this.readUint8()<<16)+(this.readUint8()<<8)+this.readUint8();
+}
+
+/**
+ * reference : https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView
+ * new DataView(new ArrayBuffer(0), 0) // produce error "DataView constructor argument offset is invalid"
+ * new DataView(new ArrayBuffer(0)) // OK
+ *
+ * @param {ArrayBuffer} buffer
+ * @param {?Number} byteOffset
+ */
+DataStream.prototype.dataViewSafely = function (buffer, byteOffset) {
+  if (buffer && buffer.byteLength === 0) {
+    this._dataView = new DataView(buffer);
+  } else {
+    this._dataView = new DataView(buffer, byteOffset);
+  }
 }
 
 if (typeof exports !== 'undefined') {
