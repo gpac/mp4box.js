@@ -119,7 +119,7 @@ Object.defineProperty(DataStream.prototype, 'buffer',
     },
     set: function(v) {
       this._buffer = v;
-      this._dataView = this.dataViewSafely(this._buffer, this._byteOffset);
+      this._dataView = this.createDataView(this._buffer, this._byteOffset);
       this._byteLength = this._buffer.byteLength;
     } });
 
@@ -134,7 +134,7 @@ Object.defineProperty(DataStream.prototype, 'byteOffset',
     },
     set: function(v) {
       this._byteOffset = v;
-      this._dataView = this.dataViewSafely(this._buffer, this._byteOffset);
+      this._dataView = this.createDataView(this._buffer, this._byteOffset);
       this._byteLength = this._buffer.byteLength;
     } });
 
@@ -150,7 +150,7 @@ Object.defineProperty(DataStream.prototype, 'dataView',
     set: function(v) {
       this._byteOffset = v.byteOffset;
       this._buffer = v.buffer;
-      this._dataView = this.dataViewSafely(this._buffer, this._byteOffset);
+      this._dataView = this.createDataView(this._buffer, this._byteOffset);
       this._byteLength = this._byteOffset + v.byteLength;
     } });
 
@@ -588,12 +588,13 @@ DataStream.prototype.readUint24 = function () {
  *
  * @param {ArrayBuffer} buffer
  * @param {?Number} byteOffset
+ * @return {DataView}
  */
-DataStream.prototype.dataViewSafely = function (buffer, byteOffset) {
+DataStream.prototype.createDataView = function (buffer, byteOffset) {
   if (buffer && buffer.byteLength === 0) {
-    this._dataView = new DataView(buffer);
+    return new DataView(buffer);
   } else {
-    this._dataView = new DataView(buffer, byteOffset);
+    return new DataView(buffer, byteOffset);
   }
 }
 
