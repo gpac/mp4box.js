@@ -458,7 +458,8 @@ ISOFile.prototype.processSamples = function(last) {
 
 	if (this.onSamples !== null) {
 		/* For each track marked for data export,
-		   check if the next sample is there (i.e. has been downloaded) and send it */
+			 check if the next sample is there (i.e. has been downloaded) and send it */
+			 Log.debug("ISOFile", "extractedTracks.length: " + this.extractedTracks.length);
 		for (i = 0; i < this.extractedTracks.length; i++) {
 			var extractTrak = this.extractedTracks[i];
 			trak = extractTrak.trak;
@@ -469,6 +470,7 @@ ISOFile.prototype.processSamples = function(last) {
 					trak.nextSample++;
 					extractTrak.samples.push(sample);
 				} else {
+					Log.warn("ISOFile", "No sample on track #"+extractTrak.id +" sample #"+trak.nextSample);
 					break;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
@@ -481,6 +483,8 @@ ISOFile.prototype.processSamples = function(last) {
 						/* check if the extraction needs to be stopped */
 						break;
 					}
+				} else {
+					Log.warn("ISOFile", "Unsend samples on track #"+extractTrak.id+" for sample "+trak.nextSample);
 				}
 			}
 		}
@@ -519,6 +523,9 @@ ISOFile.prototype.getTrackSamplesInfo = function(track_id) {
 ISOFile.prototype.getTrackSample = function(track_id, number) {
 	var track = this.getTrackById(track_id);
 	var sample = this.getSample(track, number);
+	if (!sample) {
+		Log.warn("ISOFile", "No sample[getTrackSample] on track #"+track_id +" sample #"+sampleNumber);
+	}
 	return sample;
 }
 

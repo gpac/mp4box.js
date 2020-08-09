@@ -9,6 +9,7 @@ ISOFile.prototype.createFragment = function(track_id, sampleNumber, stream_) {
 	var trak = this.getTrackById(track_id);
 	var sample = this.getSample(trak, sampleNumber);
 	if (sample == null) {
+		Log.warn("ISOFile", "No sample[createFragment] on track #"+track_id +" sample #"+sampleNumber);
 		sample = trak.samples[sampleNumber];
 		if (this.nextSeekPosition) {
 			this.nextSeekPosition = Math.min(sample.offset+sample.alreadyRead,this.nextSeekPosition);

@@ -88,6 +88,7 @@ module.exports = function(grunt) {
         '!test/mp4/**/*.js',
         '!test/trackviewers/**/*.js',
         '!test/coverage/**/*.js',
+        '!test/node/**/*.js',
       ],
       options: {
         // options here to override JSHint defaults
