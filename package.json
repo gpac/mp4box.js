@@ -45,8 +45,5 @@
   },
   "scripts": {
     "test": "grunt test --verbose"
-  },
-  "dependencies": {
-    "npm": "^6.9.0"
   }
 }
