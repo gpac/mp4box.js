@@ -334,8 +334,8 @@ function buildSegmentTable(sidx, boxes, isofile) {
 				j++;
 			}
 		}
-		offset += segment.referenced_size;
 		html += "<td>"+offset+"</td>";
+		offset += segment.referenced_size;
 		if (moof && moof.trafs && moof.trafs[0] && moof.trafs[0].tfdt) {
 			var trak = isofile.getTrackById(moof.trafs[0].tfhd.track_id);
 			var trak_timescale = trak.mdia.mdhd.timescale;
