@@ -627,8 +627,9 @@ QUnit.asyncTest( "Segmentation when no sample is ready should not reach onSegmen
 	var index = 0;
 	var track_id;
 	var mp4boxfile = MP4Box.createFile();
+	var timeout = window.setTimeout(function() { assert.ok(true, "No onSegment reached after timeout expiration"); QUnit.start(); }, TIMEOUT_MS);
 	mp4boxfile.onSegment = function(id, user, buffer, sampleNum) {
-		assert.ok(false, "No segment data");
+		assert.ok(false, "Should not reach onSegment");
 	}
 	mp4boxfile.onReady = function(info) {
 		assert.ok(true, "moov found!" );
@@ -636,10 +637,10 @@ QUnit.asyncTest( "Segmentation when no sample is ready should not reach onSegmen
 		mp4boxfile.setSegmentOptions(track_id, null, { nbSamples: 10, rapAlignement: true } );
 		mp4boxfile.initializeSegmentation();
 		mp4boxfile.start();
+		QUnit.start();
 	}
 	getFileRange(testFiles[index].url, 0, 68500, function (buffer) {
 		mp4boxfile.appendBuffer(buffer);
-		QUnit.start();
 	});
 });
 
@@ -660,6 +661,44 @@ QUnit.asyncTest( "Segmentation without callback", function( assert ) {
 		window.clearTimeout(timeout);
 		assert.ok(true, "append ended before timeout!" );
 		QUnit.start();
+	});
+});
+
+QUnit.asyncTest( "Segmentation in streaming mode when moov is last", function( assert ) {
+	var index = 9;
+	var track_id;
+	var timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
+	var mp4boxfile = MP4Box.createFile();
+	mp4boxfile.onReady = function(info) {
+		assert.ok(true, "moov found!" );
+		track_id = info.tracks[0].id;
+		mp4boxfile.setSegmentOptions(track_id, null, { nbSamples: 100, rapAlignement: true } );
+		mp4boxfile.initializeSegmentation();
+		mp4boxfile.start();
+	}
+	mp4boxfile.onSegment = function(id, user, buffer, sampleNum, last) {
+		window.clearTimeout(timeout);
+		if (last) {
+			assert.ok(true, "All samples received!" );
+			QUnit.start();
+		} else {
+			timeout = window.setTimeout(function() { assert.ok(false, "Timeout"); QUnit.start(); }, TIMEOUT_MS);
+		}
+	}
+	getFileRange(testFiles[index].url, 0, 299999, function (buffer) {
+		mp4boxfile.appendBuffer(buffer);
+		getFileRange(testFiles[index].url, 300000, 599999, function (buffer) {
+			mp4boxfile.appendBuffer(buffer);
+			getFileRange(testFiles[index].url, 600000, 899999, function (buffer) {
+				mp4boxfile.appendBuffer(buffer);
+				getFileRange(testFiles[index].url, 900000, 1199999, function (buffer) {
+					mp4boxfile.appendBuffer(buffer);
+					getFileRange(testFiles[index].url, 1200000, Infinity, function (buffer) {
+						mp4boxfile.appendBuffer(buffer);
+					});
+				});
+			});
+		});
 	});
 });
 

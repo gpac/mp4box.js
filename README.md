@@ -185,7 +185,7 @@ Indicates that no more data will be received and that all remaining samples shou
 var mp4box = MP4Box.createFile();
 mp4boxfile.onReady = function(info) {
   ...
-  mp4boxfile.onSegment = function (id, user, buffer) {}
+  mp4boxfile.onSegment = function (id, user, buffer, sampleNumber, last) {}
   mp4boxfile.setSegmentOptions(info.tracks[0].id, sb, options);  
   var initSegs = mp4boxfile.initializeSegmentation();  
   mp4boxfile.start();
@@ -208,11 +208,11 @@ Indicates that the track with the given `track_id` should not be segmented.
 mp4boxfile.unsetSegmentOptions(1);
 ```
 
-#### onSegment(id, user, buffer) ####
+#### onSegment(id, user, buffer, sampleNumber, last) ####
 Callback called when a segment is ready, according to the options passed in [setSegmentOptions](##setsegmentoptionstrack_id-user-options). `user` is the caller of the segmentation, for this track, and `buffer` is an ArrayBuffer containing the Movie Fragments for this segment.
 
 ```javascript
-mp4boxfile.onSegment = function (id, user, buffer) {
+mp4boxfile.onSegment = function (id, user, buffer, sampleNumber, last) {
 	console.log("Received segment on track "+id+" for object "+user+" with a length of "+buffer.byteLength);
 }
 ```
@@ -222,6 +222,8 @@ Indicates that the application is ready to receive segments. Returns an array of
 - **id**: Number, the track id 
 - **user**: Object, the caller of the segmentation for this track, as given in [setSegmentOptions](##setsegmentoptionstrack_id-user-options)
 - **buffer**: ArrayBuffer, the initialization segment for this track.
+- **sampleNumber**: Number, sample number of the last sample in the segment, plus 1.
+- **buffer**: Boolean, indication if this is the last segment to be received.
 
 ```json
 [

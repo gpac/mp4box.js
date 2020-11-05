@@ -439,11 +439,11 @@ ISOFile.prototype.processSamples = function(last) {
 				}
 				/* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
 				   It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
-				if (trak.nextSample % fragTrak.nb_samples === 0 || (last && trak.nextSample >= trak.samples.length)) {
+				if (trak.nextSample % fragTrak.nb_samples === 0 || (last || trak.nextSample >= trak.samples.length)) {
 					Log.info("ISOFile", "Sending fragmented data on track #"+fragTrak.id+" for samples ["+Math.max(0,trak.nextSample-fragTrak.nb_samples)+","+(trak.nextSample-1)+"]");
 					Log.info("ISOFile", "Sample data size in memory: "+this.getAllocatedSampleDataSize());
 					if (this.onSegment) {
-						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample, (last && trak.nextSample >= trak.samples.length));
+						this.onSegment(fragTrak.id, fragTrak.user, fragTrak.segmentStream.buffer, trak.nextSample, (last || trak.nextSample >= trak.samples.length));
 					}
 					/* force the creation of a new buffer */
 					fragTrak.segmentStream = null;
