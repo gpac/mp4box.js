@@ -188,7 +188,7 @@ MultiBufferStream.prototype.logBufferLevel = function(info) {
 	if (this.buffers.length === 0) {
 		log("MultiBufferStream", "No more buffer in memory");
 	} else {
-		log("MultiBufferStream", ""+this.buffers.length+" stored buffer(s) ("+used+"/"+total+" bytes): "+bufferedString);
+		log("MultiBufferStream", ""+this.buffers.length+" stored buffer(s) ("+used+"/"+total+" bytes), continuous ranges: "+bufferedString);
 	}
 }
 
