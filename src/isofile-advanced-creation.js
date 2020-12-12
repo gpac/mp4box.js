@@ -193,6 +193,12 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 }
 
 ISOFile.prototype.createSingleSampleMoof = function(sample) {
+	var sample_flags = 0;
+	if (sample.is_sync)
+		sample_flags = (1 << 25);  // sample_depends_on_none (I picture)
+	else
+		sample_flags = (1 << 16);  // non-sync
+
 	var moof = new BoxParser.moofBox();
 	moof.add("mfhd").set("sequence_number", this.nextMoofNumber);
 	this.nextMoofNumber++;
@@ -208,7 +214,7 @@ ISOFile.prototype.createSingleSampleMoof = function(sample) {
 					.set("sample_count",1)
 					.set("sample_duration",[sample.duration])
 					.set("sample_size",[sample.size])
-					.set("sample_flags",[0])
+					.set("sample_flags",[sample_flags])
 					.set("sample_composition_time_offset", [sample.cts - sample.dts]);
 	return moof;
 }
