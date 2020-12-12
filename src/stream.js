@@ -44,14 +44,14 @@ MP4BoxStream.prototype.readAnyInt = function(size, signed) {
         if (signed) {
           res = this.dataview.getInt8(this.position);
         } else {
-          res = this.dataview.getUint8(this.position);          
+          res = this.dataview.getUint8(this.position);
         }
         break;
       case 2:
         if (signed) {
           res = this.dataview.getInt16(this.position);
         } else {
-          res = this.dataview.getUint16(this.position);          
+          res = this.dataview.getUint16(this.position);
         }
         break;
       case 3:
@@ -59,27 +59,27 @@ MP4BoxStream.prototype.readAnyInt = function(size, signed) {
           throw ("No method for reading signed 24 bits values");
         } else {
           res = this.dataview.getUint8(this.position) << 16;
-          res |= this.dataview.getUint8(this.position) << 8;
-          res |= this.dataview.getUint8(this.position);
+          res |= this.dataview.getUint8(this.position+1) << 8;
+          res |= this.dataview.getUint8(this.position+2);
         }
         break;
       case 4:
         if (signed) {
           res = this.dataview.getInt32(this.position);
         } else {
-          res = this.dataview.getUint32(this.position);          
+          res = this.dataview.getUint32(this.position);
         }
         break;
       case 8:
         if (signed) {
           throw ("No method for reading signed 64 bits values");
         } else {
-          res = this.dataview.getUint32(this.position) << 32;          
-          res |= this.dataview.getUint32(this.position);
+          res = this.dataview.getUint32(this.position) << 32;
+          res |= this.dataview.getUint32(this.position+4);
         }
         break;
       default:
-        throw ("readInt method not implemented for size: "+size);  
+        throw ("readInt method not implemented for size: "+size);
     }
     this.position+= size;
     return res;
