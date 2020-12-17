@@ -28,7 +28,7 @@ function getFancyTreeDataFromBoxes(boxes) {
 		fancytree_node.title = box.type || i;
 		fancytree_node.data = { 'box': box };
 		var child_prop_names = [ "boxes", "entries", "references", "subsamples",
-								 "items", "item_infos", "extents", "associations", "subsegments", "ranges", "seekLists", "seekPoints", "esd", "levels"];
+								 "items", "item_infos", "extents", "associations", "subsegments", "ranges", "seekLists", "seekPoints", "esd", "levels", "props"];
 		for (var j = 0; j < child_prop_names.length; j++) {
 			var name = child_prop_names[j];
 			if (box[name]) {
