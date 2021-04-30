@@ -1,3 +1,3 @@
-BoxParser.createFullBoxCtor("a1op", function(stream) {
-	this.op_index = stream.readUint32();
+BoxParser.createBoxCtor("a1op", function(stream) {
+	this.op_index = stream.readUint8();
 });
