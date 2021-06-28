@@ -153,6 +153,37 @@ BoxParser.hvc1SampleEntry.prototype.getCodec = function() {
 	return baseCodec;
 }
 
+BoxParser.vvc1SampleEntry.prototype.getCodec =
+BoxParser.vvi1SampleEntry.prototype.getCodec = function () {
+	var i;
+	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+	if (this.vvcC) {
+		baseCodec += '.';
+		baseCodec += this.vvcC.general_profile_idc;
+		baseCodec += '.';
+		if (this.vvcC.general_tier_flag) {
+			baseCodec += 'H';
+		} else {
+			baseCodec += 'L';
+		}
+		baseCodec += this.vvcC.general_level_idc;
+		var hasByte = false;
+		var constraint_string = "";
+		for (i = this.vvcC.general_constraint_info.length - 1; i >= 0; i--) {
+			if (this.vvcC.general_constraint_info[i] || hasByte) {
+				console.warn("parsing of constraint info is not implemented yet.")
+				// constraint_string = "." + BoxParser.decimalToHex(this.vvcC.general_constraint_info[i], 0) + constraint_string;
+				hasByte = true;
+			}
+		}
+		if (!hasByte) {
+			constraint_string = ".CA";
+		}
+		baseCodec += constraint_string;
+	}
+	return baseCodec;
+}
+
 BoxParser.mp4aSampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.esds && this.esds.esd) {
@@ -184,5 +215,4 @@ BoxParser.av01SampleEntry.prototype.getCodec = function() {
 	// TODO need to parse the SH to find color config
 	return baseCodec+"."+this.av1C.seq_profile+"."+this.av1C.seq_level_idx_0+(this.av1C.seq_tier_0?"H":"M")+"."+bitdepth;//+"."+this.av1C.monochrome+"."+this.av1C.chroma_subsampling_x+""+this.av1C.chroma_subsampling_y+""+this.av1C.chroma_sample_position;
 }
-
 
