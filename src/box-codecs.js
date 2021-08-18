@@ -169,11 +169,13 @@ BoxParser.vvi1SampleEntry.prototype.getCodec = function () {
 		baseCodec += this.vvcC.general_level_idc;
 		var hasByte = false;
 		var constraint_string = "";
-		for (i = this.vvcC.general_constraint_info.length - 1; i >= 0; i--) {
-			if (this.vvcC.general_constraint_info[i] || hasByte) {
-				console.warn("parsing of constraint info is not implemented yet.")
-				// constraint_string = "." + BoxParser.decimalToHex(this.vvcC.general_constraint_info[i], 0) + constraint_string;
-				hasByte = true;
+		if (this.vvcC.general_constraint_info) {
+			for (i = this.vvcC.general_constraint_info.length - 1; i >= 0; i--) {
+				if (this.vvcC.general_constraint_info[i] || hasByte) {
+					console.warn("parsing of constraint info is not implemented yet.")
+					// constraint_string = "." + BoxParser.decimalToHex(this.vvcC.general_constraint_info[i], 0) + constraint_string;
+					hasByte = true;
+				}
 			}
 		}
 		if (!hasByte) {
