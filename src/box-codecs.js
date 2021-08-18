@@ -158,28 +158,56 @@ BoxParser.vvi1SampleEntry.prototype.getCodec = function () {
 	var i;
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
 	if (this.vvcC) {
-		baseCodec += '.';
-		baseCodec += this.vvcC.general_profile_idc;
-		baseCodec += '.';
+		baseCodec += '.' + this.vvcC.general_profile_idc;
 		if (this.vvcC.general_tier_flag) {
-			baseCodec += 'H';
+			baseCodec += '.H';
 		} else {
-			baseCodec += 'L';
+			baseCodec += '.L';
 		}
 		baseCodec += this.vvcC.general_level_idc;
-		var hasByte = false;
+
 		var constraint_string = "";
 		if (this.vvcC.general_constraint_info) {
-			for (i = this.vvcC.general_constraint_info.length - 1; i >= 0; i--) {
-				if (this.vvcC.general_constraint_info[i] || hasByte) {
-					console.warn("parsing of constraint info is not implemented yet.")
-					// constraint_string = "." + BoxParser.decimalToHex(this.vvcC.general_constraint_info[i], 0) + constraint_string;
-					hasByte = true;
+			var bytes = [];
+			var byte = 0;
+			byte |= this.vvcC.ptl_frame_only_constraint << 7;
+			byte |= this.vvcC.ptl_multilayer_enabled << 6;
+			var last_nonzero;
+			for (i = 0; i < this.vvcC.general_constraint_info.length; ++i) {
+				byte |= (this.vvcC.general_constraint_info[i] >> 2) & 0x3f;
+				bytes.push(byte);
+				if (byte) {
+					last_nonzero = i;
+				}
+
+				byte = (this.vvcC.general_constraint_info[i] >> 2) & 0x03;
+			}
+
+			if (last_nonzero === undefined) {
+				constraint_string = ".CA";
+			}
+			else {
+				constraint_string = ".C"
+				var base32_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+				var held_bits = 0;
+				var num_held_bits = 0;
+				for (i = 0; i <= last_nonzero; ++i) {
+					held_bits = (held_bits << 8) | bytes[i];
+					num_held_bits += 8;
+
+					while (num_held_bits >= 5) {
+						var val = (held_bits >> (num_held_bits - 5)) & 0x1f;
+						constraint_string += base32_chars[val];
+
+						num_held_bits -= 5;
+						held_bits &= (1 << num_held_bits) - 1;
+					}
+				}
+				if (num_held_bits) {
+					held_bits <<= (5 - num_held_bits);  // right-pad with zeros to 5 bits (is this correct?)
+					constraint_string += base32_chars[held_bits & 0x1f];
 				}
 			}
-		}
-		if (!hasByte) {
-			constraint_string = ".CA";
 		}
 		baseCodec += constraint_string;
 	}
