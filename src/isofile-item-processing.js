@@ -80,7 +80,7 @@ ISOFile.prototype.flattenItemInfo = function() {
 				}
 				for (j = 0; j < association.props.length; j++) {
 					var propEntry = association.props[j];
-					if (propEntry.property_index > 0) {
+					if (propEntry.property_index > 0 && propEntry.property_index-1 < meta.iprp.ipco.boxes.length) {
 						var propbox = meta.iprp.ipco.boxes[propEntry.property_index-1];
 						item.properties[propbox.type] = propbox;
 						item.properties.boxes.push(propbox);
