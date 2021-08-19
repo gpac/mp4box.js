@@ -2,7 +2,6 @@ MP4Box.js
 ======
 
 [![Build Status](https://travis-ci.org/gpac/mp4box.js.svg?branch=master)](https://travis-ci.org/gpac/mp4box.js)
-[![CircleCI](https://circleci.com/gh/gpac/mp4box.js.svg?style=svg)](https://circleci.com/gh/gpac/mp4box.js)
 [![Coverage Status](https://coveralls.io/repos/github/gpac/mp4box.js/badge.svg?branch=master)](https://coveralls.io/github/gpac/mp4box.js?branch=master)
 [![Dependency Status](https://david-dm.org/gpac/mp4box.js.svg)](https://david-dm.org/gpac/mp4box.js)
 [![devDependency Status](https://david-dm.org/gpac/mp4box.js/dev-status.svg)](https://david-dm.org/gpac/mp4box.js#info=devDependencies)
