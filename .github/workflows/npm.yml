@@ -1,13 +1,34 @@
-name: NPM Publish
+name: Create Release and Publish to NPM on tagged commits
+
+# Trigger the create release workflow
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - 'v*'
+
 jobs:
-  build:
+  release:
+    name: Create Release 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  publish-gpr:
+    needs: release # After release is created then run the second workflow
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v2
         with:
           node-version: '12.x'
@@ -15,4 +36,4 @@ jobs:
       - run: npm install
       - run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
