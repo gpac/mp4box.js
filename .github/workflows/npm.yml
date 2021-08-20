@@ -2,6 +2,7 @@ name: Create Release and Publish to NPM on tagged commits
 
 # Trigger the create release workflow
 on:
+  workflow_dispatch: # to enable the 'Run workflow' button
   push:
     tags:
       - 'v*'
