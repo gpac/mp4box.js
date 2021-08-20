@@ -1,7 +1,7 @@
 MP4Box.js
 ======
 
-[![GitHub Action Build](https://travis-ci.org/gpac/mp4box.js.svg?branch=master)](https://travis-ci.org/gpac/mp4box.js)
+[![NodeJS with Grunt](https://github.com/gpac/mp4box.js/actions/workflows/grunt.yml/badge.svg)](https://github.com/gpac/mp4box.js/actions/workflows/grunt.yml)
 
 JavaScript library to process MP4 files in the browser (and in NodeJS), with support for progressive parsing. 
 Inspired by the [MP4Box](http://gpac.wp.mines-telecom.fr/mp4box/) tool from the [GPAC](http://gpac.wp.mines-telecom.fr) project. 
