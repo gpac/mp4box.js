@@ -1,7 +1,6 @@
 Log.setLogLevel(Log.error);
 var TIMEOUT_MS = 10000;
-var mediaTestBaseUrl = 'http://download.tsi.telecom-paristech.fr/gpac/mp4box.js/';
-//var mediaTestBaseUrl = 'http://127.0.0.1:8080/code/mp4box.js/test/';
+var mediaTestBaseUrl = './';
 
 function getFileRange(url, start, end, callback) {
 	var xhr = new XMLHttpRequest();
