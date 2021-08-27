@@ -8,12 +8,12 @@ ISOFile.prototype.init = function (_options) {
 							   .set("compatible_brands", options.brands || ["iso4"]);
 	var moov = this.add("moov");
 	moov.add("mvhd").set("timescale", options.timescale || 600)
-					.set("rate", options.rate || 1)
+					.set("rate", options.rate || 1<<16)
 					.set("creation_time", 0)
 					.set("modification_time", 0)
 					.set("duration", options.duration || 0)
-					.set("volume", 1)
-					.set("matrix", [ 0, 0, 0, 0, 0, 0, 0, 0, 0])
+					.set("volume", (options.width) ? 0 : 0x0100)
+					.set("matrix", [ 1<<16, 0, 0, 0, 1<<16, 0, 0, 0, 0x40000000])
 					.set("next_track_id", 1);
 	moov.add("mvex");
 	return this;
@@ -51,7 +51,7 @@ ISOFile.prototype.addTrack = function (_options) {
 					.set("modification_time", 0)
 					.set("timescale", options.timescale || 1)
 					.set("duration", options.media_duration || 0)
-					.set("language", options.language || 0);
+					.set("language", options.language || "und");
 
 	mdia.add("hdlr").set("handler", options.hdlr || "vide")
 					.set("name", options.name || "Track created with MP4Box.js");
@@ -179,6 +179,9 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 	trak.samples.push(sample);
 	trak.samples_size += sample.size;
 	trak.samples_duration += sample.duration;
+	if (!trak.first_dts) {
+		trak.first_dts = options.dts;
+	}
 
 	this.processSamples();
 	
@@ -202,9 +205,10 @@ ISOFile.prototype.createSingleSampleMoof = function(sample) {
 	moof.add("mfhd").set("sequence_number", this.nextMoofNumber);
 	this.nextMoofNumber++;
 	var traf = moof.add("traf");
+	var trak = this.getTrackById(sample.track_id);
 	traf.add("tfhd").set("track_id", sample.track_id)
 					.set("flags", BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
-	traf.add("tfdt").set("baseMediaDecodeTime", sample.dts);
+	traf.add("tfdt").set("baseMediaDecodeTime", (sample.dts - trak.first_dts));
 	traf.add("trun").set("flags", BoxParser.TRUN_FLAGS_DATA_OFFSET | BoxParser.TRUN_FLAGS_DURATION | 
 				 				  BoxParser.TRUN_FLAGS_SIZE | BoxParser.TRUN_FLAGS_FLAGS | 
 				 				  BoxParser.TRUN_FLAGS_CTS_OFFSET)
