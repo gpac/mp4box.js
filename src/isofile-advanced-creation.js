@@ -82,13 +82,12 @@ ISOFile.prototype.addTrack = function (_options) {
 						.set("frame_count", 1)
 						.set("compressorname", options.type+" Compressor")
 						.set("depth", 0x18);
-		// sample_description_entry.add("avcC").set("SPS", [])
-		// 						.set("PPS", [])
-		// 						.set("configurationVersion", 1)
-		// 						.set("AVCProfileIndication",0)
-		// 						.set("profile_compatibility", 0)
-		// 						.set("AVCLevelIndication" ,0)
-		// 						.set("lengthSizeMinusOne", 0);
+			if (options.avcDecoderConfigRecord) {
+				var avcC = new BoxParser.avcCBox();
+				var stream = new MP4BoxStream(options.avcDecoderConfigRecord);
+				avcC.parse(stream);
+				sample_description_entry.addBox(avcC);
+			}
 			break;
 		case "Audio":
 			minf.add("smhd").set("balance", options.balance || 0);
@@ -164,7 +163,7 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 	sample.description_index = (options.sample_description_index ? options.sample_description_index - 1: 0);
 	sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
 	sample.data = data;
-	sample.size = data.length;
+	sample.size = data.byteLength;
 	sample.alreadyRead = sample.size;
 	sample.duration = options.duration || 1;
 	sample.cts = options.cts || 0;
@@ -188,7 +187,7 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 	moof.computeSize();
 	/* adjusting the data_offset now that the moof size is known*/
 	moof.trafs[0].truns[0].data_offset = moof.size+8; //8 is mdat header
-	this.add("mdat").data = data;
+	this.add("mdat").data = new Uint8Array(data);
 	return sample;
 }
 
