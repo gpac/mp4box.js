@@ -299,6 +299,7 @@ function buildSegmentTable(sidx, boxes, isofile) {
 	html += "<td>"+"segment start"+"</td>";
 	html += "<td>"+"segment offset"+"</td>";
 	html += "<td>"+"tfdt baseMediaDecodeTime"+"</td>";
+	html += "<td>"+"is encrypted"+"</td>";
 	html += "</tr>";
 	html += "</thead>";
 	html += "<tbody>";
@@ -340,6 +341,9 @@ function buildSegmentTable(sidx, boxes, isofile) {
 			var trak = isofile.getTrackById(moof.trafs[0].tfhd.track_id);
 			var trak_timescale = trak.mdia.mdhd.timescale;
 			html += "<td>"+(moof.trafs[0].tfdt.baseMediaDecodeTime)+" - "+Log.getDurationString(moof.trafs[0].tfdt.baseMediaDecodeTime, trak_timescale)+"</td>";
+		}
+		if (moof && moof.trafs && moof.trafs[0]) {
+			html += "<td>"+(moof.trafs[0].senc ? true : false) +"</td>";
 		}
 		moof = null;
 		html += "</tr>";
