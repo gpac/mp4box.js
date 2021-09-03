@@ -27,13 +27,13 @@ function finalizeAnalyzerUI(fileobj, loadbutton, success) {
 		buildItemTable(fileobj.mp4boxfile.items);
 		buildSampleView();
 		displayMovieInfo(fileobj.mp4boxfile.getInfo(), document.getElementById("movieview"), false);
-		buildSegmentTable(fileobj.mp4boxfile.sidx, fileobj.mp4boxfile.boxes, fileobj.mp4boxfile);
+		buildSegmentView(fileobj);
 	} else {
 		resetBoxView();
 		$("#itemview").html('');
 		resetSampleView();
 		$("#movieview").html('');
-		$("#segmentview").html('');
+		resetSegmentView();
 	}
 }
 
@@ -284,7 +284,7 @@ function buildSampleTableInfo(track_id, start, end) {
 	$("#sampletable").html(html);
 }
 
-function buildSegmentTable(sidx, boxes, isofile) {
+function buildSegmentTable(sidx, boxes, isofile, startSeg, endSeg) {
 	var i, j, segment, prop, time, offset, moof;
 	if (!sidx || !sidx.references || sidx.references.length === 0) return;
 	var html = "";
@@ -309,51 +309,113 @@ function buildSegmentTable(sidx, boxes, isofile) {
 	moof = null;
 	for (i = 0; i < sidx.references.length; i++) {
 		segment = sidx.references[i];
-		html += "<tr>";
-		html += "<td>"+i+"</td>";
-		for (prop in segment) {
-			html += "<td>"+segment[prop];
-			if (prop == "subsegment_duration" || prop == "SAP_delta_time") {
-				html += " - "+Log.getDurationString(segment[prop], sidx.timescale);
-			}
-			html += "</td>";
-		}
-		html += "<td>"+time+" - "+Log.getDurationString(time, sidx.timescale)+"</td>";
-		time += segment.subsegment_duration;
-		while (j < boxes.length) {
-			if (boxes[j].start === offset) {
-				while(j < boxes.length) {
-					if (boxes[j].type === 'moof') {
-						moof = boxes[j];
-						break;
-					} else {
-						j++;
-					}
+		if (i>=startSeg && i < endSeg) {
+			html += "<tr>";
+			html += "<td>"+i+"</td>";
+			for (prop in segment) {
+				html += "<td>"+segment[prop];
+				if (prop == "subsegment_duration" || prop == "SAP_delta_time") {
+					html += " - "+Log.getDurationString(segment[prop], sidx.timescale);
 				}
-				break;
-			} else {
-				j++;
+				html += "</td>";
 			}
+			html += "<td>"+time+" - "+Log.getDurationString(time, sidx.timescale)+"</td>";
+			while (j < boxes.length) {
+				if (boxes[j].start === offset) {
+					while(j < boxes.length) {
+						if (boxes[j].type === 'moof') {
+							moof = boxes[j];
+							break;
+						} else {
+							j++;
+						}
+					}
+					break;
+				} else {
+					j++;
+				}
+			}
+			html += "<td>"+offset+"</td>";
+			if (moof && moof.trafs && moof.trafs[0] && moof.trafs[0].tfdt) {
+				var trak = isofile.getTrackById(moof.trafs[0].tfhd.track_id);
+				var trak_timescale = trak.mdia.mdhd.timescale;
+				html += "<td>"+(moof.trafs[0].tfdt.baseMediaDecodeTime)+" - "+Log.getDurationString(moof.trafs[0].tfdt.baseMediaDecodeTime, trak_timescale)+"</td>";
+			}
+			if (moof && moof.trafs && moof.trafs[0]) {
+				html += "<td>"+(moof.trafs[0].senc ? true : false) +"</td>";
+			}
+			html += "</tr>";
 		}
-		html += "<td>"+offset+"</td>";
+		time += segment.subsegment_duration;
 		offset += segment.referenced_size;
-		if (moof && moof.trafs && moof.trafs[0] && moof.trafs[0].tfdt) {
-			var trak = isofile.getTrackById(moof.trafs[0].tfhd.track_id);
-			var trak_timescale = trak.mdia.mdhd.timescale;
-			html += "<td>"+(moof.trafs[0].tfdt.baseMediaDecodeTime)+" - "+Log.getDurationString(moof.trafs[0].tfdt.baseMediaDecodeTime, trak_timescale)+"</td>";
-		}
-		if (moof && moof.trafs && moof.trafs[0]) {
-			html += "<td>"+(moof.trafs[0].senc ? true : false) +"</td>";
-		}
 		moof = null;
-		html += "</tr>";
 	}
 
 	html += "</tbody>";
 	html += "</table>";
-	$("#segmentview").html(html);
+	$("#segmenttable").html(html);
 }
 
+function buildSegmentGraph(sidx, startSeg, endSeg) {
+	graph = new SegmentGraph();
+	graph.data = [];
+	var time = 0;
+	for (var i =0; i < sidx.references.length; i++) {
+		graph.data[i] = {};
+		graph.data[i].number = i;
+		graph.data[i].time = time;
+		graph.data[i].size = sidx.references[i].referenced_size;
+		graph.data[i].duration = sidx.references[i].subsegment_duration;
+		time += sidx.references[i].subsegment_duration;
+	}
+	graph.data = graph.data.slice(startSeg, endSeg);
+	graph.update();
+}
+
+function resetSegmentView() {
+	$("#segmenttable").html('');
+	$("#segment-range-value").val('');
+	$("#segmentgraph").html('');
+}
+
+function buildSegmentView(fileobj) {
+	var segmentRangeSlider = $( "#segment-range" );
+	var segmenteRangeText = $( "#segment-range-value" );
+	segmenteRangeText.addClass("ui-widget ui-widget-content ui-corner-all");
+	var startSeg = 0;
+	var endSeg = 10;
+	var sidx = fileobj.mp4boxfile.sidx;
+	var nbSeg = sidx.references.length;
+	segmentRangeSlider.dragslider({
+		range: true,
+		rangeDrag: true,
+		min: 0,
+		step: 0.01,
+		max: 100,
+		values: [ startSeg/nbSeg, endSeg/nbSeg ],
+		slide: function( event, ui ) {
+			startSeg = Math.floor(ui.values[0]*nbSeg/100);
+			endSeg = Math.floor(ui.values[1]*nbSeg/100);
+
+			segmenteRangeText.val(""+startSeg + " - " + endSeg+"/"+nbSeg);
+
+			if ($("#segmenttable").is(':visible')) {
+				buildSegmentTable(fileobj.mp4boxfile.sidx, fileobj.mp4boxfile.boxes, fileobj.mp4boxfile, startSeg, endSeg);
+			}
+
+			if ($("#segmentgraph").is(':visible')) {
+				buildSegmentGraph(fileobj.mp4boxfile.sidx,startSeg,endSeg);
+			}
+		}
+    });
+
+
+	segmenteRangeText.val(""+startSeg + " - " + endSeg+"/"+nbSeg);
+
+	buildSegmentTable(sidx, fileobj.mp4boxfile.boxes, fileobj.mp4boxfile, startSeg, endSeg);
+
+	buildSegmentGraph(sidx, startSeg, endSeg);
+}
 
 window.onload = function () {
 
@@ -399,6 +461,25 @@ window.onload = function () {
 	$("#samplemap").hide();
 	$("#sampletimeline").hide();
 
+
+	$("#segmentviewselector").selectmenu({
+		width: 200,
+		change: function(e) {
+			switch(e.target.selectedOptions[0].value) {
+				case "Segment Table":
+					$("#segmenttable").show();
+					$("#segmentgraph").hide();
+					break;
+				case "Segment Graph":
+					$("#segmenttable").hide();
+					$("#segmentgraph").show();
+					break;
+			}
+		}
+	});
+	$("#segmenttable").show();
+	$("#segmentgraph").hide();
+	
 	if (window.location.search) {
 		file.objectToLoad = window.location.search.substring(1);
 		load();
@@ -948,6 +1029,181 @@ function SampleGraph() {
 		.attr("y", 30)
 		.style("text-anchor", "end")
 		.text((xaxisChoice === "time" ? "DTS" : "Number"));
+
+	for (i = 0; i < this.lines.length; i++) {
+		l = this.lines[i];
+		svg.append("g")
+			.attr("class", "y axis "+l.name)
+			.style("display", (l.visible ? "inline": "none"))
+			.style("fill", l.color)
+			.call(l.axis)
+			.append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 6)
+				.attr("dy", ".71em")
+				.style("text-anchor", "end")
+				.text(l.legend);
+		svg.append("path")
+			.attr("class", l.name+"line")
+			.style("display", (l.visible ? "inline": "none"))
+			.style("stroke", l.color);
+	}
+}
+
+SegmentGraph.prototype.update = function () {
+  	var that = this;
+	var data = this.data;
+	if (!data || data.length === 0) {
+		return;
+	}
+	var xaxisChoice = this.xaxisChoice;
+
+	data.forEach(function(d, i) {
+    	d.x = (xaxisChoice === "time" ? d.time : d.number);
+  	});
+
+  	this.x.domain(d3.extent(data, function(d) { return d.x; }));
+
+	this.svg.datum(data);
+	this.svg.select(".x.axis")
+		.attr("transform", "translate(0," + this.height + ")")
+		.call(this.xAxis);
+
+	this.svg.select(".x.axis text.label").text((this.xaxisChoice === "time" ? "Time" : "Number"));
+
+	for (i = 0; i < this.lines.length; i++) {
+		l = this.lines[i];
+	  	l.domain = [
+	    	d3.min(data, function(d) { return d[l.name]; }),
+	    	d3.max(data, function(d) { return d[l.name]; })
+	  	];
+	  	if (l.domain[0] === l.domain[1]) {
+	  		l.domain[0]--;
+	  		l.domain[1]++;
+	  	}
+	  	l.range.domain(l.domain);
+		l.line = d3.svg.area().interpolate("linear")
+								    .x(function(d) { return that.x(d.x); })
+								    .y((function(ll){ 
+								    		return function(d) { 
+								    			return ll.range(d[l.name]);
+								    		};
+								    	})(l));
+		this.svg.select(".y.axis."+l.name)
+			.style("display", (l.visible ? "inline": "none"))
+			.call(l.axis);
+		this.svg.select("path."+l.name+"line")
+			.style("display", (l.visible ? "inline": "none"))
+			.attr("d", l.line);
+	}
+}
+
+
+function SegmentGraph() {
+	var i, l;
+	var that = this;
+
+	var margin = {top: 10, right: 10, bottom: 80, left: 100};
+    var width = this.width = document.body.clientWidth - margin.left - margin.right;
+    var height = this.height = window.innerHeight - margin.top - margin.bottom;
+
+  	function DrawableLine(name, color, legend, visible) {
+  		this.visible = visible;
+  		this.legend = legend;
+  		this.name = name;
+  		this.color = color;
+		this.range = d3.scale.linear().range([height, 0]);
+		this.axis = d3.svg.axis().scale(this.range).tickSize(1).orient("left").tickFormat(d3.format("d"));
+  	}
+
+  	var xaxisChoice = this.xaxisChoice = "number";
+  	this.lines = [
+	  	new DrawableLine("time", "purple", "Time (timescale)", false),
+	  	new DrawableLine("size", "blue", "Size (bytes)", true),
+	  	new DrawableLine("duration", "green", "Duration (timescale)", false),
+	  	new DrawableLine("is_encrypted", "orange", "Encrypted (boolean)", false),
+  	];
+
+	var div = d3.select("#segmentgraph");
+	div.html('');
+	var form = div.append("form");
+	form.append('span').text('X Axis: ');
+	form.append("label").text("Segment number")
+			.append("input")
+				.attr("type", "radio")
+				.attr("value","number")
+				.attr("checked","checked")
+				.attr("name","xaxis")
+				.on("change", function() {
+					that.xaxisChoice = "number";
+					that.update();
+				});
+	form.append("label").text("Segment Time")
+			.append("input")
+				.attr("type", "radio")
+				.attr("value","time")
+				.attr("name","xaxis")
+				.on("change", function() {
+					that.xaxisChoice = "time";
+					that.update();
+				});
+	form.append("br");
+	form.append('span').text('Y Axis: ');
+	for (i = 0; i < this.lines.length; i++) {
+		l = this.lines[i];
+		var input = form.append("label")
+							.style("color",l.color)
+							.text(l.legend)
+								.append("input");
+		form.append('span').text(' ');
+		if (l.visible) {
+			input.attr("checked","checked");
+		} 
+		input.attr("type", "checkbox")						
+			.attr("value",l.legend)
+			.on("change", (function(ll) {
+				return function() {
+					ll.visible = this.checked;
+					that.update();
+				};
+			})(l));
+	}
+
+	var svg = this.svg = div.append("svg")
+		.attr("width", "100%")
+		.attr("height", "100%")
+	    .attr("viewBox", "0 0 "+(width + margin.left + margin.right)+" "+(height + margin.top + margin.bottom))
+	  .append("g")
+	    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	this.x = d3.scale.linear().range([0, width]);
+	this.xAxis = d3.svg.axis().scale(this.x).orient("bottom").tickSize(1).tickFormat(d3.format("d"));
+
+	/*var ctspoints = svg.selectAll(".point").data(data);
+	ctspoints.attr("stroke", ctsLine.color)
+			.attr("fill", function(d, i) { return ctsLine.color; })
+			.attr("cx", function(d, i) { return x(d.x) })
+			.attr("cy", function(d, i) { return ctsLine.range(d.cts) })
+			.attr("r", function(d, i) { return 3 });
+	ctspoints.enter().append("svg:circle")
+			.attr("class","point")
+			.attr("stroke", "black")
+			.attr("fill", function(d, i) { return ctsLine.color; })
+			.attr("cx", function(d, i) { return x(d.x) })
+			.attr("cy", function(d, i) { return ctsLine.range(d.cts) })
+			.attr("r", function(d, i) { return 3 });
+	ctspoints.exit().remove();*/
+
+	xaxislegend = svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(this.xAxis)
+	.append("text")
+		.attr("class", "label")
+		.attr("x", width - margin.right)
+		.attr("y", 30)
+		.style("text-anchor", "end")
+		.text((xaxisChoice === "time" ? "Time" : "Number"));
 
 	for (i = 0; i < this.lines.length; i++) {
 		l = this.lines[i];
