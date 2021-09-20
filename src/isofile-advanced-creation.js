@@ -208,7 +208,7 @@ ISOFile.prototype.createSingleSampleMoof = function(sample) {
 	var trak = this.getTrackById(sample.track_id);
 	traf.add("tfhd").set("track_id", sample.track_id)
 					.set("flags", BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
-	traf.add("tfdt").set("baseMediaDecodeTime", (sample.dts - trak.first_dts));
+	traf.add("tfdt").set("baseMediaDecodeTime", (sample.dts - (trak.first_dts || 0)));
 	traf.add("trun").set("flags", BoxParser.TRUN_FLAGS_DATA_OFFSET | BoxParser.TRUN_FLAGS_DURATION | 
 				 				  BoxParser.TRUN_FLAGS_SIZE | BoxParser.TRUN_FLAGS_FLAGS | 
 				 				  BoxParser.TRUN_FLAGS_CTS_OFFSET)
