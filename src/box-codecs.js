@@ -169,7 +169,7 @@ BoxParser.stxtSampleEntry.prototype.getCodec = function() {
 	if(this.mime_format) {
 		return baseCodec + "." + this.mime_format;
 	} else {
-		return baseCodec
+		return baseCodec;
 	}
 }
 
@@ -185,4 +185,28 @@ BoxParser.av01SampleEntry.prototype.getCodec = function() {
 	return baseCodec+"."+this.av1C.seq_profile+"."+this.av1C.seq_level_idx_0+(this.av1C.seq_tier_0?"H":"M")+"."+bitdepth;//+"."+this.av1C.monochrome+"."+this.av1C.chroma_subsampling_x+""+this.av1C.chroma_subsampling_y+""+this.av1C.chroma_sample_position;
 }
 
+BoxParser.encvSampleEntry.prototype.getCodec = function() {
+	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+	var transBox = (this.sinfs || this.rinfs)[0];
+	if (transBox &&
+		transBox.frma && transBox.frma.data_format &&
+		transBox.schm && transBox.schm.scheme_type &&
+		BoxParser[transBox.frma.data_format + "SampleEntry"]) {
+		var backupType = this.type;
+		this.type = transBox.frma.data_format;
+		var scheme = transBox.schm.scheme_type;
+		var fullCodec = baseCodec+"."+scheme+"."+BoxParser[this.type + "SampleEntry"].prototype.getCodec.call(this);
+		this.type = backupType;
+		return fullCodec;
+	} else {
+		return baseCodec;
+	}
+}
 
+BoxParser.encaSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
+BoxParser.encuSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
+BoxParser.encsSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
+BoxParser.enctSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
+BoxParser.encmSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
+
+BoxParser.resvSampleEntry.prototype.getCodec = BoxParser.encvSampleEntry.prototype.getCodec;
