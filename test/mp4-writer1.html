@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <title>esm</title>
+  </head>
+
+  <body>
+    <script type="module">
+      // https://github.com/gpac/mp4box.js/issues/243#issue-981293711
+      import { MP4Box } from '../dist/mp4box.esm.js';
+
+      let w = 1920;
+      let h = 1080;
+      let durationInMillisecond = 1000;
+      let fps = 60;
+      let frameTimeInMillisecond = 1000 / fps;
+      let totalFrames = Math.floor(durationInMillisecond / frameTimeInMillisecond);
+      let chunkCount = 0;
+      let videoEncoder;
+      let encoderClosed = false;
+
+      //------ Mp4box setup --------
+      let oneSecondInMillisecond = 1000;
+      let timescale = 1000;
+
+      let trackOptions = {
+        timescale: oneSecondInMillisecond * timescale,
+        width: w,
+        height: h,
+        nb_samples: totalFrames,
+      };
+
+      let sampleOptions = {
+        duration: frameTimeInMillisecond * timescale,
+      };
+
+      let file = MP4Box.createFile();
+      let track = null;
+
+      //--- WebCodec videoEncoding -----
+      async function buildAndConfigureEncoders() {
+        let videoEncoder = new VideoEncoder({
+          output: (encodedChunk, config) => {
+            let ab = new ArrayBuffer(encodedChunk.byteLength);
+            encodedChunk.copyTo(ab);
+            if (track === null) {
+              trackOptions.avcDecoderConfigRecord = config.decoderConfig.description;
+              track = file.addTrack(trackOptions);
+            }
+            sampleOptions.dts = encodedChunk.timestamp * 1000;
+            sampleOptions.cts = encodedChunk.timestamp * 1000;
+            sampleOptions.is_sync = encodedChunk.type === 'key';
+            console.log(encodedChunk.timestamp);
+            file.addSample(track, ab, sampleOptions);
+
+            chunkCount++;
+            if (chunkCount == 50) {
+              videoEncoder.close();
+              encoderClosed = true;
+              file.save('test.mp4');
+              console.log('completed !');
+            }
+          },
+          error: (error) => {
+            console.log('onCodecError ', error);
+          },
+        });
+
+        await videoEncoder.configure({
+          codec: 'avc1.42001E',
+          width: w,
+          height: h,
+          hardwareAcceleration: 'prefer-hardware',
+          avc: { format: 'avc' },
+        });
+
+        return videoEncoder;
+      }
+
+      //--- create a simple movie inside a canvas and send frames to webcodec.VideoEncoder ----
+      let canvas = document.createElement('canvas'); //new OffscreenCanvas(w, h);
+      canvas.width = w;
+      canvas.height = h;
+      document.body.appendChild(canvas);
+      let ctx = canvas.getContext('2d');
+
+      function drawFrame(progress) {
+        if (encoderClosed) return;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(Math.round((w - 50) * progress), 200, 50, 50);
+
+        createImageBitmap(canvas).then((bmp) => {
+          let videoFrame = new VideoFrame(bmp, { timestamp: durationInMillisecond * progress });
+          videoEncoder.encode(videoFrame);
+          videoFrame.close();
+        });
+      }
+
+      async function start() {
+        videoEncoder = await buildAndConfigureEncoders();
+
+        let i = 0;
+        while (i++ < totalFrames) drawFrame(i / totalFrames);
+      }
+
+      start();
+    </script>
+  </body>
+</html>

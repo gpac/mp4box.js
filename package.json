@@ -9,7 +9,8 @@
     "streaming"
   ],
   "homepage": "https://github.com/gpac/mp4box.js",
-  "main": "dist/mp4box.all.js",
+  "main": "dist/mp4box.esm.js",
+  "typings": "mp4box.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/gpac/mp4box.js.git"
@@ -23,27 +24,30 @@
     "url": "http://concolato.wp.mines-telecom.fr/"
   },
   "license": "BSD-3-Clause",
-  "devDependencies": {
-    "blanket": "^1.2.3",
-    "grunt": "^1.0.4",
-    "grunt-bump": "^0.8.0",
-    "grunt-cli": "^1.2.0",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-jshint": "^2.1.0",
-    "grunt-contrib-qunit": "^3.1.0",
-    "grunt-contrib-uglify": "^4.0.1",
-    "grunt-contrib-watch": "^1.1.0",
-    "grunt-karma": "^3.0.2",
-    "grunt-karma-coveralls": "^2.5.4",
-    "karma": "^4.1.0",
-    "karma-chrome-launcher": "^2.2.0",
-    "karma-coverage": "^1.1.2",
-    "karma-firefox-launcher": "^1.1.0",
-    "karma-phantomjs-launcher": "^1.0.4",
-    "karma-qunit": "^0.1.4",
-    "qunitjs": "^1.23.0"
-  },
   "scripts": {
-    "test": "grunt test --verbose"
+    "tsc": "tsc --outDir dist",
+    "prettier": "prettier --write --loglevel warn \"src/**/*.{json,ts,html,md}\"",
+    "pub": "node --max_old_space_size=8192 scripts/run.js pub",
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.0.4",
+    "@rollup/plugin-typescript": "^8.2.5",
+    "@typescript-eslint/eslint-plugin": "^4.28.3",
+    "@typescript-eslint/parser": "^4.28.3",
+    "eslint": "^8.1.0",
+    "prettier": "^2.3.2",
+    "eslint-plugin-import": "^2.22.1",
+    "rollup": "^2.56.2",
+    "rollup-plugin-sourcemaps": "^0.6.3",
+    "rollup-plugin-terser": "^7.0.2",
+    "through2": "^3.0.0",
+    "fast-glob": "^3.2.7",
+    "rimraf": "^3.0.0",
+    "gulp": "^4.0.1",
+    "colorful": "^2.1.0",
+    "object-assign": "^4.1.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.3.2"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "sourceMap": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowJs": false,
+    "strict": true,
+    "noUnusedLocals": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "removeComments": true,
+    "lib": ["esnext", "dom"],
+    "rootDir": "."
+  },
+  "include": ["src/**.ts"],
+  "exclude": ["node_modules/**", "dist/**", "test/**"]
+}

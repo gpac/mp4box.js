@@ -1,0 +1,153 @@
+export default (BoxParser: any) => {
+  BoxParser.VisualSampleEntry.prototype.isVideo = function () {
+    return true;
+  };
+
+  BoxParser.VisualSampleEntry.prototype.getWidth = function () {
+    return this.width;
+  };
+
+  BoxParser.VisualSampleEntry.prototype.getHeight = function () {
+    return this.height;
+  };
+
+  BoxParser.AudioSampleEntry.prototype.isAudio = function () {
+    return true;
+  };
+
+  BoxParser.AudioSampleEntry.prototype.getChannelCount = function () {
+    return this.channel_count;
+  };
+
+  BoxParser.AudioSampleEntry.prototype.getSampleRate = function () {
+    return this.samplerate;
+  };
+
+  BoxParser.AudioSampleEntry.prototype.getSampleSize = function () {
+    return this.samplesize;
+  };
+
+  BoxParser.SubtitleSampleEntry.prototype.isSubtitle = function () {
+    return true;
+  };
+
+  BoxParser.MetadataSampleEntry.prototype.isMetadata = function () {
+    return true;
+  };
+
+  BoxParser.avc1SampleEntry.prototype.getCodec =
+    BoxParser.avc2SampleEntry.prototype.getCodec =
+    BoxParser.avc3SampleEntry.prototype.getCodec =
+    BoxParser.avc4SampleEntry.prototype.getCodec =
+      function () {
+        var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+        if (this.avcC) {
+          return (
+            baseCodec +
+            '.' +
+            BoxParser.decimalToHex(this.avcC.AVCProfileIndication) +
+            '' +
+            BoxParser.decimalToHex(this.avcC.profile_compatibility) +
+            '' +
+            BoxParser.decimalToHex(this.avcC.AVCLevelIndication)
+          );
+        } else {
+          return baseCodec;
+        }
+      };
+
+  BoxParser.hev1SampleEntry.prototype.getCodec = BoxParser.hvc1SampleEntry.prototype.getCodec =
+    function () {
+      var i;
+      var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+      if (this.hvcC) {
+        baseCodec += '.';
+        switch (this.hvcC.general_profile_space) {
+          case 0:
+            baseCodec += '';
+            break;
+          case 1:
+            baseCodec += 'A';
+            break;
+          case 2:
+            baseCodec += 'B';
+            break;
+          case 3:
+            baseCodec += 'C';
+            break;
+        }
+        baseCodec += this.hvcC.general_profile_idc;
+        baseCodec += '.';
+        var val = this.hvcC.general_profile_compatibility;
+        var reversed = 0;
+        for (i = 0; i < 32; i++) {
+          reversed |= val & 1;
+          if (i == 31) break;
+          reversed <<= 1;
+          val >>= 1;
+        }
+        baseCodec += BoxParser.decimalToHex(reversed, 0);
+        baseCodec += '.';
+        if (this.hvcC.general_tier_flag === 0) {
+          baseCodec += 'L';
+        } else {
+          baseCodec += 'H';
+        }
+        baseCodec += this.hvcC.general_level_idc;
+        var hasByte = false;
+        var constraint_string = '';
+        for (i = 5; i >= 0; i--) {
+          if (this.hvcC.general_constraint_indicator[i] || hasByte) {
+            constraint_string =
+              '.' +
+              BoxParser.decimalToHex(this.hvcC.general_constraint_indicator[i], 0) +
+              constraint_string;
+            hasByte = true;
+          }
+        }
+        baseCodec += constraint_string;
+      }
+      return baseCodec;
+    };
+
+  BoxParser.mp4aSampleEntry.prototype.getCodec = function () {
+    var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+    if (this.esds && this.esds.esd) {
+      var oti = this.esds.esd.getOTI();
+      var dsi = this.esds.esd.getAudioConfig();
+      return baseCodec + '.' + BoxParser.decimalToHex(oti) + (dsi ? '.' + dsi : '');
+    } else {
+      return baseCodec;
+    }
+  };
+
+  BoxParser.stxtSampleEntry.prototype.getCodec = function () {
+    var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+    if (this.mime_format) {
+      return baseCodec + '.' + this.mime_format;
+    } else {
+      return baseCodec;
+    }
+  };
+
+  BoxParser.av01SampleEntry.prototype.getCodec = function () {
+    var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+    var bitdepth;
+    if (this.av1C.seq_profile === 2 && this.av1C.high_bitdepth === 1) {
+      bitdepth = this.av1C.twelve_bit === 1 ? '12' : '10';
+    } else if (this.av1C.seq_profile <= 2) {
+      bitdepth = this.av1C.high_bitdepth === 1 ? '10' : '08';
+    }
+    // TODO need to parse the SH to find color config
+    return (
+      baseCodec +
+      '.' +
+      this.av1C.seq_profile +
+      '.' +
+      this.av1C.seq_level_idx_0 +
+      (this.av1C.seq_tier_0 ? 'H' : 'M') +
+      '.' +
+      bitdepth
+    ); //+"."+this.av1C.monochrome+"."+this.av1C.chroma_subsampling_x+""+this.av1C.chroma_subsampling_y+""+this.av1C.chroma_sample_position;
+  };
+};
