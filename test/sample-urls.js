@@ -128,7 +128,7 @@ var sampleUrls = [
 	}
 ];
 
-function buildUrlList(urlSelector, addNonPlayable) {
+export function buildUrlList(urlSelector, addNonPlayable) {
 	for (var i in sampleUrls) {
 		var group = document.createElement("optgroup");
 		group.label = sampleUrls[i].groupName;
