@@ -421,7 +421,7 @@ window.onload = function () {
 
 	createLoadBar($('#menubar'), "File", "file", file, finalizeAnalyzerUI);
 
-	createFancyTree($('#boxtreeview'), file);
+	createFancyTree($('#boxtree'), file);
 
 	$("#resulttabs").tabs();
 	$("#boxview").tabs();

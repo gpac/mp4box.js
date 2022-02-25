@@ -219,18 +219,14 @@ function loadHandler(fileobj, loadbutton, progressbar, progresslabel, finalizeUI
 
 function createFancyTree(parent, fileobj) {
 	var boxtreeviewdiv = $('<div></div>');
-	boxtreeviewdiv.css("width", "45%");
-	boxtreeviewdiv.css("float", "left");
+	boxtreeviewdiv.css("width", "95%");
 	boxtreeviewdiv.css("padding", "1%");
 	parent.append(boxtreeviewdiv);
 
 	var boxtreediv = $('<div></div>');
 	boxtreeviewdiv.append(boxtreediv);
-	boxtreediv.css("width", "30%");
-	boxtreediv.css("float", "left");
 
-	var boxtreetable = $('<div></div>');
-	boxtreeviewdiv.append(boxtreetable);
+	var boxtreetable = $('#boxtable');
 	boxtreetable.html(generateBoxTable({}));
 
 	var fancytree_options = {};
