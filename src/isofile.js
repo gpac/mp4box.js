@@ -299,6 +299,7 @@ ISOFile.prototype.getInfo = function() {
 	var movie = {};
 	var trak;
 	var track;
+	var ref;
 	var sample_desc;
 	var _1904 = (new Date('1904-01-01T00:00:00Z').getTime());
 
