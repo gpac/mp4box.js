@@ -65,15 +65,15 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 			}
 		}
 	}
-	if (size < hdr_size) {
+	if (size !== 0 && size < hdr_size) {
 		Log.error("BoxParser", "Box of type "+type+" has an invalid size "+size+" (too small to be a box)");
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };
 	}
-	if (parentSize && size > parentSize) {
+	if (size !== 0 && parentSize && size > parentSize) {
 		Log.error("BoxParser", "Box of type '"+type+"' has a size "+size+" greater than its container size "+parentSize);
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };
 	}
-	if (start + size > stream.getEndPosition()) {
+	if (size !== 0 && start + size > stream.getEndPosition()) {
 		stream.seek(start);
 		Log.info("BoxParser", "Not enough data in stream to parse the entire '"+type+"' box");
 		return { code: BoxParser.ERR_NOT_ENOUGH_DATA, type: type, size: size, hdr_size: hdr_size, start: start };
@@ -114,7 +114,7 @@ BoxParser.parseOneBox = function(stream, headerOnly, parentSize) {
 		stream.seek(box.start+box.size);
 	} else if (diff > 0) {
 		Log.error("BoxParser", "Parsing of box '"+box_type+"' read "+diff+" more bytes than the indicated box data size, seeking backwards");
-		stream.seek(box.start+box.size);
+		if (box.size !== 0) stream.seek(box.start+box.size);
 	}
 	return { code: BoxParser.OK, box: box, size: box.size };
 }
