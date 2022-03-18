@@ -43,8 +43,8 @@ ISOFile.prototype.addTrack = function (_options) {
 					.set("alternate_group", 0)
 					.set("volume", 1)
 					.set("matrix", [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
-					.set("width", options.width)
-					.set("height", options.height);
+					.set("width", options.width << 16)
+					.set("height", options.height << 16);
 
 	var mdia = trak.add("mdia");
 	mdia.add("mdhd").set("creation_time", 0)
