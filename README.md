@@ -220,7 +220,7 @@ Indicates that the application is ready to receive segments. Returns an array of
 - **user**: Object, the caller of the segmentation for this track, as given in [setSegmentOptions](##setsegmentoptionstrack_id-user-options)
 - **buffer**: ArrayBuffer, the initialization segment for this track.
 - **sampleNumber**: Number, sample number of the last sample in the segment, plus 1.
-- **buffer**: Boolean, indication if this is the last segment to be received.
+- **last**: Boolean, indication if this is the last segment to be received.
 
 ```json
 [
