@@ -360,6 +360,7 @@ function buildSegmentGraph(sidx, startSeg, endSeg) {
 	graph = new SegmentGraph();
 	graph.data = [];
 	var time = 0;
+	if (!sidx || !sidx.references || sidx.references.length === 0) return;
 	for (var i =0; i < sidx.references.length; i++) {
 		graph.data[i] = {};
 		graph.data[i].number = i;
@@ -385,6 +386,7 @@ function buildSegmentView(fileobj) {
 	var startSeg = 0;
 	var endSeg = 10;
 	var sidx = fileobj.mp4boxfile.sidx;
+	if (!sidx || !sidx.references || sidx.references.length === 0) return;
 	var nbSeg = sidx.references.length;
 	segmentRangeSlider.dragslider({
 		range: true,
