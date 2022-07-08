@@ -96,7 +96,7 @@ window.onload = function () {
 	if (video.textTracks) video.textTracks.onchange = updateHtml5TrackInfo;
 	reset();	
 
-	/* Loading Track Viewers */
+	/* Loading Track Viewers 
 	var s = document.createElement("script");
 	s.src = "trackviewers/fancyLyrics/viewer.js";
 	s.async = false;
@@ -113,6 +113,7 @@ window.onload = function () {
 	s.src = "trackviewers/gps/position.js";
 	s.async = false;
 	document.head.appendChild(s);
+	*/
 }
 
 /* GUI-related callback functions */
