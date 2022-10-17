@@ -414,6 +414,17 @@ ISOFile.prototype.getInfo = function() {
 	return movie;
 }
 
+ISOFile.prototype.setNextSeekPositionFromSample = function (sample) {
+	if (!sample) {
+		return;
+	}
+	if (this.nextSeekPosition) {
+		this.nextSeekPosition = Math.min(sample.offset+sample.alreadyRead,this.nextSeekPosition);
+	} else {
+		this.nextSeekPosition = sample.offset+sample.alreadyRead;
+	}
+}
+
 ISOFile.prototype.processSamples = function(last) {
 	var i;
 	var trak;
@@ -470,6 +481,7 @@ ISOFile.prototype.processSamples = function(last) {
 					trak.nextSample++;
 					extractTrak.samples.push(sample);
 				} else {
+					this.setNextSeekPositionFromSample(trak.samples[trak.nextSample]);
 					break;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
