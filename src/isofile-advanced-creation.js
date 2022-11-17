@@ -179,7 +179,7 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 	trak.samples.push(sample);
 	trak.samples_size += sample.size;
 	trak.samples_duration += sample.duration;
-	if (!trak.first_dts) {
+	if (trak.first_dts === undefined) {
 		trak.first_dts = options.dts;
 	}
 
