@@ -240,7 +240,7 @@ Indicates that the application is ready to receive segments. Returns an array of
 ### Extraction ###
 It is possible to extract the samples of a track, in a similar manner to the segmentation process.
 ```javascript
-var mp4box = MP4Box.createFile();
+var mp4boxfile = MP4Box.createFile();
 mp4boxfile.onReady = function(info) {
   ...
   /* create a texttrack */
