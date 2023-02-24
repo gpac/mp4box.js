@@ -263,3 +263,10 @@ BoxParser.av01SampleEntry.prototype.getCodec = function() {
 	// TODO need to parse the SH to find color config
 	return baseCodec+"."+this.av1C.seq_profile+"."+level+(this.av1C.seq_tier_0?"H":"M")+"."+bitdepth;//+"."+this.av1C.monochrome+"."+this.av1C.chroma_subsampling_x+""+this.av1C.chroma_subsampling_y+""+this.av1C.chroma_sample_position;
 }
+
+BoxParser.avs3SampleEntry.prototype.getCodec = function() {
+	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
+	
+	return baseCodec + '.' + (this.av3c.profile_id ? this.av3c.profile_id.toString(16) : 'XX') 
+			 + '.' + (this.av3c.level_id ? this.av3c.level_id.toString(16) : 'XX');
+}
