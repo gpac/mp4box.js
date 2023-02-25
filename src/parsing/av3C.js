@@ -192,7 +192,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 	if (this.profile_id == 0x22 || this.profile_id == 0x32)
 		this.encoding_precision = binForm(BitBuffer.getBits(3), 3);
 	tmp_byte = BitBuffer.getBit();  // marker_bit
-	this.aspect_ratio = BitBuffer.getBits(4);
+	this.aspect_ratio = binForm(BitBuffer.getBits(4), 4);
 	this.frame_rate_code = binForm(BitBuffer.getBits(4), 4);
 	tmp_byte = BitBuffer.getBit();  // marker_bit
 
