@@ -1,5 +1,10 @@
 var OSisLittleEndian=false;
 var BitBuffer = {
+	MAIN_8: 0x20, 
+	MAIN_10: 0x22, 
+	HIGH_8: 0x30, 
+	HIGH_10: 0x32,
+
 	_buffer: [],
 	_buffer_size: 0,
 
@@ -76,9 +81,30 @@ var BitBuffer = {
 	currentReadBitOffset: function() {return 8 * this._state.rbyte + this._state.rbit;},
 	currentWriteByteOffset: function() {return this._state.wbyte;},
 	currentWriteBitOffset: function() {return 8 * this._state.wbyte + this._state.wbit;},
+
 	getUint8: function() {
 		return this.rdb(1);
 	},
+
+	getUint16: function() {
+		return this._big_endian ? this.GetUInt16BE(this.rdb(2)) : this.GetUInt16LE(this.rdb(2));
+	},
+	ByteSwap16: function(x) {
+		return (x << 8) | (x >> 8);
+	},
+	CondByteSwap16BE: function(val) {
+		return OSisLittleEndian ? this.ByteSwap16(val) : val;
+	},
+	CondByteSwap16LE: function(val) {
+		return OSisLittleEndian ? val : this.ByteSwap16(val);
+	},
+	GetUInt16BE: function(val) {
+		return this.CondByteSwap16BE(val);
+	},
+	GetUInt16LE: function(val) {
+		return this.CondByteSwap16LE(val);
+	},
+	
 	getUint32: function() {
 		return this._big_endian ? this.GetUInt32BE(this.rdb(4)) : this.GetUInt32LE(this.rdb(4));
 	},
@@ -97,6 +123,7 @@ var BitBuffer = {
 	GetUInt32LE: function(val) {
 		return this.CondByteSwap32LE(val);
 	},
+
 	getBits: function(bits) {
 		// No read if read error is already set or not enough bits to read.
 		if (this._read_error || this.currentReadBitOffset() + bits > this.currentWriteBitOffset()) {
@@ -149,6 +176,25 @@ var BitBuffer = {
 			}
 		}
 		return (val);
+	},
+	skipBits: function(bits) {
+		if (this._read_error) {
+			// Can't skip bits and bytes if read error is already set.
+			return false;
+		}
+		var rpos = 8 * this._state.rbyte + this._state.rbit + bits;
+		var wpos = 8 * this._state.wbyte + this._state.wbit;
+		if (rpos > wpos) {
+			this._state.rbyte = this._state.wbyte;
+			this._state.rbit = this._state.wbit;
+			this._read_error = true;
+			return false;
+		}
+		else {
+			this._state.rbyte = rpos >> 3;
+			this._state.rbit = rpos & 7;
+			return true;
+		}
 	}
 };
 
@@ -172,9 +218,8 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 	BitBuffer.load(buf, false);
 
 	tmp_byte = BitBuffer.getUint32();   // video_sequence_start_code
-	// Log.debug("BoxParser", 'AVS3 start code: '+tmp_byte.toString(16));
-	this.profile_id=BitBuffer.getUint8();
-	this.level_id=BitBuffer.getUint8();
+	this.profile_id = BitBuffer.getUint8();
+	this.level_id = BitBuffer.getUint8();
 	this.progressive_sequence = BitBuffer.getBit();
 	this.field_coded_sequence = BitBuffer.getBit();
 	this.library_stream_flag = BitBuffer.getBit();
@@ -183,20 +228,36 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 		if (this.library_picture_enable_flag)
 			this.duplicate_sequence_number_flag = BitBuffer.getBit();
 	}
-	tmp_byte = BitBuffer.getBit();  // marker_bit
+	BitBuffer.skipBits(1);  // marker_bit
+
 	this.horizontal_size = BitBuffer.getBits(14);
-	tmp_byte = BitBuffer.getBit();  // marker_bit
+	BitBuffer.skipBits(1);  // marker_bit
+
 	this.vertical_size = BitBuffer.getBits(14);
 	this.chroma_format = binForm(BitBuffer.getBits(2), 2);
 	this.sample_precision = binForm(BitBuffer.getBits(3), 3);
-	if (this.profile_id == 0x22 || this.profile_id == 0x32)
+	if (this.profile_id == MAIN_10 || this.profile_id == HIGH_10)
 		this.encoding_precision = binForm(BitBuffer.getBits(3), 3);
-	tmp_byte = BitBuffer.getBit();  // marker_bit
+	BitBuffer.skipBits(1);  // marker_bit
+
 	this.aspect_ratio = binForm(BitBuffer.getBits(4), 4);
 	this.frame_rate_code = binForm(BitBuffer.getBits(4), 4);
-	tmp_byte = BitBuffer.getBit();  // marker_bit
+	BitBuffer.skipBits(1);  // marker_bit
 
-	tmp_byte=stream.readUint8();
-	this.library_dependency_idc = binForm(tmp_byte, 2);
+	this.bit_rate_lower = BitBuffer.getBits(18);
+	BitBuffer.skipBits(1);  // marker_bit
+
+	this.bit_rate_upper = BitBuffer.getBits(12);
+	this.low_delay = BitBuffer.getBit();
+	this.temporal_id_enable_flag = BitBuffer.getBit();
+	BitBuffer.skipBits(1);  // marker_bit
+
+	this.bbv_buffer_size = BitBuffer.getBits(18);
+	BitBuffer.skipBits(1);  // marker_bit
+
+	this.max_dpb_minus1 = BitBuffer.getBits(4);
+	// other sequence_header() elements are only useful for detailed debugging
+
+	this.library_dependency_idc = binForm(stream.readUint8(), 2);
 });
 
