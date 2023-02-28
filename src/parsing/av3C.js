@@ -1,17 +1,22 @@
+/*
+ * Copyright (c) 2023. Paul Higgs
+ * License: BSD-3-Clause (see LICENSE file)
+ */
+
 var OSisLittleEndian=false;
 
-function ReferencePictureList(list, rpls) {
+function ReferencePictureSet(list, set) {
 	this.list = list;
-	this.rpls = rpls;
+	this.set = set;
 	this.pics = [];
 }
-ReferencePictureList.prototype.set_reference_to_library_enable_flag = function(flag) {
+ReferencePictureSet.prototype.set_reference_to_library_enable_flag = function(flag) {
 	this.reference_to_library_enable_flag = flag;
 };
-ReferencePictureList.prototype.add = function(pic) {
+ReferencePictureSet.prototype.push = function(pic) {
 	this.pics.push(pic);
 };
-ReferencePictureList.prototype.toString = function() {
+ReferencePictureSet.prototype.toString = function() {
 	var ret = "{";
 	if (this.hasOwnProperty("reference_to_library_enable_flag")) 
 		ret += "reference_to_library_enable_flag: " + this.reference_to_library_enable_flag;
@@ -23,16 +28,31 @@ ReferencePictureList.prototype.toString = function() {
 	return ret;
 };
 
-var reference_picture_list_formatter = function(obj) {
-	var ret = [];
-	if (obj.hasOwnProperty("list") && Array.isArray(obj.list)) {
-		obj.list.forEach(function write(e) {
-			ret.push(e.toString());
-		});
-	}
-	return ret.join(", ");
+function ReferencePictureList(list) {
+	this.list = list;
+	this.sets = [];
+}
+ReferencePictureList.prototype.push = function(set) {
+	this.sets.push(set);
+};
+ReferencePictureList.prototype.toString = function() {
+	var l = [];
+	this.sets.forEach( function(set) {
+		l.push(set.toString());
+	});
+	return l.join(", ");
 };
 
+function BinaryValue(value, bits) {
+	this.value = value;
+	this.bits = bits;
+}
+BinaryValue.prototype.toString = function() {
+	var _i, _res = "b";
+	for (_i=this.bits; _i>0; _i--)
+		_res += (this.value & (1 << (_i-1)) ? "1" : "0");
+	return _res;
+};
 
 function WeightQuantMatrix( buffer ) {
 	this.WeightQuantMatrix4x4 = [];
@@ -284,19 +304,17 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 		}
 	};
 
-	var i, j, tmp_byte, sequence_header_length;
+	var i, j, sequence_header_length;
 	var MAIN_8 = 0x20, MAIN_10 = 0x22, HIGH_8 = 0x30, HIGH_10 = 0x32;
 
-	var binForm = function (value, bits) {
-		var _i, res = "b";
-		for (_i=bits; _i>0; _i--)
-			res += (value & (1 << (_i-1)) ? "1" : "0");
-		return res;
-	};
 	var se2value = function (codeNum) {
-		return ( Math.pow(-1, codeNum+1) * Math.ceil(codeNum/2));
+		return (Math.pow(-1, codeNum+1) * Math.ceil(codeNum/2));
 	};
 	this.configurationVersion = stream.readUint8();
+	if (this.configurationVersion != 1) {
+		Log.error("av3c version "+this.configurationVersion+" not supported");
+		return;
+	}
 	sequence_header_length = stream.readUint16();
 
 	var buf=[];
@@ -322,15 +340,15 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 	BitBuffer.skipBits(1);  // marker_bit
 
 	this.vertical_size = BitBuffer.getBits(14);
-	this.chroma_format = binForm(BitBuffer.getBits(2), 2);
-	this.sample_precision = binForm(BitBuffer.getBits(3), 3);
+	this.chroma_format = new BinaryValue(BitBuffer.getBits(2), 2);
+	this.sample_precision = new BinaryValue(BitBuffer.getBits(3), 3);
 	
 	if (this.profile_id == MAIN_10 || this.profile_id == HIGH_10)
-		this.encoding_precision = binForm(BitBuffer.getBits(3), 3);
+		this.encoding_precision = new BinaryValue(BitBuffer.getBits(3), 3);
 	BitBuffer.skipBits(1);  // marker_bit
 
-	this.aspect_ratio = binForm(BitBuffer.getBits(4), 4);
-	this.frame_rate_code = binForm(BitBuffer.getBits(4), 4);
+	this.aspect_ratio = new BinaryValue(BitBuffer.getBits(4), 4);
+	this.frame_rate_code = new BinaryValue(BitBuffer.getBits(4), 4);
 	BitBuffer.skipBits(1);  // marker_bit
 
 	this.bit_rate_lower = BitBuffer.getBits(18);
@@ -350,7 +368,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 	BitBuffer.skipBits(1);  // marker_bit
 
 	var reference_picture_list = function(list, rpls) {
-		var i, this_set = new ReferencePictureList(list, rpls);
+		var i, this_set = new ReferencePictureSet(list, rpls);
 		if (this.library_picture_enable_flag)
 			this_set.set_reference_to_library_enable_flag(BitBuffer.getBit());
 		var num_of_ref_pic = BitBuffer.getUE();
@@ -365,28 +383,21 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 				if (this_pic.abs_delta_doi > 0)
 					this_pic.sign_delta_doi = BitBuffer.getBit();
 			}
-			this_set.add(this_pic);
+			this_set.push(this_pic);
 		}
 		return this_set;
 	};
 
 	this.num_ref_pic_list_set0 = BitBuffer.getUE();
-	this.rpl0={};
-	if (this.num_ref_pic_list_set0 > 0) {
-		this.rpl0.list=[];
-		this.rpl0.toString = reference_picture_list_formatter; 
-		for (j=0; j<this.num_ref_pic_list_set0; j++)
-			this.rpl0.list.push(reference_picture_list(0, j));
-	}
+	this.rpl0 = new ReferencePictureList(0);
+	for (j=0; j<this.num_ref_pic_list_set0; j++)
+		this.rpl0.push(reference_picture_list(0, j));
+
 	if (!this.rpl1_same_as_rpl0_flag) {
 		this.num_ref_pic_list_set1 = BitBuffer.getUE();
-		this.rpl1={};
-		if (this.num_ref_pic_list_set1 > 0) {
-			this.rpl1.list=[];
-			this.rpl1.toString = reference_picture_list_formatter; 
-			for (j=0; j<this.num_ref_pic_list_set1; j++)
-				this.rpl1.list.push(reference_picture_list(1, j));
-		}
+		this.rpl1 = new ReferencePictureList(1);
+		for (j=0; j<this.num_ref_pic_list_set1; j++)
+			this.rpl1.push(reference_picture_list(1, j));
 	}
 
 	this.num_ref_default_active_minus1_0 = BitBuffer.getUE();
@@ -478,7 +489,58 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 	}
 	BitBuffer.skipBits(2);  // reserved bits
 
-
-	this.library_dependency_idc = binForm(stream.readUint8(), 2);
+	this.library_dependency_idc = new BinaryValue(stream.readUint8(), 2);
 });
 
+
+
+
+
+function AVS3TemporalLayer(_temporal_layer_id, _frame_rate_code, _temporal_bit_rate_lower, _temporal_bit_rate_upper) {
+	this.temporal_layer_id = _temporal_layer_id;
+	this.frame_rate_code = new BinaryValue(_frame_rate_code, 3);
+	this.temporal_bit_rate_lower = _temporal_bit_rate_lower;
+	this.temporal_bit_rate_upper = _temporal_bit_rate_upper;
+
+}
+AVS3TemporalLayer.prototype.toString = function() {
+	return "{temporal_layer_id:" + this.temporal_layer_id +
+		", frame_rate_code:" + this.frame_rate_code.toString() +
+		", temporal_bit_rate_lower:" + this.temporal_bit_rate_lower +
+		", temporal_bit_rate_upper:" + this.temporal_bit_rate_upper + "}";
+};
+
+function AVS3TemporalLayers(noarg) {
+	this.layers = [];
+}
+AVS3TemporalLayers.prototype.push = function(layer) {
+	this.layers.push(layer);
+};
+AVS3TemporalLayers.prototype.toString = function() {
+	var l = [];
+	this.layers.forEach( function(layer) {
+		l.push(layer.toString);
+	});
+	return l.join(", ");
+};
+
+BoxParser.createBoxCtor("lavc", function(stream) {
+	var i, tmp_val1, tmp_val2;
+	this.configurationVersion = stream.readUint8();
+	if (this.configurationVersion != 1) {
+		Log.error("lavc version "+this.configurationVersion+" not supported");
+		return;
+	}
+	this.numTemporalLayers = stream.readUint8();
+	this.layers=new AVS3TemporalLayers();
+	for (i=0; i<this.num_temporal_layers; i++) {
+		tmp_val1 = stream.readUint8();
+		tmp_val2 = stream.readUint32();
+
+		this.layers.push(new AVS3TemporalLayer(
+					(tmp_val1 >> 5) & 0x07,
+					(tmp_val1 >> 1) & 0x0f,
+					(tmp_val2 >> 14) & 0x0003ffff,
+					(tmp_val2 >> 2) & 0x00000fff) );
+	}
+});
