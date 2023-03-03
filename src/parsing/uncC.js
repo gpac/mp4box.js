@@ -26,6 +26,5 @@ BoxParser.createBoxCtor("uncC", function(stream) {
     this.tile_align_size = stream.readUint32();
     this.num_tile_cols_minus_one = stream.readUint32();
     this.num_tile_rows_minus_one = stream.readUint32();
-
 });
 
