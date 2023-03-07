@@ -5,7 +5,7 @@ BoxParser.createBoxCtor("uncC", function(stream) {
     this.component_index = [];
     this.component_bit_depth_minus_one = [];
     this.component_format = [];
-    this.component_alight_size = [];
+    this.component_align_size = [];
     for (i = 0; i < this.component_count; i++) {
         this.component_index.push(stream.readUint16());
         this.component_bit_depth_minus_one.push(stream.readUint8());
