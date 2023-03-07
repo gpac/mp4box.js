@@ -10,7 +10,7 @@ BoxParser.createBoxCtor("uncC", function(stream) {
         this.component_index.push(stream.readUint16());
         this.component_bit_depth_minus_one.push(stream.readUint8());
         this.component_format.push(stream.readUint8());
-        this.component_alight_size.push(stream.readUint8());
+        this.component_align_size.push(stream.readUint8());
     }
     this.sampling_type = stream.readUint8();
     this.interleave_type = stream.readUint8();
