@@ -68,19 +68,22 @@ BoxParser.createFullBoxCtor("vvcC", function (stream) {
         bitReader.extract_bits(6);
       }
 
-      bitReader.stream_read_1_bytes(stream);
-      this.ptl_sublayer_present_mask = 0;
-      for (j = this.num_sublayers - 2; j >= 0; --j) {
-        var val = bitReader.extract_bits(1);
-        this.ptl_sublayer_present_mask |= val << j;
-      }
-      for (j = this.num_sublayers; j <= 8 && this.num_sublayers > 1; ++j) {
-        bitReader.extract_bits(1);  // ptl_reserved_zero_bit
-      }
+      if (this.num_sublayers > 1) {
+        bitReader.stream_read_1_bytes(stream);
+        this.ptl_sublayer_present_mask = 0;
+        for (j = this.num_sublayers - 2; j >= 0; --j) {
+          var val = bitReader.extract_bits(1);
+          this.ptl_sublayer_present_mask |= val << j;
+        }
+        for (j = this.num_sublayers; j <= 8 && this.num_sublayers > 1; ++j) {
+          bitReader.extract_bits(1);  // ptl_reserved_zero_bit
+        }
 
-      for (j = this.num_sublayers - 2; j >= 0; --j) {
-        if (this.ptl_sublayer_present_mask & (1 << j)) {
-          this.sublayer_level_idc[j] = stream.readUint8();
+        this.sublayer_level_idc = [];
+        for (j = this.num_sublayers - 2; j >= 0; --j) {
+          if (this.ptl_sublayer_present_mask & (1 << j)) {
+            this.sublayer_level_idc[j] = stream.readUint8();
+          }
         }
       }
 
