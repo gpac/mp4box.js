@@ -9,12 +9,7 @@ ISOFile.prototype.createFragment = function(track_id, sampleNumber, stream_) {
 	var trak = this.getTrackById(track_id);
 	var sample = this.getSample(trak, sampleNumber);
 	if (sample == null) {
-		sample = trak.samples[sampleNumber];
-		if (this.nextSeekPosition) {
-			this.nextSeekPosition = Math.min(sample.offset+sample.alreadyRead,this.nextSeekPosition);
-		} else {
-			this.nextSeekPosition = trak.samples[sampleNumber].offset+sample.alreadyRead;
-		}
+		this.setNextSeekPositionFromSample(trak.samples[sampleNumber]);
 		return null;
 	}
 	
