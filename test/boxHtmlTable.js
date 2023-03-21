@@ -42,7 +42,10 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 					if (i%4 === 3) html += ' ';
 				}
 			} else {
-				html += box[prop];
+				if (box[prop].hasOwnProperty("toString") && typeof box[prop].toString === "function")
+					html += box[prop].toString();
+				else
+					html += box[prop];
 			}
 			html += '</code></td>';
 			html += '</tr>';
