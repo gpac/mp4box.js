@@ -84,9 +84,12 @@ ISOFile.prototype.addTrack = function (_options) {
 						.set("depth", 0x18);
 			if (options.avcDecoderConfigRecord) {
 				var avcC = new BoxParser.avcCBox();
-				var stream = new MP4BoxStream(options.avcDecoderConfigRecord);
-				avcC.parse(stream);
+				avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
 				sample_description_entry.addBox(avcC);
+			} else if (options.hevcDecoderConfigRecord) {
+				var hvcC = new BoxParser.hvcCBox();
+				hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
+				sample_description_entry.addBox(hvcC);
 			}
 			break;
 		case "Audio":
@@ -179,7 +182,7 @@ ISOFile.prototype.addSample = function (track_id, data, _options) {
 	trak.samples.push(sample);
 	trak.samples_size += sample.size;
 	trak.samples_duration += sample.duration;
-	if (!trak.first_dts) {
+	if (trak.first_dts === undefined) {
 		trak.first_dts = options.dts;
 	}
 

@@ -414,6 +414,17 @@ ISOFile.prototype.getInfo = function() {
 	return movie;
 }
 
+ISOFile.prototype.setNextSeekPositionFromSample = function (sample) {
+	if (!sample) {
+		return;
+	}
+	if (this.nextSeekPosition) {
+		this.nextSeekPosition = Math.min(sample.offset+sample.alreadyRead,this.nextSeekPosition);
+	} else {
+		this.nextSeekPosition = sample.offset+sample.alreadyRead;
+	}
+}
+
 ISOFile.prototype.processSamples = function(last) {
 	var i;
 	var trak;
@@ -470,6 +481,7 @@ ISOFile.prototype.processSamples = function(last) {
 					trak.nextSample++;
 					extractTrak.samples.push(sample);
 				} else {
+					this.setNextSeekPositionFromSample(trak.samples[trak.nextSample]);
 					break;
 				}
 				if (trak.nextSample % extractTrak.nb_samples === 0 || trak.nextSample >= trak.samples.length) {
@@ -598,6 +610,16 @@ ISOFile.prototype.seekTrack = function(time, useRap, trak) {
 	return { offset: seek_offset, time: time/timescale };
 }
 
+ISOFile.prototype.getTrackDuration = function (trak) {
+	var sample;
+
+	if (!trak.samples) {
+		return Infinity;
+	}
+	sample = trak.samples[trak.samples.length - 1];
+	return (sample.cts + sample.duration) / sample.timescale;
+}
+
 /* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
 ISOFile.prototype.seek = function(time, useRap) {
 	var moov = this.moov;
@@ -610,6 +632,9 @@ ISOFile.prototype.seek = function(time, useRap) {
 	} else {
 		for (i = 0; i<moov.traks.length; i++) {
 			trak = moov.traks[i];
+			if (time > this.getTrackDuration(trak)) { // skip tracks that already ended
+				continue;
+			}
 			trak_seek_info = this.seekTrack(time, useRap, trak);
 			if (trak_seek_info.offset < seek_info.offset) {
 				seek_info.offset = trak_seek_info.offset;
