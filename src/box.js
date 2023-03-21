@@ -36,7 +36,8 @@ var BoxParser = {
 		[ "trgr" ],
 		[ "udta", ["kind"] ],
 		[ "iprp", ["ipma"] ],
-		[ "ipco"]
+		[ "ipco" ],
+		[ "j2kH" ]
 	],
 	// Boxes effectively created
 	boxCodes : [],
