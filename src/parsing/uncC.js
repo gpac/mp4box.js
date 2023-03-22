@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("uncC", function(stream) {
+BoxParser.createFullBoxCtor("uncC", function(stream) {
     var i;
     this.profile = stream.readUint32();
     this.component_count = stream.readUint16();
