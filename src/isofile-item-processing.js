@@ -1,9 +1,11 @@
 ISOFile.prototype.items = [];
+ISOFile.prototype.groups = [];
 /* size of the buffers allocated for samples */
 ISOFile.prototype.itemsDataSize = 0;
 
 ISOFile.prototype.flattenItemInfo = function() {	
 	var items = this.items;
+	var groups = this.groups;
 	var i, j;
 	var item;
 	var meta = this.meta;
@@ -26,6 +28,15 @@ ISOFile.prototype.flattenItemInfo = function() {
 		}
 		item.content_type = meta.iinf.item_infos[i].content_type;
 		item.content_encoding = meta.iinf.item_infos[i].content_encoding;
+	}
+	if (meta.grpl) {
+		for (i = 0; i < meta.grpl.boxes.length; i++) {
+			group = {};
+			group.id = meta.grpl.boxes[i].group_id;
+			group.entity_ids = meta.grpl.boxes[i].entity_ids;
+			group.type = meta.grpl.boxes[i].type;
+			groups[group.id] = group;
+		}
 	}
 	if (meta.iloc) {
 		for(i = 0; i < meta.iloc.items.length; i++) {
@@ -74,16 +85,21 @@ ISOFile.prototype.flattenItemInfo = function() {
 			for (i = 0; i < ipma.associations.length; i++) {
 				var association = ipma.associations[i];
 				item = items[association.id];
-				if (item.properties === undefined) {
-					item.properties = {};
-					item.properties.boxes = [];
+				if (!item) {
+					item = groups[association.id];
 				}
-				for (j = 0; j < association.props.length; j++) {
-					var propEntry = association.props[j];
-					if (propEntry.property_index > 0 && propEntry.property_index-1 < meta.iprp.ipco.boxes.length) {
-						var propbox = meta.iprp.ipco.boxes[propEntry.property_index-1];
-						item.properties[propbox.type] = propbox;
-						item.properties.boxes.push(propbox);
+				if (item) {
+					if (item.properties === undefined) {
+						item.properties = {};
+						item.properties.boxes = [];
+					}
+					for (j = 0; j < association.props.length; j++) {
+						var propEntry = association.props[j];
+						if (propEntry.property_index > 0 && propEntry.property_index-1 < meta.iprp.ipco.boxes.length) {
+							var propbox = meta.iprp.ipco.boxes[propEntry.property_index-1];
+							item.properties[propbox.type] = propbox;
+							item.properties.boxes.push(propbox);
+						}
 					}
 				}
 			}

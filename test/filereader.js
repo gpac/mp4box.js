@@ -28,12 +28,14 @@ function finalizeAnalyzerUI(fileobj, loadbutton, success) {
 		buildSampleView();
 		displayMovieInfo(fileobj.mp4boxfile.getInfo(), document.getElementById("movieview"), false);
 		buildSegmentView(fileobj);
+		buildGroupTable(fileobj.mp4boxfile.groups);
 	} else {
 		resetBoxView();
 		$("#itemview").html('');
 		resetSampleView();
 		$("#movieview").html('');
 		resetSegmentView();
+		$("#groupview").html('');
 	}
 }
 
@@ -418,6 +420,39 @@ function buildSegmentView(fileobj) {
 
 	buildSegmentGraph(sidx, startSeg, endSeg);
 }
+
+function buildGroupTable(groups) {
+	var html;
+	var i, j;
+	html = "<table>";
+	html += "<thead>";
+	html += "<tr>";
+	html += "<th>Group ID</th>";
+	html += "<th>Type</th>";
+	html += "<th>Entities [item ID]</th>";
+	html += "<th>Properties [type]</th>";
+	html += "</tr>";
+	html += "</thead>";
+	html += "<tbody>";
+	for (i in groups) {
+		var group = groups[i];
+		html += "<td>" + group.id + "</td>";
+		html += "<td>" + group.type + "</td>";
+		html += "<td>" + group.entity_ids.join() + "</td>";
+		html += "<td>";
+		if (group.properties) {
+			for (j = 0; j < group.properties.boxes.length; j++) {
+				html += "" + group.properties.boxes[j].type + " ";
+			}
+		}
+		html += "</td>";
+		html += "</tr>";
+	}
+	html += "</tbody>";
+	html += "</table>";
+	$("#groupview").html(html);
+}
+
 
 window.onload = function () {
 
