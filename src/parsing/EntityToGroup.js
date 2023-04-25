@@ -65,3 +65,5 @@ BoxParser.createEntityToGroupCtor("tsyn");
 // White balance bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.3.1)
 BoxParser.createEntityToGroupCtor("wbbr");
 
+// Alternative entity (ISO/IEC 23008-12:2022 AMD1 Section 6.8.10)
+BoxParser.createEntityToGroupCtor("prgr");
