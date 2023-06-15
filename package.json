@@ -1,6 +1,6 @@
 {
   "name": "mp4box",
-  "version": "0.5.2",
+  "version": "0.5.3-fenghen",
   "description": "JavaScript version of GPAC's MP4Box tool",
   "keywords": [
     "mp4",
