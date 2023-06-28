@@ -1,11 +1,11 @@
 ISOFile.prototype.items = [];
-ISOFile.prototype.groups = [];
+ISOFile.prototype.entity_groups = [];
 /* size of the buffers allocated for samples */
 ISOFile.prototype.itemsDataSize = 0;
 
 ISOFile.prototype.flattenItemInfo = function() {	
 	var items = this.items;
-	var groups = this.groups;
+	var entity_groups = this.entity_groups;
 	var i, j;
 	var item;
 	var meta = this.meta;
@@ -31,11 +31,11 @@ ISOFile.prototype.flattenItemInfo = function() {
 	}
 	if (meta.grpl) {
 		for (i = 0; i < meta.grpl.boxes.length; i++) {
-			group = {};
-			group.id = meta.grpl.boxes[i].group_id;
-			group.entity_ids = meta.grpl.boxes[i].entity_ids;
-			group.type = meta.grpl.boxes[i].type;
-			groups[group.id] = group;
+			entity_group = {};
+			entity_group.id = meta.grpl.boxes[i].group_id;
+			entity_group.entity_ids = meta.grpl.boxes[i].entity_ids;
+			entity_group.type = meta.grpl.boxes[i].type;
+			entity_groups[entity_group.id] = entity_group;
 		}
 	}
 	if (meta.iloc) {
@@ -86,7 +86,7 @@ ISOFile.prototype.flattenItemInfo = function() {
 				var association = ipma.associations[i];
 				item = items[association.id];
 				if (!item) {
-					item = groups[association.id];
+					item = entity_groups[association.id];
 				}
 				if (item) {
 					if (item.properties === undefined) {
