@@ -519,7 +519,7 @@ window.onload = function () {
 	
 	if (window.location.search) {
 		file.objectToLoad = window.location.search.substring(1);
-		load();
+		httpload(file, $("#file_progressbar"), $("#file_progress-label"), $("#file_LoadButton"), finalizeAnalyzerUI);
 	}
 }
 
