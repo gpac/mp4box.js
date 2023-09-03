@@ -138,6 +138,8 @@ var MPEG4DescriptorParser = function () {
 	classes.DecoderConfigDescriptor.prototype.parse = function(stream) {
 		this.oti = stream.readUint8();
 		this.streamType = stream.readUint8();
+		this.upStream = ((this.streamType >> 1) & 1) !== 0;
+		this.streamType = this.streamType >>> 2;
 		this.bufferSize = stream.readUint24();
 		this.maxBitrate = stream.readUint32();
 		this.avgBitrate = stream.readUint32();
