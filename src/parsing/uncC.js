@@ -21,7 +21,7 @@ BoxParser.createFullBoxCtor("uncC", function(stream) {
     this.block_little_endian = (flags >> 5) & 0x1;
     this.block_reversed = (flags >> 4) & 0x1;
     this.pad_unknown = (flags >> 3) & 0x1;
-    this.pixel_size = stream.readUint8();
+    this.pixel_size = stream.readUint32();
     this.row_align_size = stream.readUint32();
     this.tile_align_size = stream.readUint32();
     this.num_tile_cols_minus_one = stream.readUint32();

@@ -1,5 +1,5 @@
 BoxParser.createBoxCtor("cmpd", function(stream) {
-	this.component_count = stream.readUint16();
+	this.component_count = stream.readUint32();
 	this.component_types = [];
 	this.component_type_urls = [];
 	for (i = 0; i < this.component_count; i++) {
