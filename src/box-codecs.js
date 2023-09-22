@@ -132,7 +132,7 @@ BoxParser.hvc1SampleEntry.prototype.getCodec = function() {
 			reversed <<= 1;
 			val >>=1;
 		}
-		baseCodec += BoxParser.decimalToHex(reversed, 0);
+		baseCodec += BoxParser.decimalToHex(reversed >>> 0, 0);
 		baseCodec += '.';
 		if (this.hvcC.general_tier_flag === 0) {
 			baseCodec += 'L';
