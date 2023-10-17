@@ -34,7 +34,7 @@ AudioSpecificConfig.prototype.parse = function(stream, audioObjectType) {
 		tmp = stream.readUint8();
 		this.extensionSamplingFrequencyIndex = tmp >> 4;
 		if (this.extensionSamplingFrequencyIndex === 0xF) {
-			his.extensionSamplingFrequencyIndex = (tmp & 0xF) << 20;
+			this.extensionSamplingFrequencyIndex = (tmp & 0xF) << 20;
 			this.extensionSamplingFrequencyIndex += stream.readUint8() << 12;
 			this.extensionSamplingFrequencyIndex += stream.readUint8() << 4;
 			tmp = stream.readUint8();
