@@ -20,5 +20,8 @@ BoxParser.createFullBoxCtor("tkhd", function(stream) {
 	this.matrix = stream.readInt32Array(9);
 	this.width = stream.readUint32();
 	this.height = stream.readUint32();
+
+	this.width = this.width >>> 16;
+	this.height = this.height >>> 16;
 });
 
