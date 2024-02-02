@@ -86,4 +86,5 @@ Textin4Parser.prototype.parseConfig = function(data) {
 if (typeof exports !== 'undefined') {
 	exports.XMLSubtitlein4Parser = XMLSubtitlein4Parser;
 	exports.Textin4Parser = Textin4Parser;
+	exports.VTTin4Parser = VTTin4Parser;
 }
