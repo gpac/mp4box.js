@@ -179,7 +179,7 @@ Indicates that no more data will be received and that all remaining samples shou
 ### Segmentation ###
 
 ```javascript
-var mp4box = MP4Box.createFile();
+var mp4boxfile = MP4Box.createFile();
 mp4boxfile.onReady = function(info) {
   ...
   mp4boxfile.onSegment = function (id, user, buffer, sampleNumber, last) {}
