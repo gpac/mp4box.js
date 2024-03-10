@@ -10,6 +10,8 @@ BoxParser.createFullBoxCtor("saiz", function(stream) {
 		for (var i = 0; i < count; i++) {
 			this.sample_info_size[i] = stream.readUint8();
 		}
+	} else {
+		this.sample_count = count;
 	}
 });
 
