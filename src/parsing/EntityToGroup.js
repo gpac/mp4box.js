@@ -67,3 +67,26 @@ BoxParser.createEntityToGroupCtor("wbbr");
 
 // Alternative entity (ISO/IEC 23008-12:2022 AMD1 Section 6.8.10)
 BoxParser.createEntityToGroupCtor("prgr");
+
+// Image Pyramid entity group (ISO/IEC 23008-12:20xx Section 6.8.11)
+BoxParser.createEntityToGroupCtor("pymd", function(stream) {
+    this.group_id = stream.readUint32();
+    this.num_entities_in_group = stream.readUint32();
+    this.entity_ids = [];
+    for (var i = 0; i < this.num_entities_in_group; i++) {
+        var entity_id = stream.readUint32();
+        this.entity_ids.push(entity_id);
+    }
+    
+    this.tile_size_x = stream.readUint16();
+    this.tile_size_y = stream.readUint16();
+    this.layer_binning = [];
+    this.tiles_in_layer_column_minus1 = [];
+    this.tiles_in_layer_row_minus1 = [];
+    for (i = 0; i < this.num_entities_in_group; i++) {
+        this.layer_binning[i] = stream.readUint16();
+        this.tiles_in_layer_row_minus1[i] = stream.readUint16();
+        this.tiles_in_layer_column_minus1[i] = stream.readUint16();
+    }
+});
+
