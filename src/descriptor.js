@@ -32,11 +32,11 @@ var MPEG4DescriptorParser = function () {
 		byteRead = stream.readUint8();
 		hdrSize++;
 		while (byteRead & 0x80) {
-			size = (byteRead & 0x7F)<<7;
+			size = (size << 7) + (byteRead & 0x7F);
 			byteRead = stream.readUint8();
 			hdrSize++;
 		}
-		size += byteRead & 0x7F;
+		size = (size << 7) + (byteRead & 0x7F);
 		Log.debug("MPEG4DescriptorParser", "Found "+(descTagToName[tag] || "Descriptor "+tag)+", size "+size+" at position "+stream.getPosition());
 		if (descTagToName[tag]) {
 			desc = new classes[descTagToName[tag]](size);
