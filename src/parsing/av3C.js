@@ -80,9 +80,10 @@ WeightQuantMatrix.prototype.toString = function() {
     return str;
 };
 
-// AVS3 configuration box
-BoxParser.createBoxCtor("av3c", function(stream) {
-
+/**
+ * reads bits and bytes from a buffer that may not contain aligned values
+ */
+function MyBitBuffer() {
     var isLocalBigEndian = function () {
         var buf = new ArrayBuffer(4);
         var u32data = new Uint32Array(buf);
@@ -90,230 +91,204 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         u32data[0] = 0xcafebabe;
         return u8data[0] === 0xca;
     };
+    var OSisLittleEndian = !isLocalBigEndian();
+    var _buffer = [];
+    var _buffer_size = 0;
+}
+MyBitBuffer.prototype.load = function(data, read_only) {
+    this._buffer = data;
+    this._buffer_size = data.length;
+    this._big_endian = true;
+    this._read_error = this._write_error = false;
 
-    var BitBuffer = {
-        /**
-         * reads bits and bytes from a buffer that may not contain aligned values
-         */
-
-        OSisLittleEndian: !isLocalBigEndian(),
-        _buffer: [],
-        _buffer_size: 0,
-
-        load: function(data, read_only) {
-            this._buffer = data;
-            this._buffer_size = data.length;
-            this._big_endian = true;
-            this._read_error = this._write_error = false;
-
-            this._state={};
-            this._state.read_only = read_only | false;
-            this._state.rbyte = 0;
-            this._state.rbit = 0;
-            this._state.end = this._state.wbyte = this._buffer_size;
-            this._state.wbit = 0;
-        },
-        getBit: function() {
-            //! Read the next bit and advance the read pointer.
-            if (this._read_error || this.endOfRead()) {
-                this._read_error = true;
-                return 0;
-            }
-            var bit = (this._buffer[this._state.rbyte] >> (this._big_endian ? (7 - this._state.rbit) : this._state.rbit)) & 0x01;
-            if (++this._state.rbit > 7) {
-                this._state.rbyte++;
-                this._state.rbit = 0;
-            }
-            return bit;
-        },
-        peekBit: function() {
-            //! Read the next bit but don't advance the read pointer.
-            if (this._read_error || this.endOfRead()) {
-                this._read_error = true;
-                return 0;
-            }
-            var bit = (this._buffer[this._state.rbyte] >> (this._big_endian ? (7 - this._state.rbit) : this._state.rbit)) & 0x01;
-            return bit;
-        },
-        endOfRead: function() {
-            return this._state.rbyte == this._state.wbyte && this._state.rbit == this._state.wbit;
-        },
-        getBool: function() {
-            return this.getBit() != 0;
-        },
-        rdb: function(bytes) {
-            var i, res, ff=0xFFFFFFFFFFFFFFFF;
-            if (this._read_error)
-                return ff;
-            if (this._state.rbit==0) {
-                // Read buffer is byte aligned. Most common case.
-                if (this._state.rbyte + bytes > this._state.wbyte) {
-                    // Not enough bytes to read.
-                    this._read_error = true;
-                    return ff;
-                }
-                else {
-                    for (res=0, i=0; i<bytes; i++)
-                        res = (res << 8) + this._buffer[this._state.rbyte+i];
-                    this._state.rbyte += bytes;
-                    return res;
-                }
-            }
-            else {
-                // Read buffer is not byte aligned, use an intermediate aligned buffer.
-                if (this.currentReadBitOffset() + (8 * bytes) > this.currentWriteBitOffset()) {
-                    // Not enough bytes to read.
-                    this._read_error = true;
-                    return ff;
-                }
-                else {
-                    for (res=0, i=0; i<bytes; i++) {
-                        if (this._big_endian)
-                            res = (res << 8) + ((this._buffer[this._state.rbyte] << this._state.rbit) | (this._buffer[this._state.rbyte + 1] >> (8 - this._state.rbit)));
-                        else
-                           res = (res << 8) + ((_buffer[_state.rbyte] >> _state.rbit) | (_buffer[_state.rbyte + 1] << (8 - _state.rbit)));
-                        this._state.rbyte++;
-                    }
-                    return res;
-                }
-            }
-        },
-        currentReadByteOffset: function() {return this._state.rbyte;},
-        currentReadBitOffset: function() {return 8 * this._state.rbyte + this._state.rbit;},
-        currentWriteByteOffset: function() {return this._state.wbyte;},
-        currentWriteBitOffset: function() {return 8 * this._state.wbyte + this._state.wbit;},
-
-        getUint8: function() {
-            return this.rdb(1);
-        },
-
-        getUint16: function() {
-            return this._big_endian ? this.GetUInt16BE(this.rdb(2)) : this.GetUInt16LE(this.rdb(2));
-        },
-        ByteSwap16: function(x) {
-             return (x << 8) | (x >> 8);
-        },
-        CondByteSwap16BE: function(val) {
-            return this.OSisLittleEndian ? this.ByteSwap16(val) : val;
-        },
-        CondByteSwap16LE: function(val) {
-            return this.OSisLittleEndian ? val : this.ByteSwap16(val);
-        },
-        GetUInt16BE: function(val) {
-            return this.CondByteSwap16BE(val);
-        },
-        GetUInt16LE: function(val) {
-            return this.CondByteSwap16LE(val);
-        },
-        
-        getUint32: function() {
-            return this._big_endian ? this.GetUInt32BE(this.rdb(4)) : this.GetUInt32LE(this.rdb(4));
-        },
-        ByteSwap32: function(x) {
-            return (x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24);
-        },
-        CondByteSwap32BE: function(val) {
-            return this.OSisLittleEndian ? this.ByteSwap32(val) : val;
-        },
-        CondByteSwap32LE: function(val) {
-            return this.OSisLittleEndian ? val : this.ByteSwap32(val);
-        },
-        GetUInt32BE: function(val) {
-            return this.CondByteSwap32BE(val);
-        },
-        GetUInt32LE: function(val) {
-            return this.CondByteSwap32LE(val);
-        },
-              
-        getBits: function(bits) {
-            // No read if read error is already set or not enough bits to read.
-            if (this._read_error || this.currentReadBitOffset() + bits > this.currentWriteBitOffset()) {
-                this._read_error = true;
-                return 0;
-            }
-            var val = 0;
-            if (this._big_endian) {
-                // Read leading bits up to byte boundary
-                while (bits > 0 && this._state.rbit != 0) {
-                    val = (val << 1) | this.getBit();
-                    --bits;
-                }
-
-                // Read complete bytes
-                while (bits > 7) {
-                    val = (val << 8) | this._buffer[this._state.rbyte++];
-                        bits -= 8;
-                }
-
-                // Read trailing bits
-                while (bits > 0) {
-                    val = (val << 1) | this.getBit();
-                    --bits;
-                }
-            }
-            else {
-                // Little endian decoding
-                var shift = 0;
-
-                // Read leading bits up to byte boundary
-                while (bits > 0 && this._state.rbit != 0) {
-                    val |= (this.getBit() << shift);
-                    --bits;
-                    shift++;
-                }
-
-                // Read complete bytes
-                while (bits > 7) {
-                    val |= this._buffer[this._state.rbyte++] << shift;
-                    bits -= 8;
-                    shift += 8;
-                }
-
-                // Read trailing bits
-                while (bits > 0) {
-                    val |= (this.getBit() << shift);
-                    --bits;
-                     shift++;
-                }
-            }
-            return (val);
-        },
-        skipBits: function(bits) {
-            if (this._read_error) {
-                // Can't skip bits and bytes if read error is already set.
-                return false;
-            }
-            var rpos = 8 * this._state.rbyte + this._state.rbit + bits;
-            var wpos = 8 * this._state.wbyte + this._state.wbit;
-            if (rpos > wpos) {
-                this._state.rbyte = this._state.wbyte;
-                this._state.rbit = this._state.wbit;
-                this._read_error = true;
-                return false;
-            }
-            else {
-                this._state.rbyte = rpos >> 3;
-                this._state.rbit = rpos & 7;
-                return true;
-            }
-        },
-
-        getUE: function() {
-            // read in an unsigned Exp-Golomb code;
-
-            if (this.getBit() == 1)
-                return 0;
-            else {
-                var zero_count=1;
-                while (this.peekBit() == 0) {
-                    this.getBit();
-                    zero_count++;
-                }
-                var tmp_value = this.getBits(zero_count+1);
-                return tmp_value - 1;
-            }
+    this._state={};
+    this._state.read_only = read_only | false;
+    this._state.rbyte = 0;
+    this._state.rbit = 0;
+    this._state.end = this._state.wbyte = this._buffer_size;
+    this._state.wbit = 0;
+};
+MyBitBuffer.prototype.getBit = function() {
+    //! Read the next bit and advance the read pointer.
+    if (this._read_error || this.endOfRead()) {
+        this._read_error = true;
+        return 0;
+    }
+    var bit = (this._buffer[this._state.rbyte] >> (this._big_endian ? (7 - this._state.rbit) : this._state.rbit)) & 0x01;
+    if (++this._state.rbit > 7) {
+        this._state.rbyte++;
+        this._state.rbit = 0;
+    }
+    return bit;
+};
+MyBitBuffer.prototype.peekBit = function() {
+    //! Read the next bit but don't advance the read pointer.
+    if (this._read_error || this.endOfRead()) {
+        this._read_error = true;
+        return 0;
+    }
+    var bit = (this._buffer[this._state.rbyte] >> (this._big_endian ? (7 - this._state.rbit) : this._state.rbit)) & 0x01;
+    return bit;
+};
+MyBitBuffer.prototype.endOfRead =  function() {
+    return this._state.rbyte == this._state.wbyte && this._state.rbit == this._state.wbit;
+};
+MyBitBuffer.prototype.getBool = function() {
+    return this.getBit() != 0;
+};
+MyBitBuffer.prototype.rdb = function(bytes) {
+    var i, res, ff=0xFFFFFFFFFFFFFFFF;
+    if (this._read_error)
+        return ff;
+    if (this._state.rbit==0) {
+        // Read buffer is byte aligned. Most common case.
+        if (this._state.rbyte + bytes > this._state.wbyte) {
+            // Not enough bytes to read.
+            this._read_error = true;
+            return ff;
         }
-    };
+        else {
+            for (res=0, i=0; i<bytes; i++)
+                res = (res << 8) + this._buffer[this._state.rbyte+i];
+            this._state.rbyte += bytes;
+            return res;
+        }
+    }
+    else {
+        // Read buffer is not byte aligned, use an intermediate aligned buffer.
+        if (this.currentReadBitOffset() + (8 * bytes) > this.currentWriteBitOffset()) {
+            // Not enough bytes to read.
+            this._read_error = true;
+            return ff;
+        }
+        else {
+            for (res=0, i=0; i<bytes; i++) {
+                if (this._big_endian)
+                    res = (res << 8) + ((this._buffer[this._state.rbyte] << this._state.rbit) | (this._buffer[this._state.rbyte + 1] >> (8 - this._state.rbit)));
+                else
+                   res = (res << 8) + ((_buffer[_state.rbyte] >> _state.rbit) | (_buffer[_state.rbyte + 1] << (8 - _state.rbit)));
+                this._state.rbyte++;
+            }
+            return res;
+        }
+    }
+};
+MyBitBuffer.prototype.currentReadByteOffset = function() {return this._state.rbyte;};
+MyBitBuffer.prototype.currentReadBitOffset = function() {return 8 * this._state.rbyte + this._state.rbit;};
+MyBitBuffer.prototype.currentWriteByteOffset = function() {return this._state.wbyte;};
+MyBitBuffer.prototype.currentWriteBitOffset = function() {return 8 * this._state.wbyte + this._state.wbit;};
+MyBitBuffer.prototype.getUint8 =  function() { return this.rdb(1); };
+
+MyBitBuffer.prototype.getUint16 = function() {
+    return this._big_endian ? this.GetUInt16BE(this.rdb(2)) : this.GetUInt16LE(this.rdb(2));
+};
+MyBitBuffer.prototype.ByteSwap16 = function(x) { return (x << 8) | (x >> 8); };
+MyBitBuffer.prototype.CondByteSwap16BE = function(val) { return this.OSisLittleEndian ? this.ByteSwap16(val) : val; };
+MyBitBuffer.prototype.CondByteSwap16LE = function(val) { return this.OSisLittleEndian ? val : this.ByteSwap16(val); };
+MyBitBuffer.prototype.GetUInt16BE = function(val) { return this.CondByteSwap16BE(val); };
+MyBitBuffer.prototype.GetUInt16LE = function(val) { return this.CondByteSwap16LE(val); };
+
+MyBitBuffer.prototype.getUint32 = function() { return this._big_endian ? this.GetUInt32BE(this.rdb(4)) : this.GetUInt32LE(this.rdb(4)); };
+MyBitBuffer.prototype.ByteSwap32 = function(x) { return (x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24); };
+MyBitBuffer.prototype.CondByteSwap32BE = function(val) { return this.OSisLittleEndian ? this.ByteSwap32(val) : val; };
+MyBitBuffer.prototype.CondByteSwap32LE = function(val) { return this.OSisLittleEndian ? val : this.ByteSwap32(val); };
+MyBitBuffer.prototype.GetUInt32BE = function(val) { return this.CondByteSwap32BE(val); };
+MyBitBuffer.prototype.GetUInt32LE =function(val) { return this.CondByteSwap32LE(val); };
+      
+MyBitBuffer.prototype.getBits = function(bits) {
+    // No read if read error is already set or not enough bits to read.
+    if (this._read_error || this.currentReadBitOffset() + bits > this.currentWriteBitOffset()) {
+        this._read_error = true;
+        return 0;
+    }
+    var val = 0;
+    if (this._big_endian) {
+        // Read leading bits up to byte boundary
+        while (bits > 0 && this._state.rbit != 0) {
+            val = (val << 1) | this.getBit();
+            --bits;
+        }
+
+        // Read complete bytes
+        while (bits > 7) {
+            val = (val << 8) | this._buffer[this._state.rbyte++];
+                bits -= 8;
+        }
+
+        // Read trailing bits
+        while (bits > 0) {
+            val = (val << 1) | this.getBit();
+            --bits;
+        }
+    }
+    else {
+        // Little endian decoding
+        var shift = 0;
+
+        // Read leading bits up to byte boundary
+        while (bits > 0 && this._state.rbit != 0) {
+            val |= (this.getBit() << shift);
+            --bits;
+            shift++;
+        }
+
+        // Read complete bytes
+        while (bits > 7) {
+            val |= this._buffer[this._state.rbyte++] << shift;
+            bits -= 8;
+            shift += 8;
+        }
+
+        // Read trailing bits
+        while (bits > 0) {
+            val |= (this.getBit() << shift);
+            --bits;
+             shift++;
+        }
+    }
+    return (val);
+};
+MyBitBuffer.prototype.skipBits = function(bits) {
+    if (this._read_error) {
+        // Can't skip bits and bytes if read error is already set.
+        return false;
+    }
+    var rpos = 8 * this._state.rbyte + this._state.rbit + bits;
+    var wpos = 8 * this._state.wbyte + this._state.wbit;
+    if (rpos > wpos) {
+        this._state.rbyte = this._state.wbyte;
+        this._state.rbit = this._state.wbit;
+        this._read_error = true;
+        return false;
+    }
+    else {
+        this._state.rbyte = rpos >> 3;
+        this._state.rbit = rpos & 7;
+        return true;
+    }
+};
+
+MyBitBuffer.prototype.getUE = function() {
+    // read in an unsigned Exp-Golomb code;
+
+    if (this.getBit() == 1)
+        return 0;
+    else {
+        var zero_count=1;
+        while (this.peekBit() == 0) {
+            this.getBit();
+            zero_count++;
+        }
+        var tmp_value = this.getBits(zero_count+1);
+        return tmp_value - 1;
+    }
+};
+
+
+// AVS3 configuration box
+BoxParser.createBoxCtor("av3c", function(stream) {
+
+    var BitBuffer = new MyBitBuffer();
 
     var MAIN_8 = 0x20, MAIN_10 = 0x22, HIGH_8 = 0x30, HIGH_10 = 0x32;
 
