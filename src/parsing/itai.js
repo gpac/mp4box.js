@@ -1,8 +1,8 @@
 BoxParser.createFullBoxCtor("itai", function(stream) {
 	this.TAI_timestamp = stream.readUint64();
-	this.status_bits = stream.readUint8();
 
-	if (this.TAI_timestamp === 0xffffffffffffffff) {
-		this.TAI_timestamp = "unknown";
-	}
+	status_bits = stream.readUint8();
+	this.sychronization_state = (status_bits >> 7) & 0x01;
+	this.timestamp_generation_failure = (status_bits >> 6) & 0x01;
+	this.timestamp_is_modified = (status_bits >> 5) & 0x01;
 });
