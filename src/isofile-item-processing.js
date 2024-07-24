@@ -1,5 +1,3 @@
-ISOFile.prototype.items = [];
-ISOFile.prototype.entity_groups = [];
 /* size of the buffers allocated for samples */
 ISOFile.prototype.itemsDataSize = 0;
 
