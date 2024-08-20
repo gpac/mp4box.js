@@ -42,7 +42,7 @@ ISOFile.prototype.addTrack = function (_options) {
 					.set("layer", options.layer || 0)
 					.set("alternate_group", 0)
 					.set("volume", 1)
-					.set("matrix", [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
+					.set("matrix", [ 1<<16, 0, 0, 0, 1<<16, 0, 0, 0, 0x40000000])
 					.set("width", options.width << 16)
 					.set("height", options.height << 16);
 
