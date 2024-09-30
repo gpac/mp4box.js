@@ -345,7 +345,7 @@ function parseAvs3AudioLLSpecificConfig(BitBuffer) {
         for (var i=0; i<addition_info_length; i++)
             this.data.addition_info.push(BitBuffer.getUint8());
     }
-
+    BitBuffer.skipBits(2); // reserved
     
 }
 parseAvs3AudioLLSpecificConfig.prototype.toHTML = function() {
