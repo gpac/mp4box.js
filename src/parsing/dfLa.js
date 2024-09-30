@@ -14,9 +14,6 @@ BoxParser.createFullBoxCtor("dfLa", function(stream) {
         "RESERVED"
     ];
 
-    // dfLa is a FullBox
-    this.parseFullHeader(stream);
-
     // for (i=0; ; i++) { // to end of box
     do {
         var flagAndType = stream.readUint8();
