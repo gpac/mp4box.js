@@ -35,6 +35,8 @@ ReferencePictureList.prototype.push = function(set) {
     this.sets.push(set);
 };
 ReferencePictureList.prototype.toString = function() {
+    if (this.sets.length == 0)
+        return "(empty)";
     var l = [];
     this.sets.forEach( function(set) {
         l.push(set.toString());
