@@ -3,6 +3,7 @@
 * License: BSD-3-Clause (see LICENSE file)
 */
 
+
 function ReferencePictureSet(list, set) {
     this.list = list;
     this.set = set;
@@ -41,17 +42,6 @@ ReferencePictureList.prototype.toString = function() {
     return l.join(", ");
 };
 
-function BinaryValue(value, bits) {
-    this.value = value;
-    this.bits = bits;
-}
-BinaryValue.prototype.toString = function() {
-    var i, res = "b";
-    for (i=this.bits; i>0; i--)
-        res += (this.value & (1 << (i-1)) ? "1" : "0");
-    return res;
-};
-
 function WeightQuantMatrix( buffer ) {
     this.WeightQuantMatrix4x4 = [];
     this.WeightQuantMatrix8x8 = [];
@@ -80,221 +70,76 @@ WeightQuantMatrix.prototype.toString = function() {
     return str;
 };
 
-/**
- * reads bits and bytes from a buffer that may not contain aligned values
- */
-function MyBitBuffer() {
-    var isLocalBigEndian = function () {
-        var buf = new ArrayBuffer(4);
-        var u32data = new Uint32Array(buf);
-        var u8data = new Uint8Array(buf);
-        u32data[0] = 0xcafebabe;
-        return u8data[0] === 0xca;
-    };
-    var OSisLittleEndian = !isLocalBigEndian();
-    var _buffer = [];
-    var _buffer_size = 0;
-}
-MyBitBuffer.prototype.load = function(data, read_only) {
-    this._buffer = data;
-    this._buffer_size = data.length;
-    this._big_endian = true;
-    this._read_error = this._write_error = false;
-
-    this._state={};
-    this._state.read_only = read_only | false;
-    this._state.rbyte = 0;
-    this._state.rbit = 0;
-    this._state.end = this._state.wbyte = this._buffer_size;
-    this._state.wbit = 0;
-};
-MyBitBuffer.prototype.getBit = function() {
-    //! Read the next bit and advance the read pointer.
-    if (this._read_error || this.endOfRead()) {
-        this._read_error = true;
-        return 0;
-    }
-    var bit = (this._buffer[this._state.rbyte] >> (this._big_endian ? (7 - this._state.rbit) : this._state.rbit)) & 0x01;
-    if (++this._state.rbit > 7) {
-        this._state.rbyte++;
-        this._state.rbit = 0;
-    }
-    return bit;
-};
-MyBitBuffer.prototype.peekBit = function() {
-    //! Read the next bit but don't advance the read pointer.
-    if (this._read_error || this.endOfRead()) {
-        this._read_error = true;
-        return 0;
-    }
-    var bit = (this._buffer[this._state.rbyte] >> (this._big_endian ? (7 - this._state.rbit) : this._state.rbit)) & 0x01;
-    return bit;
-};
-MyBitBuffer.prototype.endOfRead =  function() {
-    return this._state.rbyte == this._state.wbyte && this._state.rbit == this._state.wbit;
-};
-MyBitBuffer.prototype.getBool = function() {
-    return this.getBit() != 0;
-};
-MyBitBuffer.prototype.rdb = function(bytes) {
-    var i, res, ff=0xFFFFFFFFFFFFFFFF;
-    if (this._read_error)
-        return ff;
-    if (this._state.rbit==0) {
-        // Read buffer is byte aligned. Most common case.
-        if (this._state.rbyte + bytes > this._state.wbyte) {
-            // Not enough bytes to read.
-            this._read_error = true;
-            return ff;
-        }
-        else {
-            for (res=0, i=0; i<bytes; i++)
-                res = (res << 8) + this._buffer[this._state.rbyte+i];
-            this._state.rbyte += bytes;
-            return res;
-        }
-    }
-    else {
-        // Read buffer is not byte aligned, use an intermediate aligned buffer.
-        if (this.currentReadBitOffset() + (8 * bytes) > this.currentWriteBitOffset()) {
-            // Not enough bytes to read.
-            this._read_error = true;
-            return ff;
-        }
-        else {
-            for (res=0, i=0; i<bytes; i++) {
-                if (this._big_endian)
-                    res = (res << 8) + ((this._buffer[this._state.rbyte] << this._state.rbit) | (this._buffer[this._state.rbyte + 1] >> (8 - this._state.rbit)));
-                else
-                   res = (res << 8) + ((_buffer[_state.rbyte] >> _state.rbit) | (_buffer[_state.rbyte + 1] << (8 - _state.rbit)));
-                this._state.rbyte++;
-            }
-            return res;
-        }
-    }
-};
-MyBitBuffer.prototype.currentReadByteOffset = function() {return this._state.rbyte;};
-MyBitBuffer.prototype.currentReadBitOffset = function() {return 8 * this._state.rbyte + this._state.rbit;};
-MyBitBuffer.prototype.currentWriteByteOffset = function() {return this._state.wbyte;};
-MyBitBuffer.prototype.currentWriteBitOffset = function() {return 8 * this._state.wbyte + this._state.wbit;};
-MyBitBuffer.prototype.getUint8 =  function() { return this.rdb(1); };
-
-MyBitBuffer.prototype.getUint16 = function() {
-    return this._big_endian ? this.GetUInt16BE(this.rdb(2)) : this.GetUInt16LE(this.rdb(2));
-};
-MyBitBuffer.prototype.ByteSwap16 = function(x) { return (x << 8) | (x >> 8); };
-MyBitBuffer.prototype.CondByteSwap16BE = function(val) { return this.OSisLittleEndian ? this.ByteSwap16(val) : val; };
-MyBitBuffer.prototype.CondByteSwap16LE = function(val) { return this.OSisLittleEndian ? val : this.ByteSwap16(val); };
-MyBitBuffer.prototype.GetUInt16BE = function(val) { return this.CondByteSwap16BE(val); };
-MyBitBuffer.prototype.GetUInt16LE = function(val) { return this.CondByteSwap16LE(val); };
-
-MyBitBuffer.prototype.getUint32 = function() { return this._big_endian ? this.GetUInt32BE(this.rdb(4)) : this.GetUInt32LE(this.rdb(4)); };
-MyBitBuffer.prototype.ByteSwap32 = function(x) { return (x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24); };
-MyBitBuffer.prototype.CondByteSwap32BE = function(val) { return this.OSisLittleEndian ? this.ByteSwap32(val) : val; };
-MyBitBuffer.prototype.CondByteSwap32LE = function(val) { return this.OSisLittleEndian ? val : this.ByteSwap32(val); };
-MyBitBuffer.prototype.GetUInt32BE = function(val) { return this.CondByteSwap32BE(val); };
-MyBitBuffer.prototype.GetUInt32LE =function(val) { return this.CondByteSwap32LE(val); };
-      
-MyBitBuffer.prototype.getBits = function(bits) {
-    // No read if read error is already set or not enough bits to read.
-    if (this._read_error || this.currentReadBitOffset() + bits > this.currentWriteBitOffset()) {
-        this._read_error = true;
-        return 0;
-    }
-    var val = 0;
-    if (this._big_endian) {
-        // Read leading bits up to byte boundary
-        while (bits > 0 && this._state.rbit != 0) {
-            val = (val << 1) | this.getBit();
-            --bits;
-        }
-
-        // Read complete bytes
-        while (bits > 7) {
-            val = (val << 8) | this._buffer[this._state.rbyte++];
-                bits -= 8;
-        }
-
-        // Read trailing bits
-        while (bits > 0) {
-            val = (val << 1) | this.getBit();
-            --bits;
-        }
-    }
-    else {
-        // Little endian decoding
-        var shift = 0;
-
-        // Read leading bits up to byte boundary
-        while (bits > 0 && this._state.rbit != 0) {
-            val |= (this.getBit() << shift);
-            --bits;
-            shift++;
-        }
-
-        // Read complete bytes
-        while (bits > 7) {
-            val |= this._buffer[this._state.rbyte++] << shift;
-            bits -= 8;
-            shift += 8;
-        }
-
-        // Read trailing bits
-        while (bits > 0) {
-            val |= (this.getBit() << shift);
-            --bits;
-             shift++;
-        }
-    }
-    return (val);
-};
-MyBitBuffer.prototype.skipBits = function(bits) {
-    if (this._read_error) {
-        // Can't skip bits and bytes if read error is already set.
-        return false;
-    }
-    var rpos = 8 * this._state.rbyte + this._state.rbit + bits;
-    var wpos = 8 * this._state.wbyte + this._state.wbit;
-    if (rpos > wpos) {
-        this._state.rbyte = this._state.wbyte;
-        this._state.rbit = this._state.wbit;
-        this._read_error = true;
-        return false;
-    }
-    else {
-        this._state.rbyte = rpos >> 3;
-        this._state.rbit = rpos & 7;
-        return true;
-    }
-};
-
-MyBitBuffer.prototype.getUE = function() {
-    // read in an unsigned Exp-Golomb code;
-
-    if (this.getBit() == 1)
-        return 0;
-    else {
-        var zero_count=1;
-        while (this.peekBit() == 0) {
-            this.getBit();
-            zero_count++;
-        }
-        var tmp_value = this.getBits(zero_count+1);
-        return tmp_value - 1;
-    }
-};
 
 
-// AVS3 configuration box
+// AVS3 video configuration box
 BoxParser.createBoxCtor("av3c", function(stream) {
 
-    var BitBuffer = new MyBitBuffer();
-
+    var BitBuffer = new phBitBuffer();
     var MAIN_8 = 0x20, MAIN_10 = 0x22, HIGH_8 = 0x30, HIGH_10 = 0x32;
-
+    var AVS3profiles = [  // Table B.1 of T/AI 109.2
+        {profile:MAIN_8,  description:"Main 8 bit"},
+        {profile:MAIN_10, description:"Main 10 bit"},
+        {profile:HIGH_8,  description:"High 8 bit"},
+        {profile:HIGH_10, description:"High 10 bit"},
+        {profile:0x00, description:"Forbidden"},
+    ];
+    var AVS3levels = [  // Table B.1 of T/AI 109.2
+        {level:0x50, description:"8.0.30"},
+        {level:0x52, description:"8.2.30"},
+        {level:0x51, description:"8.4.30"},
+        {level:0x53, description:"8.6.30"},
+        {level:0x54, description:"8.0.60"},
+        {level:0x56, description:"8.2.60"},
+        {level:0x55, description:"8.4.60"},
+        {level:0x57, description:"8.6.60"},
+        {level:0x58, description:"8.0.120"},
+        {level:0x5A, description:"8.2.120"},
+        {level:0x59, description:"8.4.120"},
+        {level:0x5B, description:"8.6.120"},
+        {level:0x60, description:"10.0.30"},
+        {level:0x62, description:"10.2.30"},
+        {level:0x61, description:"10.4.30"},
+        {level:0x63, description:"10.6.30"},
+        {level:0x64, description:"10.0.60"},
+        {level:0x66, description:"10.2.60"},
+        {level:0x65, description:"10.4.60"},
+        {level:0x67, description:"10.6.60"},
+        {level:0x68, description:"10.0.120"},
+        {level:0x6A, description:"10.2.120"},
+        {level:0x69, description:"10.4.120"},
+        {level:0x6B, description:"10.6.120"},
+        {level:0x10, description:"2.0.15"},
+        {level:0x12, description:"2.0.30"},
+        {level:0x14, description:"2.0.60"},
+        {level:0x20, description:"4.0.30"},
+        {level:0x22, description:"4.0.60"},
+        {level:0x40, description:"6.0.30"},
+        {level:0x42, description:"6.2.30"},
+        {level:0x41, description:"6.4.30"},
+        {level:0x43, description:"6.6.30"},
+        {level:0x44, description:"6.0.60"},
+        {level:0x46, description:"6.2.60"},
+        {level:0x45, description:"6.4.60"},
+        {level:0x47, description:"6.6.60"},
+        {level:0x48, description:"6.0.120"},
+        {level:0x4A, description:"6.2.120"},
+        {level:0x49, description:"6.4.120"},
+        {level:0x4B, description:"6.6.120"},
+        {level:0x00, description:"Forbidden"},
+    ];
+    var AVS3profile = function (profile) {
+        var t = AVS3profiles.find(function (e) { return e.profile == profile; });
+        return t == undefined ? "Reserved" : t.description;
+    };
+    var AVS3level = function (level) {
+        var t = AVS3levels.find(function (e) { return e.level == level; });
+        return t == undefined ? "Reserved" : t.description;
+    };
     var se2value = function (codeNum) {
         return (Math.pow(-1, codeNum+1) * Math.ceil(codeNum/2));
     };
+
     this.configurationVersion = stream.readUint8();
     if (this.configurationVersion != 1) {
         Log.error("av3c version "+this.configurationVersion+" not supported");
@@ -308,9 +153,11 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     }
     BitBuffer.load(buf, false);
 
-    tmp_byte = BitBuffer.getUint32();   // video_sequence_start_code
-    this.profile_id = BitBuffer.getUint8();
-    this.level_id = BitBuffer.getUint8();
+    this.video_sequence_start_code = new HexadecimalValue(BitBuffer.getUint32());
+    var profile_id = BitBuffer.getUint8();
+    var level_id = BitBuffer.getUint8();
+    this.profile_id = new HexadecimalValue(profile_id, AVS3profile(profile_id));
+    this.level_id = new HexadecimalValue(level_id,  AVS3level(level_id));
     this.progressive_sequence = BitBuffer.getBit();
     this.field_coded_sequence = BitBuffer.getBit();
     this.library_stream_flag = BitBuffer.getBit();
@@ -474,56 +321,11 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     }
     BitBuffer.skipBits(2);  // reserved bits
 
+    // library_dependency_idc is in the AVS3DecoderConfigurationRecord
     this.library_dependency_idc = new BinaryValue(stream.readUint8(), 2);
 });
 
 
 
-function AVS3TemporalLayer(_temporal_layer_id, _frame_rate_code, _temporal_bit_rate_lower, _temporal_bit_rate_upper) {
-    this.temporal_layer_id = _temporal_layer_id;
-    this.frame_rate_code = new BinaryValue(_frame_rate_code, 3);
-    this.temporal_bit_rate_lower = _temporal_bit_rate_lower;
-    this.temporal_bit_rate_upper = _temporal_bit_rate_upper;
-}
-AVS3TemporalLayer.prototype.toString = function() {
-    return "{temporal_layer_id:" + this.temporal_layer_id +
-                ", frame_rate_code:" + this.frame_rate_code.toString() +
-                ", temporal_bit_rate_lower:" + this.temporal_bit_rate_lower +
-                ", temporal_bit_rate_upper:" + this.temporal_bit_rate_upper + "}";
-};
-
-function AVS3TemporalLayers(noarg) {
-    this.layers = [];
-}
-AVS3TemporalLayers.prototype.push = function(layer) {
-    this.layers.push(layer);
-};
-AVS3TemporalLayers.prototype.toString = function() {
-    var l = [];
-    this.layers.forEach( function(layer) {
-        l.push(layer.toString);
-    });
-    return l.join(", ");
-};
 
 
-// LAVS3 configuration box (layered AVS3 video)
-BoxParser.createBoxCtor("lavc", function(stream) {
-    this.configurationVersion = stream.readUint8();
-    if (this.configurationVersion != 1) {
-        Log.error("lavc version "+this.configurationVersion+" not supported");
-        return;
-    }
-    this.numTemporalLayers = stream.readUint8();
-    this.layers=new AVS3TemporalLayers();
-    for (var i=0; i<this.num_temporal_layers; i++) {
-        var tmp_val1 = stream.readUint8();
-        var tmp_val2 = stream.readUint32();
-
-        this.layers.push(new AVS3TemporalLayer(
-            (tmp_val1 >> 5) & 0x07,
-            (tmp_val1 >> 1) & 0x0f,
-            (tmp_val2 >> 14) & 0x0003ffff,
-            (tmp_val2 >> 2) & 0x00000fff) );
-    }
-});
