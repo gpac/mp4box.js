@@ -130,6 +130,28 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         {level:0x4B, description:"6.6.120"},
         {level:0x00, description:"Forbidden"},
     ];
+    var AVS3precisions = [  // Table 45 of T/AI 109.2
+        {precision: 1, description:"8-bit"},
+        {precision: 2, description:"10-bit"},
+    ];
+    var AVS3framerates = [
+        "",
+        "24/1.001",
+        "24",
+        "25",
+        "30/1.001",
+        "30",
+        "50",
+        "60/1.001",
+        "60",
+        "100",
+        "120",
+        "200",
+        "240",
+        "300",
+        "120/1.001"
+    ];
+
     var AVS3profile = function (profile) {
         var t = AVS3profiles.find(function (e) { return e.profile == profile; });
         return t == undefined ? "Reserved" : t.description;
@@ -141,6 +163,20 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     var se2value = function (codeNum) {
         return (Math.pow(-1, codeNum+1) * Math.ceil(codeNum/2));
     };
+    var AVS3precision = function (precision) {
+        var t = AVS3precisions.find(function (e) { return e.precision == precision});
+        return t == undefined ? "Reserved" : t.description;    
+    }
+    var AVS3chroma = function (chroma) {
+        return chroma == 1 ? "4:2:0" : "Reserved";
+    }
+    var AVS3framerate = function (framerate) {
+        if (framerate == 0)
+            return "Forbidden";
+        else if (framerate >= 15)
+            return "Reserved";
+        else return AVS3framerates+" fps";
+    }
 
     this.configurationVersion = stream.readUint8();
     if (this.configurationVersion != 1) {
@@ -156,10 +192,8 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     BitBuffer.load(buf, false);
 
     this.video_sequence_start_code = new HexadecimalValue(BitBuffer.getUint32());
-    var profile_id = BitBuffer.getUint8();
-    var level_id = BitBuffer.getUint8();
-    this.profile_id = new HexadecimalValue(profile_id, AVS3profile(profile_id));
-    this.level_id = new HexadecimalValue(level_id,  AVS3level(level_id));
+    this.profile_id = new HexadecimalValue(BitBuffer.getUint8(), AVS3profile);
+    this.level_id = new HexadecimalValue(BitBuffer.getUint8(),  AVS3level);
     this.progressive_sequence = BitBuffer.getBit();
     this.field_coded_sequence = BitBuffer.getBit();
     this.library_stream_flag = BitBuffer.getBit();
@@ -174,11 +208,11 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     BitBuffer.skipBits(1);  // marker_bit
 
     this.vertical_size = BitBuffer.getBits(14);
-    this.chroma_format = new BinaryValue(BitBuffer.getBits(2), 2);
-    this.sample_precision = new BinaryValue(BitBuffer.getBits(3), 3);
+    this.chroma_format = new BinaryValue(BitBuffer.getBits(2), 2, AVS3chroma);
+    this.sample_precision = new BinaryValue(BitBuffer.getBits(3), 3, AVS3precision);
     
-    if (this.profile_id == MAIN_10 || this.profile_id == HIGH_10)
-        this.encoding_precision = new BinaryValue(BitBuffer.getBits(3), 3);
+    if (this.profile_id.get() == MAIN_10 || this.profile_id.get() == HIGH_10)
+        this.encoding_precision = new BinaryValue(BitBuffer.getBits(3), 3, AVS3precision);
     BitBuffer.skipBits(1);  // marker_bit
 
     this.aspect_ratio = new BinaryValue(BitBuffer.getBits(4), 4);
@@ -204,7 +238,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     var reference_picture_list = function(list, rpls) {
         var this_set = new ReferencePictureSet(list, rpls);
         if (this.library_picture_enable_flag)
-        this_set.set_reference_to_library_enable_flag(BitBuffer.getBit());
+            this_set.set_reference_to_library_enable_flag(BitBuffer.getBit());
         var num_of_ref_pic = BitBuffer.getUE();
         for (var i2=0; i2<num_of_ref_pic; i2++) {
             var this_pic = {}, LibraryIndexFlag = false;     
@@ -274,7 +308,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         this.log2_max_dt_size_minus4 = BitBuffer.getBits(2);
     this.pbt_enable_flag = BitBuffer.getBit(); 
 
-    if (this.profile_id == MAIN_10 || this.profile_id == HIGH_10) {
+    if (this.profile_id.get() == MAIN_10 || this.profile_id.get() == HIGH_10) {
         this.pmc_enable_flag = BitBuffer.getBit();
         this.iip_enable_flag = BitBuffer.getBit();
         this.sawp_enable_flag = BitBuffer.getBit();

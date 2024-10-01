@@ -266,12 +266,12 @@ BoxParser.av01SampleEntry.prototype.getCodec = function() {
 
 BoxParser.avs3SampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
-	return baseCodec + '.' + (this.av3c.profile_id ? this.av3c.profile_id.getValue().toString(16) : 'XX') +
-					   '.' + (this.av3c.level_id ? this.av3c.level_id.getValue().toString(16) : 'XX');
+	return baseCodec + '.' + (this.av3c.profile_id ? this.av3c.profile_id.get().toString(16) : 'XX') +
+					   '.' + (this.av3c.level_id ? this.av3c.level_id.get().toString(16) : 'XX');
 }
 
 BoxParser.av3aSampleEntry.prototype.getCodec =
 BoxParser.a3asSampleEntry.prototype.getCodec = function() {
 	var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
-	return baseCodec + '.' + (this.dca3.audio_codec_id ? this.av3c.audio_codec_id.getValue() : 'X');
+	return baseCodec + '.' + (this.dca3.audio_codec_id ? this.dca3.audio_codec_id.get() : 'X');
 }

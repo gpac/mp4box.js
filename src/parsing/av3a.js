@@ -88,7 +88,7 @@ function parseCA3SpecificBox(BitBuffer) {
         case 2:
             // Avs3AudioGASpecificConfig()
             this.data.sampling_frequency_index = BitBuffer.getBits(4);
-            this.data.nn_type = BitBuffer.getBits(3);
+            this.data.nn_type = new DescribedValue(BitBuffer.getBits(3), AVS3nntype);
             BitBuffer.skipBits(1);
             this.data.content_type = BitBuffer.getBits(4);
             if (this.data.content_type == 0) {
@@ -113,18 +113,18 @@ function parseCA3SpecificBox(BitBuffer) {
                 this.data.hoa_order = BitBuffer.getBits(4);
             }
             this.data.total_bitrate = BitBuffer.getUint16()
-            this.data.resolution = BitBuffer.getBits(2);
+            this.data.resolution = new DescribedValue(BitBuffer.getBits(2), AVS3resolution);
             break;
         case 0:
             // Avs3AudioGHSpecificConfig()
             this.data.sampling_frequency_index = BitBuffer.getBits(4);
             this.data.anc_data_index = BitBuffer.getBool();
-            this.data.coding_profile = BitBuffer.getBits(3);
+            this.data.coding_profile = new DescribedValue(BitBuffer.getBits(3), AVS3codingprofile);
             this.data.bitstream_type = BitBuffer.getBit();
             this.data.channel_number_index = BitBuffer.getBits(7);
             this.data.bitrate_index = BitBuffer.getBits(4);
             this.data.raw_frame_length = BitBuffer.getUint16();
-            this.data.resolution = BitBuffer.getBits(2);
+            this.data.resolution = new DescribedValue(BitBuffer.getBits(2), AVS3resolution);
             var addition_info_length1 = BitBuffer.getUint16();
             if (addition_info_length1 > 0) {
                 this.data.addition_info = [];
@@ -138,9 +138,9 @@ function parseCA3SpecificBox(BitBuffer) {
             if (this.data.sampling_frequency_index == 0xF)
                 this.data.sampling_frequency = BitBuffer.getUint24();
             this.data.anc_data_index = BitBuffer.getBool();
-            this.data.coding_profile = BitBuffer.getBits(3);
+            this.data.coding_profile = new DescribedValue(BitBuffer.getBits(3), AVS3codingprofile);
             this.data.channel_number = BitBuffer.getUint8();
-            this.data.resolution = BitBuffer.getBits(2);
+            this.data.resolution = new DescribedValue(BitBuffer.getBits(2), AVS3resolution);
             var addition_info_length2 = BitBuffer.getUint16();
             if (addition_info_length2 > 0) {
                 this.data.addition_info = [];
@@ -198,11 +198,13 @@ var AVS3codingprofile = function(val) {
     }
     return "reserved";
 }
-
+var MakeFourCC = function(val) {
+    return String.fromCharCode(val >> 24, (val & 0x00ff0000) >> 16, (val & 0x0000ff00) >> 8, val & 0x000000ff);
+}
 
 function parseAASFHeader(BitBuffer) {
     this.data = {};
-    this.data.aasf_id = BitBuffer.getUint32();
+    this.data.aasf_id = new DescribedValue(BitBuffer.getUint32(), MakeFourCC);
     this.data.header_size = BitBuffer.getUint24();
     this.data.raw_stream_length = BitBuffer.getUint32();
     this.data.audio_codec_id = BitBuffer.getBits(4);
@@ -219,10 +221,10 @@ function parseAASFHeader(BitBuffer) {
             this.data.channel_number = 16 + BitBuffer.getBits(4);
     }
     if (this.data.audio_codec_id == 2) {
-        if (this.data.coding_profile == 0) {
+        if (this.data.coding_profile.get() == 0) {
             this.data.channel_number_index = BitBuffer.getBits(7);
         }
-        if (this.data.coding_profile == 1) {
+        if (this.data.coding_profile.get() == 1) {
             this.data.soundBedType = BitBuffer.getBits(2);
             if (this.data.soundBedType == 0) {
                 this.data.object_channel_number = BitBuffer.getBits(7);
@@ -235,17 +237,17 @@ function parseAASFHeader(BitBuffer) {
                 this.data.bitrate_index_per_channel = BitBuffer.getBits(4);
             }
         }
-        if (this.data.coding_profile == 2) {
+        if (this.data.coding_profile.get() == 2) {
             this.data.order = BitBuffer.getBits(7);
         }
     }
     this.data.sampling_frequency_index = BitBuffer.getBits(4);
-    if (this.data.coding_profile == 1) {
+    if (this.data.coding_profile.get() == 1) {
         if (this.data.sampling_frequency_index == 0xf) {
             this.data.sampling_frequency = BitBuffer.getUint24();
         }
     }
-    if (this.data.audio_codec_id == 0 || (this.data.audio_codec_id ==2 && this.data.coding_profile != 1)) {
+    if (this.data.audio_codec_id == 0 || (this.data.audio_codec_id ==2 && this.data.coding_profile.get() != 1)) {
         this.data.bitrate_index = BitBuffer.getBits(4);
     }
     if (this.data.audio_codec_id == 0) {
@@ -320,7 +322,7 @@ function parseAvs3AudioGHSpecificConfig(BitBuffer) {
     this.data.raw_frame_length = BitBuffer.getUint16();
     this.data.resolution = new DescribedValue(BitBuffer.getBits(2), AVS3resolution);
     var addition_info_length = BitBuffer.getUint16();
-    if (addition_info_length> 0) {
+    if (addition_info_length > 0) {
         this.data.addition_info=[];
         for (var i=0; i<addition_info_length; i++)
             this.data.addition_info.push(BitBuffer.getUint8());
@@ -340,7 +342,7 @@ function parseAvs3AudioLLSpecificConfig(BitBuffer) {
     this.data.channel_number = BitBuffer.getUint8();
     this.data.resolution = new DescribedValue(BitBuffer.getBits(2), AVS3resolution);
     var addition_info_length = BitBuffer.getUint16();
-    if (addition_info_length> 0) {
+    if (addition_info_length > 0) {
         this.data.addition_info=[];
         for (var i=0; i<addition_info_length; i++)
             this.data.addition_info.push(BitBuffer.getUint8());

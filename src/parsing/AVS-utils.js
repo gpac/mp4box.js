@@ -3,28 +3,29 @@
 * License: BSD-3-Clause (see LICENSE file)
 */
 
-function HexadecimalValue(value, description) {
+function HexadecimalValue(value, descriptionFn) {
     this.value = value;
-    this.description = description === undefined ? null : description;
+    this.description = descriptionFn === undefined ? null : descriptionFn(value);
 }
 HexadecimalValue.prototype.toString = function() {
     return "0x" + this.value.toString(16) + 
            (this.description ? " (" + this.description + ")" : "");
 }
-HexadecimalValue.prototype.getValue = function() {
+HexadecimalValue.prototype.get = function() {
     return this.value;
 }
 
 
-function BinaryValue(value, bits) {
+function BinaryValue(value, bits, descriptionFn) {
     this.value = value;
     this.bits = bits;
+    this.description = descriptionFn === undefined ? null : descriptionFn(value);
 }
 BinaryValue.prototype.toString = function() {
     var i, res = "b";
     for (i=this.bits; i>0; i--)
         res += (this.value & (1 << (i-1)) ? "1" : "0");
-    return res;
+    return res + (this.description ? " (" + this.description + ")" : "");
 };
 
 function DescribedValue(value, descriptionFunc) {
@@ -33,6 +34,9 @@ function DescribedValue(value, descriptionFunc) {
 }
 DescribedValue.prototype.toString = function() {
     return this.value + (this.description ? " (" + this.description + ")" : "");
+}
+DescribedValue.prototype.get = function() {
+    return this.value;
 }
 
 
@@ -45,11 +49,11 @@ function phBitBuffer(stream) {
         var u32data = new Uint32Array(buf);
         var u8data = new Uint8Array(buf);
         u32data[0] = 0xcafebabe;
-        return u8data[0] === 0xca;
+        return u8data[3] === 0xca;
     };
-    var OSisLittleEndian = !isLocalBigEndian();
-    var _buffer = [];
-    var _buffer_size = 0;
+    this.OSisLittleEndian = !isLocalBigEndian();
+    this._buffer = [];
+    this._buffer_size = 0;
 
     if (stream != undefined) {
         var stream_length = stream.getLength();
