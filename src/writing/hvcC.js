@@ -12,8 +12,8 @@ BoxParser.hvcCBox.prototype.write = function(stream) {
     this.writeHeader(stream);
 
     stream.writeUint8(this.configurationVersion);
-    stream.writeUint8(this.general_profile_space << 6 +
-                      this.general_tier_flag << 5 +
+    stream.writeUint8((this.general_profile_space << 6) +
+                      (this.general_tier_flag << 5) +
                       this.general_profile_idc);
     stream.writeUint32(this.general_profile_compatibility);
     stream.writeUint8Array(this.general_constraint_indicator);
