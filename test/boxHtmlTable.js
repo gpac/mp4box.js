@@ -33,21 +33,25 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
 			html += '<td><code>';
 			html += prop;
 			html += '</code></td>';
-			html += '<td><code>';
+			html += '<td>';
 			if (prop === "data") {
+				html += '<code>';
 				for (var i = 0; i < box[prop].length; i++) {
 					var j = box[prop][i];
 					var hex = j.toString(16);
 					html += (hex.length === 1 ? "0"+hex : hex);
 					if (i%4 === 3) html += ' ';
 				}
+				html += "</code>";
 			} else {
+				if (box[prop].hasOwnProperty("toHTML") && typeof box[prop].toHTML === "function")
+					html += box[prop].toHTML();
 				if (box[prop].hasOwnProperty("toString") && typeof box[prop].toString === "function")
-					html += box[prop].toString();
+					html += '<code>' + box[prop].toString() + "</code>";
 				else
-					html += box[prop];
-			}
-			html += '</code></td>';
+					html += '<code>' + box[prop] + "</code>";
+				}
+			html += '</td>';
 			html += '</tr>';
 		}
 	}
