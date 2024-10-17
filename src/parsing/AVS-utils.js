@@ -243,6 +243,9 @@ phBitBuffer.prototype.skipBits = function(bits) {
         return true;
     }
 };
+phBitBuffer.prototype.skipBit = function() {
+    return this.skipBits(1);
+}
 
 phBitBuffer.prototype.getUE = function() {
     // read in an unsigned Exp-Golomb code;

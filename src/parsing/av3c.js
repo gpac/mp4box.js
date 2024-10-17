@@ -73,18 +73,18 @@ WeightQuantMatrix.prototype.toString = function() {
 };
 
 
-
 // AVS3 video configuration box
 BoxParser.createBoxCtor("av3c", function(stream) {
 
     var BitBuffer = new phBitBuffer();
     var MAIN_8 = 0x20, MAIN_10 = 0x22, HIGH_8 = 0x30, HIGH_10 = 0x32;
+    var RESERVED = "Reserved", FORBIDDEN = "Forbidden";
     var AVS3profiles = [  // Table B.1 of T/AI 109.2
         {profile:MAIN_8,  description:"Main 8 bit"},
         {profile:MAIN_10, description:"Main 10 bit"},
         {profile:HIGH_8,  description:"High 8 bit"},
         {profile:HIGH_10, description:"High 10 bit"},
-        {profile:0x00, description:"Forbidden"},
+        {profile:0x00, description:FORBIDDEN},
     ];
     var AVS3levels = [  // Table B.1 of T/AI 109.2
         {level:0x50, description:"8.0.30"},
@@ -128,7 +128,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         {level:0x4A, description:"6.2.120"},
         {level:0x49, description:"6.4.120"},
         {level:0x4B, description:"6.6.120"},
-        {level:0x00, description:"Forbidden"},
+        {level:0x00, description:FORBIDDEN},
     ];
     var AVS3precisions = [  // Table 45 of T/AI 109.2
         {precision: 1, description:"8-bit"},
@@ -151,31 +151,37 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         "300",
         "120/1.001"
     ];
+    var AVS3ratios = [
+        "",
+        "1.0",
+        "4:3",
+        "16:9",
+        "2.21:1"
+    ];
 
     var AVS3profile = function (profile) {
         var t = AVS3profiles.find(function (e) { return e.profile == profile; });
-        return t == undefined ? "Reserved" : t.description;
+        return t == undefined ? RESERVED : t.description;
     };
     var AVS3level = function (level) {
         var t = AVS3levels.find(function (e) { return e.level == level; });
-        return t == undefined ? "Reserved" : t.description;
+        return t == undefined ? RESERVED : t.description;
     };
     var se2value = function (codeNum) {
         return (Math.pow(-1, codeNum+1) * Math.ceil(codeNum/2));
     };
     var AVS3precision = function (precision) {
         var t = AVS3precisions.find(function (e) { return e.precision == precision});
-        return t == undefined ? "Reserved" : t.description;    
+        return t == undefined ? RESERVED : t.description;    
     }
     var AVS3chroma = function (chroma) {
-        return chroma == 1 ? "4:2:0" : "Reserved";
+        return chroma == 1 ? "4:2:0" : RESERVED;
+    }
+    var AVS3aspectratio = function (ratio) {
+        return (ratio == 0) ? FORBIDDEN : ((ratio >= AVS3ratios.length) ? RESERVED : AVS3ratios[ratio]);
     }
     var AVS3framerate = function (framerate) {
-        if (framerate == 0)
-            return "Forbidden";
-        else if (framerate >= 15)
-            return "Reserved";
-        else return AVS3framerates+" fps";
+        return (framerate == 0) ? FORBIDDEN : ((framerate >= AVS3framerates.length) ? RESERVED : AVS3framerates[framerate]+" fps");
     }
 
     this.configurationVersion = stream.readUint8();
@@ -183,12 +189,9 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         Log.error("av3c version "+this.configurationVersion+" not supported");
         return;
     }
-    var sequence_header_length = stream.readUint16();
-
-    var i, j, buf=[];
-    for (i=0; i<sequence_header_length; i++) {
+    var buf=[], sequence_header_length = stream.readUint16();
+    for (var i=0; i<sequence_header_length; i++)
         buf.push(stream.readUint8());
-    }
     BitBuffer.load(buf, false);
 
     this.video_sequence_start_code = new HexadecimalValue(BitBuffer.getUint32());
@@ -202,10 +205,10 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         if (this.library_picture_enable_flag)
             this.duplicate_sequence_number_flag = BitBuffer.getBit();
     }
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     this.horizontal_size = BitBuffer.getBits(14);
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     this.vertical_size = BitBuffer.getBits(14);
     this.chroma_format = new BinaryValue(BitBuffer.getBits(2), 2, AVS3chroma);
@@ -213,27 +216,27 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     
     if (this.profile_id.get() == MAIN_10 || this.profile_id.get() == HIGH_10)
         this.encoding_precision = new BinaryValue(BitBuffer.getBits(3), 3, AVS3precision);
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
-    this.aspect_ratio = new BinaryValue(BitBuffer.getBits(4), 4);
-    this.frame_rate_code = new BinaryValue(BitBuffer.getBits(4), 4);
-    BitBuffer.skipBits(1);  // marker_bit
+    this.aspect_ratio = new BinaryValue(BitBuffer.getBits(4), 4, AVS3aspectratio);
+    this.frame_rate_code = new BinaryValue(BitBuffer.getBits(4), 4,AVS3framerate);
+    BitBuffer.skipBit();  // marker_bit
 
     this.bit_rate_lower = BitBuffer.getBits(18);
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     this.bit_rate_upper = BitBuffer.getBits(12);
     this.low_delay = BitBuffer.getBit();
     this.temporal_id_enable_flag = BitBuffer.getBit();
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     this.bbv_buffer_size = BitBuffer.getBits(18);
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     this.max_dpb_minus1 = BitBuffer.getBits(4);
     this.rpl1_index_exist_flag = BitBuffer.getBit();
     this.rpl1_same_as_rpl0_flag = BitBuffer.getBit();
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     var reference_picture_list = function(list, rpls) {
         var this_set = new ReferencePictureSet(list, rpls);
@@ -258,14 +261,14 @@ BoxParser.createBoxCtor("av3c", function(stream) {
 
     this.num_ref_pic_list_set0 = BitBuffer.getUE();
     this.rpl0 = new ReferencePictureList(0);
-    for (j=0; j<this.num_ref_pic_list_set0; j++)
+    for (var j=0; j<this.num_ref_pic_list_set0; j++)
         this.rpl0.push(reference_picture_list(0, j));
 
     if (!this.rpl1_same_as_rpl0_flag) {
         this.num_ref_pic_list_set1 = BitBuffer.getUE();
         this.rpl1 = new ReferencePictureList(1);
-        for (j=0; j<this.num_ref_pic_list_set1; j++)
-            this.rpl1.push(reference_picture_list(1, j));
+        for (var j2=0; j2<this.num_ref_pic_list_set1; j2++)
+            this.rpl1.push(reference_picture_list(1, j2));
     }
 
     this.num_ref_default_active_minus1_0 = BitBuffer.getUE();
@@ -277,7 +280,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     this.log2_min_qt_size_minus2 = BitBuffer.getBits(3);
     this.log2_max_bt_size_minus2 = BitBuffer.getBits(3);
     this.log2_max_eqt_size_minus3 = BitBuffer.getBits(2);
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     this.weight_quant_enable_flag = BitBuffer.getBit();
     if (this.weight_quant_enable_flag) {
@@ -301,7 +304,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         this.emvr_enable_flag = BitBuffer.getBit();
     this.intra_pf_enable_flag = BitBuffer.getBit();
     this.tscpm_enable_flag = BitBuffer.getBit();
-    BitBuffer.skipBits(1);  // marker_bit
+    BitBuffer.skipBit();  // marker_bit
 
     this.dt_enable_flag = BitBuffer.getBit();
     if (this.dt_enable_flag)
@@ -331,7 +334,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         if (this.alf_enable_flag)
             this.ealf_enable_flag = BitBuffer.getBit();
         this.ibc_enable_flag = BitBuffer.getBit();
-        BitBuffer.skipBits(1);  // marker_bit
+        BitBuffer.skipBit();  // marker_bit
 
         this.isc_enable_flag = BitBuffer.getBit();
         if (this.ibc_enable_flag || this.isc_enable_flag)
@@ -340,7 +343,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
         this.nn_tools_set_hook = BitBuffer.getBits(8);
         if (this.nn_tools_set_hook & 0x01)
             this.num_of_nn_filter_minus1 = BitBuffer.getUE();
-        BitBuffer.skipBits(1);  // marker_bit
+        BitBuffer.skipBit();  // marker_bit
     }
     if (this.low_delay == 0)
         this.output_reorder_delay = BitBuffer.getBits(5);
@@ -350,7 +353,7 @@ BoxParser.createBoxCtor("av3c", function(stream) {
     if (this.stable_patch_flag) {
         this.uniform_patch_flag = BitBuffer.getBit();
         if (this.uniform_patch_flag) {
-            BitBuffer.skipBits(1);  // marker_bit
+            BitBuffer.skipBit();  // marker_bit
             this.patch_width_minus1 = BitBuffer.getUE();
             this.patch_height_minus1 = BitBuffer.getUE();
         }
