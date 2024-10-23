@@ -1,0 +1,2668 @@
+/*
+ * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
+ * License: BSD-3-Clause (see LICENSE file)
+ */
+
+import { Box } from './box';
+import { boxEqual } from './box-diff';
+import { parseOneBox } from './box-parse';
+import { BoxParser } from './box-parser';
+import { MultiBufferStream } from './buffer';
+import { mdatBox, moofBox } from './codecs-all';
+import { Buffer } from './constants';
+import { DataStream } from './DataStream';
+import { Log } from './log';
+import { MP4BoxStream } from './stream';
+
+interface FragmentedTrack {
+  id: number;
+  user: unknown;
+  trak: unknown;
+  segmentStream: unknown;
+  nb_samples: number;
+  rapAlignement: unknown;
+}
+interface ExtractedTrack {
+  id: number;
+  user: unknown;
+  trak: unknown;
+  nb_samples: number;
+  samples: Array<unknown>;
+}
+
+interface IsoFileOptions {
+  brands?: string;
+  description_boxes?: unknown;
+  duration?: number;
+  height?: number;
+  id: string;
+  language?: string;
+  layer?: number;
+  media_duration?: number;
+  rate?: number;
+  timescale?: number;
+  type?: unknown;
+  width?: number;
+  hdlr?: string;
+  name: string;
+}
+
+interface Sample {
+  alreadyRead?: number;
+  cts?: unknown;
+  data?: unknown;
+  degradation_priority?: unknown;
+  depends_on?: unknown;
+  description_index?: unknown;
+  description?: unknown;
+  dts?: unknown;
+  duration?: unknown;
+  has_redundancy?: unknown;
+  is_depended_on?: unknown;
+  is_leading?: unknown;
+  is_sync?: unknown;
+  moof_number?: unknown;
+  number_in_traf?: unknown;
+  number?: unknown;
+  offset?: unknown;
+  size?: unknown;
+  subsamples?: unknown;
+  timescale?: unknown;
+  track_id?: unknown;
+}
+
+interface Track {
+  alternate_group?: unknown;
+  audio?: unknown;
+  bitrate?: unknown;
+  codec?: unknown;
+  created?: unknown;
+  cts_shift?: unknown;
+  duration?: unknown;
+  edits?: unknown;
+  id?: unknown;
+  kind?: unknown;
+  language?: unknown;
+  layer?: unknown;
+  matrix?: unknown;
+  modified?: unknown;
+  movie_duration?: unknown;
+  movie_timescale?: unknown;
+  name?: unknown;
+  nb_samples?: unknown;
+  references?: unknown;
+  samples_duration?: unknown;
+  samples: Array<Sample>;
+  size?: unknown;
+  timescale?: unknown;
+  track_height?: unknown;
+  track_width?: unknown;
+  type?: unknown;
+  video?: unknown;
+  volume?: unknown;
+}
+
+interface Trak {
+  mdia: {
+    minf: { stbl: { stsd: { entries: unknown[] }; cslg: unknown } };
+    hdlr: { name: unknown };
+    mdhd: { timescale: unknown; duration: unknown; languageString: unknown };
+    elng: { extended_language: unknown };
+  };
+  tkhd: {
+    track_id: number;
+    creation_time: number;
+    modification_time: number;
+    duration: unknown;
+    layer: unknown;
+    alternate_group: unknown;
+    volume: unknown;
+    matrix: unknown;
+    width: number;
+    height: number;
+  };
+  tref: { boxes: string | any[] };
+  edts: { elst: unknown[] };
+  samples_duration: unknown;
+  udta: { kinds: string | any[] };
+  samples: Array<Sample>;
+  samples_size: number;
+  nextSample: number;
+}
+
+interface Movie {
+  hasMoov?: boolean;
+  duration?: number;
+  timescale?: number;
+  isFragmented?: boolean;
+  fragment_duration?: unknown;
+  isProgressive?: boolean;
+  hasIOD?: boolean;
+  brands?: Array<string>;
+  created?: unknown;
+  modified?: unknown;
+  tracks?: Array<Track>;
+  audioTracks?: Array<Track>;
+  videoTracks?: Array<Track>;
+  subtitleTracks?: Array<Track>;
+  metadataTracks?: Array<Track>;
+  hintTracks?: Array<Track>;
+  otherTracks?: Array<Track>;
+  mime: string;
+}
+
+class SampleGroupInfo {
+  last_sample_in_run = -1;
+  entry_index = -1;
+
+  description: unknown;
+  fragment_description: unknown;
+  is_fragment: unknown;
+
+  constructor(
+    public grouping_type: unknown,
+    public grouping_type_parameter: number,
+    public sbgp?: undefined,
+  ) {}
+}
+
+export class ISOFile {
+  /** MutiBufferStream object used to parse boxes */
+  stream: MultiBufferStream;
+  /** Array of all boxes (in order) found in the file */
+  boxes: Array<Box> = [];
+  /** Array of all mdats */
+  mdats: Array<mdatBox> = [];
+  /** Array of all moofs */
+  moofs: Array<moofBox> = [];
+  /** Boolean indicating if the file is compatible with progressive parsing (moov first) */
+  isProgressive = false;
+  /** Boolean used to fire moov start event only once */
+  moovStartFound = false;
+  /** Callback called when the moov parsing starts */
+  onMoovStart = null;
+  /** Boolean keeping track of the call to onMoovStart, to avoid double calls */
+  moovStartSent = false;
+  /** Callback called when the moov is entirely parsed */
+  onReady = null;
+  /** Boolean keeping track of the call to onReady, to avoid double calls */
+  readySent = false;
+  /** Callback to call when segments are ready */
+  onSegment = null;
+  /** Callback to call when samples are ready */
+  onSamples = null;
+  /** Callback to call when there is an error in the parsing or processing of samples */
+  onError = null;
+  /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
+  sampleListBuilt = false;
+  /** Array of Track objects for which fragmentation of samples is requested */
+  fragmentedTracks: Array<FragmentedTrack> = [];
+  /** Array of Track objects for which extraction of samples is requested */
+  extractedTracks: Array<ExtractedTrack> = [];
+  /** Boolean indicating that fragmention is ready */
+  isFragmentationInitialized = false;
+  /** Boolean indicating that fragmented has started */
+  sampleProcessingStarted = false;
+  /** Number of the next 'moof' to generate when fragmenting */
+  nextMoofNumber = 0;
+  /** Boolean indicating if the initial list of items has been produced */
+  itemListBuilt = false;
+  /** Callback called when the sidx box is entirely parsed */
+  onSidx = null;
+  /** Boolean keeping track of the call to onSidx, to avoid double calls */
+  sidxSent = false;
+
+  moov: unknown;
+  nextSeekPosition: unknown;
+  sidx: unknown;
+  meta: unknown;
+  ftyp: unknown;
+  static type: boolean;
+  static boxes: unknown;
+
+  constructor(stream: MultiBufferStream) {
+    this.stream = stream || new MultiBufferStream();
+  }
+
+  setSegmentOptions(
+    id: number,
+    user: unknown,
+    options: { nbSamples: number; rapAlignement: unknown },
+  ) {
+    var trak = this.getTrackById(id);
+    if (trak) {
+      const fragTrack = {
+        id: id,
+        user: user,
+        trak: trak,
+        segmentStream: null,
+        nb_samples: 1000,
+        rapAlignement: true,
+      };
+      this.fragmentedTracks.push(fragTrack);
+      trak.nextSample = 0;
+
+      if (options) {
+        if (options.nbSamples) fragTrack.nb_samples = options.nbSamples;
+        if (options.rapAlignement) fragTrack.rapAlignement = options.rapAlignement;
+      }
+    }
+  }
+
+  unsetSegmentOptions(id: number) {
+    var index = -1;
+    for (var i = 0; i < this.fragmentedTracks.length; i++) {
+      var fragTrack = this.fragmentedTracks[i];
+      if (fragTrack.id == id) {
+        index = i;
+      }
+    }
+    if (index > -1) {
+      this.fragmentedTracks.splice(index, 1);
+    }
+  }
+
+  setExtractionOptions(id: number, user: unknown, options: { nbSamples: number }) {
+    let trak = this.getTrackById(id);
+    if (trak) {
+      var extractTrack = {} as ExtractedTrack;
+      this.extractedTracks.push(extractTrack);
+      extractTrack.id = id;
+      extractTrack.user = user;
+      extractTrack.trak = trak;
+      trak.nextSample = 0;
+      extractTrack.nb_samples = 1000;
+      extractTrack.samples = [];
+      if (options) {
+        if (options.nbSamples) extractTrack.nb_samples = options.nbSamples;
+      }
+    }
+  }
+
+  unsetExtractionOptions(id: number) {
+    let index = -1;
+    for (let i = 0; i < this.extractedTracks.length; i++) {
+      let extractTrack = this.extractedTracks[i];
+      if (extractTrack.id == id) {
+        index = i;
+      }
+    }
+    if (index > -1) {
+      this.extractedTracks.splice(index, 1);
+    }
+  }
+
+  parse() {
+    let found: unknown;
+    let ret: { code: unknown; box: Box };
+    let box: Box;
+    let parseBoxHeadersOnly = false;
+
+    if (this.restoreParsePosition) {
+      if (!this.restoreParsePosition()) {
+        return;
+      }
+    }
+
+    while (true) {
+      if (this.hasIncompleteMdat && this.hasIncompleteMdat()) {
+        if (this.processIncompleteMdat()) {
+          continue;
+        } else {
+          return;
+        }
+      } else {
+        if (this.saveParsePosition) {
+          this.saveParsePosition();
+        }
+        ret = parseOneBox(this.stream, parseBoxHeadersOnly);
+        if (ret.code === BoxParser.ERR_NOT_ENOUGH_DATA) {
+          if (this.processIncompleteBox) {
+            if (this.processIncompleteBox(ret)) {
+              continue;
+            } else {
+              return;
+            }
+          } else {
+            return;
+          }
+        } else {
+          var box_type: string;
+          /* the box is entirely parsed */
+          box = ret.box;
+          box_type = box.type !== 'uuid' ? box.type : box.uuid;
+          /* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
+          this.boxes.push(box);
+          /* but also store box in a property for more direct access */
+          switch (box_type) {
+            case 'mdat':
+              this.mdats.push(box);
+              break;
+            case 'moof':
+              this.moofs.push(box as moofBox);
+              break;
+            case 'moov':
+              this.moovStartFound = true;
+              if (this.mdats.length === 0) {
+                this.isProgressive = true;
+              }
+            /* no break */
+            /* falls through */
+            default:
+              if (this[box_type] !== undefined) {
+                Log.warn(
+                  'ISOFile',
+                  'Duplicate Box of type: ' + box_type + ', overriding previous occurrence',
+                );
+              }
+              this[box_type] = box;
+              break;
+          }
+          if (this.updateUsedBytes) {
+            this.updateUsedBytes(box, ret);
+          }
+        }
+      }
+    }
+  }
+
+  checkBuffer(ab?: Buffer) {
+    if (ab === null || ab === undefined) {
+      throw 'Buffer must be defined and non empty';
+    }
+    if (ab.fileStart === undefined) {
+      throw 'Buffer must have a fileStart property';
+    }
+    if (ab.byteLength === 0) {
+      Log.warn('ISOFile', 'Ignoring empty buffer (fileStart: ' + ab.fileStart + ')');
+      this.stream.logBufferLevel();
+      return false;
+    }
+    Log.info('ISOFile', 'Processing buffer (fileStart: ' + ab.fileStart + ')');
+
+    /* mark the bytes in the buffer as not being used yet */
+    ab.usedBytes = 0;
+    this.stream.insertBuffer(ab);
+    this.stream.logBufferLevel();
+
+    if (!this.stream.initialized()) {
+      Log.warn('ISOFile', 'Not ready to start parsing');
+      return false;
+    }
+    return true;
+  }
+
+  /* Processes a new ArrayBuffer (with a fileStart property)
+     Returns the next expected file position, or undefined if not ready to parse */
+  appendBuffer(ab: Buffer, last: unknown) {
+    var nextFileStart: string | number;
+    if (!this.checkBuffer(ab)) {
+      return;
+    }
+
+    /* Parse whatever is in the existing buffers */
+    this.parse();
+
+    /* Check if the moovStart callback needs to be called */
+    if (this.moovStartFound && !this.moovStartSent) {
+      this.moovStartSent = true;
+      if (this.onMoovStart) this.onMoovStart();
+    }
+
+    if (this.moov) {
+      /* A moov box has been entirely parsed */
+
+      /* if this is the first call after the moov is found we initialize the list of samples (may be empty in fragmented files) */
+      if (!this.sampleListBuilt) {
+        this.buildSampleLists();
+        this.sampleListBuilt = true;
+      }
+
+      /* We update the sample information if there are any new moof boxes */
+      this.updateSampleLists();
+
+      /* If the application needs to be informed that the 'moov' has been found,
+         we create the information object and callback the application */
+      if (this.onReady && !this.readySent) {
+        this.readySent = true;
+        this.onReady(this.getInfo());
+      }
+
+      /* See if any sample extraction or segment creation needs to be done with the available samples */
+      this.processSamples(last);
+
+      /* Inform about the best range to fetch next */
+      if (this.nextSeekPosition) {
+        nextFileStart = this.nextSeekPosition;
+        this.nextSeekPosition = undefined;
+      } else {
+        nextFileStart = this.nextParsePosition;
+      }
+      if (this.stream.getEndFilePositionAfter) {
+        nextFileStart = this.stream.getEndFilePositionAfter(nextFileStart);
+      }
+    } else {
+      if (this.nextParsePosition) {
+        /* moov has not been parsed but the first buffer was received,
+           the next fetch should probably be the next box start */
+        nextFileStart = this.nextParsePosition;
+      } else {
+        /* No valid buffer has been parsed yet, we cannot know what to parse next */
+        nextFileStart = 0;
+      }
+    }
+    if (this.sidx) {
+      if (this.onSidx && !this.sidxSent) {
+        this.onSidx(this.sidx);
+        this.sidxSent = true;
+      }
+    }
+    if (this.meta) {
+      if (this.flattenItemInfo && !this.itemListBuilt) {
+        this.flattenItemInfo();
+        this.itemListBuilt = true;
+      }
+      if (this.processItems) {
+        this.processItems(this.onItem);
+      }
+    }
+
+    if (this.stream.cleanBuffers) {
+      Log.info(
+        'ISOFile',
+        'Done processing buffer (fileStart: ' +
+          ab.fileStart +
+          ') - next buffer to fetch should have a fileStart position of ' +
+          nextFileStart,
+      );
+      this.stream.logBufferLevel();
+      this.stream.cleanBuffers();
+      this.stream.logBufferLevel(true);
+      Log.info('ISOFile', 'Sample data size in memory: ' + this.getAllocatedSampleDataSize());
+    }
+    return nextFileStart;
+  }
+
+  getInfo() {
+    let movie = {} as Movie;
+    let trak: Trak;
+    let track: Track;
+    let ref: Track['references'][number];
+    let sample_desc: {
+      getCodec: () => any;
+      isAudio: () => any;
+      getSampleRate: () => any;
+      getChannelCount: () => any;
+      getSampleSize: () => any;
+      isVideo: () => any;
+      getWidth: () => any;
+      getHeight: () => any;
+      isSubtitle: () => any;
+      isHint: () => any;
+      isMetadata: () => any;
+    };
+    var _1904 = new Date('1904-01-01T00:00:00Z').getTime();
+
+    if (this.moov) {
+      movie.hasMoov = true;
+      movie.duration = this.moov.mvhd.duration;
+      movie.timescale = this.moov.mvhd.timescale;
+      movie.isFragmented = this.moov.mvex != null;
+      if (movie.isFragmented && this.moov.mvex.mehd) {
+        movie.fragment_duration = this.moov.mvex.mehd.fragment_duration;
+      }
+      movie.isProgressive = this.isProgressive;
+      movie.hasIOD = this.moov.iods != null;
+      movie.brands = [];
+      movie.brands.push(this.ftyp.major_brand);
+      movie.brands = movie.brands.concat(this.ftyp.compatible_brands);
+      movie.created = new Date(_1904 + this.moov.mvhd.creation_time * 1000);
+      movie.modified = new Date(_1904 + this.moov.mvhd.modification_time * 1000);
+      movie.tracks = [];
+      movie.audioTracks = [];
+      movie.videoTracks = [];
+      movie.subtitleTracks = [];
+      movie.metadataTracks = [];
+      movie.hintTracks = [];
+      movie.otherTracks = [];
+      for (let i = 0; i < this.moov.traks.length; i++) {
+        trak = this.moov.traks[i];
+        sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
+        track = {} as Track;
+        movie.tracks.push(track);
+        track.id = trak.tkhd.track_id;
+        track.name = trak.mdia.hdlr.name;
+        track.references = [];
+        if (trak.tref) {
+          for (let j = 0; j < trak.tref.boxes.length; j++) {
+            ref = {};
+            track.references.push(ref);
+            ref.type = trak.tref.boxes[j].type;
+            ref.track_ids = trak.tref.boxes[j].track_ids;
+          }
+        }
+        if (trak.edts) {
+          track.edits = trak.edts.elst.entries;
+        }
+        track.created = new Date(_1904 + trak.tkhd.creation_time * 1000);
+        track.modified = new Date(_1904 + trak.tkhd.modification_time * 1000);
+        track.movie_duration = trak.tkhd.duration;
+        track.movie_timescale = movie.timescale;
+        track.layer = trak.tkhd.layer;
+        track.alternate_group = trak.tkhd.alternate_group;
+        track.volume = trak.tkhd.volume;
+        track.matrix = trak.tkhd.matrix;
+        track.track_width = trak.tkhd.width / (1 << 16);
+        track.track_height = trak.tkhd.height / (1 << 16);
+        track.timescale = trak.mdia.mdhd.timescale;
+        track.cts_shift = trak.mdia.minf.stbl.cslg;
+        track.duration = trak.mdia.mdhd.duration;
+        track.samples_duration = trak.samples_duration;
+        track.codec = sample_desc.getCodec();
+        track.kind =
+          trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: '', value: '' };
+        track.language = trak.mdia.elng
+          ? trak.mdia.elng.extended_language
+          : trak.mdia.mdhd.languageString;
+        track.nb_samples = trak.samples.length;
+        track.size = trak.samples_size;
+        track.bitrate = (track.size * 8 * track.timescale) / track.samples_duration;
+        if (sample_desc.isAudio()) {
+          track.type = 'audio';
+          movie.audioTracks.push(track);
+          track.audio = {};
+          track.audio.sample_rate = sample_desc.getSampleRate();
+          track.audio.channel_count = sample_desc.getChannelCount();
+          track.audio.sample_size = sample_desc.getSampleSize();
+        } else if (sample_desc.isVideo()) {
+          track.type = 'video';
+          movie.videoTracks.push(track);
+          track.video = {};
+          track.video.width = sample_desc.getWidth();
+          track.video.height = sample_desc.getHeight();
+        } else if (sample_desc.isSubtitle()) {
+          track.type = 'subtitles';
+          movie.subtitleTracks.push(track);
+        } else if (sample_desc.isHint()) {
+          track.type = 'metadata';
+          movie.hintTracks.push(track);
+        } else if (sample_desc.isMetadata()) {
+          track.type = 'metadata';
+          movie.metadataTracks.push(track);
+        } else {
+          track.type = 'metadata';
+          movie.otherTracks.push(track);
+        }
+      }
+    } else {
+      movie.hasMoov = false;
+    }
+    movie.mime = '';
+    if (movie.hasMoov && movie.tracks) {
+      if (movie.videoTracks && movie.videoTracks.length > 0) {
+        movie.mime += 'video/mp4; codecs="';
+      } else if (movie.audioTracks && movie.audioTracks.length > 0) {
+        movie.mime += 'audio/mp4; codecs="';
+      } else {
+        movie.mime += 'application/mp4; codecs="';
+      }
+      for (let i = 0; i < movie.tracks.length; i++) {
+        if (i !== 0) movie.mime += ',';
+        movie.mime += movie.tracks[i].codec;
+      }
+      movie.mime += '"; profiles="';
+      movie.mime += this.ftyp.compatible_brands.join();
+      movie.mime += '"';
+    }
+    return movie;
+  }
+
+  setNextSeekPositionFromSample(sample: Sample) {
+    if (!sample) {
+      return;
+    }
+    if (this.nextSeekPosition) {
+      this.nextSeekPosition = Math.min(sample.offset + sample.alreadyRead, this.nextSeekPosition);
+    } else {
+      this.nextSeekPosition = sample.offset + sample.alreadyRead;
+    }
+  }
+
+  processSamples(last?: boolean) {
+    var i: number;
+    var trak: { nextSample: number; samples: Array<Sample> };
+    if (!this.sampleProcessingStarted) return;
+
+    /* For each track marked for fragmentation,
+       check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded)
+       and create a fragment with it */
+    if (this.isFragmentationInitialized && this.onSegment !== null) {
+      for (i = 0; i < this.fragmentedTracks.length; i++) {
+        var fragTrak = this.fragmentedTracks[i];
+        trak = fragTrak.trak;
+        while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
+          /* The sample information is there (either because the file is not fragmented and this is not the last sample,
+          or because the file is fragmented and the moof for that sample has been received */
+          Log.debug(
+            'ISOFile',
+            'Creating media fragment on track #' + fragTrak.id + ' for sample ' + trak.nextSample,
+          );
+          var result = this.createFragment(fragTrak.id, trak.nextSample, fragTrak.segmentStream);
+          if (result) {
+            fragTrak.segmentStream = result;
+            trak.nextSample++;
+          } else {
+            /* The fragment could not be created because the media data is not there (not downloaded), wait for it */
+            break;
+          }
+          /* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
+             It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
+          if (
+            trak.nextSample % fragTrak.nb_samples === 0 ||
+            last ||
+            trak.nextSample >= trak.samples.length
+          ) {
+            Log.info(
+              'ISOFile',
+              'Sending fragmented data on track #' +
+                fragTrak.id +
+                ' for samples [' +
+                Math.max(0, trak.nextSample - fragTrak.nb_samples) +
+                ',' +
+                (trak.nextSample - 1) +
+                ']',
+            );
+            Log.info('ISOFile', 'Sample data size in memory: ' + this.getAllocatedSampleDataSize());
+            if (this.onSegment) {
+              this.onSegment(
+                fragTrak.id,
+                fragTrak.user,
+                fragTrak.segmentStream.buffer,
+                trak.nextSample,
+                last || trak.nextSample >= trak.samples.length,
+              );
+            }
+            /* force the creation of a new buffer */
+            fragTrak.segmentStream = null;
+            if (fragTrak !== this.fragmentedTracks[i]) {
+              /* make sure we can stop fragmentation if needed */
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (this.onSamples !== null) {
+      /* For each track marked for data export,
+         check if the next sample is there (i.e. has been downloaded) and send it */
+      for (i = 0; i < this.extractedTracks.length; i++) {
+        var extractTrak = this.extractedTracks[i];
+        trak = extractTrak.trak;
+        while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
+          Log.debug(
+            'ISOFile',
+            'Exporting on track #' + extractTrak.id + ' sample #' + trak.nextSample,
+          );
+          var sample = this.getSample(trak, trak.nextSample);
+          if (sample) {
+            trak.nextSample++;
+            extractTrak.samples.push(sample);
+          } else {
+            this.setNextSeekPositionFromSample(trak.samples[trak.nextSample]);
+            break;
+          }
+          if (
+            trak.nextSample % extractTrak.nb_samples === 0 ||
+            trak.nextSample >= trak.samples.length
+          ) {
+            Log.debug(
+              'ISOFile',
+              'Sending samples on track #' + extractTrak.id + ' for sample ' + trak.nextSample,
+            );
+            if (this.onSamples) {
+              this.onSamples(extractTrak.id, extractTrak.user, extractTrak.samples);
+            }
+            extractTrak.samples = [];
+            if (extractTrak !== this.extractedTracks[i]) {
+              /* check if the extraction needs to be stopped */
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* Find and return specific boxes using recursion and early return */
+  getBox(type: unknown) {
+    var result = this.getBoxes(type, true);
+    return result.length ? result[0] : null;
+  }
+
+  getBoxes(type: unknown, returnEarly: boolean) {
+    var result = [];
+    ISOFile._sweep.call(this, type, result, returnEarly);
+    return result;
+  }
+
+  static _sweep(type: boolean, result: (typeof ISOFile)[], returnEarly: unknown) {
+    if (this.type && this.type == type) result.push(this);
+    for (var box in this.boxes) {
+      if (result.length && returnEarly) return;
+      ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
+    }
+  }
+
+  getTrackSamplesInfo(track_id: number) {
+    var track = this.getTrackById(track_id);
+    if (track) {
+      return track.samples;
+    } else {
+      return;
+    }
+  }
+
+  getTrackSample(track_id: number, number: unknown) {
+    var track = this.getTrackById(track_id);
+    var sample = this.getSample(track, number);
+    return sample;
+  }
+
+  /* Called by the application to release the resources associated to samples already forwarded to the application */
+  releaseUsedSamples(id: string, sampleNum: string | number) {
+    var size = 0;
+    var trak = this.getTrackById(id);
+    if (!trak.lastValidSample) trak.lastValidSample = 0;
+    for (var i = trak.lastValidSample; i < sampleNum; i++) {
+      size += this.releaseSample(trak, i);
+    }
+    Log.info(
+      'ISOFile',
+      'Track #' +
+        id +
+        ' released samples up to ' +
+        sampleNum +
+        ' (released size: ' +
+        size +
+        ', remaining: ' +
+        this.samplesDataSize +
+        ')',
+    );
+    trak.lastValidSample = sampleNum;
+  }
+
+  start() {
+    this.sampleProcessingStarted = true;
+    this.processSamples(false);
+  }
+
+  stop() {
+    this.sampleProcessingStarted = false;
+  }
+
+  /* Called by the application to flush the remaining samples (e.g. once the download is finished or when no more samples will be added) */
+  flush() {
+    Log.info('ISOFile', 'Flushing remaining samples');
+    this.updateSampleLists();
+    this.processSamples(true);
+    this.stream.cleanBuffers();
+    this.stream.logBufferLevel(true);
+  }
+
+  /* Finds the byte offset for a given time on a given track
+     also returns the time of the previous rap */
+  seekTrack(time: number, useRap: unknown, trak: Trak) {
+    let j: number;
+    let sample: Sample;
+    let seek_offset = Infinity;
+    let rap_seek_sample_num = 0;
+    let seek_sample_num = 0;
+    let timescale: number = null!;
+
+    if (trak.samples.length === 0) {
+      Log.info(
+        'ISOFile',
+        'No sample in track, cannot seek! Using time ' +
+          Log.getDurationString(0, 1) +
+          ' and offset: ' +
+          0,
+      );
+      return { offset: 0, time: 0 };
+    }
+
+    for (j = 0; j < trak.samples.length; j++) {
+      sample = trak.samples[j];
+      if (j === 0) {
+        seek_sample_num = 0;
+        timescale = sample.timescale;
+      } else if (sample.cts > time * sample.timescale) {
+        seek_sample_num = j - 1;
+        break;
+      }
+      if (useRap && sample.is_sync) {
+        rap_seek_sample_num = j;
+      }
+    }
+    if (useRap) {
+      seek_sample_num = rap_seek_sample_num;
+    }
+    time = trak.samples[seek_sample_num].cts;
+    trak.nextSample = seek_sample_num;
+    while (trak.samples[seek_sample_num].alreadyRead === trak.samples[seek_sample_num].size) {
+      // No remaining samples to look for, all are downloaded.
+      if (!trak.samples[seek_sample_num + 1]) {
+        break;
+      }
+      seek_sample_num++;
+    }
+    seek_offset = trak.samples[seek_sample_num].offset + trak.samples[seek_sample_num].alreadyRead;
+    Log.info(
+      'ISOFile',
+      'Seeking to ' +
+        (useRap ? 'RAP' : '') +
+        ' sample #' +
+        trak.nextSample +
+        ' on track ' +
+        trak.tkhd.track_id +
+        ', time ' +
+        Log.getDurationString(time, timescale) +
+        ' and offset: ' +
+        seek_offset,
+    );
+    return { offset: seek_offset, time: time / timescale };
+  }
+
+  getTrackDuration(trak: Track) {
+    if (!trak.samples) {
+      return Infinity;
+    }
+
+    const sample = trak.samples[trak.samples.length - 1];
+    return (sample.cts + sample.duration) / sample.timescale;
+  }
+
+  /* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
+  seek(time: number, useRap: unknown) {
+    var moov = this.moov;
+    var trak: unknown;
+    var trak_seek_info: { offset: unknown; time: unknown };
+    var i: number;
+    var seek_info = { offset: Infinity, time: Infinity };
+    if (!this.moov) {
+      throw 'Cannot seek: moov not received!';
+    } else {
+      for (i = 0; i < moov.traks.length; i++) {
+        trak = moov.traks[i];
+        if (time > this.getTrackDuration(trak)) {
+          // skip tracks that already ended
+          continue;
+        }
+        trak_seek_info = this.seekTrack(time, useRap, trak);
+        if (trak_seek_info.offset < seek_info.offset) {
+          seek_info.offset = trak_seek_info.offset;
+        }
+        if (trak_seek_info.time < seek_info.time) {
+          seek_info.time = trak_seek_info.time;
+        }
+      }
+      Log.info(
+        'ISOFile',
+        'Seeking at time ' +
+          Log.getDurationString(seek_info.time, 1) +
+          ' needs a buffer with a fileStart position of ' +
+          seek_info.offset,
+      );
+      if (seek_info.offset === Infinity) {
+        /* No sample info, in all tracks, cannot seek */
+        seek_info = { offset: this.nextParsePosition, time: 0 };
+      } else {
+        /* check if the seek position is already in some buffer and
+         in that case return the end of that buffer (or of the last contiguous buffer) */
+        /* TODO: Should wait until append operations are done */
+        seek_info.offset = this.stream.getEndFilePositionAfter(seek_info.offset);
+      }
+      Log.info(
+        'ISOFile',
+        'Adjusted seek position (after checking data already in buffer): ' + seek_info.offset,
+      );
+      return seek_info;
+    }
+  }
+
+  equal(b: { boxes: string | any[] }) {
+    var box_index = 0;
+    while (box_index < this.boxes.length && box_index < b.boxes.length) {
+      var a_box = this.boxes[box_index];
+      var b_box = b.boxes[box_index];
+      if (!boxEqual(a_box, b_box)) {
+        return false;
+      }
+      box_index++;
+    }
+    return true;
+  }
+
+  /**
+   * Rewrite the entire file
+   * @bundle isofile-write.js
+   */
+  write(outstream: unknown) {
+    for (var i = 0; i < this.boxes.length; i++) {
+      this.boxes[i].write(outstream);
+    }
+  }
+
+  /** @bundle isofile-write.js */
+  createFragment(track_id: number, sampleNumber: string | number, stream_: unknown) {
+    var trak = this.getTrackById(track_id);
+    var sample = this.getSample(trak, sampleNumber);
+    if (sample == null) {
+      this.setNextSeekPositionFromSample(trak.samples[sampleNumber]);
+      return null;
+    }
+
+    var stream = stream_ || new DataStream();
+    stream.endianness = DataStream.BIG_ENDIAN;
+
+    var moof = this.createSingleSampleMoof(sample);
+    moof.write(stream);
+
+    /* adjusting the data_offset now that the moof size is known*/
+    moof.trafs[0].truns[0].data_offset = moof.size + 8; //8 is mdat header
+    Log.debug(
+      'MP4Box',
+      'Adjusting data_offset with new value ' + moof.trafs[0].truns[0].data_offset,
+    );
+    stream.adjustUint32(
+      moof.trafs[0].truns[0].data_offset_position,
+      moof.trafs[0].truns[0].data_offset,
+    );
+
+    var mdat = new BoxParser.mdatBox();
+    mdat.data = sample.data;
+    mdat.write(stream);
+    return stream;
+  }
+
+  /**
+   * Modify the file and create the initialization segment
+   * @bundle isofile-write.js
+   */
+  static writeInitializationSegment(
+    ftyp: { write: (arg0: unknown) => void },
+    moov: { add: (arg0: string) => any; traks: string | any[]; write: (arg0: unknown) => void },
+    total_duration: unknown,
+    sample_duration: unknown,
+  ) {
+    Log.debug('ISOFile', 'Generating initialization segment');
+
+    const stream = new DataStream();
+    stream.endianness = DataStream.BIG_ENDIAN;
+    ftyp.write(stream);
+
+    /* we can now create the new mvex box */
+    let mvex = moov.add('mvex');
+    if (total_duration) {
+      mvex.add('mehd').set('fragment_duration', total_duration);
+    }
+    for (let i = 0; i < moov.traks.length; i++) {
+      mvex
+        .add('trex')
+        .set('track_id', moov.traks[i].tkhd.track_id)
+        .set('default_sample_description_index', 1)
+        .set('default_sample_duration', sample_duration)
+        .set('default_sample_size', 0)
+        .set('default_sample_flags', 1 << 16);
+    }
+    moov.write(stream);
+
+    return stream.buffer;
+  }
+
+  /** @bundle isofile-write.js */
+  save(name: string) {
+    const stream = new DataStream();
+    stream.endianness = DataStream.BIG_ENDIAN;
+    this.write(stream);
+    stream.save(name);
+  }
+
+  /** @bundle isofile-write.js */
+  getBuffer() {
+    const stream = new DataStream();
+    stream.endianness = DataStream.BIG_ENDIAN;
+    this.write(stream);
+    return stream.buffer;
+  }
+
+  /** @bundle isofile-write.js */
+  initializeSegmentation() {
+    // let initSegs: unknown[];
+    // let trak: { tkhd: { track_id: number } };
+    // let seg: { id?: unknown; user?: unknown; buffer?: unknown };
+    if (this.onSegment === null) {
+      Log.warn('MP4Box', 'No segmentation callback set!');
+    }
+    if (!this.isFragmentationInitialized) {
+      this.isFragmentationInitialized = true;
+      this.nextMoofNumber = 0;
+      this.resetTables();
+    }
+    const initSegs = [];
+    for (let i = 0; i < this.fragmentedTracks.length; i++) {
+      const moov = new BoxParser.moovBox();
+      moov.mvhd = this.moov.mvhd;
+      moov.boxes.push(moov.mvhd);
+      const trak = this.getTrackById(this.fragmentedTracks[i].id);
+      moov.boxes.push(trak);
+      moov.traks.push(trak);
+      const seg = {
+        id: trak.tkhd.track_id,
+        user: this.fragmentedTracks[i].user,
+        buffer: ISOFile.writeInitializationSegment(
+          this.ftyp,
+          moov,
+          this.moov.mvex && this.moov.mvex.mehd ? this.moov.mvex.mehd.fragment_duration : undefined,
+          this.moov.traks[i].samples.length > 0 ? this.moov.traks[i].samples[0].duration : 0,
+        ),
+      };
+      initSegs.push(seg);
+    }
+    return initSegs;
+  }
+
+  /**
+   * Index of the last moof box received
+   * @bundle isofile-sample-processing.js
+   */
+  lastMoofIndex = 0;
+
+  /**
+   * size of the buffers allocated for samples
+   * @bundle isofile-sample-processing.js
+   */
+  samplesDataSize = 0;
+
+  /**
+   * Resets all sample tables
+   * @bundle isofile-sample-processing.js
+   */
+  resetTables() {
+    this.initial_duration = this.moov.mvhd.duration;
+    this.moov.mvhd.duration = 0;
+    for (let i = 0; i < this.moov.traks.length; i++) {
+      const trak = this.moov.traks[i];
+      trak.tkhd.duration = 0;
+      trak.mdia.mdhd.duration = 0;
+      const stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
+      stco.chunk_offsets = [];
+      const stsc = trak.mdia.minf.stbl.stsc;
+      stsc.first_chunk = [];
+      stsc.samples_per_chunk = [];
+      stsc.sample_description_index = [];
+      const stsz = trak.mdia.minf.stbl.stsz || trak.mdia.minf.stbl.stz2;
+      stsz.sample_sizes = [];
+      const stts = trak.mdia.minf.stbl.stts;
+      stts.sample_counts = [];
+      stts.sample_deltas = [];
+      const ctts = trak.mdia.minf.stbl.ctts;
+      if (ctts) {
+        ctts.sample_counts = [];
+        ctts.sample_offsets = [];
+      }
+      const stss = trak.mdia.minf.stbl.stss;
+      var k = trak.mdia.minf.stbl.boxes.indexOf(stss);
+      if (k != -1) trak.mdia.minf.stbl.boxes[k] = null;
+    }
+  }
+
+  /** @bundle isofile-sample-processing.js */
+  static initSampleGroups(
+    trak: { sample_groups_info: unknown[] },
+    traf: { sample_groups_info: unknown[] } | null,
+    sbgps: string | any[],
+    trak_sgpds: string | any[],
+    traf_sgpds: string | any[] | undefined,
+  ) {
+    let sample_group_info: SampleGroupInfo;
+    let sample_group_key: string;
+
+    if (traf) {
+      traf.sample_groups_info = [];
+    }
+    if (!trak.sample_groups_info) {
+      trak.sample_groups_info = [];
+    }
+    for (let k = 0; k < sbgps.length; k++) {
+      sample_group_key = sbgps[k].grouping_type + '/' + sbgps[k].grouping_type_parameter;
+      sample_group_info = new SampleGroupInfo(
+        sbgps[k].grouping_type,
+        sbgps[k].grouping_type_parameter,
+        sbgps[k],
+      );
+      if (traf) {
+        traf.sample_groups_info[sample_group_key] = sample_group_info;
+      }
+      if (!trak.sample_groups_info[sample_group_key]) {
+        trak.sample_groups_info[sample_group_key] = sample_group_info;
+      }
+      for (let l = 0; l < trak_sgpds.length; l++) {
+        if (trak_sgpds[l].grouping_type === sbgps[k].grouping_type) {
+          sample_group_info.description = trak_sgpds[l];
+          sample_group_info.description.used = true;
+        }
+      }
+      if (traf_sgpds) {
+        for (let l = 0; l < traf_sgpds.length; l++) {
+          if (traf_sgpds[l].grouping_type === sbgps[k].grouping_type) {
+            sample_group_info.fragment_description = traf_sgpds[l];
+            sample_group_info.fragment_description.used = true;
+            sample_group_info.is_fragment = true;
+          }
+        }
+      }
+    }
+    if (!traf) {
+      for (let k = 0; k < trak_sgpds.length; k++) {
+        if (!trak_sgpds[k].used && trak_sgpds[k].version >= 2) {
+          sample_group_key = trak_sgpds[k].grouping_type + '/0';
+          sample_group_info = new SampleGroupInfo(trak_sgpds[k].grouping_type, 0);
+          if (!trak.sample_groups_info[sample_group_key]) {
+            trak.sample_groups_info[sample_group_key] = sample_group_info;
+          }
+        }
+      }
+    } else {
+      if (traf_sgpds) {
+        for (let k = 0; k < traf_sgpds.length; k++) {
+          if (!traf_sgpds[k].used && traf_sgpds[k].version >= 2) {
+            sample_group_key = traf_sgpds[k].grouping_type + '/0';
+            sample_group_info = new SampleGroupInfo(traf_sgpds[k].grouping_type, 0);
+            sample_group_info.is_fragment = true;
+            if (!traf.sample_groups_info[sample_group_key]) {
+              traf.sample_groups_info[sample_group_key] = sample_group_info;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /** @bundle isofile-sample-processing.js */
+  static setSampleGroupProperties(
+    trak: unknown,
+    sample: Sample,
+    sample_number: number,
+    sample_groups_info: Array<SampleGroupInfo>,
+  ) {
+    var k: string | number;
+    var index: number;
+    sample.sample_groups = [];
+    for (k in sample_groups_info) {
+      sample.sample_groups[k] = {};
+      sample.sample_groups[k].grouping_type = sample_groups_info[k].grouping_type;
+      sample.sample_groups[k].grouping_type_parameter =
+        sample_groups_info[k].grouping_type_parameter;
+      if (sample_number >= sample_groups_info[k].last_sample_in_run) {
+        if (sample_groups_info[k].last_sample_in_run < 0) {
+          sample_groups_info[k].last_sample_in_run = 0;
+        }
+        sample_groups_info[k].entry_index++;
+        if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp.entries.length - 1) {
+          sample_groups_info[k].last_sample_in_run +=
+            sample_groups_info[k].sbgp.entries[sample_groups_info[k].entry_index].sample_count;
+        }
+      }
+      if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp.entries.length - 1) {
+        sample.sample_groups[k].group_description_index =
+          sample_groups_info[k].sbgp.entries[
+            sample_groups_info[k].entry_index
+          ].group_description_index;
+      } else {
+        sample.sample_groups[k].group_description_index = -1; // special value for not defined
+      }
+      if (sample.sample_groups[k].group_description_index !== 0) {
+        let description: unknown;
+        if (sample_groups_info[k].fragment_description) {
+          description = sample_groups_info[k].fragment_description;
+        } else {
+          description = sample_groups_info[k].description;
+        }
+        if (sample.sample_groups[k].group_description_index > 0) {
+          if (sample.sample_groups[k].group_description_index > 65535) {
+            index = (sample.sample_groups[k].group_description_index >> 16) - 1;
+          } else {
+            index = sample.sample_groups[k].group_description_index - 1;
+          }
+          if (description && index >= 0) {
+            sample.sample_groups[k].description = description.entries[index];
+          }
+        } else {
+          if (description && description.version >= 2) {
+            if (description.default_group_description_index > 0) {
+              sample.sample_groups[k].description =
+                description.entries[description.default_group_description_index - 1];
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /** @bundle isofile-sample-processing.js */
+  static process_sdtp(
+    sdtp: {
+      is_leading: { [x: string]: unknown };
+      sample_depends_on: { [x: string]: unknown };
+      sample_is_depended_on: { [x: string]: unknown };
+      sample_has_redundancy: { [x: string]: unknown };
+    },
+    sample: Sample,
+    number: number,
+  ) {
+    if (!sample) {
+      return;
+    }
+    if (sdtp) {
+      sample.is_leading = sdtp.is_leading[number];
+      sample.depends_on = sdtp.sample_depends_on[number];
+      sample.is_depended_on = sdtp.sample_is_depended_on[number];
+      sample.has_redundancy = sdtp.sample_has_redundancy[number];
+    } else {
+      sample.is_leading = 0;
+      sample.depends_on = 0;
+      sample.is_depended_on = 0;
+      sample.has_redundancy = 0;
+    }
+  }
+
+  /* Build initial sample list from  sample tables */
+  buildSampleLists() {
+    var i: number;
+    var trak: unknown;
+    for (i = 0; i < this.moov.traks.length; i++) {
+      trak = this.moov.traks[i];
+      this.buildTrakSampleLists(trak);
+    }
+  }
+
+  buildTrakSampleLists(trak: {
+    samples: { duration: unknown }[];
+    samples_duration: number;
+    samples_size: number;
+    mdia: {
+      minf: {
+        stbl: {
+          stco: unknown;
+          co64: unknown;
+          stsc: unknown;
+          stsz: unknown;
+          stz2: unknown;
+          stts: unknown;
+          ctts: unknown;
+          stss: unknown;
+          stsd: unknown;
+          subs: unknown;
+          stdp: unknown;
+          sbgps: unknown;
+          sgpds: unknown;
+          sdtp: unknown;
+        };
+      };
+      mdhd: { timescale: unknown; duration: number };
+    };
+    tkhd: { track_id: number };
+    sample_groups_info: Array<SampleGroupInfo>;
+  }) {
+    var j: number, k: unknown;
+    var chunk_run_index: number,
+      chunk_index: number,
+      last_chunk_in_run: number,
+      offset_in_chunk: number,
+      last_sample_in_chunk: number;
+
+    trak.samples = [];
+    trak.samples_duration = 0;
+    trak.samples_size = 0;
+    let stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
+    let stsc = trak.mdia.minf.stbl.stsc;
+    let stsz = trak.mdia.minf.stbl.stsz || trak.mdia.minf.stbl.stz2;
+    let stts = trak.mdia.minf.stbl.stts;
+    let ctts = trak.mdia.minf.stbl.ctts;
+    let stss = trak.mdia.minf.stbl.stss;
+    let stsd = trak.mdia.minf.stbl.stsd;
+    let subs = trak.mdia.minf.stbl.subs;
+    let stdp = trak.mdia.minf.stbl.stdp;
+    let sbgps = trak.mdia.minf.stbl.sbgps;
+    let sgpds = trak.mdia.minf.stbl.sgpds;
+
+    let last_sample_in_stts_run = -1;
+    let stts_run_index = -1;
+    let last_sample_in_ctts_run = -1;
+    let ctts_run_index = -1;
+    let last_stss_index = 0;
+    let subs_entry_index = 0;
+    let last_subs_sample_index = 0;
+
+    ISOFile.initSampleGroups(trak, null, sbgps, sgpds);
+
+    if (typeof stsz === 'undefined') {
+      return;
+    }
+
+    /* we build the samples one by one and compute their properties */
+    for (j = 0; j < stsz.sample_sizes.length; j++) {
+      var sample = {};
+      sample.number = j;
+      sample.track_id = trak.tkhd.track_id;
+      sample.timescale = trak.mdia.mdhd.timescale;
+      sample.alreadyRead = 0;
+      trak.samples[j] = sample;
+      /* size can be known directly */
+      sample.size = stsz.sample_sizes[j];
+      trak.samples_size += sample.size;
+      /* computing chunk-based properties (offset, sample description index)*/
+      if (j === 0) {
+        chunk_index = 1; /* the first sample is in the first chunk (chunk indexes are 1-based) */
+        chunk_run_index = 0; /* the first chunk is the first entry in the first_chunk table */
+        sample.chunk_index = chunk_index;
+        sample.chunk_run_index = chunk_run_index;
+        last_sample_in_chunk = stsc.samples_per_chunk[chunk_run_index];
+        offset_in_chunk = 0;
+
+        /* Is there another entry in the first_chunk table ? */
+        if (chunk_run_index + 1 < stsc.first_chunk.length) {
+          /* The last chunk in the run is the chunk before the next first chunk */
+          last_chunk_in_run = stsc.first_chunk[chunk_run_index + 1] - 1;
+        } else {
+          /* There is only one entry in the table, it is valid for all future chunks*/
+          last_chunk_in_run = Infinity;
+        }
+      } else {
+        if (j < last_sample_in_chunk) {
+          /* the sample is still in the current chunk */
+          sample.chunk_index = chunk_index;
+          sample.chunk_run_index = chunk_run_index;
+        } else {
+          /* the sample is in the next chunk */
+          chunk_index++;
+          sample.chunk_index = chunk_index;
+          /* reset the accumulated offset in the chunk */
+          offset_in_chunk = 0;
+          if (chunk_index <= last_chunk_in_run) {
+            /* stay in the same entry of the first_chunk table */
+            /* chunk_run_index unmodified */
+          } else {
+            chunk_run_index++;
+            /* Is there another entry in the first_chunk table ? */
+            if (chunk_run_index + 1 < stsc.first_chunk.length) {
+              /* The last chunk in the run is the chunk before the next first chunk */
+              last_chunk_in_run = stsc.first_chunk[chunk_run_index + 1] - 1;
+            } else {
+              /* There is only one entry in the table, it is valid for all future chunks*/
+              last_chunk_in_run = Infinity;
+            }
+          }
+          sample.chunk_run_index = chunk_run_index;
+          last_sample_in_chunk += stsc.samples_per_chunk[chunk_run_index];
+        }
+      }
+
+      sample.description_index = stsc.sample_description_index[sample.chunk_run_index] - 1;
+      sample.description = stsd.entries[sample.description_index];
+      sample.offset =
+        stco.chunk_offsets[sample.chunk_index - 1] +
+        offset_in_chunk; /* chunk indexes are 1-based */
+      offset_in_chunk += sample.size;
+
+      /* setting dts, cts, duration and rap flags */
+      if (j > last_sample_in_stts_run) {
+        stts_run_index++;
+        if (last_sample_in_stts_run < 0) {
+          last_sample_in_stts_run = 0;
+        }
+        last_sample_in_stts_run += stts.sample_counts[stts_run_index];
+      }
+      if (j > 0) {
+        trak.samples[j - 1].duration = stts.sample_deltas[stts_run_index];
+        trak.samples_duration += trak.samples[j - 1].duration;
+        sample.dts = trak.samples[j - 1].dts + trak.samples[j - 1].duration;
+      } else {
+        sample.dts = 0;
+      }
+      if (ctts) {
+        if (j >= last_sample_in_ctts_run) {
+          ctts_run_index++;
+          if (last_sample_in_ctts_run < 0) {
+            last_sample_in_ctts_run = 0;
+          }
+          last_sample_in_ctts_run += ctts.sample_counts[ctts_run_index];
+        }
+        sample.cts = trak.samples[j].dts + ctts.sample_offsets[ctts_run_index];
+      } else {
+        sample.cts = sample.dts;
+      }
+      if (stss) {
+        if (j == stss.sample_numbers[last_stss_index] - 1) {
+          // sample numbers are 1-based
+          sample.is_sync = true;
+          last_stss_index++;
+        } else {
+          sample.is_sync = false;
+          sample.degradation_priority = 0;
+        }
+        if (subs) {
+          if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index == j + 1) {
+            sample.subsamples = subs.entries[subs_entry_index].subsamples;
+            last_subs_sample_index += subs.entries[subs_entry_index].sample_delta;
+            subs_entry_index++;
+          }
+        }
+      } else {
+        sample.is_sync = true;
+      }
+      ISOFile.process_sdtp(trak.mdia.minf.stbl.sdtp, sample, sample.number);
+      if (stdp) {
+        sample.degradation_priority = stdp.priority[j];
+      } else {
+        sample.degradation_priority = 0;
+      }
+      if (subs) {
+        if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index == j) {
+          sample.subsamples = subs.entries[subs_entry_index].subsamples;
+          last_subs_sample_index += subs.entries[subs_entry_index].sample_delta;
+        }
+      }
+      if (sbgps.length > 0 || sgpds.length > 0) {
+        ISOFile.setSampleGroupProperties(trak, sample, j, trak.sample_groups_info);
+      }
+    }
+    if (j > 0) {
+      trak.samples[j - 1].duration = Math.max(trak.mdia.mdhd.duration - trak.samples[j - 1].dts, 0);
+      trak.samples_duration += trak.samples[j - 1].duration;
+    }
+  }
+
+  /**
+   * Update sample list when new 'moof' boxes are received
+   * @bundle isofile-sample-processing.js
+   */
+  updateSampleLists() {
+    var i: number, j: number, k: number;
+    var default_sample_description_index: number,
+      default_sample_duration: unknown,
+      default_sample_size: unknown,
+      default_sample_flags: unknown;
+    var last_run_position: number;
+    var box: { type: string },
+      moof: { trafs: string | any[]; start: number },
+      traf: {
+        tfhd: {
+          track_id: number;
+          flags: number;
+          default_sample_description_index: unknown;
+          default_sample_duration: unknown;
+          default_sample_size: unknown;
+          default_sample_flags: unknown;
+          base_data_offset: number;
+        };
+        sample_number: number;
+        sbgps: string | any[];
+        sgpds: string | any[];
+        truns: string | any[];
+        first_sample_index: unknown;
+        tfdt: { baseMediaDecodeTime: unknown };
+        sample_groups_info: unknown;
+        subs: { entries: string | any[] };
+      },
+      trak: {
+        mdia: {
+          minf: { stbl: { sgpds: string | any[]; stsd: unknown[]; sbgps: string | any[] } };
+          mdhd: { timescale: unknown };
+        };
+        samples: unknown[];
+        tkhd: { track_id: number };
+        samples_size: unknown;
+        samples_duration: unknown;
+        first_traf_merged: boolean;
+        has_fragment_subsamples: boolean;
+      },
+      trex: {
+        default_sample_description_index: unknown;
+        default_sample_duration: unknown;
+        default_sample_size: unknown;
+        default_sample_flags: unknown;
+      };
+    var sample: Sample;
+    var sample_flags: number;
+
+    if (this.moov === undefined) {
+      return;
+    }
+    /* if the input file is fragmented and fetched in multiple downloads, we need to update the list of samples */
+    while (this.lastMoofIndex < this.moofs.length) {
+      box = this.moofs[this.lastMoofIndex];
+      this.lastMoofIndex++;
+      if (box.type == 'moof') {
+        moof = box;
+        for (i = 0; i < moof.trafs.length; i++) {
+          traf = moof.trafs[i];
+          trak = this.getTrackById(traf.tfhd.track_id);
+          trex = this.getTrexById(traf.tfhd.track_id);
+          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC) {
+            default_sample_description_index = traf.tfhd.default_sample_description_index;
+          } else {
+            default_sample_description_index = trex ? trex.default_sample_description_index : 1;
+          }
+          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DUR) {
+            default_sample_duration = traf.tfhd.default_sample_duration;
+          } else {
+            default_sample_duration = trex ? trex.default_sample_duration : 0;
+          }
+          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_SIZE) {
+            default_sample_size = traf.tfhd.default_sample_size;
+          } else {
+            default_sample_size = trex ? trex.default_sample_size : 0;
+          }
+          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_FLAGS) {
+            default_sample_flags = traf.tfhd.default_sample_flags;
+          } else {
+            default_sample_flags = trex ? trex.default_sample_flags : 0;
+          }
+          traf.sample_number = 0;
+          /* process sample groups */
+          if (traf.sbgps.length > 0) {
+            ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
+          }
+          for (j = 0; j < traf.truns.length; j++) {
+            var trun = traf.truns[j];
+            for (k = 0; k < trun.sample_count; k++) {
+              sample = {};
+              sample.moof_number = this.lastMoofIndex;
+              sample.number_in_traf = traf.sample_number;
+              traf.sample_number++;
+              sample.number = trak.samples.length;
+              traf.first_sample_index = trak.samples.length;
+              trak.samples.push(sample);
+              sample.track_id = trak.tkhd.track_id;
+              sample.timescale = trak.mdia.mdhd.timescale;
+              sample.description_index = default_sample_description_index - 1;
+              sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
+              sample.size = default_sample_size;
+              if (trun.flags & BoxParser.TRUN_FLAGS_SIZE) {
+                sample.size = trun.sample_size[k];
+              }
+              trak.samples_size += sample.size;
+              sample.duration = default_sample_duration;
+              if (trun.flags & BoxParser.TRUN_FLAGS_DURATION) {
+                sample.duration = trun.sample_duration[k];
+              }
+              trak.samples_duration += sample.duration;
+              if (trak.first_traf_merged || k > 0) {
+                sample.dts =
+                  trak.samples[trak.samples.length - 2].dts +
+                  trak.samples[trak.samples.length - 2].duration;
+              } else {
+                if (traf.tfdt) {
+                  sample.dts = traf.tfdt.baseMediaDecodeTime;
+                } else {
+                  sample.dts = 0;
+                }
+                trak.first_traf_merged = true;
+              }
+              sample.cts = sample.dts;
+              if (trun.flags & BoxParser.TRUN_FLAGS_CTS_OFFSET) {
+                sample.cts = sample.dts + trun.sample_composition_time_offset[k];
+              }
+              sample_flags = default_sample_flags;
+              if (trun.flags & BoxParser.TRUN_FLAGS_FLAGS) {
+                sample_flags = trun.sample_flags[k];
+              } else if (k === 0 && trun.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG) {
+                sample_flags = trun.first_sample_flags;
+              }
+              sample.is_sync = (sample_flags >> 16) & 0x1 ? false : true;
+              sample.is_leading = (sample_flags >> 26) & 0x3;
+              sample.depends_on = (sample_flags >> 24) & 0x3;
+              sample.is_depended_on = (sample_flags >> 22) & 0x3;
+              sample.has_redundancy = (sample_flags >> 20) & 0x3;
+              sample.degradation_priority = sample_flags & 0xffff;
+              //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
+              var bdop = traf.tfhd.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
+              var dbim = traf.tfhd.flags & BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
+              var dop = trun.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET ? true : false;
+              var bdo = 0;
+              if (!bdop) {
+                if (!dbim) {
+                  if (j === 0) {
+                    // the first track in the movie fragment
+                    bdo = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
+                  } else {
+                    bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
+                  }
+                } else {
+                  bdo = moof.start;
+                }
+              } else {
+                bdo = traf.tfhd.base_data_offset;
+              }
+              if (j === 0 && k === 0) {
+                if (dop) {
+                  sample.offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
+                } else {
+                  sample.offset = bdo; // the data for this run starts the base-data-offset defined by the track fragment header
+                }
+              } else {
+                sample.offset = last_run_position; // this run starts immediately after the data of the previous run
+              }
+              last_run_position = sample.offset + sample.size;
+              if (
+                traf.sbgps.length > 0 ||
+                traf.sgpds.length > 0 ||
+                trak.mdia.minf.stbl.sbgps.length > 0 ||
+                trak.mdia.minf.stbl.sgpds.length > 0
+              ) {
+                ISOFile.setSampleGroupProperties(
+                  trak,
+                  sample,
+                  sample.number_in_traf,
+                  traf.sample_groups_info,
+                );
+              }
+            }
+          }
+          if (traf.subs) {
+            trak.has_fragment_subsamples = true;
+            var sample_index = traf.first_sample_index;
+            for (j = 0; j < traf.subs.entries.length; j++) {
+              sample_index += traf.subs.entries[j].sample_delta;
+              sample = trak.samples[sample_index - 1];
+              sample.subsamples = traf.subs.entries[j].subsamples;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Try to get sample data for a given sample:
+   * returns null if not found
+   * returns the same sample if already requested
+   *
+   * @bundle isofile-sample-processing.js
+   */
+  getSample(
+    trak: { samples: { [x: string]: unknown }; tkhd: { track_id: string } },
+    sampleNum: string,
+  ) {
+    var buffer: { byteLength: number; fileStart: number; usedBytes: number };
+    var sample = trak.samples[sampleNum];
+
+    if (!this.moov) {
+      return null;
+    }
+
+    if (!sample.data) {
+      /* Not yet fetched */
+      sample.data = new Uint8Array(sample.size);
+      sample.alreadyRead = 0;
+      this.samplesDataSize += sample.size;
+      Log.debug(
+        'ISOFile',
+        'Allocating sample #' +
+          sampleNum +
+          ' on track #' +
+          trak.tkhd.track_id +
+          ' of size ' +
+          sample.size +
+          ' (total: ' +
+          this.samplesDataSize +
+          ')',
+      );
+    } else if (sample.alreadyRead == sample.size) {
+      /* Already fetched entirely */
+      return sample;
+    }
+
+    /* The sample has only been partially fetched, we need to check in all buffers */
+    while (true) {
+      var index = this.stream.findPosition(true, sample.offset + sample.alreadyRead, false);
+      if (index > -1) {
+        buffer = this.stream.buffers[index];
+        var lengthAfterStart =
+          buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
+        if (sample.size - sample.alreadyRead <= lengthAfterStart) {
+          /* the (rest of the) sample is entirely contained in this buffer */
+
+          Log.debug(
+            'ISOFile',
+            'Getting sample #' +
+              sampleNum +
+              ' data (alreadyRead: ' +
+              sample.alreadyRead +
+              ' offset: ' +
+              (sample.offset + sample.alreadyRead - buffer.fileStart) +
+              ' read size: ' +
+              (sample.size - sample.alreadyRead) +
+              ' full size: ' +
+              sample.size +
+              ')',
+          );
+
+          DataStream.memcpy({
+            dst: sample.data.buffer,
+            dstOffset: sample.alreadyRead,
+            src: buffer,
+            srcOffset: sample.offset + sample.alreadyRead - buffer.fileStart,
+            byteLength: sample.size - sample.alreadyRead,
+          });
+
+          /* update the number of bytes used in this buffer and check if it needs to be removed */
+          buffer.usedBytes += sample.size - sample.alreadyRead;
+          this.stream.logBufferLevel();
+
+          sample.alreadyRead = sample.size;
+
+          return sample;
+        } else {
+          /* the sample does not end in this buffer */
+
+          if (lengthAfterStart === 0) return null;
+
+          Log.debug(
+            'ISOFile',
+            'Getting sample #' +
+              sampleNum +
+              ' partial data (alreadyRead: ' +
+              sample.alreadyRead +
+              ' offset: ' +
+              (sample.offset + sample.alreadyRead - buffer.fileStart) +
+              ' read size: ' +
+              lengthAfterStart +
+              ' full size: ' +
+              sample.size +
+              ')',
+          );
+
+          DataStream.memcpy({
+            dst: sample.data.buffer,
+            dstOffset: sample.alreadyRead,
+            src: buffer,
+            srcOffset: sample.offset + sample.alreadyRead - buffer.fileStart,
+            byteLength: lengthAfterStart,
+          });
+          sample.alreadyRead += lengthAfterStart;
+
+          /* update the number of bytes used in this buffer and check if it needs to be removed */
+          buffer.usedBytes += lengthAfterStart;
+          this.stream.logBufferLevel();
+
+          /* keep looking in the next buffer */
+        }
+      } else {
+        return null;
+      }
+    }
+  }
+
+  /**
+   * Release the memory used to store the data of the sample
+   *
+   * @bundle isofile-sample-processing.js
+   */
+  releaseSample(trak: { samples: { [x: string]: unknown } }, sampleNum: string | number) {
+    var sample = trak.samples[sampleNum];
+    if (sample.data) {
+      this.samplesDataSize -= sample.size;
+      sample.data = null;
+      sample.alreadyRead = 0;
+      return sample.size;
+    } else {
+      return 0;
+    }
+  }
+
+  /** @bundle isofile-sample-processing.js */
+  getAllocatedSampleDataSize() {
+    return this.samplesDataSize;
+  }
+
+  /**
+   * Builds the MIME Type 'codecs' sub-parameters for the whole file
+   *
+   * @bundle isofile-sample-processing.js
+   */
+  getCodecs() {
+    var i: number;
+    var codecs = '';
+    for (i = 0; i < this.moov.traks.length; i++) {
+      var trak = this.moov.traks[i];
+      if (i > 0) {
+        codecs += ',';
+      }
+      codecs += trak.mdia.minf.stbl.stsd.entries[0].getCodec();
+    }
+    return codecs;
+  }
+
+  /**
+   * Helper function
+   *
+   * @bundle isofile-sample-processing.js
+   */
+  getTrexById(id: number) {
+    var i: number;
+    if (!this.moov || !this.moov.mvex) return null;
+    for (i = 0; i < this.moov.mvex.trexs.length; i++) {
+      var trex = this.moov.mvex.trexs[i];
+      if (trex.track_id == id) return trex;
+    }
+    return null;
+  }
+
+  /**
+   * Helper function
+   *
+   * @bundle isofile-sample-processing.js
+   */
+  getTrackById(id: number) {
+    if (this.moov === undefined) {
+      return null;
+    }
+    for (var j = 0; j < this.moov.traks.length; j++) {
+      var trak = this.moov.traks[j];
+      if (trak.tkhd.track_id == id) return trak;
+    }
+    return null;
+  }
+
+  /** @bundle isofile-item-processing.js */
+  items = [];
+
+  /** @bundle isofile-item-processing.js */
+  entity_groups = [];
+
+  /**
+   * size of the buffers allocated for samples
+   *
+   * @bundle isofile-item-processing.js
+   */
+  itemsDataSize = 0;
+
+  /** @bundle isofile-item-processing.js */
+  flattenItemInfo() {
+    var items = this.items;
+    var entity_groups = this.entity_groups;
+    var i: number, j: number;
+    var item: {
+      id?: unknown;
+      ref_to?: unknown;
+      name?: unknown;
+      protection?: unknown;
+      type?: unknown;
+      content_type?: unknown;
+      content_encoding?: unknown;
+      source?: unknown;
+      extents?: unknown;
+      size?: unknown;
+      properties?: unknown;
+    };
+    var meta = this.meta;
+    if (meta === null || meta === undefined) return;
+    if (meta.hdlr === undefined) return;
+    if (meta.iinf === undefined) return;
+    for (i = 0; i < meta.iinf.item_infos.length; i++) {
+      item = {};
+      item.id = meta.iinf.item_infos[i].item_ID;
+      items[item.id] = item;
+      item.ref_to = [];
+      item.name = meta.iinf.item_infos[i].item_name;
+      if (meta.iinf.item_infos[i].protection_index > 0) {
+        item.protection = meta.ipro.protections[meta.iinf.item_infos[i].protection_index - 1];
+      }
+      if (meta.iinf.item_infos[i].item_type) {
+        item.type = meta.iinf.item_infos[i].item_type;
+      } else {
+        item.type = 'mime';
+      }
+      item.content_type = meta.iinf.item_infos[i].content_type;
+      item.content_encoding = meta.iinf.item_infos[i].content_encoding;
+    }
+    if (meta.grpl) {
+      for (i = 0; i < meta.grpl.boxes.length; i++) {
+        entity_group = {};
+        entity_group.id = meta.grpl.boxes[i].group_id;
+        entity_group.entity_ids = meta.grpl.boxes[i].entity_ids;
+        entity_group.type = meta.grpl.boxes[i].type;
+        entity_groups[entity_group.id] = entity_group;
+      }
+    }
+    if (meta.iloc) {
+      for (i = 0; i < meta.iloc.items.length; i++) {
+        var offset: unknown;
+        var itemloc = meta.iloc.items[i];
+        item = items[itemloc.item_ID];
+        if (itemloc.data_reference_index !== 0) {
+          Log.warn('Item storage with reference to other files: not supported');
+          item.source = meta.dinf.boxes[itemloc.data_reference_index - 1];
+        }
+        switch (itemloc.construction_method) {
+          case 0: // offset into the file referenced by the data reference index
+            break;
+          case 1: // offset into the idat box of this meta box
+            Log.warn('Item storage with construction_method : not supported');
+            break;
+          case 2: // offset into another item
+            Log.warn('Item storage with construction_method : not supported');
+            break;
+        }
+        item.extents = [];
+        item.size = 0;
+        for (j = 0; j < itemloc.extents.length; j++) {
+          item.extents[j] = {};
+          item.extents[j].offset = itemloc.extents[j].extent_offset + itemloc.base_offset;
+          item.extents[j].length = itemloc.extents[j].extent_length;
+          item.extents[j].alreadyRead = 0;
+          item.size += item.extents[j].length;
+        }
+      }
+    }
+    if (meta.pitm) {
+      items[meta.pitm.item_id].primary = true;
+    }
+    if (meta.iref) {
+      for (i = 0; i < meta.iref.references.length; i++) {
+        var ref = meta.iref.references[i];
+        for (j = 0; j < ref.references.length; j++) {
+          items[ref.from_item_ID].ref_to.push({ type: ref.type, id: ref.references[j] });
+        }
+      }
+    }
+    if (meta.iprp) {
+      for (var k = 0; k < meta.iprp.ipmas.length; k++) {
+        var ipma = meta.iprp.ipmas[k];
+        for (i = 0; i < ipma.associations.length; i++) {
+          var association = ipma.associations[i];
+          item = items[association.id];
+          if (!item) {
+            item = entity_groups[association.id];
+          }
+          if (item) {
+            if (item.properties === undefined) {
+              item.properties = {};
+              item.properties.boxes = [];
+            }
+            for (j = 0; j < association.props.length; j++) {
+              var propEntry = association.props[j];
+              if (
+                propEntry.property_index > 0 &&
+                propEntry.property_index - 1 < meta.iprp.ipco.boxes.length
+              ) {
+                var propbox = meta.iprp.ipco.boxes[propEntry.property_index - 1];
+                item.properties[propbox.type] = propbox;
+                item.properties.boxes.push(propbox);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /** @bundle isofile-item-processing.js */
+  getItem(item_id: string) {
+    let buffer: Buffer;
+    let item: {
+      data: Uint8Array;
+      size: string | number | Iterable<number>;
+      alreadyRead: number;
+      extents: string | any[];
+    };
+
+    if (!this.meta) {
+      return null;
+    }
+
+    item = this.items[item_id];
+    if (!item.data && item.size) {
+      /* Not yet fetched */
+      item.data = new Uint8Array(item.size);
+      item.alreadyRead = 0;
+      this.itemsDataSize += item.size;
+      Log.debug(
+        'ISOFile',
+        'Allocating item #' +
+          item_id +
+          ' of size ' +
+          item.size +
+          ' (total: ' +
+          this.itemsDataSize +
+          ')',
+      );
+    } else if (item.alreadyRead === item.size) {
+      /* Already fetched entirely */
+      return item;
+    }
+
+    /* The item has only been partially fetched, we need to check in all buffers to find the remaining extents*/
+
+    for (var i = 0; i < item.extents.length; i++) {
+      var extent = item.extents[i];
+      if (extent.alreadyRead === extent.length) {
+        continue;
+      } else {
+        var index = this.stream.findPosition(true, extent.offset + extent.alreadyRead, false);
+        if (index > -1) {
+          buffer = this.stream.buffers[index];
+          var lengthAfterStart =
+            buffer.byteLength - (extent.offset + extent.alreadyRead - buffer.fileStart);
+          if (extent.length - extent.alreadyRead <= lengthAfterStart) {
+            /* the (rest of the) extent is entirely contained in this buffer */
+
+            Log.debug(
+              'ISOFile',
+              'Getting item #' +
+                item_id +
+                ' extent #' +
+                i +
+                ' data (alreadyRead: ' +
+                extent.alreadyRead +
+                ' offset: ' +
+                (extent.offset + extent.alreadyRead - buffer.fileStart) +
+                ' read size: ' +
+                (extent.length - extent.alreadyRead) +
+                ' full extent size: ' +
+                extent.length +
+                ' full item size: ' +
+                item.size +
+                ')',
+            );
+
+            // Note: this used to be a memcpy({ ... })
+            DataStream.memcpy(
+              item.data.buffer,
+              item.alreadyRead,
+              buffer,
+              extent.offset + extent.alreadyRead - buffer.fileStart,
+              extent.length - extent.alreadyRead,
+            );
+
+            /* update the number of bytes used in this buffer and check if it needs to be removed */
+            buffer.usedBytes += extent.length - extent.alreadyRead;
+            this.stream.logBufferLevel();
+
+            item.alreadyRead += extent.length - extent.alreadyRead;
+            extent.alreadyRead = extent.length;
+          } else {
+            /* the sample does not end in this buffer */
+
+            Log.debug(
+              'ISOFile',
+              'Getting item #' +
+                item_id +
+                ' extent #' +
+                i +
+                ' partial data (alreadyRead: ' +
+                extent.alreadyRead +
+                ' offset: ' +
+                (extent.offset + extent.alreadyRead - buffer.fileStart) +
+                ' read size: ' +
+                lengthAfterStart +
+                ' full extent size: ' +
+                extent.length +
+                ' full item size: ' +
+                item.size +
+                ')',
+            );
+
+            // Note: this used to be a memcpy({ ... })
+            DataStream.memcpy(
+              item.data.buffer,
+              item.alreadyRead,
+              buffer,
+              extent.offset + extent.alreadyRead - buffer.fileStart,
+              lengthAfterStart,
+            );
+            extent.alreadyRead += lengthAfterStart;
+            item.alreadyRead += lengthAfterStart;
+
+            /* update the number of bytes used in this buffer and check if it needs to be removed */
+            buffer.usedBytes += lengthAfterStart;
+            this.stream.logBufferLevel();
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+    }
+    if (item.alreadyRead === item.size) {
+      /* fetched entirely */
+      return item;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Release the memory used to store the data of the item
+   *
+   * @bundle isofile-item-processing.js
+   */
+  releaseItem(item_id: string | number) {
+    var item = this.items[item_id];
+    if (item.data) {
+      this.itemsDataSize -= item.size;
+      item.data = null;
+      item.alreadyRead = 0;
+      for (var i = 0; i < item.extents.length; i++) {
+        var extent = item.extents[i];
+        extent.alreadyRead = 0;
+      }
+      return item.size;
+    } else {
+      return 0;
+    }
+  }
+
+  /** @bundle isofile-item-processing.js */
+  processItems(callback: (arg0: never) => void) {
+    for (var i in this.items) {
+      var item = this.items[i];
+      this.getItem(item.id);
+      if (callback && !item.sent) {
+        callback(item);
+        item.sent = true;
+        item.data = null;
+      }
+    }
+  }
+
+  /** @bundle isofile-item-processing.js */
+  hasItem(name: unknown) {
+    for (var i in this.items) {
+      var item = this.items[i];
+      if (item.name === name) {
+        return item.id;
+      }
+    }
+    return -1;
+  }
+
+  /** @bundle isofile-item-processing.js */
+  getMetaHandler() {
+    if (!this.meta) {
+      return null;
+    } else {
+      return this.meta.hdlr.handler;
+    }
+  }
+
+  /** @bundle isofile-item-processing.js */
+  getPrimaryItem() {
+    if (!this.meta || !this.meta.pitm) {
+      return null;
+    } else {
+      return this.getItem(this.meta.pitm.item_id);
+    }
+  }
+
+  /** @bundle isofile-item-processing.js */
+  itemToFragmentedTrackFile(_options: {}) {
+    var options = _options || {};
+    var item = null;
+    if (options.itemId) {
+      item = this.getItem(options.itemId);
+    } else {
+      item = this.getPrimaryItem();
+    }
+    if (item == null) return null;
+
+    var file = new ISOFile();
+    file.discardMdatData = false;
+    // assuming the track type is the same as the item type
+    var trackOptions = { type: item.type, description_boxes: item.properties.boxes };
+    if (item.properties.ispe) {
+      trackOptions.width = item.properties.ispe.image_width;
+      trackOptions.height = item.properties.ispe.image_height;
+    }
+    var trackId = file.addTrack(trackOptions);
+    if (trackId) {
+      file.addSample(trackId, item.data);
+      return file;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * position in the current buffer of the beginning of the last box parsed
+   *
+   * @bundle isofile-advanced-parsing.js
+   */
+  lastBoxStartPosition = 0;
+  /**
+   * indicator if the parsing is stuck in the middle of an mdat box
+   *
+   * @bundle isofile-advanced-parsing.js
+   */
+  parsingMdat: Box | null = null;
+  /* next file position that the parser needs:
+   *  - 0 until the first buffer (i.e. fileStart ===0) has been received
+   *  - otherwise, the next box start until the moov box has been parsed
+   *  - otherwise, the position of the next sample to fetch
+   * @bundle isofile-advanced-parsing.js
+   */
+  nextParsePosition = 0;
+  /**
+   * keep mdat data
+   *
+   * @bundle isofile-advanced-parsing.js
+   */
+  discardMdatData = false;
+
+  /** @bundle isofile-advanced-parsing.js */
+  processIncompleteBox(ret: { type: string; size: number; start: number; hdr_size: unknown }) {
+    let box: Box | null;
+
+    /* we did not have enough bytes in the current buffer to parse the entire box */
+    if (ret.type === 'mdat') {
+      /* we had enough bytes to get its type and size and it's an 'mdat' */
+
+      /* special handling for mdat boxes, since we don't actually need to parse it linearly 
+		   we create the box */
+      box = new BoxParser.mdatBox(ret.size);
+      this.parsingMdat = box;
+      this.boxes.push(box);
+      this.mdats.push(box);
+      box.start = ret.start;
+      box.hdr_size = ret.hdr_size;
+      this.stream.addUsedBytes(box.hdr_size);
+
+      /* indicate that the parsing should start from the end of the box */
+      this.lastBoxStartPosition = box.start + box.size;
+      /* let's see if we have the end of the box in the other buffers */
+      let found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
+      if (found) {
+        /* found the end of the box */
+        this.parsingMdat = null;
+        /* let's see if we can parse more in this buffer */
+        return true;
+      } else {
+        /* 'mdat' end not found in the existing buffers */
+        /* determine the next position in the file to start parsing from */
+        if (!this.moovStartFound) {
+          /* moov not find yet, 
+				   the file probably has 'mdat' at the beginning, and 'moov' at the end, 
+				   indicate that the downloader should not try to download those bytes now */
+          this.nextParsePosition = box.start + box.size;
+        } else {
+          /* we have the start of the moov box, 
+				   the next bytes should try to complete the current 'mdat' */
+          this.nextParsePosition = this.stream.findEndContiguousBuf();
+        }
+        /* not much we can do, wait for more buffers to arrive */
+        return false;
+      }
+    } else {
+      /* box is incomplete, we may not even know its type */
+      if (ret.type === 'moov') {
+        /* the incomplete box is a 'moov' box */
+        this.moovStartFound = true;
+        if (this.mdats.length === 0) {
+          this.isProgressive = true;
+        }
+      }
+      /* either it's not an mdat box (and we need to parse it, we cannot skip it)
+		   (TODO: we could skip 'free' boxes ...)
+			   or we did not have enough data to parse the type and size of the box, 
+		   we try to concatenate the current buffer with the next buffer to restart parsing */
+      let merged = this.stream.mergeNextBuffer ? this.stream.mergeNextBuffer() : false;
+      if (merged) {
+        /* The next buffer was contiguous, the merging succeeded,
+			   we can now continue parsing, 
+			   the next best position to parse is at the end of this new buffer */
+        this.nextParsePosition = this.stream.getEndPosition();
+        return true;
+      } else {
+        /* we cannot concatenate existing buffers because they are not contiguous or because there is no additional buffer */
+        /* The next best position to parse is still at the end of this old buffer */
+        if (!ret.type) {
+          /* There were not enough bytes in the buffer to parse the box type and length,
+				   the next fetch should retrieve those missing bytes, i.e. the next bytes after this buffer */
+          this.nextParsePosition = this.stream.getEndPosition();
+        } else {
+          /* we had enough bytes to parse size and type of the incomplete box
+				   if we haven't found yet the moov box, skip this one and try the next one 
+				   if we have found the moov box, let's continue linear parsing */
+          if (this.moovStartFound) {
+            this.nextParsePosition = this.stream.getEndPosition();
+          } else {
+            this.nextParsePosition = this.stream.getPosition() + ret.size;
+          }
+        }
+        return false;
+      }
+    }
+  }
+
+  /** @bundle isofile-advanced-parsing.js */
+  hasIncompleteMdat() {
+    return this.parsingMdat !== null;
+  }
+
+  /** @bundle isofile-advanced-parsing.js */
+  processIncompleteMdat() {
+    var box: { start: unknown; size: unknown } | null;
+    var found: unknown;
+
+    /* we are in the parsing of an incomplete mdat box */
+    box = this.parsingMdat;
+
+    found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
+    if (found) {
+      Log.debug('ISOFile', "Found 'mdat' end in buffered data");
+      /* the end of the mdat has been found */
+      this.parsingMdat = null;
+      /* we can parse more in this buffer */
+      return true;
+    } else {
+      /* we don't have the end of this mdat yet, 
+		   indicate that the next byte to fetch is the end of the buffers we have so far, 
+		   return and wait for more buffer to come */
+      this.nextParsePosition = this.stream.findEndContiguousBuf();
+      return false;
+    }
+  }
+
+  /** @bundle isofile-advanced-parsing.js */
+  restoreParsePosition() {
+    /* Reposition at the start position of the previous box not entirely parsed */
+    return this.stream.seek(this.lastBoxStartPosition, true, this.discardMdatData);
+  }
+
+  /** @bundle isofile-advanced-parsing.js */
+  saveParsePosition() {
+    /* remember the position of the box start in case we need to roll back (if the box is incomplete) */
+    this.lastBoxStartPosition = this.stream.getPosition();
+  }
+
+  /** @bundle isofile-advanced-parsing.js */
+  updateUsedBytes(box: Box, ret: unknown) {
+    if (this.stream.addUsedBytes) {
+      if (box.type === 'mdat') {
+        /* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */
+        this.stream.addUsedBytes(box.hdr_size);
+        if (this.discardMdatData) {
+          this.stream.addUsedBytes(box.size - box.hdr_size);
+        }
+      } else {
+        /* for all other boxes, the entire box data is considered used */
+        this.stream.addUsedBytes(box.size);
+      }
+    }
+  }
+
+  /** @bundle isofile-advanced-creation.js */
+  add = Box.prototype.add;
+  /** @bundle isofile-advanced-creation.js */
+  addBox = Box.prototype.addBox;
+
+  /** @bundle isofile-advanced-creation.js */
+  init(_options?: IsoFileOptions) {
+    var options = _options || ({} as IsoFileOptions);
+    var ftyp = this.add('ftyp')
+      .set('major_brand', (options.brands && options.brands[0]) || 'iso4')
+      .set('minor_version', 0)
+      .set('compatible_brands', options.brands || ['iso4']);
+    var moov = this.add('moov');
+    moov
+      .add('mvhd')
+      .set('timescale', options.timescale || 600)
+      .set('rate', options.rate || 1 << 16)
+      .set('creation_time', 0)
+      .set('modification_time', 0)
+      .set('duration', options.duration || 0)
+      .set('volume', options.width ? 0 : 0x0100)
+      .set('matrix', [1 << 16, 0, 0, 0, 1 << 16, 0, 0, 0, 0x40000000])
+      .set('next_track_id', 1);
+    moov.add('mvex');
+    return this;
+  }
+
+  /** @bundle isofile-advanced-creation.js */
+  addTrack(_options?: IsoFileOptions) {
+    if (!this.moov) {
+      this.init(_options);
+    }
+
+    var options = _options || ({} as IsoFileOptions);
+    options.width = options.width || 320;
+    options.height = options.height || 320;
+    options.id = options.id || this.moov.mvhd.next_track_id;
+    options.type = options.type || 'avc1';
+
+    var trak = this.moov.add('trak');
+    this.moov.mvhd.next_track_id = options.id + 1;
+    trak
+      .add('tkhd')
+      .set(
+        'flags',
+        BoxParser.TKHD_FLAG_ENABLED | BoxParser.TKHD_FLAG_IN_MOVIE | BoxParser.TKHD_FLAG_IN_PREVIEW,
+      )
+      .set('creation_time', 0)
+      .set('modification_time', 0)
+      .set('track_id', options.id)
+      .set('duration', options.duration || 0)
+      .set('layer', options.layer || 0)
+      .set('alternate_group', 0)
+      .set('volume', 1)
+      .set('matrix', [0, 0, 0, 0, 0, 0, 0, 0, 0])
+      .set('width', options.width << 16)
+      .set('height', options.height << 16);
+
+    var mdia = trak.add('mdia');
+    mdia
+      .add('mdhd')
+      .set('creation_time', 0)
+      .set('modification_time', 0)
+      .set('timescale', options.timescale || 1)
+      .set('duration', options.media_duration || 0)
+      .set('language', options.language || 'und');
+
+    mdia
+      .add('hdlr')
+      .set('handler', options.hdlr || 'vide')
+      .set('name', options.name || 'Track created with MP4Box.js');
+
+    mdia.add('elng').set('extended_language', options.language || 'fr-FR');
+
+    var minf = mdia.add('minf');
+    if (BoxParser[options.type + 'SampleEntry'] === undefined) return;
+    var sample_description_entry = new BoxParser[options.type + 'SampleEntry']();
+    sample_description_entry.data_reference_index = 1;
+    var media_type = '';
+    for (var mediaType in BoxParser.sampleEntryCodes) {
+      var codes = BoxParser.sampleEntryCodes[mediaType];
+      for (var i = 0; i < codes.length; i++) {
+        if (codes.indexOf(options.type) > -1) {
+          media_type = mediaType;
+          break;
+        }
+      }
+    }
+    switch (media_type) {
+      case 'Visual':
+        minf.add('vmhd').set('graphicsmode', 0).set('opcolor', [0, 0, 0]);
+        sample_description_entry
+          .set('width', options.width)
+          .set('height', options.height)
+          .set('horizresolution', 0x48 << 16)
+          .set('vertresolution', 0x48 << 16)
+          .set('frame_count', 1)
+          .set('compressorname', options.type + ' Compressor')
+          .set('depth', 0x18);
+        if (options.avcDecoderConfigRecord) {
+          var avcC = new BoxParser.avcCBox();
+          avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
+          sample_description_entry.addBox(avcC);
+        } else if (options.hevcDecoderConfigRecord) {
+          var hvcC = new BoxParser.hvcCBox();
+          hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
+          sample_description_entry.addBox(hvcC);
+        }
+        break;
+      case 'Audio':
+        minf.add('smhd').set('balance', options.balance || 0);
+        sample_description_entry
+          .set('channel_count', options.channel_count || 2)
+          .set('samplesize', options.samplesize || 16)
+          .set('samplerate', options.samplerate || 1 << 16);
+        break;
+      case 'Hint':
+        minf.add('hmhd'); // TODO: add properties
+        break;
+      case 'Subtitle':
+        minf.add('sthd');
+        switch (options.type) {
+          case 'stpp':
+            sample_description_entry
+              .set('namespace', options.namespace || 'nonamespace')
+              .set('schema_location', options.schema_location || '')
+              .set('auxiliary_mime_types', options.auxiliary_mime_types || '');
+            break;
+        }
+        break;
+      case 'Metadata':
+        minf.add('nmhd');
+        break;
+      case 'System':
+        minf.add('nmhd');
+        break;
+      default:
+        minf.add('nmhd');
+        break;
+    }
+    if (options.description) {
+      sample_description_entry.addBox(options.description);
+    }
+    if (options.description_boxes) {
+      options.description_boxes.forEach(function (b: unknown) {
+        sample_description_entry.addBox(b);
+      });
+    }
+    minf.add('dinf').add('dref').addEntry(new BoxParser['url Box']().set('flags', 0x1));
+    var stbl = minf.add('stbl');
+    stbl.add('stsd').addEntry(sample_description_entry);
+    stbl.add('stts').set('sample_counts', []).set('sample_deltas', []);
+    stbl
+      .add('stsc')
+      .set('first_chunk', [])
+      .set('samples_per_chunk', [])
+      .set('sample_description_index', []);
+    stbl.add('stco').set('chunk_offsets', []);
+    stbl.add('stsz').set('sample_sizes', []);
+
+    this.moov.mvex
+      .add('trex')
+      .set('track_id', options.id)
+      .set('default_sample_description_index', options.default_sample_description_index || 1)
+      .set('default_sample_duration', options.default_sample_duration || 0)
+      .set('default_sample_size', options.default_sample_size || 0)
+      .set('default_sample_flags', options.default_sample_flags || 0);
+    this.buildTrakSampleLists(trak);
+    return options.id;
+  }
+
+  /** @bundle isofile-advanced-creation.js */
+  addSample(track_id: number, data: Iterable<number>, _options: {} | undefined) {
+    var options = _options || {};
+    var sample = {} as Sample;
+    var trak = this.getTrackById(track_id);
+    if (trak === null) return;
+    sample.number = trak.samples.length;
+    sample.track_id = trak.tkhd.track_id;
+    sample.timescale = trak.mdia.mdhd.timescale;
+    sample.description_index = options.sample_description_index
+      ? options.sample_description_index - 1
+      : 0;
+    sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
+    sample.data = data;
+    sample.size = data.byteLength;
+    sample.alreadyRead = sample.size;
+    sample.duration = options.duration || 1;
+    sample.cts = options.cts || 0;
+    sample.dts = options.dts || 0;
+    sample.is_sync = options.is_sync || false;
+    sample.is_leading = options.is_leading || 0;
+    sample.depends_on = options.depends_on || 0;
+    sample.is_depended_on = options.is_depended_on || 0;
+    sample.has_redundancy = options.has_redundancy || 0;
+    sample.degradation_priority = options.degradation_priority || 0;
+    sample.offset = 0;
+    sample.subsamples = options.subsamples;
+    trak.samples.push(sample);
+    trak.samples_size += sample.size;
+    trak.samples_duration += sample.duration;
+    if (trak.first_dts === undefined) {
+      trak.first_dts = options.dts;
+    }
+
+    this.processSamples();
+
+    var moof = this.createSingleSampleMoof(sample);
+    this.addBox(moof);
+    moof.computeSize();
+    /* adjusting the data_offset now that the moof size is known*/
+    moof.trafs[0].truns[0].data_offset = moof.size + 8; //8 is mdat header
+    this.add('mdat').data = new Uint8Array(data);
+    return sample;
+  }
+
+  /** @bundle isofile-advanced-creation.js */
+  createSingleSampleMoof(sample: Sample) {
+    var sample_flags = 0;
+    if (sample.is_sync) sample_flags = 1 << 25; // sample_depends_on_none (I picture)
+    else sample_flags = 1 << 16; // non-sync
+
+    var moof = new BoxParser.moofBox();
+    moof.add('mfhd').set('sequence_number', this.nextMoofNumber);
+    this.nextMoofNumber++;
+    var traf = moof.add('traf');
+    var trak = this.getTrackById(sample.track_id);
+    traf
+      .add('tfhd')
+      .set('track_id', sample.track_id)
+      .set('flags', BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
+    traf.add('tfdt').set('baseMediaDecodeTime', sample.dts - (trak.first_dts || 0));
+    traf
+      .add('trun')
+      .set(
+        'flags',
+        BoxParser.TRUN_FLAGS_DATA_OFFSET |
+          BoxParser.TRUN_FLAGS_DURATION |
+          BoxParser.TRUN_FLAGS_SIZE |
+          BoxParser.TRUN_FLAGS_FLAGS |
+          BoxParser.TRUN_FLAGS_CTS_OFFSET,
+      )
+      .set('data_offset', 0)
+      .set('first_sample_flags', 0)
+      .set('sample_count', 1)
+      .set('sample_duration', [sample.duration])
+      .set('sample_size', [sample.size])
+      .set('sample_flags', [sample_flags])
+      .set('sample_composition_time_offset', [sample.cts - sample.dts]);
+    return moof;
+  }
+
+  /** @bundle box-print.js */
+  print(output: { indent: string }) {
+    output.indent = '';
+    for (var i = 0; i < this.boxes.length; i++) {
+      if (this.boxes[i]) {
+        this.boxes[i].print(output);
+      }
+    }
+  }
+}

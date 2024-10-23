@@ -1,1 +1,0 @@
-BoxParser.createContainerBoxCtor("tapt", null, [ "clef", "prof", "enof"]);
