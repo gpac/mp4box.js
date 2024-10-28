@@ -1,3 +1,11 @@
+function printPS( what ) {
+	var res = [];
+	for (var i=0; i<what.length; i++) {
+		res.push("length:" + what[i].length + "&nbsp;[" + what[i].nalu.toString() + "]");
+	}
+	return res.join("<br/>");
+}
+
 BoxParser.createBoxCtor("avcC", function(stream) {
 	var i;
 	var toparse;
@@ -9,6 +17,9 @@ BoxParser.createBoxCtor("avcC", function(stream) {
 	this.nb_SPS_nalus = (stream.readUint8() & 0x1F);
 	toparse = this.size - this.hdr_size - 6;
 	this.SPS = [];
+	this.SPS.toString = function () {
+		return printPS(this);
+	}
 	for (i = 0; i < this.nb_SPS_nalus; i++) {
 		this.SPS[i] = {};
 		this.SPS[i].length = stream.readUint16();
@@ -18,6 +29,9 @@ BoxParser.createBoxCtor("avcC", function(stream) {
 	this.nb_PPS_nalus = stream.readUint8();
 	toparse--;
 	this.PPS = [];
+	this.PPS.toString = function () {
+		return printPS(this);
+	}
 	for (i = 0; i < this.nb_PPS_nalus; i++) {
 		this.PPS[i] = {};
 		this.PPS[i].length = stream.readUint16();
