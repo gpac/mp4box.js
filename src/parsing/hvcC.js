@@ -24,6 +24,17 @@ BoxParser.createBoxCtor("hvcC", function(stream) {
 	this.lengthSizeMinusOne = (tmp_byte & 0X3);
 
 	this.nalu_arrays = [];
+	this.nalu_arrays.toString = function () {
+		var res = [];
+		for (var i=0; i<this.length; i++) {
+			var t = "{completeness:" + this[i].completeness + ",&nbsp;nalu_type:" + this[i].nalu_type;
+			for (var j=0; j<this[i].length; j++)
+				t += "&nbsp;[" + this[i][j].data.toString() + "]";
+			t += "}";
+			res.push(t);
+		}
+		return res.join("  <br/>");
+	}
 	var numOfArrays = stream.readUint8();
 	for (i = 0; i < numOfArrays; i++) {
 		var nalu_array = [];
@@ -38,6 +49,6 @@ BoxParser.createBoxCtor("hvcC", function(stream) {
 			length = stream.readUint16();
 			nalu.data   = stream.readUint8Array(length);
 		}
-	}
+	} 
 });
 
