@@ -1,9 +1,20 @@
-function printPS( what ) {
-	var res = [];
-	for (var i=0; i<what.length; i++) {
-		res.push("length:" + what[i].length + "&nbsp;[" + what[i].nalu.toString() + "]");
+function printPS(ps) {
+	var str = "<table class='inner-table'>";
+	str += "<thead><tr><th>length</th><th>nalu_data</th></tr></thead>";
+	str += "<tbody>";
+
+	for (var i=0; i < ps.length; i++) {
+		var nalu = ps[i];
+		str += "<tr>";
+		str += "<td>"+nalu.length+"</td>";
+		str += "<td>";
+		str += nalu.nalu.reduce(function(str, byte) {
+			return str + byte.toString(16).padStart(2, "0");
+		}, "0x");
+		str += "</td></tr>";
 	}
-	return res.join("<br/>");
+	str += "</tbody></table>";
+	return str;
 }
 
 BoxParser.createBoxCtor("avcC", function(stream) {

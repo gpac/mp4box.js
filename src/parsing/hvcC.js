@@ -25,15 +25,27 @@ BoxParser.createBoxCtor("hvcC", function(stream) {
 
 	this.nalu_arrays = [];
 	this.nalu_arrays.toString = function () {
-		var res = [];
+		var str = "<table class='inner-table'>";
+		str += "<thead><tr><th>completeness</th><th>nalu_type</th><th>nalu_data</th></tr></thead>";
+		str += "<tbody>";
+
 		for (var i=0; i<this.length; i++) {
-			var t = "{completeness:" + this[i].completeness + ",&nbsp;nalu_type:" + this[i].nalu_type;
-			for (var j=0; j<this[i].length; j++)
-				t += "&nbsp;[" + this[i][j].data.toString() + "]";
-			t += "}";
-			res.push(t);
+			var nalu_array = this[i];
+			str += "<tr>";
+			str += "<td rowspan='"+nalu_array.length+"'>"+nalu_array.completeness+"</td>";
+			str += "<td rowspan='"+nalu_array.length+"'>"+nalu_array.nalu_type+"</td>";
+			for (var j=0; j<nalu_array.length; j++) {
+				var nalu = nalu_array[j];
+				if (j !== 0) str += "<tr>";
+				str += "<td>";
+				str += nalu.data.reduce(function(str, byte) {
+					return str + byte.toString(16).padStart(2, "0");
+				}, "0x");
+				str += "</td></tr>";
+			}
 		}
-		return res.join("  <br/>");
+		str += "</tbody></table>";
+		return str;
 	}
 	var numOfArrays = stream.readUint8();
 	for (i = 0; i < numOfArrays; i++) {
@@ -49,6 +61,6 @@ BoxParser.createBoxCtor("hvcC", function(stream) {
 			length = stream.readUint16();
 			nalu.data   = stream.readUint8Array(length);
 		}
-	} 
+	}
 });
 
