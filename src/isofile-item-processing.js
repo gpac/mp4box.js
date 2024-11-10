@@ -26,6 +26,7 @@ ISOFile.prototype.flattenItemInfo = function() {
 		}
 		item.content_type = meta.iinf.item_infos[i].content_type;
 		item.content_encoding = meta.iinf.item_infos[i].content_encoding;
+		item.item_uri_type = meta.iinf.item_infos[i].item_uri_type;
 	}
 	if (meta.grpl) {
 		for (i = 0; i < meta.grpl.boxes.length; i++) {
