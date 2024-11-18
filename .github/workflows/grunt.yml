@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,13 +13,13 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [18.x, 20.x, 22.x]
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
 
@@ -29,7 +30,7 @@ jobs:
                   
     - name: Deploy to GitHub pages
       uses: JamesIves/github-pages-deploy-action@4.1.4
-      if: ${{ github.ref == 'refs/heads/master' && startsWith(matrix.node-version, '12') }}
+      if: ${{ github.ref == 'refs/heads/master' && startsWith(matrix.node-version, '22') }}
       with:
         branch: gh-pages
         folder: .
