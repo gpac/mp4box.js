@@ -1,6 +1,7 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
-import { Log } from '../log';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Log } from '#/log';
+import { Sample } from '#/types';
 
 export class sttsBox extends FullBox {
   sample_counts: number[] = [];
@@ -46,7 +47,7 @@ export class sttsBox extends FullBox {
   }
 
   /** @bundle box-unpack.js */
-  unpack(samples: unknown[]) {
+  unpack(samples: Array<Sample>) {
     let k = 0;
     for (let i = 0; i < this.sample_counts.length; i++) {
       for (let j = 0; j < this.sample_counts[i]; j++) {

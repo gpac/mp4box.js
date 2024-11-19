@@ -1,5 +1,5 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 import { Log } from '../log';
 
 export class infeBox extends FullBox {

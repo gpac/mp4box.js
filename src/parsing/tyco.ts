@@ -1,5 +1,5 @@
-import { Box } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { Box } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 export class tycoBox extends Box {
   compatible_brands?: Array<string>;

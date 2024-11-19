@@ -1,7 +1,7 @@
-import { Box } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { Box } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
-export class hldrBox extends Box {
+export class hdlrBox extends Box {
   version?: number;
   handler?: string;
   name?: string;

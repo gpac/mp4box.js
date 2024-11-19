@@ -1,4 +1,4 @@
-import { FullBox } from '../box';
+import { FullBox } from '#/box';
 
 export class sencBox extends FullBox {
   constructor(size?: number) {

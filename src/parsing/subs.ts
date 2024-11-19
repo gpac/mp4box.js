@@ -1,7 +1,7 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
-interface SubSample {
+export interface SubSample {
   size: number;
   priority: number;
   discardable: number;

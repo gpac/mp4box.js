@@ -1,6 +1,7 @@
-import { FullBox } from '../box';
-import { BoxParser } from '../box-parser';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { parseOneBox } from '../box-parse';
+import { OK } from '../constants';
 
 export class trepBox extends FullBox {
   track_ID?: number;
@@ -14,12 +15,8 @@ export class trepBox extends FullBox {
     this.track_ID = stream.readUint32();
     this.boxes = [];
     while (stream.getPosition() < this.start + this.size) {
-      let ret = BoxParser.parseOneBox(
-        stream,
-        false,
-        this.size - (stream.getPosition() - this.start),
-      );
-      if (ret.code === BoxParser.OK) {
+      let ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+      if (ret.code === OK) {
         let box = ret.box;
         this.boxes.push(box);
       } else {

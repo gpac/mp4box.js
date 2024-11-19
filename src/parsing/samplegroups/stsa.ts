@@ -1,5 +1,5 @@
+import { MultiBufferStream } from '#/buffer';
 import { SampleGroupEntry } from '../../box';
-import { MultiBufferStream } from '../../buffer';
 import { Log } from '../../log';
 
 export class stsaSampleGroupEntry extends SampleGroupEntry {

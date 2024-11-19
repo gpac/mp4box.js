@@ -3,8 +3,9 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
-import { DataStream } from './DataStream';
-import { Log } from './log';
+import { DataStream } from '#/DataStream';
+import { Log } from '#/log';
+import { MultiBufferStream } from './buffer';
 
 const ES_DescrTag = 0x03;
 const DecoderConfigDescrTag = 0x04;
@@ -29,16 +30,19 @@ export class Descriptor {
     return null;
   }
 
-  parseRemainingDescriptors(stream: { position: number }) {
+  parseOneDescriptor?(stream: DataStream): DescriptorKinds;
+
+  parseRemainingDescriptors(stream: DataStream) {
     var start = stream.position;
     while (stream.position < start + this.size) {
-      var desc = that.parseOneDescriptor(stream);
+      // FIXME: parseOneDescriptor is a method that only MPEG4DescriptorParser implements
+      var desc = this.parseOneDescriptor?.(stream);
       this.descs.push(desc);
     }
   }
 }
 
-class ES_Descriptor extends Descriptor {
+export class ES_Descriptor extends Descriptor {
   ES_ID: number;
   flags: number;
   dependsOn_ES_ID: number;
@@ -49,7 +53,7 @@ class ES_Descriptor extends Descriptor {
     super(ES_DescrTag, size);
   }
 
-  parse(stream: DataStream) {
+  parse(stream: MultiBufferStream) {
     this.ES_ID = stream.readUint16();
     this.flags = stream.readUint8();
     this.size -= 3;
@@ -75,7 +79,7 @@ class ES_Descriptor extends Descriptor {
     this.parseRemainingDescriptors(stream);
   }
 
-  getOTI(stream: unknown) {
+  getOTI() {
     var dcd = this.findDescriptor(DecoderConfigDescrTag);
     if (dcd) {
       return dcd.oti;
@@ -84,7 +88,7 @@ class ES_Descriptor extends Descriptor {
     }
   }
 
-  getAudioConfig(stream: unknown) {
+  getAudioConfig() {
     var dcd = this.findDescriptor(DecoderConfigDescrTag);
     if (!dcd) return null;
     var dsi = dcd.findDescriptor(DecSpecificInfoTag);
@@ -107,10 +111,10 @@ class DecoderConfigDescriptor extends Descriptor {
   bufferSize: number;
   maxBitrate: number;
   avgBitrate: number;
-  constructor(size: unknown) {
+  constructor(size: number) {
     super(DecoderConfigDescrTag, size);
   }
-  parse(stream: DataStream) {
+  parse(stream: MultiBufferStream) {
     this.oti = stream.readUint8();
     this.streamType = stream.readUint8();
     this.upStream = ((this.streamType >> 1) & 1) !== 0;
@@ -124,24 +128,30 @@ class DecoderConfigDescriptor extends Descriptor {
 }
 
 class DecoderSpecificInfo extends Descriptor {
-  constructor(size: unknown) {
+  constructor(size: number) {
     super(DecSpecificInfoTag, size);
   }
 }
 
 class SLConfigDescriptor extends Descriptor {
-  constructor(size: unknown) {
+  constructor(size: number) {
     super(SLConfigDescrTag, size);
   }
 }
 
-const classes = {
+const DESCRIPTOR_CLASSES = {
   Descriptor,
   ES_Descriptor,
   DecoderConfigDescriptor,
   DecoderSpecificInfo,
   SLConfigDescriptor,
 };
+type DescriptorKinds =
+  | Descriptor
+  | ES_Descriptor
+  | DecoderConfigDescriptor
+  | DecoderSpecificInfo
+  | SLConfigDescriptor;
 
 const descTagToName = {
   [ES_DescrTag]: 'ES_Descriptor',
@@ -157,7 +167,7 @@ export class MPEG4DescriptorParser {
     return descTagToName[tag];
   }
 
-  parseOneDescriptor(stream: DataStream) {
+  parseOneDescriptor(stream: DataStream): DescriptorKinds {
     var hdrSize = 0;
     var size = 0;
     var tag: number;
@@ -183,9 +193,10 @@ export class MPEG4DescriptorParser {
         stream.getPosition(),
     );
     if (descTagToName[tag]) {
-      desc = new classes[descTagToName[tag]](size);
+      desc = new DESCRIPTOR_CLASSES[descTagToName[tag]](size);
     } else {
-      desc = new classes.Descriptor(size);
+      // @ts-expect-error FIXME: Descriptor expects a tag as first parameter
+      desc = new Descriptor(size);
     }
     desc.parse(stream);
     return desc;

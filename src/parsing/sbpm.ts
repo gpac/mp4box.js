@@ -1,5 +1,5 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 class Pixel {
   constructor(public bad_pixel_row: number, public bad_pixel_column: number) {}

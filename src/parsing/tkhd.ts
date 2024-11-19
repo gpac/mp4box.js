@@ -1,5 +1,6 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Matrix } from '#/types';
 
 export class tkhdBox extends FullBox {
   creation_time?: number;
@@ -9,7 +10,7 @@ export class tkhdBox extends FullBox {
   layer?: number;
   alternate_group?: number;
   volume?: number;
-  matrix?: Int32Array;
+  matrix?: Matrix;
   width?: number;
   height?: number;
 
@@ -43,7 +44,7 @@ export class tkhdBox extends FullBox {
   }
 
   /** @bundle box-print.js */
-  print(output: { log: (arg: string) => void; indent: number }) {
+  print(output: { log: (arg: string) => void; indent: string }) {
     super.printHeader(output);
     output.log(output.indent + 'creation_time: ' + this.creation_time);
     output.log(output.indent + 'modification_time: ' + this.modification_time);

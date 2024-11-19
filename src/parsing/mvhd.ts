@@ -1,5 +1,6 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox, Output } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Matrix } from '#/types';
 
 export class mvhdBox extends FullBox {
   creation_time?: number;
@@ -8,8 +9,8 @@ export class mvhdBox extends FullBox {
   duration?: number;
   rate?: number;
   volume?: number;
-  matrix?: Uint32Array;
   next_track_id?: number;
+  matrix?: Matrix;
 
   constructor(size?: number) {
     super('mvhd', size);
@@ -63,7 +64,7 @@ export class mvhdBox extends FullBox {
   }
 
   /** @bundle box-print.js */
-  print(output: unknown) {
+  print(output: Output) {
     super.printHeader(output);
     output.log(output.indent + 'creation_time: ' + this.creation_time);
     output.log(output.indent + 'modification_time: ' + this.modification_time);

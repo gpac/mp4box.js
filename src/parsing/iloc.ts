@@ -1,12 +1,24 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+
+export interface Extent {
+  extent_index: number;
+  extent_offset: number;
+  extent_length: number;
+}
 
 export class ilocBox extends FullBox {
   offset_size?: number;
   length_size?: number;
   base_offset_size?: number;
   index_size?: number;
-  items?: unknown[];
+  items?: Array<{
+    base_offset: number;
+    construction_method: number;
+    item_ID: number;
+    data_reference_index: number;
+    extents: Extent[];
+  }>;
 
   constructor(size?: number) {
     super('iloc', size);
@@ -36,81 +48,100 @@ export class ilocBox extends FullBox {
       throw 'version of iloc box not supported';
     }
     for (var i = 0; i < item_count; i++) {
-      var item = {};
-      this.items.push(item);
+      let item_ID = 0;
+      let construction_method = 0;
+      let base_offset = 0;
+
       if (this.version < 2) {
-        item.item_ID = stream.readUint16();
+        item_ID = stream.readUint16();
       } else if (this.version === 2) {
-        item.item_ID = stream.readUint32();
+        item_ID = stream.readUint32();
       } else {
         throw 'version of iloc box not supported';
       }
       if (this.version === 1 || this.version === 2) {
-        item.construction_method = stream.readUint16() & 0xf;
+        construction_method = stream.readUint16() & 0xf;
       } else {
-        item.construction_method = 0;
+        construction_method = 0;
       }
-      item.data_reference_index = stream.readUint16();
+
+      const data_reference_index = stream.readUint16();
       switch (this.base_offset_size) {
         case 0:
-          item.base_offset = 0;
+          base_offset = 0;
           break;
         case 4:
-          item.base_offset = stream.readUint32();
+          base_offset = stream.readUint32();
           break;
         case 8:
-          item.base_offset = stream.readUint64();
+          base_offset = stream.readUint64();
           break;
         default:
           throw 'Error reading base offset size';
       }
+
+      const extents: Array<Extent> = [];
       var extent_count = stream.readUint16();
-      item.extents = [];
+
       for (var j = 0; j < extent_count; j++) {
-        var extent = {};
-        item.extents.push(extent);
+        let extent_index = 0;
+        let extent_offset = 0;
+        let extent_length = 0;
+
         if (this.version === 1 || this.version === 2) {
           switch (this.index_size) {
             case 0:
-              extent.extent_index = 0;
+              extent_index = 0;
               break;
             case 4:
-              extent.extent_index = stream.readUint32();
+              extent_index = stream.readUint32();
               break;
             case 8:
-              extent.extent_index = stream.readUint64();
+              extent_index = stream.readUint64();
               break;
             default:
               throw 'Error reading extent index';
           }
         }
+
         switch (this.offset_size) {
           case 0:
-            extent.extent_offset = 0;
+            extent_offset = 0;
             break;
           case 4:
-            extent.extent_offset = stream.readUint32();
+            extent_offset = stream.readUint32();
             break;
           case 8:
-            extent.extent_offset = stream.readUint64();
+            extent_offset = stream.readUint64();
             break;
           default:
             throw 'Error reading extent index';
         }
+
         switch (this.length_size) {
           case 0:
-            extent.extent_length = 0;
+            extent_length = 0;
             break;
           case 4:
-            extent.extent_length = stream.readUint32();
+            extent_length = stream.readUint32();
             break;
           case 8:
-            extent.extent_length = stream.readUint64();
+            extent_length = stream.readUint64();
             break;
           default:
             throw 'Error reading extent index';
         }
+
+        extents.push({ extent_index, extent_length, extent_offset });
       }
+
+      this.items.push({
+        base_offset,
+        construction_method,
+        item_ID,
+        data_reference_index,
+        extents,
+      });
     }
   }
 }

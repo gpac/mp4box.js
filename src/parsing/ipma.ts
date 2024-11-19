@@ -1,8 +1,13 @@
-import { Box } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { Box } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+
+export interface Assocation {
+  id: number;
+  props: Array<{ property_index: number; essential: boolean }>;
+}
 
 export class ipmaBox extends Box {
-  associations?: unknown[];
+  associations?: Array<Assocation>;
   version?: number;
   flags?: number;
 
@@ -14,26 +19,23 @@ export class ipmaBox extends Box {
     const entry_count = stream.readUint32();
     this.associations = [];
     for (let i = 0; i < entry_count; i++) {
-      var item_assoc = {};
-      this.associations.push(item_assoc);
-      if (this.version < 1) {
-        item_assoc.id = stream.readUint16();
-      } else {
-        item_assoc.id = stream.readUint32();
-      }
-      var association_count = stream.readUint8();
-      item_assoc.props = [];
+      const id = this.version < 1 ? stream.readUint16() : stream.readUint32();
+
+      const props = [];
+      const association_count = stream.readUint8();
+
       for (let j = 0; j < association_count; j++) {
-        var tmp = stream.readUint8();
-        var p = {};
-        item_assoc.props.push(p);
-        p.essential = (tmp & 0x80) >> 7 === 1;
-        if (this.flags & 0x1) {
-          p.property_index = ((tmp & 0x7f) << 8) | stream.readUint8();
-        } else {
-          p.property_index = tmp & 0x7f;
-        }
+        const tmp = stream.readUint8();
+        props.push({
+          essential: (tmp & 0x80) >> 7 === 1,
+          property_index: this.flags & 0x1 ? ((tmp & 0x7f) << 8) | stream.readUint8() : tmp & 0x7f,
+        });
       }
+
+      this.associations.push({
+        id,
+        props,
+      });
     }
   }
 }

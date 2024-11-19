@@ -1,6 +1,6 @@
+import { MultiBufferStream } from '#/buffer';
 import { SampleGroupEntry } from '../../box';
-import { BoxParser } from '../../box-parser';
-import { MultiBufferStream } from '../../buffer';
+import { parseHex16 } from '../../box-parse';
 
 export class seigSampleGroupEntry extends SampleGroupEntry {
   reserved?: number;
@@ -10,7 +10,7 @@ export class seigSampleGroupEntry extends SampleGroupEntry {
   Per_Sample_IV_Size?: number;
   KID?: unknown;
   constant_IV_size?: number;
-  constant_IV?: number;
+  constant_IV?: number | Uint8Array;
 
   parse(stream: MultiBufferStream) {
     this.reserved = stream.readUint8();
@@ -19,7 +19,7 @@ export class seigSampleGroupEntry extends SampleGroupEntry {
     this.skip_byte_block = tmp & 0xf;
     this.isProtected = stream.readUint8();
     this.Per_Sample_IV_Size = stream.readUint8();
-    this.KID = BoxParser.parseHex16(stream);
+    this.KID = parseHex16(stream);
     this.constant_IV_size = 0;
     this.constant_IV = 0;
     if (this.isProtected === 1 && this.Per_Sample_IV_Size === 0) {

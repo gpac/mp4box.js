@@ -1,4 +1,4 @@
-import type { MultiBufferStream } from '../../buffer';
+import { MultiBufferStream } from '#/buffer';
 import { SubtitleSampleEntry } from './sampleentry';
 
 export class stppSampleEntry extends SubtitleSampleEntry {
@@ -34,11 +34,3 @@ export class stppSampleEntry extends SubtitleSampleEntry {
     this.writeFooter(stream);
   }
 }
-
-// BoxParser.createSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SUBTITLE, 'stpp', function (stream) {
-//   this.parseHeader(stream)
-//   this.namespace = stream.readCString()
-//   this.schema_location = stream.readCString()
-//   this.auxiliary_mime_types = stream.readCString()
-//   this.parseFooter(stream)
-// })

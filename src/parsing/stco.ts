@@ -1,5 +1,6 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Sample } from '#/types';
 
 export class stcoBox extends FullBox {
   chunk_offsets?: number[];
@@ -30,7 +31,7 @@ export class stcoBox extends FullBox {
   }
 
   /** @bundle box-unpack.js */
-  unpack(samples: unknown[]) {
+  unpack(samples: Array<Sample>) {
     for (let i = 0; i < this.chunk_offsets!.length; i++) {
       samples[i].offset = this.chunk_offsets![i];
     }

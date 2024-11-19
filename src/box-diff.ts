@@ -1,4 +1,4 @@
-import { Box, BoxKind } from './box';
+import { Box, BoxKind } from '#/box';
 
 export const DIFF_BOXES_PROP_NAMES = [
   'boxes',
@@ -38,7 +38,7 @@ export function boxEqualFields(box_a: BoxKind, box_b: BoxKind) {
   if (box_a && !box_b) return false;
   let prop: string | any[];
   for (prop in box_a) {
-    if (DIFF_BOXES_PROP_NAMES.indexOf(prop) > -1) {
+    if (DIFF_BOXES_PROP_NAMES.indexOf(prop as any) > -1) {
       continue;
       // } else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
       // 	continue;
@@ -62,7 +62,7 @@ export function boxEqualFields(box_a: BoxKind, box_b: BoxKind) {
         prop === 'modification_time'
       ) {
         continue;
-      } else if (DIFF_PRIMITIVE_ARRAY_PROP_NAMES.indexOf(prop) > -1) {
+      } else if (DIFF_PRIMITIVE_ARRAY_PROP_NAMES.indexOf(prop as any) > -1) {
         continue;
       } else {
         if (box_a[prop] !== box_b[prop]) {

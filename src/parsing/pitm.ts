@@ -1,5 +1,5 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 export class pitmBox extends FullBox {
   item_id?: number;

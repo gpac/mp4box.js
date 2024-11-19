@@ -1,9 +1,11 @@
+import { OK } from '../constants';
+
 BoxParser.trefBox.prototype.parse = function (stream) {
   var ret;
   var box;
   while (stream.getPosition() < this.start + this.size) {
     ret = BoxParser.parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
-    if (ret.code === BoxParser.OK) {
+    if (ret.code === OK) {
       box = new BoxParser.TrackReferenceTypeBox(ret.type, ret.size, ret.hdr_size, ret.start);
       if (box.write === BoxParser.Box.prototype.write && box.type !== 'mdat') {
         Log.info(

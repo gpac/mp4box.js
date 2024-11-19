@@ -2,6 +2,7 @@
   "name": "mp4box",
   "version": "0.5.2",
   "description": "JavaScript version of GPAC's MP4Box tool",
+  "type": "module",
   "keywords": [
     "mp4",
     "HTML 5 media",
@@ -9,7 +10,7 @@
     "streaming"
   ],
   "homepage": "https://github.com/gpac/mp4box.js",
-  "main": "dist/mp4box.all.js",
+  "main": "dist/all.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/gpac/mp4box.js.git"
@@ -41,10 +42,13 @@
     "karma-firefox-launcher": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-qunit": "^0.1.4",
-    "qunitjs": "^1.23.0"
+    "qunitjs": "^1.23.0",
+    "vite-plugin-dts-bundle-generator": "^2.0.5",
+    "vite-tsconfig-paths": "^5.0.1"
   },
   "scripts": {
-    "test": "grunt test --verbose"
+    "test": "grunt test --verbose",
+    "build": "vite build ."
   },
   "dependencies": {
     "typescript": "^5.6.3",

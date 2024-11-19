@@ -1,9 +1,9 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 export class vmhdBox extends FullBox {
   graphicsmode?: number;
-  opcolor?: Uint16Array;
+  opcolor?: Uint16Array | [number, number, number];
 
   constructor(size?: number) {
     super('vmhd', size);
@@ -17,7 +17,6 @@ export class vmhdBox extends FullBox {
 
   /** @bundle writing/vmhd.js */
   write(stream: MultiBufferStream) {
-    var i;
     this.version = 0;
     this.flags = 1;
     this.size = 8;

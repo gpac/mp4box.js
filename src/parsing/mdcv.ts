@@ -1,5 +1,5 @@
-import { Box } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { Box } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 class ColorPoint {
   constructor(public x: number, public y: number) {}

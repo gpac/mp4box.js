@@ -1,15 +1,18 @@
+import { MAX_SIZE } from '#/constants';
+import { MP4BoxBuffer, StructDefinition, StructType, TypedArray } from '#/types';
+
 /* 
   TODO: fix endianness for 24/64-bit fields
   TODO: check range/support for 64-bits numbers in JavaScript
 */
 
-import { MAX_SIZE } from './constants';
-
 export class DataStream {
   static DataStream: {};
-  _buffer?: ArrayBuffer;
+
+  _buffer?: MP4BoxBuffer;
   _byteOffset?: number;
   _dataView?: DataView;
+
   endianness: boolean;
   position: number;
 
@@ -17,9 +20,9 @@ export class DataStream {
    * DataStream reads scalars, arrays and structs of data from an ArrayBuffer.
    * It's like a file-like DataView on steroids.
    *
-   * @param {ArrayBuffer} arrayBuffer ArrayBuffer to read from.
-   * @param {?Number} byteOffset Offset from arrayBuffer beginning for the DataStream.
-   * @param {?Boolean} endianness DataStream.BIG_ENDIAN or DataStream.LITTLE_ENDIAN (the default).
+   * @param arrayBuffer ArrayBuffer to read from.
+   * @param byteOffset Offset from arrayBuffer beginning for the DataStream.
+   * @param endianness DataStream.BIG_ENDIAN or DataStream.LITTLE_ENDIAN (the default).
    */
   constructor(
     arrayBuffer?: ArrayBuffer | DataView | number,
@@ -47,8 +50,7 @@ export class DataStream {
 
   /**
    * Internal function to resize the DataStream buffer when required.
-   * @param {number} extra Number of bytes to add to the buffer allocation.
-   * @return {null}
+   * @param extra Number of bytes to add to the buffer allocation.
    */
   _realloc(extra: number) {
     if (!this._dynamicSize) {
@@ -81,8 +83,6 @@ export class DataStream {
    * Used for stripping out the extra bytes from the backing buffer when
    * the virtual byteLength is smaller than the buffer byteLength (happens after
    * growing the buffer with writes and not filling the extra space completely).
-   *
-   * @return {null}
    */
   _trimAlloc() {
     if (this._byteLength == this._buffer.byteLength) {
@@ -97,13 +97,11 @@ export class DataStream {
 
   /**
    * Big-endian const to use as default endianness.
-   * @type {boolean}
    */
   static BIG_ENDIAN = false;
 
   /**
    * Little-endian const to use as default endianness.
-   * @type {boolean}
    */
   static LITTLE_ENDIAN = true;
 
@@ -111,7 +109,6 @@ export class DataStream {
    * Virtual byte length of the DataStream backing buffer.
    * Updated to be max of original buffer size and last written size.
    * If dynamicSize is false is set to buffer size.
-   * @type {number}
    */
   _byteLength = 0;
 
@@ -133,8 +130,8 @@ export class DataStream {
     this._trimAlloc();
     return this._buffer;
   }
-  set buffer(v) {
-    this._buffer = v;
+  set buffer(value) {
+    this._buffer = value;
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._buffer.byteLength;
   }
@@ -147,8 +144,8 @@ export class DataStream {
   get byteOffset() {
     return this._byteOffset;
   }
-  set byteOffset(v) {
-    this._byteOffset = v;
+  set byteOffset(value) {
+    this._byteOffset = value;
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._buffer.byteLength;
   }
@@ -162,18 +159,18 @@ export class DataStream {
     return this._dataView;
   }
   set dataView(value) {
-    this._byteOffset = v.byteOffset;
-    this._buffer = v.buffer;
+    this._byteOffset = value.byteOffset;
+    this._buffer = value.buffer;
     this._dataView = new DataView(this._buffer, this._byteOffset);
-    this._byteLength = this._byteOffset + v.byteLength;
+    this._byteLength = this._byteOffset + value.byteLength;
   }
 
   /**
    *   Sets the DataStream read/write position to given position.
    *   Clamps between 0 and DataStream length.
    *
-   *   @param {number} pos Position to seek to.
-   *   @return {null}
+   *   @param pos Position to seek to.
+   *   @return
    */
   seek(pos: number) {
     var npos = Math.max(0, Math.min(this.byteLength, pos));
@@ -184,7 +181,7 @@ export class DataStream {
    * Returns true if the DataStream seek pointer is at the end of buffer and
    * there's no more data to read.
    *
-   * @return {boolean} True if the seek pointer is at the end of the buffer.
+   * @return True if the seek pointer is at the end of the buffer.
    */
   isEof() {
     return this.position >= this._byteLength;
@@ -195,9 +192,9 @@ export class DataStream {
    *
    * Nice for quickly reading in data.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} Uint8Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param e Endianness of the data to read.
+   * @return Uint8Array to the DataStream backing buffer.
    */
   mapUint8Array(length: number) {
     this._realloc(length * 1);
@@ -209,11 +206,11 @@ export class DataStream {
   /**
    * Reads an Int32Array of desired length and endianness from the DataStream.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} The read Int32Array.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return The read Int32Array.
    */
-  readInt32Array(length: number | null, e?: boolean | null) {
+  readInt32Array(length: number | null, endianness?: boolean | null) {
     length = length == null ? this.byteLength - this.position / 4 : length;
     var arr = new Int32Array(length);
     DataStream.memcpy(
@@ -223,7 +220,7 @@ export class DataStream {
       this.byteOffset + this.position,
       length * arr.BYTES_PER_ELEMENT,
     );
-    DataStream.arrayToNative(arr, e == null ? this.endianness : e);
+    DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += arr.byteLength;
     return arr;
   }
@@ -231,11 +228,11 @@ export class DataStream {
   /**
    * Reads an Int16Array of desired length and endianness from the DataStream.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} The read Int16Array.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return The read Int16Array.
    */
-  readInt16Array(length: number | null, e?: boolean | null) {
+  readInt16Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 2 : length;
     var arr = new Int16Array(length);
     DataStream.memcpy(
@@ -245,7 +242,7 @@ export class DataStream {
       this.byteOffset + this.position,
       length * arr.BYTES_PER_ELEMENT,
     );
-    DataStream.arrayToNative(arr, e == null ? this.endianness : e);
+    DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += arr.byteLength;
     return arr;
   }
@@ -253,9 +250,9 @@ export class DataStream {
   /**
    * Reads an Int8Array of desired length from the DataStream.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} The read Int8Array.
+   * @param length Number of elements to map.
+   * @param e Endianness of the data to read.
+   * @return The read Int8Array.
    */
   readInt8Array(length: number | null) {
     length = length == null ? this.byteLength - this.position : length;
@@ -274,11 +271,11 @@ export class DataStream {
   /**
    * Reads a Uint32Array of desired length and endianness from the DataStream.
    *
-   *  @param {number} length Number of elements to map.
-   *  @param {?boolean} e Endianness of the data to read.
-   *  @return {Object} The read Uint32Array.
+   *  @param length Number of elements to map.
+   *  @param endianness Endianness of the data to read.
+   *  @return The read Uint32Array.
    */
-  readUint32Array(length: number | null, e?: boolean | null) {
+  readUint32Array(length: number | null, endianness?: boolean | null) {
     length = length == null ? this.byteLength - this.position / 4 : length;
     var arr = new Uint32Array(length);
     DataStream.memcpy(
@@ -288,7 +285,7 @@ export class DataStream {
       this.byteOffset + this.position,
       length * arr.BYTES_PER_ELEMENT,
     );
-    DataStream.arrayToNative(arr, e == null ? this.endianness : e);
+    DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += arr.byteLength;
     return arr;
   }
@@ -296,11 +293,11 @@ export class DataStream {
   /**
    * Reads a Uint16Array of desired length and endianness from the DataStream.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} The read Uint16Array.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return The read Uint16Array.
    */
-  readUint16Array(length: number | null, e?: boolean | null) {
+  readUint16Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 2 : length;
     var arr = new Uint16Array(length);
     DataStream.memcpy(
@@ -310,7 +307,7 @@ export class DataStream {
       this.byteOffset + this.position,
       length * arr.BYTES_PER_ELEMENT,
     );
-    DataStream.arrayToNative(arr, e == null ? this.endianness : e);
+    DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += arr.byteLength;
     return arr;
   }
@@ -318,9 +315,9 @@ export class DataStream {
   /**
    * Reads a Uint8Array of desired length from the DataStream.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} The read Uint8Array.
+   * @param length Number of elements to map.
+   * @param e Endianness of the data to read.
+   * @return The read Uint8Array.
    */
   readUint8Array(length: number | null) {
     length = length == null ? this.byteLength - this.position : length;
@@ -339,11 +336,11 @@ export class DataStream {
   /**
    * Reads a Float64Array of desired length and endianness from the DataStream.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} The read Float64Array.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return The read Float64Array.
    */
-  readFloat64Array(length: number | null, e?: boolean | null) {
+  readFloat64Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 8 : length;
     var arr = new Float64Array(length);
     DataStream.memcpy(
@@ -353,7 +350,7 @@ export class DataStream {
       this.byteOffset + this.position,
       length * arr.BYTES_PER_ELEMENT,
     );
-    DataStream.arrayToNative(arr, e == null ? this.endianness : e);
+    DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += arr.byteLength;
     return arr;
   }
@@ -361,11 +358,11 @@ export class DataStream {
   /**
    * Reads a Float32Array of desired length and endianness from the DataStream.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} e Endianness of the data to read.
-   * @return {Object} The read Float32Array.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return The read Float32Array.
    */
-  readFloat32Array(length: number | null, e?: boolean | null) {
+  readFloat32Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 4 : length;
     var arr = new Float32Array(length);
     DataStream.memcpy(
@@ -375,7 +372,7 @@ export class DataStream {
       this.byteOffset + this.position,
       length * arr.BYTES_PER_ELEMENT,
     );
-    DataStream.arrayToNative(arr, e == null ? this.endianness : e);
+    DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += arr.byteLength;
     return arr;
   }
@@ -383,11 +380,14 @@ export class DataStream {
   /**
    * Reads a 32-bit int from the DataStream with the desired endianness.
    *
-   * @param {?boolean} e Endianness of the number.
-   * @return {number} The read number.
+   * @param endianness Endianness of the number.
+   * @return The read number.
    */
-  readInt32(e?: boolean | null) {
-    var v = this._dataView.getInt32(this.position, e == null ? this.endianness : e);
+  readInt32(endianness?: boolean | null) {
+    var v = this._dataView.getInt32(
+      this.position,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 4;
     return v;
   }
@@ -395,11 +395,14 @@ export class DataStream {
   /**
    * Reads a 16-bit int from the DataStream with the desired endianness.
    *
-   * @param {?boolean} e Endianness of the number.
-   * @return {number} The read number.
+   * @param endianness Endianness of the number.
+   * @return The read number.
    */
-  readInt16(e?: boolean | null) {
-    var v = this._dataView.getInt16(this.position, e == null ? this.endianness : e);
+  readInt16(endianness?: boolean) {
+    var v = this._dataView.getInt16(
+      this.position,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 2;
     return v;
   }
@@ -407,7 +410,7 @@ export class DataStream {
   /**
    * Reads an 8-bit int from the DataStream.
    *
-   * @return {number} The read number.
+   * @return The read number.
    */
   readInt8() {
     var v = this._dataView.getInt8(this.position);
@@ -418,11 +421,14 @@ export class DataStream {
   /**
    * Reads a 32-bit unsigned int from the DataStream with the desired endianness.
    *
-   * @param {?boolean} e Endianness of the number.
-   * @return {number} The read number.
+   * @param endianness Endianness of the number.
+   * @return The read number.
    */
-  readUint32(e?: boolean | null) {
-    var v = this._dataView.getUint32(this.position, e == null ? this.endianness : e);
+  readUint32(endianness?: boolean | null) {
+    var v = this._dataView.getUint32(
+      this.position,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 4;
     return v;
   }
@@ -430,11 +436,14 @@ export class DataStream {
   /**
    * Reads a 16-bit unsigned int from the DataStream with the desired endianness.
    *
-   * @param {?boolean} e Endianness of the number.
-   * @return {number} The read number.
+   * @param endianness Endianness of the number.
+   * @return The read number.
    */
-  readUint16(e?: boolean | null) {
-    var v = this._dataView.getUint16(this.position, e == null ? this.endianness : e);
+  readUint16(endianness?: boolean | null) {
+    var v = this._dataView.getUint16(
+      this.position,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 2;
     return v;
   }
@@ -442,7 +451,7 @@ export class DataStream {
   /**
    * Reads an 8-bit unsigned int from the DataStream.
    *
-   * @return {number} The read number.
+   * @return The read number.
    */
   readUint8() {
     var v = this._dataView.getUint8(this.position);
@@ -453,25 +462,31 @@ export class DataStream {
   /**
    * Reads a 32-bit float from the DataStream with the desired endianness.
    *
-   * @param {?boolean} e Endianness of the number.
-   * @return {number} The read number.
+   * @param endianness Endianness of the number.
+   * @return The read number.
    */
-  readFloat32(e?: boolean | null) {
-    var v = this._dataView.getFloat32(this.position, e == null ? this.endianness : e);
+  readFloat32(endianness?: boolean | null) {
+    const value = this._dataView.getFloat32(
+      this.position,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 4;
-    return v;
+    return value;
   }
 
   /**
    * Reads a 64-bit float from the DataStream with the desired endianness.
    *
-   * @param {?boolean} e Endianness of the number.
-   * @return {number} The read number.
+   * @param endianness Endianness of the number.
+   * @return The read number.
    */
-  readFloat64(e?: boolean | null) {
-    var v = this._dataView.getFloat64(this.position, e == null ? this.endianness : e);
+  readFloat64(endianness?: boolean | null) {
+    const value = this._dataView.getFloat64(
+      this.position,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 8;
-    return v;
+    return value;
   }
 
   /**
@@ -485,80 +500,72 @@ export class DataStream {
    * Copies byteLength bytes from the src buffer at srcOffset to the
    * dst buffer at dstOffset.
    *
-   * @param {Object} dst Destination ArrayBuffer to write to.
-   * @param {number} dstOffset Offset to the destination ArrayBuffer.
-   * @param {Object} src Source ArrayBuffer to read from.
-   * @param {number} srcOffset Offset to the source ArrayBuffer.
-   * @param {number} byteLength Number of bytes to copy.
+   * @param dst Destination ArrayBuffer to write to.
+   * @param dstOffset Offset to the destination ArrayBuffer.
+   * @param src Source ArrayBuffer to read from.
+   * @param srcOffset Offset to the source ArrayBuffer.
+   * @param byteLength Number of bytes to copy.
    */
   static memcpy(
     dst: ArrayBufferLike,
-    dstOffset: number | undefined,
-    src: ArrayBuffer | undefined,
-    srcOffset: number | undefined,
-    byteLength: number,
+    dstOffset?: number,
+    src?: ArrayBuffer,
+    srcOffset?: number,
+    byteLength?: number,
   ) {
-    var dstU8 = new Uint8Array(dst, dstOffset, byteLength);
-    var srcU8 = new Uint8Array(src, srcOffset, byteLength);
+    const dstU8 = new Uint8Array(dst, dstOffset, byteLength);
+    const srcU8 = new Uint8Array(src, srcOffset, byteLength);
     dstU8.set(srcU8);
   }
 
   /**
    * Converts array to native endianness in-place.
    *
-   * @param {Object} array Typed array to convert.
-   * @param {boolean} arrayIsLittleEndian True if the data in the array is
+   * @param typedArray Typed array to convert.
+   * @param endianness True if the data in the array is
    *                                      little-endian. Set false for big-endian.
-   * @return {Object} The converted typed array.
+   * @return The converted typed array.
    */
-  static arrayToNative(
-    array: Int16Array | Int32Array | Uint32Array | Uint16Array | Float64Array | Float32Array,
-    arrayIsLittleEndian: unknown,
-  ) {
-    if (arrayIsLittleEndian == this.endianness) {
-      return array;
+  static arrayToNative(typedArray: TypedArray, endianness?: boolean) {
+    if (endianness == this.endianness) {
+      return typedArray;
     } else {
-      return this.flipArrayEndianness(array);
+      return this.flipArrayEndianness(typedArray);
     }
   }
 
   /**
    * Converts native endianness array to desired endianness in-place.
    *
-   * @param {Object} array Typed array to convert.
-   * @param {boolean} littleEndian True if the converted array should be
+   * @param typedArray Typed array to convert.
+   * @param littleEndian True if the converted array should be
    *                               little-endian. Set false for big-endian.
-   * @return {Object} The converted typed array.
+   * @return The converted typed array.
    */
-  static nativeToEndian(array: unknown, littleEndian: unknown) {
+  static nativeToEndian(typedArray: TypedArray, littleEndian: unknown) {
     if (this.endianness == littleEndian) {
-      return array;
+      return typedArray;
     } else {
-      return this.flipArrayEndianness(array);
+      return this.flipArrayEndianness(typedArray);
     }
   }
 
   /**
    * Flips typed array endianness in-place.
    *
-   * @param {Object} array Typed array to flip.
-   * @return {Object} The converted typed array.
+   * @param typedArray Typed array to flip.
+   * @return The converted typed array.
    */
-  static flipArrayEndianness(array: {
-    buffer: ArrayBufferLike;
-    byteOffset: number | undefined;
-    byteLength: number;
-    BYTES_PER_ELEMENT: number;
-  }) {
-    var u8 = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
-    for (var i = 0; i < array.byteLength; i += array.BYTES_PER_ELEMENT) {
-      for (var j = i + array.BYTES_PER_ELEMENT - 1, k = i; j > k; j--, k++) {
+  static flipArrayEndianness(typedArray: TypedArray) {
+    var u8 = new Uint8Array(typedArray.buffer, typedArray.byteOffset, typedArray.byteLength);
+    for (var i = 0; i < typedArray.byteLength; i += typedArray.BYTES_PER_ELEMENT) {
+      for (var j = i + typedArray.BYTES_PER_ELEMENT - 1, k = i; j > k; j--, k++) {
         var tmp = u8[k];
         u8[k] = u8[j];
         u8[j] = tmp;
       }
     }
-    return array;
+    return typedArray;
   }
 
   /**
@@ -572,10 +579,10 @@ export class DataStream {
   /**
    * Read a string of desired length and encoding from the DataStream.
    *
-   * @param {number} length The length of the string to read in bytes.
-   * @param {?string} encoding The encoding of the string data in the DataStream.
+   * @param length The length of the string to read in bytes.
+   * @param encoding The encoding of the string data in the DataStream.
    *                           Defaults to ASCII.
-   * @return {string} The read string.
+   * @return The read string.
    */
   readString(length: number, encoding?: string | null) {
     if (encoding == null || encoding == 'ASCII') {
@@ -591,18 +598,19 @@ export class DataStream {
    * Read null-terminated string of desired length from the DataStream. Truncates
    * the returned string so that the null byte is not a part of it.
    *
-   * @param {?number} length The length of the string to read.
-   * @return {string} The read string.
+   * @param length The length of the string to read.
+   * @return The read string.
    */
   readCString(length?: number | null) {
-    var blen = this.byteLength - this.position;
-    var u8 = new Uint8Array(this._buffer, this._byteOffset + this.position);
-    var len = blen;
+    const blen = this.byteLength - this.position;
+    const u8 = new Uint8Array(this._buffer, this._byteOffset + this.position);
+    let len = blen;
+    let i: number;
     if (length != null) {
       len = Math.min(length, blen);
     }
-    for (var i = 0; i < len && u8[i] !== 0; i++); // find first zero byte
-    var s = fromCharCodeUint8(this.mapUint8Array(i));
+    for (i = 0; i < len && u8[i] !== 0; i++); // find first zero byte
+    const s = fromCharCodeUint8(this.mapUint8Array(i));
     if (length != null) {
       this.position += len - i;
     } else if (i != blen) {
@@ -626,15 +634,15 @@ export class DataStream {
    * Saves the DataStream contents to the given filename.
    * Uses Chrome's anchor download property to initiate download.
    *
-   * @param {string} filename Filename to save as.
-   * @return {null}
+   * @param filename Filename to save as.
+   * @return
    * @bundle DataStream-write.js
    */
   save(filename: string) {
-    var blob = new Blob([this.buffer]);
+    const blob = new Blob([this.buffer]);
     if (window.URL && URL.createObjectURL) {
-      var url = window.URL.createObjectURL(blob);
-      var a = document.createElement('a');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
       // Required in Firefox:
       document.body.appendChild(a);
       a.setAttribute('href', url);
@@ -675,13 +683,13 @@ export class DataStream {
    * Internal function to trim the DataStream buffer when required.
    * Used for stripping out the first bytes when not needed anymore.
    *
-   * @return {null}
+   * @return
    * @bundle DataStream-write.js
    */
-  shift(offset: number | undefined) {
-    var buf = new ArrayBuffer(this._byteLength - offset);
-    var dst = new Uint8Array(buf);
-    var src = new Uint8Array(this._buffer, offset, dst.length);
+  shift(offset: number) {
+    const buf = new ArrayBuffer(this._byteLength - offset);
+    const dst = new Uint8Array(buf);
+    const src = new Uint8Array(this._buffer, offset, dst.length);
     dst.set(src);
     this.buffer = buf;
     this.position -= offset;
@@ -690,27 +698,27 @@ export class DataStream {
   /**
    * Writes an Int32Array of specified endianness to the DataStream.
    *
-   * @param {Object} arr The array to write.
-   * @param {?boolean} e Endianness of the data to write.
+   * @param array The array to write.
+   * @param endianness Endianness of the data to write.
    * @bundle DataStream-write.js
    */
-  writeInt32Array(arr: unknown[], e?: boolean | null) {
-    this._realloc(arr.length * 4);
+  writeInt32Array(array: ArrayLike<number>, endianness?: boolean) {
+    this._realloc(array.length * 4);
     if (
-      arr instanceof Int32Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Int32Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapInt32Array(arr.length, e);
+      this.mapInt32Array(array.length, endianness);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeInt32(arr[i], e);
+      for (var i = 0; i < array.length; i++) {
+        this.writeInt32(array[i], endianness);
       }
     }
   }
@@ -718,27 +726,27 @@ export class DataStream {
   /**
    * Writes an Int16Array of specified endianness to the DataStream.
    *
-   * @param {Object} arr The array to write.
-   * @param {?boolean} e Endianness of the data to write.
+   * @param array The array to write.
+   * @param endianness Endianness of the data to write.
    * @bundle DataStream-write.js
    */
-  writeInt16Array(arr: unknown[], e: unknown) {
-    this._realloc(arr.length * 2);
+  writeInt16Array(array: ArrayLike<number>, endianness?: boolean) {
+    this._realloc(array.length * 2);
     if (
-      arr instanceof Int16Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Int16Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapInt16Array(arr.length, e);
+      this.mapInt16Array(array.length, endianness);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeInt16(arr[i], e);
+      for (var i = 0; i < array.length; i++) {
+        this.writeInt16(array[i], endianness);
       }
     }
   }
@@ -746,26 +754,26 @@ export class DataStream {
   /**
    * Writes an Int8Array to the DataStream.
    *
-   * @param {Object} arr The array to write.
+   * @param array The array to write.
    * @bundle DataStream-write.js
    */
-  writeInt8Array(arr: unknown[]) {
-    this._realloc(arr.length * 1);
+  writeInt8Array(array: ArrayLike<number>) {
+    this._realloc(array.length * 1);
     if (
-      arr instanceof Int8Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Int8Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapInt8Array(arr.length);
+      this.mapInt8Array(array.length);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeInt8(arr[i]);
+      for (var i = 0; i < array.length; i++) {
+        this.writeInt8(array[i]);
       }
     }
   }
@@ -773,27 +781,27 @@ export class DataStream {
   /**
    * Writes a Uint32Array of specified endianness to the DataStream.
    *
-   * @param {Object} arr The array to write.
-   * @param {?boolean} e Endianness of the data to write.
+   * @param array The array to write.
+   * @param endianness Endianness of the data to write.
    * @bundle DataStream-write.js
    */
-  writeUint32Array(arr: unknown[], e?: boolean) {
-    this._realloc(arr.length * 4);
+  writeUint32Array(array: ArrayLike<number>, endianness?: boolean) {
+    this._realloc(array.length * 4);
     if (
-      arr instanceof Uint32Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Uint32Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapUint32Array(arr.length, e);
+      this.mapUint32Array(array.length, endianness);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeUint32(arr[i], e);
+      for (var i = 0; i < array.length; i++) {
+        this.writeUint32(array[i], endianness);
       }
     }
   }
@@ -801,27 +809,27 @@ export class DataStream {
   /**
    * Writes a Uint16Array of specified endianness to the DataStream.
    *
-   * @param {Object} arr The array to write.
-   * @param {?boolean} e Endianness of the data to write.
+   * @param array The array to write.
+   * @param endianness Endianness of the data to write.
    * @bundle DataStream-write.js
    */
-  writeUint16Array(arr: Uint16Array, e?: boolean) {
-    this._realloc(arr.length * 2);
+  writeUint16Array(array: ArrayLike<number>, endianness?: boolean) {
+    this._realloc(array.length * 2);
     if (
-      arr instanceof Uint16Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Uint16Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapUint16Array(arr.length, e);
+      this.mapUint16Array(array.length, endianness);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeUint16(arr[i], e);
+      for (var i = 0; i < array.length; i++) {
+        this.writeUint16(array[i], endianness);
       }
     }
   }
@@ -829,26 +837,26 @@ export class DataStream {
   /**
    * Writes a Uint8Array to the DataStream.
    *
-   * @param {Object} arr The array to write.
+   * @param array The array to write.
    * @bundle DataStream-write.js
    */
-  writeUint8Array(arr: unknown[] | Uint8Array) {
-    this._realloc(arr.length * 1);
+  writeUint8Array(array: ArrayLike<number>) {
+    this._realloc(array.length * 1);
     if (
-      arr instanceof Uint8Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Uint8Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapUint8Array(arr.length);
+      this.mapUint8Array(array.length);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeUint8(arr[i]);
+      for (var i = 0; i < array.length; i++) {
+        this.writeUint8(array[i]);
       }
     }
   }
@@ -856,27 +864,27 @@ export class DataStream {
   /**
    * Writes a Float64Array of specified endianness to the DataStream.
    *
-   * @param {Object} arr The array to write.
-   * @param {?boolean} e Endianness of the data to write.
+   * @param array The array to write.
+   * @param endianness Endianness of the data to write.
    * @bundle DataStream-write.js
    */
-  writeFloat64Array(arr: unknown[], e: unknown) {
-    this._realloc(arr.length * 8);
+  writeFloat64Array(array: ArrayLike<number>, endianness?: boolean) {
+    this._realloc(array.length * 8);
     if (
-      arr instanceof Float64Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Float64Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapFloat64Array(arr.length, e);
+      this.mapFloat64Array(array.length, endianness);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeFloat64(arr[i], e);
+      for (var i = 0; i < array.length; i++) {
+        this.writeFloat64(array[i], endianness);
       }
     }
   }
@@ -884,27 +892,27 @@ export class DataStream {
   /**
    * Writes a Float32Array of specified endianness to the DataStream.
    *
-   * @param {Object} arr The array to write.
-   * @param {?boolean} e Endianness of the data to write.
+   * @param array The array to write.
+   * @param endianness Endianness of the data to write.
    * @bundle DataStream-write.js
    */
-  writeFloat32Array(arr: unknown[], e: unknown) {
-    this._realloc(arr.length * 4);
+  writeFloat32Array(array: ArrayLike<number>, endianness?: boolean) {
+    this._realloc(array.length * 4);
     if (
-      arr instanceof Float32Array &&
-      this.byteOffset + (this.position % arr.BYTES_PER_ELEMENT) === 0
+      array instanceof Float32Array &&
+      this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
     ) {
       DataStream.memcpy(
         this._buffer,
         this.byteOffset + this.position,
-        arr.buffer,
+        array.buffer,
         0,
-        arr.byteLength,
+        array.byteLength,
       );
-      this.mapFloat32Array(arr.length, e);
+      this.mapFloat32Array(array.length, endianness);
     } else {
-      for (var i = 0; i < arr.length; i++) {
-        this.writeFloat32(arr[i], e);
+      for (var i = 0; i < array.length; i++) {
+        this.writeFloat32(array[i], endianness);
       }
     }
   }
@@ -912,102 +920,126 @@ export class DataStream {
   /**
    * Writes a 32-bit int to the DataStream with the desired endianness.
    *
-   * @param {number} v Number to write.
-   * @param {?boolean} e Endianness of the number.
+   * @param value Number to write.
+   * @param endianness Endianness of the number.
    * @bundle DataStream-write.js
    */
-  writeInt32(v: number, e?: boolean | null) {
+  writeInt32(value: number, endianness?: boolean | null) {
     this._realloc(4);
-    this._dataView.setInt32(this.position, v, e == null ? this.endianness : e);
+    this._dataView.setInt32(
+      this.position,
+      value,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 4;
   }
 
   /**
    * Writes a 16-bit int to the DataStream with the desired endianness.
    *
-   * @param {number} v Number to write.
-   * @param {?boolean} e Endianness of the number.
+   * @param value Number to write.
+   * @param endianness Endianness of the number.
    * @bundle DataStream-write.js
    */
-  writeInt16(v: number, e?: boolean | null) {
+  writeInt16(value: number, endianness?: boolean | null) {
     this._realloc(2);
-    this._dataView.setInt16(this.position, v, e == null ? this.endianness : e);
+    this._dataView.setInt16(
+      this.position,
+      value,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 2;
   }
 
   /**
    * Writes an 8-bit int to the DataStream.
    *
-   * @param {number} v Number to write.
+   * @param value Number to write.
    * @bundle DataStream-write.js
    */
-  writeInt8(v: number) {
+  writeInt8(value: number) {
     this._realloc(1);
-    this._dataView.setInt8(this.position, v);
+    this._dataView.setInt8(this.position, value);
     this.position += 1;
   }
 
   /**
    * Writes a 32-bit unsigned int to the DataStream with the desired endianness.
    *
-   * @param {number} v Number to write.
-   * @param {?boolean} e Endianness of the number.
+   * @param value Number to write.
+   * @param endianness Endianness of the number.
    * @bundle DataStream-write.js
    */
-  writeUint32(v: number, e?: boolean | null) {
+  writeUint32(value: number, endianness?: boolean | null) {
     this._realloc(4);
-    this._dataView.setUint32(this.position, v, e == null ? this.endianness : e);
+    this._dataView.setUint32(
+      this.position,
+      value,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 4;
   }
 
   /**
    * Writes a 16-bit unsigned int to the DataStream with the desired endianness.
    *
-   * @param {number} v Number to write.
-   * @param {?boolean} e Endianness of the number.
+   * @param value Number to write.
+   * @param endianness Endianness of the number.
    * @bundle DataStream-write.js
    */
-  writeUint16(v: number, e?: boolean | null) {
+  writeUint16(value: number, endianness?: boolean | null) {
     this._realloc(2);
-    this._dataView.setUint16(this.position, v, e == null ? this.endianness : e);
+    this._dataView.setUint16(
+      this.position,
+      value,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 2;
   }
 
   /**
    * Writes an 8-bit unsigned  int to the DataStream.
    *
-   * @param {number} v Number to write.
+   * @param value Number to write.
    * @bundle DataStream-write.js
    */
-  writeUint8(v: number) {
+  writeUint8(value: number) {
     this._realloc(1);
-    this._dataView.setUint8(this.position, v);
+    this._dataView.setUint8(this.position, value);
     this.position += 1;
   }
 
   /**
    * Writes a 32-bit float to the DataStream with the desired endianness.
    *
-   * @param {number} v Number to write.
-   * @param {?boolean} e Endianness of the number.
+   * @param value Number to write.
+   * @param endianness Endianness of the number.
    * @bundle DataStream-write.js
    */
-  writeFloat32(v: number, e?: boolean | null) {
+  writeFloat32(value: number, endianness?: boolean | null) {
     this._realloc(4);
-    this._dataView.setFloat32(this.position, v, e == null ? this.endianness : e);
+    this._dataView.setFloat32(
+      this.position,
+      value,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 4;
   }
 
   /**
    * Writes a 64-bit float to the DataStream with the desired endianness.
    *
-   * @param {number} v Number to write.
-   * @param {?boolean} e Endianness of the number.
+   * @param value Number to write.
+   * @param endianness Endianness of the number.
    * @bundle DataStream-write.js
    */
-  writeFloat64(v: number, e?: boolean | null) {
+  writeFloat64(value: number, endianness?: boolean | null) {
     this._realloc(8);
-    this._dataView.setFloat64(this.position, v, e == null ? this.endianness : e);
+    this._dataView.setFloat64(
+      this.position,
+      value,
+      endianness == null ? this.endianness : endianness,
+    );
     this.position += 8;
   }
 
@@ -1017,17 +1049,18 @@ export class DataStream {
    * If the string is shorter than lengthOverride, the extra space is padded with
    * zeroes.
    *
-   * @param {string} str The string to write.
-   * @param {?boolean} endianness The endianness to use for the written string data.
-   * @param {?number} lengthOverride The number of characters to write.
+   * @param value The string to write.
+   * @param endianness The endianness to use for the written string data.
+   * @param lengthOverride The number of characters to write.
    * @bundle DataStream-write.js
    */
-  writeUCS2String(str: string, endianness: boolean, lengthOverride: number | null) {
+  writeUCS2String(value: string, endianness: boolean, lengthOverride?: number) {
     if (lengthOverride == null) {
-      lengthOverride = str.length;
+      lengthOverride = value.length;
     }
-    for (var i = 0; i < str.length && i < lengthOverride; i++) {
-      this.writeUint16(str.charCodeAt(i), endianness);
+    let i: number;
+    for (i = 0; i < value.length && i < lengthOverride; i++) {
+      this.writeUint16(value.charCodeAt(i), endianness);
     }
     for (; i < lengthOverride; i++) {
       this.writeUint16(0);
@@ -1037,30 +1070,31 @@ export class DataStream {
   /**
    * Writes a string of desired length and encoding to the DataStream.
    *
-   * @param {string} s The string to write.
-   * @param {?string} encoding The encoding for the written string data.
+   * @param value The string to write.
+   * @param encoding The encoding for the written string data.
    *                           Defaults to ASCII.
-   * @param {?number} length The number of characters to write.
+   * @param length The number of characters to write.
    * @bundle DataStream-write.js
    */
-  writeString(s: string, encoding: string | null, length: number | null) {
-    var i = 0;
+  writeString(value: string, encoding?: string, length?: number) {
+    let i = 0;
     if (encoding == null || encoding == 'ASCII') {
       if (length != null) {
-        var len = Math.min(s.length, length);
+        var len = Math.min(value.length, length);
         for (i = 0; i < len; i++) {
-          this.writeUint8(s.charCodeAt(i));
+          this.writeUint8(value.charCodeAt(i));
         }
         for (; i < length; i++) {
           this.writeUint8(0);
         }
       } else {
-        for (i = 0; i < s.length; i++) {
-          this.writeUint8(s.charCodeAt(i));
+        for (i = 0; i < value.length; i++) {
+          this.writeUint8(value.charCodeAt(i));
         }
       }
     } else {
-      this.writeUint8Array(new TextEncoder(encoding).encode(s.substring(0, length)));
+      // @ts-expect-error FIXME: TextEncoder does not expect an encoding-parameter
+      this.writeUint8Array(new TextEncoder(encoding).encode(value.substring(0, length)));
     }
   }
 
@@ -1070,23 +1104,23 @@ export class DataStream {
    * If string is longer than length, the written part of the string does not have
    * a trailing zero.
    *
-   * @param {string} s The string to write.
-   * @param {?number} length The number of characters to write.
+   * @param value The string to write.
+   * @param length The number of characters to write.
    * @bundle DataStream-write.js
    */
-  writeCString(s: string, length?: number | null) {
-    var i = 0;
+  writeCString(value: string, length?: number) {
+    let i = 0;
     if (length != null) {
-      var len = Math.min(s.length, length);
+      const len = Math.min(value.length, length);
       for (i = 0; i < len; i++) {
-        this.writeUint8(s.charCodeAt(i));
+        this.writeUint8(value.charCodeAt(i));
       }
       for (; i < length; i++) {
         this.writeUint8(0);
       }
     } else {
-      for (i = 0; i < s.length; i++) {
-        this.writeUint8(s.charCodeAt(i));
+      for (i = 0; i < value.length; i++) {
+        this.writeUint8(value.charCodeAt(i));
       }
       this.writeUint8(0);
     }
@@ -1097,50 +1131,46 @@ export class DataStream {
    * types and a struct object that gives the values. Refer to readStruct for the
    * structure of structDefinition.
    *
-   * @param {Object} structDefinition Type definition of the struct.
-   * @param {Object} struct The struct data object.
+   * @param structDefinition Type definition of the struct.
+   * @param struct The struct data object.
    * @bundle DataStream-write.js
    */
-  writeStruct(structDefinition: number[], struct: Record<string, string>) {
-    for (var i = 0; i < structDefinition.length; i += 2) {
-      var t = structDefinition[i + 1];
-      this.writeType(t, struct[structDefinition[i]], struct);
+  writeStruct(structDefinition: StructDefinition, struct: Record<string, number>) {
+    for (let i = 0; i < structDefinition.length; i++) {
+      const structType = structDefinition[i][1];
+      this.writeType(structType, struct[structDefinition[i][0]], struct);
     }
   }
 
   /**
    * Writes object v of type t to the DataStream.
    *
-   * @param {Object} type Type of data to write.
-   * @param {Object} value Value of data to write.
-   * @param {Object} struct Struct to pass to write callback functions.
+   * @param type Type of data to write.
+   * @param value Value of data to write.
+   * @param struct Struct to pass to write callback functions.
    * @bundle DataStream-write.js
    */
-  writeType(
-    type:
-      | ((stream: DataStream, value: unknown) => void)
-      | { set: (stream: DataStream, value: unknown, struct: unknown) => void }
-      | string,
-    value: number | string,
-    struct: undefined,
-  ) {
-    var tp: string[];
+  writeType(type: StructType, value: number, struct?: Record<string, number>) {
+    let tp: string[];
     if (typeof type == 'function') {
+      // @ts-expect-error FIXME: incorrect signature, expects DataStream, Struct
       return type(this, value);
     } else if (typeof type == 'object' && !(type instanceof Array)) {
+      // @ts-expect-error FIXME: incorrect signature, expects DataStream, Struct
       return type.set(this, value, struct);
     }
-    var lengthOverride: number | null = null;
-    var charset: number | 'ASCII' = 'ASCII';
-    var pos = this.position;
+
+    let lengthOverride: number | null = null;
+    let charset: number | 'ASCII' = 'ASCII';
+    let pos = this.position;
     if (typeof type == 'string' && /:/.test(type)) {
       tp = type.split(':');
-      type = tp[0];
+      type = tp[0] as StructType;
       lengthOverride = parseInt(tp[1]);
     }
     if (typeof type == 'string' && /,/.test(type)) {
       tp = type.split(',');
-      type = tp[0];
+      type = tp[0] as StructType;
       charset = parseInt(tp[1]);
     }
 
@@ -1210,34 +1240,38 @@ export class DataStream {
         break;
 
       case 'cstring':
-        this.writeCString(value, lengthOverride);
+        this.writeCString(value as unknown as string, lengthOverride);
         break;
 
       case 'string':
-        this.writeString(value, charset, lengthOverride);
+        // @ts-expect-error FIXME: figure out type of charset
+        this.writeString(value as unknown as string, charset, lengthOverride);
         break;
 
       case 'u16string':
-        this.writeUCS2String(value, this.endianness, lengthOverride);
+        this.writeUCS2String(value as unknown as string, this.endianness, lengthOverride);
         break;
 
       case 'u16stringle':
-        this.writeUCS2String(value, DataStream.LITTLE_ENDIAN, lengthOverride);
+        this.writeUCS2String(value as unknown as string, DataStream.LITTLE_ENDIAN, lengthOverride);
         break;
 
       case 'u16stringbe':
-        this.writeUCS2String(value, DataStream.BIG_ENDIAN, lengthOverride);
+        this.writeUCS2String(value as unknown as string, DataStream.BIG_ENDIAN, lengthOverride);
         break;
 
       default:
+        // @ts-expect-error FIXME: fix type narrowing
         if (type.length == 3) {
           var ta = type[1];
+          // @ts-expect-error FIXME: value is type number
           for (var i = 0; i < value.length; i++) {
             this.writeType(ta, value[i]);
           }
           break;
         } else {
-          this.writeStruct(type, value);
+          // TODO: this said this.writeStruct before
+          this.writeType(type, value);
           break;
         }
     }
@@ -1249,44 +1283,38 @@ export class DataStream {
   }
 
   /** @bundle DataStream-write.js */
-  writeUint64(v: number) {
-    var h = Math.floor(v / MAX_SIZE);
+  writeUint64(value: number) {
+    var h = Math.floor(value / MAX_SIZE);
     this.writeUint32(h);
-    this.writeUint32(v & 0xffffffff);
+    this.writeUint32(value & 0xffffffff);
   }
 
   /** @bundle DataStream-write.js */
-  writeUint24(v: number) {
-    this.writeUint8((v & 0x00ff0000) >> 16);
-    this.writeUint8((v & 0x0000ff00) >> 8);
-    this.writeUint8(v & 0x000000ff);
+  writeUint24(value: number) {
+    this.writeUint8((value & 0x00ff0000) >> 16);
+    this.writeUint8((value & 0x0000ff00) >> 8);
+    this.writeUint8(value & 0x000000ff);
   }
 
   /** @bundle DataStream-write.js */
-  adjustUint32(position: number, value: unknown) {
+  adjustUint32(position: number, value: number) {
     var pos = this.position;
     this.seek(position);
     this.writeUint32(value);
     this.seek(pos);
   }
 
-  /**********************************************************************************/
-  /*                                                                                */
-  /*                               DataStream-read-struct.js                        */
-  /*                                                                                */
-  /**********************************************************************************/
-
   /**
    * Reads a struct of data from the DataStream. The struct is defined as
    * a flat array of [name, type]-pairs. See the example below:
    *
    * ds.readStruct([
-   *   'headerTag', 'uint32', // Uint32 in DataStream endianness.
-   *   'headerTag2', 'uint32be', // Big-endian Uint32.
-   *   'headerTag3', 'uint32le', // Little-endian Uint32.
-   *   'array', ['[]', 'uint32', 16], // Uint32Array of length 16.
-   *   'array2Length', 'uint32',
-   *   'array2', ['[]', 'uint32', 'array2Length'] // Uint32Array of length array2Length
+   *   ['headerTag', 'uint32'], // Uint32 in DataStream endianness.
+   *   ['headerTag2', 'uint32be'], // Big-endian Uint32.
+   *   ['headerTag3', 'uint32le'], // Little-endian Uint32.
+   *   ['array', ['[]', 'uint32', 16]], // Uint32Array of length 16.
+   *   ['array2Length', 'uint32'],
+   *   ['array2', ['[]', 'uint32', 'array2Length']] // Uint32Array of length array2Length
    * ]);
    *
    * The possible values for the type are as follows:
@@ -1327,19 +1355,16 @@ export class DataStream {
    *                       field, or a callback function(struct, dataStream, type){}.
    *                       If length is '*', reads in as many elements as it can.
    *
-   * @param {Object} structDefinition Struct definition object.
-   * @return {Object} The read struct. Null if failed to read struct.
+   * @param structDefinition Struct definition object.
+   * @return The read struct. Null if failed to read struct.
    * @bundle DataStream-read-struct.js
    */
-  readStruct(structDefinition: string[]) {
-    var struct = {},
-      t: unknown,
-      v: null,
-      n: unknown;
-    var p = this.position;
-    for (var i = 0; i < structDefinition.length; i += 2) {
-      t = structDefinition[i + 1];
-      v = this.readType(t, struct);
+  readStruct(structDefinition: StructDefinition) {
+    const struct: Record<string, string> = {};
+    const p = this.position;
+    for (var i = 0; i < structDefinition.length; i += 1) {
+      const t = structDefinition[i][1];
+      const v = this.readType(t, struct);
       if (v == null) {
         if (this.failurePosition === 0) {
           this.failurePosition = this.position;
@@ -1347,7 +1372,7 @@ export class DataStream {
         this.position = p;
         return null;
       }
-      struct[structDefinition[i]] = v;
+      struct[structDefinition[i][0]] = v;
     }
     return struct;
   }
@@ -1355,12 +1380,12 @@ export class DataStream {
   /**
    * Read UCS-2 string of desired length and endianness from the DataStream.
    *
-   * @param {number} length The length of the string to read.
-   * @param {boolean} endianness The endianness of the string data in the DataStream.
-   * @return {string} The read string.
-   * @file DataStream-read-struct.js
+   * @param length The length of the string to read.
+   * @param endianness The endianness of the string data in the DataStream.
+   * @return The read string.
+   * @bundle DataStream-read-struct.js
    */
-  readUCS2String(length: number | null, endianness: boolean | null) {
+  readUCS2String(length?: number, endianness?: boolean) {
     return String.fromCharCode.apply(null, this.readUint16Array(length, endianness));
   }
 
@@ -1369,24 +1394,28 @@ export class DataStream {
    * read struct to possible callbacks that refer to it. Used by readStruct for
    * reading in the values, so the type is one of the readStruct types.
    *
-   * @param {Object} t Type of the object to read.
-   * @param {?Object} struct Struct to refer to when resolving length references
+   * @param type Type of the object to read.
+   * @param struct Struct to refer to when resolving length references
    *                         and for calling callbacks.
-   * @return {?Object} Returns the object on successful read, null on unsuccessful.
-   * @file DataStream-read-struct.js
+   * @return  Returns the object on successful read, null on unsuccessful.
+   * @bundle DataStream-read-struct.js
    */
-  readType(t, struct: Record<string, string>) {
-    if (typeof t == 'function') {
-      return t(this, struct);
-    } else if (typeof t == 'object' && !(t instanceof Array)) {
-      return t.get(this, struct);
-    } else if (t instanceof Array && t.length != 3) {
-      return this.readStruct(t, struct);
+  readType(type: StructType, struct: Record<string, string>) {
+    if (typeof type == 'function') {
+      return type(this, struct);
     }
-    let v:
-      | string
+    if (typeof type == 'object' && !(type instanceof Array)) {
+      return type.get(this, struct);
+    }
+    if (type instanceof Array && type.length != 3) {
+      // @ts-expect-error FIXME: incorrect signature
+      return this.readStruct(type, struct);
+    }
+
+    let value:
       | null
       | number
+      | Array<number>
       | Uint8Array
       | Uint16Array
       | Uint32Array
@@ -1394,120 +1423,123 @@ export class DataStream {
       | Int16Array
       | Int32Array
       | Float32Array
-      | Float64Array
-      | string[] = null;
+      | Float64Array = null;
     let lengthOverride = null;
-    let charset = 'ASCII';
+    let charset: string | number = 'ASCII';
     let pos = this.position;
     let tp: string[];
-    let i: number;
     let u: null;
-    if (typeof t == 'string' && /:/.test(t)) {
-      tp = t.split(':');
-      t = tp[0];
+
+    if (typeof type == 'string' && /:/.test(type)) {
+      tp = type.split(':');
+      type = tp[0] as StructType;
       lengthOverride = parseInt(tp[1]);
     }
-    if (typeof t == 'string' && /,/.test(t)) {
-      tp = t.split(',');
-      t = tp[0];
+
+    if (typeof type == 'string' && /,/.test(type)) {
+      tp = type.split(',');
+      type = tp[0] as StructType;
       charset = parseInt(tp[1]);
     }
-    switch (t) {
+
+    switch (type) {
       case 'uint8':
-        v = this.readUint8();
+        value = this.readUint8();
         break;
       case 'int8':
-        v = this.readInt8();
+        value = this.readInt8();
         break;
 
       case 'uint16':
-        v = this.readUint16(this.endianness);
+        value = this.readUint16(this.endianness);
         break;
       case 'int16':
-        v = this.readInt16(this.endianness);
+        value = this.readInt16(this.endianness);
         break;
       case 'uint32':
-        v = this.readUint32(this.endianness);
+        value = this.readUint32(this.endianness);
         break;
       case 'int32':
-        v = this.readInt32(this.endianness);
+        value = this.readInt32(this.endianness);
         break;
       case 'float32':
-        v = this.readFloat32(this.endianness);
+        value = this.readFloat32(this.endianness);
         break;
       case 'float64':
-        v = this.readFloat64(this.endianness);
+        value = this.readFloat64(this.endianness);
         break;
 
       case 'uint16be':
-        v = this.readUint16(DataStream.BIG_ENDIAN);
+        value = this.readUint16(DataStream.BIG_ENDIAN);
         break;
       case 'int16be':
-        v = this.readInt16(DataStream.BIG_ENDIAN);
+        value = this.readInt16(DataStream.BIG_ENDIAN);
         break;
       case 'uint32be':
-        v = this.readUint32(DataStream.BIG_ENDIAN);
+        value = this.readUint32(DataStream.BIG_ENDIAN);
         break;
       case 'int32be':
-        v = this.readInt32(DataStream.BIG_ENDIAN);
+        value = this.readInt32(DataStream.BIG_ENDIAN);
         break;
       case 'float32be':
-        v = this.readFloat32(DataStream.BIG_ENDIAN);
+        value = this.readFloat32(DataStream.BIG_ENDIAN);
         break;
       case 'float64be':
-        v = this.readFloat64(DataStream.BIG_ENDIAN);
+        value = this.readFloat64(DataStream.BIG_ENDIAN);
         break;
 
       case 'uint16le':
-        v = this.readUint16(DataStream.LITTLE_ENDIAN);
+        value = this.readUint16(DataStream.LITTLE_ENDIAN);
         break;
       case 'int16le':
-        v = this.readInt16(DataStream.LITTLE_ENDIAN);
+        value = this.readInt16(DataStream.LITTLE_ENDIAN);
         break;
       case 'uint32le':
-        v = this.readUint32(DataStream.LITTLE_ENDIAN);
+        value = this.readUint32(DataStream.LITTLE_ENDIAN);
         break;
       case 'int32le':
-        v = this.readInt32(DataStream.LITTLE_ENDIAN);
+        value = this.readInt32(DataStream.LITTLE_ENDIAN);
         break;
       case 'float32le':
-        v = this.readFloat32(DataStream.LITTLE_ENDIAN);
+        value = this.readFloat32(DataStream.LITTLE_ENDIAN);
         break;
       case 'float64le':
-        v = this.readFloat64(DataStream.LITTLE_ENDIAN);
+        value = this.readFloat64(DataStream.LITTLE_ENDIAN);
         break;
 
       case 'cstring':
-        v = this.readCString(lengthOverride);
+        value = this.readCString(lengthOverride);
         break;
 
       case 'string':
-        v = this.readString(lengthOverride, charset);
+        // @ts-expect-error FIXME: charset expected to be string, but can also be number
+        value = this.readString(lengthOverride, charset);
         break;
 
       case 'u16string':
-        v = this.readUCS2String(lengthOverride, this.endianness);
+        value = this.readUCS2String(lengthOverride, this.endianness);
         break;
 
       case 'u16stringle':
-        v = this.readUCS2String(lengthOverride, DataStream.LITTLE_ENDIAN);
+        value = this.readUCS2String(lengthOverride, DataStream.LITTLE_ENDIAN);
         break;
 
       case 'u16stringbe':
-        v = this.readUCS2String(lengthOverride, DataStream.BIG_ENDIAN);
+        value = this.readUCS2String(lengthOverride, DataStream.BIG_ENDIAN);
         break;
 
       default:
-        if (t.length == 3) {
-          let ta = t[1];
-          let len = t[2];
+        if (Array.isArray(type) && type.length == 3) {
+          let ta = type[1];
+          let len = type[2];
           let length: null | number = 0;
           if (typeof len == 'function') {
-            length = len(struct, this, t);
+            length = len(struct, this, type);
           } else if (typeof len == 'string' && struct[len] != null) {
             length = parseInt(struct[len]);
           } else {
-            length = parseInt(len);
+            // NOTE: this used to be length = len
+            length = typeof len === 'number' ? len : parseInt(len);
           }
           if (typeof ta == 'string') {
             let tap = ta.replace(/(le|be)$/, '');
@@ -1522,71 +1554,70 @@ export class DataStream {
             }
             switch (tap) {
               case 'uint8':
-                v = this.readUint8Array(length);
+                value = this.readUint8Array(length);
                 break;
               case 'uint16':
-                v = this.readUint16Array(length, endianness);
+                value = this.readUint16Array(length, endianness);
                 break;
               case 'uint32':
-                v = this.readUint32Array(length, endianness);
+                value = this.readUint32Array(length, endianness);
                 break;
               case 'int8':
-                v = this.readInt8Array(length);
+                value = this.readInt8Array(length);
                 break;
               case 'int16':
-                v = this.readInt16Array(length, endianness);
+                value = this.readInt16Array(length, endianness);
                 break;
               case 'int32':
-                v = this.readInt32Array(length, endianness);
+                value = this.readInt32Array(length, endianness);
                 break;
               case 'float32':
-                v = this.readFloat32Array(length, endianness);
+                value = this.readFloat32Array(length, endianness);
                 break;
               case 'float64':
-                v = this.readFloat64Array(length, endianness);
+                value = this.readFloat64Array(length, endianness);
                 break;
               case 'cstring':
               case 'utf16string':
               case 'string':
                 if (length == null) {
-                  v = [];
+                  value = [];
                   while (!this.isEof()) {
                     u = this.readType(ta, struct);
                     if (u == null) break;
-                    v.push(u);
+                    value.push(u);
                   }
                 } else {
-                  v = new Array(length);
-                  for (i = 0; i < length; i++) {
-                    v[i] = this.readType(ta, struct);
+                  value = new Array(length);
+                  for (let i = 0; i < length; i++) {
+                    value[i] = this.readType(ta, struct);
                   }
                 }
                 break;
             }
           } else {
             if (len == '*') {
-              v = [];
-              var tmp_buffer = this.buffer;
+              value = [];
               while (true) {
-                var p = this.position;
+                const p = this.position;
                 try {
                   var o = this.readType(ta, struct);
                   if (o == null) {
                     this.position = p;
                     break;
                   }
-                  v.push(o);
+                  value.push(o);
                 } catch (e) {
                   this.position = p;
                   break;
                 }
               }
             } else {
-              v = new Array(length);
-              for (i = 0; i < length; i++) {
+              value = new Array(length);
+              for (let i = 0; i < length; i++) {
                 u = this.readType(ta, struct);
                 if (u == null) return null;
-                v[i] = u;
+                value[i] = u;
               }
             }
           }
@@ -1596,7 +1627,7 @@ export class DataStream {
     if (lengthOverride != null) {
       this.position = pos + lengthOverride;
     }
-    return v;
+    return value;
   }
 
   /**
@@ -1607,9 +1638,9 @@ export class DataStream {
    * Nice for quickly reading in data. Warning: potentially modifies the buffer
    * contents.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} endianness Endianness of the data to read.
-   * @return {Object} Int32Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return Int32Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
   mapInt32Array(length: number, endianness?: boolean) {
@@ -1628,9 +1659,9 @@ export class DataStream {
    * Nice for quickly reading in data. Warning: potentially modifies the buffer
    * contents.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} endianness Endianness of the data to read.
-   * @return {Object} Int16Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return Int16Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
   mapInt16Array(length: number, endianness: boolean) {
@@ -1646,9 +1677,9 @@ export class DataStream {
    *
    * Nice for quickly reading in data.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} endianness Endianness of the data to read.
-   * @return {Object} Int8Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return Int8Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
   mapInt8Array(length: number, endianness?: boolean) {
@@ -1666,9 +1697,9 @@ export class DataStream {
    * Nice for quickly reading in data. Warning: potentially modifies the buffer
    * contents.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} endianness Endianness of the data to read.
-   * @return {Object} Uint32Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return Uint32Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
   mapUint32Array(length: number, endianness?: boolean) {
@@ -1687,9 +1718,9 @@ export class DataStream {
    * Nice for quickly reading in data. Warning: potentially modifies the buffer
    * contents.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} endianness Endianness of the data to read.
-   * @return {Object} Uint16Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return Uint16Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
   mapUint16Array(length: number, endianness?: boolean) {
@@ -1708,9 +1739,9 @@ export class DataStream {
    * Nice for quickly reading in data. Warning: potentially modifies the buffer
    * contents.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} endianness Endianness of the data to read.
-   * @return {Object} Float64Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return Float64Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
   mapFloat64Array(length: number, endianness?: boolean) {
@@ -1729,9 +1760,9 @@ export class DataStream {
    * Nice for quickly reading in data. Warning: potentially modifies the buffer
    * contents.
    *
-   * @param {number} length Number of elements to map.
-   * @param {?boolean} endianness Endianness of the data to read.
-   * @return {Object} Float32Array to the DataStream backing buffer.
+   * @param length Number of elements to map.
+   * @param endianness Endianness of the data to read.
+   * @return Float32Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
   mapFloat32Array(length: number, endianness?: boolean) {

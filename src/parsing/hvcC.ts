@@ -1,5 +1,6 @@
-import { Box } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { Box } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { NaluArray } from '#/types';
 
 export class hvcCBox extends Box {
   configurationVersion?: number;
@@ -19,19 +20,15 @@ export class hvcCBox extends Box {
   numTemporalLayers?: number;
   temporalIdNested?: number;
   lengthSizeMinusOne?: number;
-  nalu_arrays?: unknown[];
+  nalu_arrays?: Array<NaluArray>;
 
   constructor(size?: number) {
     super('hvcC', size);
   }
 
   parse(stream: MultiBufferStream) {
-    var i, j;
-    var nb_nalus;
-    var length;
-    var tmp_byte;
     this.configurationVersion = stream.readUint8();
-    tmp_byte = stream.readUint8();
+    let tmp_byte = stream.readUint8();
     this.general_profile_space = tmp_byte >> 6;
     this.general_tier_flag = (tmp_byte & 0x20) >> 5;
     this.general_profile_idc = tmp_byte & 0x1f;
@@ -52,18 +49,18 @@ export class hvcCBox extends Box {
 
     this.nalu_arrays = [];
     var numOfArrays = stream.readUint8();
-    for (i = 0; i < numOfArrays; i++) {
-      var nalu_array = [];
+    for (let i = 0; i < numOfArrays; i++) {
+      const nalu_array = [] as NaluArray;
       this.nalu_arrays.push(nalu_array);
       tmp_byte = stream.readUint8();
       nalu_array.completeness = (tmp_byte & 0x80) >> 7;
       nalu_array.nalu_type = tmp_byte & 0x3f;
       var numNalus = stream.readUint16();
-      for (j = 0; j < numNalus; j++) {
-        var nalu = {};
-        nalu_array.push(nalu);
-        length = stream.readUint16();
-        nalu.data = stream.readUint8Array(length);
+      for (let j = 0; j < numNalus; j++) {
+        const length = stream.readUint16();
+        nalu_array.push({
+          data: stream.readUint8Array(length),
+        });
       }
     }
   }

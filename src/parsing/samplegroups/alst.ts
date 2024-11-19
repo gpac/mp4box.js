@@ -1,5 +1,5 @@
-import { SampleGroupEntry } from '../../box';
-import type { MultiBufferStream } from '../../buffer';
+import { SampleGroupEntry } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 export class alstSampleGroupEntry extends SampleGroupEntry {
   first_output_sample?: number;

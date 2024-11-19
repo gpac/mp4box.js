@@ -1,5 +1,7 @@
-import { Box } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { Box } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { MP4BoxStream } from '#/stream';
+import { DataStream } from '../DataStream';
 
 export class avcCBox extends Box {
   configurationVersion?: number;
@@ -17,7 +19,7 @@ export class avcCBox extends Box {
     super('avcC', size);
   }
 
-  parse(stream: MultiBufferStream) {
+  parse(stream: DataStream | MP4BoxStream) {
     var i;
     var toparse;
     this.configurationVersion = stream.readUint8();

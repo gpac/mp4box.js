@@ -1,5 +1,5 @@
+import { MultiBufferStream } from '#/buffer';
 import { SampleGroupEntry } from '../../box';
-import { MultiBufferStream } from '../../buffer';
 
 export class teleSampleGroupEntry extends SampleGroupEntry {
   level_independently_decodable?: number;

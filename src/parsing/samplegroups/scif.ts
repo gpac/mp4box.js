@@ -1,6 +1,6 @@
-import { SampleGroupEntry } from '../../box';
-import { MultiBufferStream } from '../../buffer';
-import { Log } from '../../log';
+import { SampleGroupEntry } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Log } from '#/log';
 
 export class scifSampleGroupEntry extends SampleGroupEntry {
   parse(stream: MultiBufferStream) {

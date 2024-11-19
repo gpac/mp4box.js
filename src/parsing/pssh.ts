@@ -1,6 +1,6 @@
-import { FullBox } from '../box';
-import { BoxParser } from '../box-parser';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { parseHex16 } from '../box-parse';
 
 export class psshBox extends FullBox {
   system_id?: unknown;
@@ -12,12 +12,12 @@ export class psshBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    this.system_id = BoxParser.parseHex16(stream);
+    this.system_id = parseHex16(stream);
     if (this.version > 0) {
       var count = stream.readUint32();
       this.kid = [];
       for (var i = 0; i < count; i++) {
-        this.kid[i] = BoxParser.parseHex16(stream);
+        this.kid[i] = parseHex16(stream);
       }
     }
     var datasize = stream.readUint32();

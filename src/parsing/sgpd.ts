@@ -1,10 +1,28 @@
-import { FullBox, SampleGroupEntry } from '../box';
-import { BoxParser } from '../box-parser';
-import { MultiBufferStream } from '../buffer';
-import { Log } from '../log';
+import { FullBox, SampleGroupEntry } from '#/box';
+import { BoxParser } from '#/box-parser';
+import { MultiBufferStream } from '#/buffer';
+import { Log } from '#/log';
 
 export class sgpdBox extends FullBox {
-  grouping_type?: string;
+  grouping_type?:
+    | 'alst'
+    | 'avll'
+    | 'avss'
+    | 'dtrt'
+    | 'mvif'
+    | 'prol'
+    | 'rap'
+    | 'rash'
+    | 'roll'
+    | 'scif'
+    | 'scnm'
+    | 'seig'
+    | 'stsa'
+    | 'sync'
+    | 'tele'
+    | 'tsas'
+    | 'tscl'
+    | 'vipr';
   default_length?: number;
   default_group_description_index?: number;
   default_sample_description_index?: number;

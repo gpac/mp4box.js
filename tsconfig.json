@@ -1,13 +1,22 @@
 {
   "compilerOptions": {
-    "strict": true,
+    "strict": false,
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "types": ["vite/client"],
-    "noEmit": true,
-    "isolatedModules": true
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "isolatedModules": false,
+    "useDefineForClassFields": false,
+    "allowJs": true,
+    "paths": {
+      "#/*": ["./src/*"]
+    }
   }
 }

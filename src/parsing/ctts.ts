@@ -1,10 +1,11 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Sample } from '#/types';
 import { Log } from '../log';
 
 export class cttsBox extends FullBox {
-  sample_counts?: number[];
-  sample_offsets?: number[];
+  sample_counts?: Array<number>;
+  sample_offsets?: Array<number>;
 
   constructor(size?: number) {
     super('ctts', size);
@@ -53,7 +54,7 @@ export class cttsBox extends FullBox {
   }
 
   /** @bundle box-unpack.js */
-  unpack(samples: unknown[]) {
+  unpack(samples: Array<Sample>) {
     let k = 0;
     for (let i = 0; i < this.sample_counts.length; i++) {
       for (let j = 0; j < this.sample_counts[i]; j++) {

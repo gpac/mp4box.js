@@ -3,166 +3,102 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
-import { Box } from './box';
-import { boxEqual } from './box-diff';
-import { parseOneBox } from './box-parse';
-import { BoxParser } from './box-parser';
-import { MultiBufferStream } from './buffer';
-import { mdatBox, moofBox } from './codecs-all';
-import { Buffer } from './constants';
-import { DataStream } from './DataStream';
-import { Log } from './log';
-import { MP4BoxStream } from './stream';
+import { Box, Output, SampleEntry } from '#/box';
+import { boxEqual } from '#/box-diff';
+import { parseOneBox } from '#/box-parse';
+import { BoxParser } from '#/box-parser';
+import { MultiBufferStream } from '#/buffer';
+import {
+  ERR_NOT_ENOUGH_DATA,
+  TFHD_FLAG_BASE_DATA_OFFSET,
+  TFHD_FLAG_DEFAULT_BASE_IS_MOOF,
+  TFHD_FLAG_SAMPLE_DESC,
+  TFHD_FLAG_SAMPLE_DUR,
+  TFHD_FLAG_SAMPLE_FLAGS,
+  TFHD_FLAG_SAMPLE_SIZE,
+  TKHD_FLAG_ENABLED,
+  TKHD_FLAG_IN_MOVIE,
+  TKHD_FLAG_IN_PREVIEW,
+  TRUN_FLAGS_CTS_OFFSET,
+  TRUN_FLAGS_DATA_OFFSET,
+  TRUN_FLAGS_DURATION,
+  TRUN_FLAGS_FIRST_FLAG,
+  TRUN_FLAGS_FLAGS,
+  TRUN_FLAGS_SIZE,
+} from '#/constants';
+import { DataStream } from '#/DataStream';
+import { Log } from '#/log';
+import { avcCBox } from '#/parsing/avcC';
+import {
+  dinfBox,
+  hmhdBox,
+  mdatBox,
+  mdiaBox,
+  minfBox,
+  moofBox,
+  moovBox,
+  mvexBox,
+  nmhdBox,
+  stblBox,
+  trafBox,
+  trakBox,
+} from '#/parsing/defaults';
+import { drefBox } from '#/parsing/dref';
+import { elngBox } from '#/parsing/elng';
+import { EntityToGroup } from '#/parsing/EntityToGroup';
+import { ftypBox } from '#/parsing/ftyp';
+import { hdlrBox } from '#/parsing/hdlr';
+import { hvcCBox } from '#/parsing/hvcC';
+import { mdhdBox } from '#/parsing/mdhd';
+import { mehdBox } from '#/parsing/mehd';
+import { metaBox } from '#/parsing/meta';
+import { mfhdBox } from '#/parsing/mfhd';
+import { mvhdBox } from '#/parsing/mvhd';
+import { sbgpBox } from '#/parsing/sbgp';
+import { sdtpBox } from '#/parsing/sdtp';
+import { sidxBox } from '#/parsing/sidx';
+import { smhdBox } from '#/parsing/smhd';
+import { stcoBox } from '#/parsing/stco';
+import { sthdBox } from '#/parsing/sthd';
+import { stscBox } from '#/parsing/stsc';
+import { stsdBox } from '#/parsing/stsd';
+import { stszBox } from '#/parsing/stsz';
+import { sttsBox } from '#/parsing/stts';
+import { SubSample } from '#/parsing/subs';
+import { tfdtBox } from '#/parsing/tfdt';
+import { tfhdBox } from '#/parsing/tfhd';
+import { tkhdBox } from '#/parsing/tkhd';
+import { trexBox } from '#/parsing/trex';
+import { trunBox } from '#/parsing/trun';
+import { vmhdBox } from '#/parsing/vmhd';
+import { MP4BoxStream } from '#/stream';
+import {
+  Description,
+  ExtractedTrack,
+  FragmentedTrack,
+  IncompleteBox,
+  IsoFileOptions,
+  Item,
+  Movie,
+  MP4BoxBuffer,
+  Sample,
+  SampleGroup,
+  Track,
+} from '#/types';
+import { urlBox } from './parsing/url';
 
-interface FragmentedTrack {
-  id: number;
-  user: unknown;
-  trak: unknown;
-  segmentStream: unknown;
-  nb_samples: number;
-  rapAlignement: unknown;
-}
-interface ExtractedTrack {
-  id: number;
-  user: unknown;
-  trak: unknown;
-  nb_samples: number;
-  samples: Array<unknown>;
-}
-
-interface IsoFileOptions {
-  brands?: string;
-  description_boxes?: unknown;
-  duration?: number;
-  height?: number;
-  id: string;
-  language?: string;
-  layer?: number;
-  media_duration?: number;
-  rate?: number;
-  timescale?: number;
-  type?: unknown;
-  width?: number;
-  hdlr?: string;
-  name: string;
-}
-
-interface Sample {
-  alreadyRead?: number;
-  cts?: unknown;
-  data?: unknown;
-  degradation_priority?: unknown;
-  depends_on?: unknown;
-  description_index?: unknown;
-  description?: unknown;
-  dts?: unknown;
-  duration?: unknown;
-  has_redundancy?: unknown;
-  is_depended_on?: unknown;
-  is_leading?: unknown;
-  is_sync?: unknown;
-  moof_number?: unknown;
-  number_in_traf?: unknown;
-  number?: unknown;
-  offset?: unknown;
-  size?: unknown;
-  subsamples?: unknown;
-  timescale?: unknown;
-  track_id?: unknown;
-}
-
-interface Track {
-  alternate_group?: unknown;
-  audio?: unknown;
-  bitrate?: unknown;
-  codec?: unknown;
-  created?: unknown;
-  cts_shift?: unknown;
-  duration?: unknown;
-  edits?: unknown;
-  id?: unknown;
-  kind?: unknown;
-  language?: unknown;
-  layer?: unknown;
-  matrix?: unknown;
-  modified?: unknown;
-  movie_duration?: unknown;
-  movie_timescale?: unknown;
-  name?: unknown;
-  nb_samples?: unknown;
-  references?: unknown;
-  samples_duration?: unknown;
-  samples: Array<Sample>;
-  size?: unknown;
-  timescale?: unknown;
-  track_height?: unknown;
-  track_width?: unknown;
-  type?: unknown;
-  video?: unknown;
-  volume?: unknown;
-}
-
-interface Trak {
-  mdia: {
-    minf: { stbl: { stsd: { entries: unknown[] }; cslg: unknown } };
-    hdlr: { name: unknown };
-    mdhd: { timescale: unknown; duration: unknown; languageString: unknown };
-    elng: { extended_language: unknown };
-  };
-  tkhd: {
-    track_id: number;
-    creation_time: number;
-    modification_time: number;
-    duration: unknown;
-    layer: unknown;
-    alternate_group: unknown;
-    volume: unknown;
-    matrix: unknown;
-    width: number;
-    height: number;
-  };
-  tref: { boxes: string | any[] };
-  edts: { elst: unknown[] };
-  samples_duration: unknown;
-  udta: { kinds: string | any[] };
-  samples: Array<Sample>;
-  samples_size: number;
-  nextSample: number;
-}
-
-interface Movie {
-  hasMoov?: boolean;
-  duration?: number;
-  timescale?: number;
-  isFragmented?: boolean;
-  fragment_duration?: unknown;
-  isProgressive?: boolean;
-  hasIOD?: boolean;
-  brands?: Array<string>;
-  created?: unknown;
-  modified?: unknown;
-  tracks?: Array<Track>;
-  audioTracks?: Array<Track>;
-  videoTracks?: Array<Track>;
-  subtitleTracks?: Array<Track>;
-  metadataTracks?: Array<Track>;
-  hintTracks?: Array<Track>;
-  otherTracks?: Array<Track>;
-  mime: string;
-}
-
-class SampleGroupInfo {
+export class SampleGroupInfo {
   last_sample_in_run = -1;
   entry_index = -1;
 
-  description: unknown;
-  fragment_description: unknown;
-  is_fragment: unknown;
+  description: Description;
+  fragment_description: Description;
+  is_fragment: boolean;
 
   constructor(
     public grouping_type: unknown,
-    public grouping_type_parameter: number,
-    public sbgp?: undefined,
+    public grouping_type_parameter: unknown,
+    public sbgp?: sbgpBox,
   ) {}
 }
 
@@ -188,11 +124,15 @@ export class ISOFile {
   /** Boolean keeping track of the call to onReady, to avoid double calls */
   readySent = false;
   /** Callback to call when segments are ready */
-  onSegment = null;
+  onSegment:
+    | ((id: number, user: unknown, buffer: ArrayBuffer, nextSample: number, last: boolean) => void)
+    | null = null;
   /** Callback to call when samples are ready */
-  onSamples = null;
+  onSamples: ((id: any, user: any, samples: Array<Sample>) => void) | null = null;
   /** Callback to call when there is an error in the parsing or processing of samples */
-  onError = null;
+  onError: (() => void) | null = null;
+
+  onItem?: (() => void) | null = null;
   /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
   sampleListBuilt = false;
   /** Array of Track objects for which fragmentation of samples is requested */
@@ -212,26 +152,45 @@ export class ISOFile {
   /** Boolean keeping track of the call to onSidx, to avoid double calls */
   sidxSent = false;
 
-  moov: unknown;
-  nextSeekPosition: unknown;
-  sidx: unknown;
-  meta: unknown;
-  ftyp: unknown;
-  static type: boolean;
-  static boxes: unknown;
+  moov: moovBox;
+  nextSeekPosition: number;
+  sidx: sidxBox;
+  meta: metaBox;
+  ftyp: ftypBox;
+  static type: unknown;
+  static boxes: Array<Box>;
+  initial_duration: number;
 
-  constructor(stream: MultiBufferStream) {
+  /** @bundle isofile-item-processing.js */
+  items: Array<Item> = [];
+  /** @bundle isofile-item-processing.js */
+  entity_groups: Array<{
+    id: number;
+    entity_ids: Array<number>;
+    type: string;
+    properties?: {
+      boxes: Array<Box>;
+    };
+  }> = [];
+  /**
+   * size of the buffers allocated for samples
+   *
+   * @bundle isofile-item-processing.js
+   */
+  itemsDataSize = 0;
+
+  constructor(stream?: MultiBufferStream) {
     this.stream = stream || new MultiBufferStream();
   }
 
   setSegmentOptions(
     id: number,
     user: unknown,
-    options: { nbSamples: number; rapAlignement: unknown },
+    options: { nbSamples: number; rapAlignement: boolean },
   ) {
     var trak = this.getTrackById(id);
     if (trak) {
-      const fragTrack = {
+      const fragTrack: FragmentedTrack = {
         id: id,
         user: user,
         trak: trak,
@@ -293,9 +252,6 @@ export class ISOFile {
   }
 
   parse() {
-    let found: unknown;
-    let ret: { code: unknown; box: Box };
-    let box: Box;
     let parseBoxHeadersOnly = false;
 
     if (this.restoreParsePosition) {
@@ -315,8 +271,8 @@ export class ISOFile {
         if (this.saveParsePosition) {
           this.saveParsePosition();
         }
-        ret = parseOneBox(this.stream, parseBoxHeadersOnly);
-        if (ret.code === BoxParser.ERR_NOT_ENOUGH_DATA) {
+        const ret = parseOneBox(this.stream, parseBoxHeadersOnly);
+        if (ret.code === ERR_NOT_ENOUGH_DATA) {
           if (this.processIncompleteBox) {
             if (this.processIncompleteBox(ret)) {
               continue;
@@ -327,10 +283,9 @@ export class ISOFile {
             return;
           }
         } else {
-          var box_type: string;
           /* the box is entirely parsed */
-          box = ret.box;
-          box_type = box.type !== 'uuid' ? box.type : box.uuid;
+          const box = ret.box;
+          const box_type = box.type !== 'uuid' ? box.type : box.uuid;
           /* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
           this.boxes.push(box);
           /* but also store box in a property for more direct access */
@@ -366,7 +321,7 @@ export class ISOFile {
     }
   }
 
-  checkBuffer(ab?: Buffer) {
+  checkBuffer(ab?: MP4BoxBuffer) {
     if (ab === null || ab === undefined) {
       throw 'Buffer must be defined and non empty';
     }
@@ -394,8 +349,8 @@ export class ISOFile {
 
   /* Processes a new ArrayBuffer (with a fileStart property)
      Returns the next expected file position, or undefined if not ready to parse */
-  appendBuffer(ab: Buffer, last: unknown) {
-    var nextFileStart: string | number;
+  appendBuffer(ab: MP4BoxBuffer, last: boolean) {
+    var nextFileStart: number;
     if (!this.checkBuffer(ab)) {
       return;
     }
@@ -485,22 +440,10 @@ export class ISOFile {
 
   getInfo() {
     let movie = {} as Movie;
-    let trak: Trak;
+    let trak: trakBox;
     let track: Track;
     let ref: Track['references'][number];
-    let sample_desc: {
-      getCodec: () => any;
-      isAudio: () => any;
-      getSampleRate: () => any;
-      getChannelCount: () => any;
-      getSampleSize: () => any;
-      isVideo: () => any;
-      getWidth: () => any;
-      getHeight: () => any;
-      isSubtitle: () => any;
-      isHint: () => any;
-      isMetadata: () => any;
-    };
+    let sample_desc: SampleEntry;
     var _1904 = new Date('1904-01-01T00:00:00Z').getTime();
 
     if (this.moov) {
@@ -528,58 +471,65 @@ export class ISOFile {
       for (let i = 0; i < this.moov.traks.length; i++) {
         trak = this.moov.traks[i];
         sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
-        track = {} as Track;
+        track = {
+          id: trak.tkhd.track_id,
+          name: trak.mdia.hdlr.name,
+          created: new Date(_1904 + trak.tkhd.creation_time * 1000),
+          modified: new Date(_1904 + trak.tkhd.modification_time * 1000),
+          movie_duration: trak.tkhd.duration,
+          movie_timescale: movie.timescale,
+          layer: trak.tkhd.layer,
+          alternate_group: trak.tkhd.alternate_group,
+          volume: trak.tkhd.volume,
+          matrix: trak.tkhd.matrix,
+          track_width: trak.tkhd.width / (1 << 16),
+          track_height: trak.tkhd.height / (1 << 16),
+          timescale: trak.mdia.mdhd.timescale,
+          cts_shift: trak.mdia.minf.stbl.cslg,
+          duration: trak.mdia.mdhd.duration,
+          samples_duration: trak.samples_duration,
+          codec: sample_desc.getCodec(),
+          kind:
+            trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: '', value: '' },
+          // NOTE:   trak.mdia.elng used to be trak.mdia.eln
+          language: trak.mdia.elng
+            ? trak.mdia.elng.extended_language
+            : trak.mdia.mdhd.languageString,
+          nb_samples: trak.samples.length,
+          size: trak.samples_size,
+          bitrate: (track.size * 8 * track.timescale) / track.samples_duration,
+        };
+
         movie.tracks.push(track);
-        track.id = trak.tkhd.track_id;
-        track.name = trak.mdia.hdlr.name;
         track.references = [];
         if (trak.tref) {
           for (let j = 0; j < trak.tref.boxes.length; j++) {
-            ref = {};
+            ref = {
+              type: trak.tref.boxes[j].type,
+              track_ids: trak.tref.boxes[j].track_ids,
+            };
             track.references.push(ref);
-            ref.type = trak.tref.boxes[j].type;
-            ref.track_ids = trak.tref.boxes[j].track_ids;
           }
         }
         if (trak.edts) {
           track.edits = trak.edts.elst.entries;
         }
-        track.created = new Date(_1904 + trak.tkhd.creation_time * 1000);
-        track.modified = new Date(_1904 + trak.tkhd.modification_time * 1000);
-        track.movie_duration = trak.tkhd.duration;
-        track.movie_timescale = movie.timescale;
-        track.layer = trak.tkhd.layer;
-        track.alternate_group = trak.tkhd.alternate_group;
-        track.volume = trak.tkhd.volume;
-        track.matrix = trak.tkhd.matrix;
-        track.track_width = trak.tkhd.width / (1 << 16);
-        track.track_height = trak.tkhd.height / (1 << 16);
-        track.timescale = trak.mdia.mdhd.timescale;
-        track.cts_shift = trak.mdia.minf.stbl.cslg;
-        track.duration = trak.mdia.mdhd.duration;
-        track.samples_duration = trak.samples_duration;
-        track.codec = sample_desc.getCodec();
-        track.kind =
-          trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: '', value: '' };
-        track.language = trak.mdia.elng
-          ? trak.mdia.elng.extended_language
-          : trak.mdia.mdhd.languageString;
-        track.nb_samples = trak.samples.length;
-        track.size = trak.samples_size;
-        track.bitrate = (track.size * 8 * track.timescale) / track.samples_duration;
+
         if (sample_desc.isAudio()) {
           track.type = 'audio';
           movie.audioTracks.push(track);
-          track.audio = {};
-          track.audio.sample_rate = sample_desc.getSampleRate();
-          track.audio.channel_count = sample_desc.getChannelCount();
-          track.audio.sample_size = sample_desc.getSampleSize();
+          track.audio = {
+            sample_rate: sample_desc.getSampleRate(),
+            channel_count: sample_desc.getChannelCount(),
+            sample_size: sample_desc.getSampleSize(),
+          };
         } else if (sample_desc.isVideo()) {
           track.type = 'video';
           movie.videoTracks.push(track);
-          track.video = {};
-          track.video.width = sample_desc.getWidth();
-          track.video.height = sample_desc.getHeight();
+          track.video = {
+            width: sample_desc.getWidth(),
+            height: sample_desc.getHeight(),
+          };
         } else if (sample_desc.isSubtitle()) {
           track.type = 'subtitles';
           movie.subtitleTracks.push(track);
@@ -629,17 +579,15 @@ export class ISOFile {
   }
 
   processSamples(last?: boolean) {
-    var i: number;
-    var trak: { nextSample: number; samples: Array<Sample> };
     if (!this.sampleProcessingStarted) return;
 
     /* For each track marked for fragmentation,
        check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded)
        and create a fragment with it */
     if (this.isFragmentationInitialized && this.onSegment !== null) {
-      for (i = 0; i < this.fragmentedTracks.length; i++) {
+      for (let i = 0; i < this.fragmentedTracks.length; i++) {
         var fragTrak = this.fragmentedTracks[i];
-        trak = fragTrak.trak;
+        const trak = fragTrak.trak;
         while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
           /* The sample information is there (either because the file is not fragmented and this is not the last sample,
           or because the file is fragmented and the moof for that sample has been received */
@@ -696,9 +644,9 @@ export class ISOFile {
     if (this.onSamples !== null) {
       /* For each track marked for data export,
          check if the next sample is there (i.e. has been downloaded) and send it */
-      for (i = 0; i < this.extractedTracks.length; i++) {
+      for (let i = 0; i < this.extractedTracks.length; i++) {
         var extractTrak = this.extractedTracks[i];
-        trak = extractTrak.trak;
+        const trak = extractTrak.trak;
         while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
           Log.debug(
             'ISOFile',
@@ -763,14 +711,14 @@ export class ISOFile {
     }
   }
 
-  getTrackSample(track_id: number, number: unknown) {
+  getTrackSample(track_id: number, number: number) {
     var track = this.getTrackById(track_id);
     var sample = this.getSample(track, number);
     return sample;
   }
 
   /* Called by the application to release the resources associated to samples already forwarded to the application */
-  releaseUsedSamples(id: string, sampleNum: string | number) {
+  releaseUsedSamples(id: number, sampleNum: number) {
     var size = 0;
     var trak = this.getTrackById(id);
     if (!trak.lastValidSample) trak.lastValidSample = 0;
@@ -812,7 +760,7 @@ export class ISOFile {
 
   /* Finds the byte offset for a given time on a given track
      also returns the time of the previous rap */
-  seekTrack(time: number, useRap: unknown, trak: Trak) {
+  seekTrack(time: number, useRap: unknown, trak: trakBox) {
     let j: number;
     let sample: Sample;
     let seek_offset = Infinity;
@@ -884,21 +832,18 @@ export class ISOFile {
 
   /* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
   seek(time: number, useRap: unknown) {
-    var moov = this.moov;
-    var trak: unknown;
-    var trak_seek_info: { offset: unknown; time: unknown };
-    var i: number;
-    var seek_info = { offset: Infinity, time: Infinity };
+    const moov = this.moov;
+    let seek_info = { offset: Infinity, time: Infinity };
     if (!this.moov) {
       throw 'Cannot seek: moov not received!';
     } else {
-      for (i = 0; i < moov.traks.length; i++) {
-        trak = moov.traks[i];
+      for (let i = 0; i < moov.traks.length; i++) {
+        const trak = moov.traks[i];
         if (time > this.getTrackDuration(trak)) {
           // skip tracks that already ended
           continue;
         }
-        trak_seek_info = this.seekTrack(time, useRap, trak);
+        const trak_seek_info = this.seekTrack(time, useRap, trak);
         if (trak_seek_info.offset < seek_info.offset) {
           seek_info.offset = trak_seek_info.offset;
         }
@@ -947,14 +892,14 @@ export class ISOFile {
    * Rewrite the entire file
    * @bundle isofile-write.js
    */
-  write(outstream: unknown) {
+  write(outstream: MultiBufferStream) {
     for (var i = 0; i < this.boxes.length; i++) {
       this.boxes[i].write(outstream);
     }
   }
 
   /** @bundle isofile-write.js */
-  createFragment(track_id: number, sampleNumber: string | number, stream_: unknown) {
+  createFragment(track_id: number, sampleNumber: number, _stream: DataStream) {
     var trak = this.getTrackById(track_id);
     var sample = this.getSample(trak, sampleNumber);
     if (sample == null) {
@@ -962,10 +907,11 @@ export class ISOFile {
       return null;
     }
 
-    var stream = stream_ || new DataStream();
+    var stream = _stream || new DataStream();
     stream.endianness = DataStream.BIG_ENDIAN;
 
     var moof = this.createSingleSampleMoof(sample);
+    // @ts-expect-error FIXME: expects MultiBufferStream
     moof.write(stream);
 
     /* adjusting the data_offset now that the moof size is known*/
@@ -979,8 +925,9 @@ export class ISOFile {
       moof.trafs[0].truns[0].data_offset,
     );
 
-    var mdat = new BoxParser.mdatBox();
+    var mdat = new mdatBox();
     mdat.data = sample.data;
+    // @ts-expect-error FIXME: expects MultiBufferStream
     mdat.write(stream);
     return stream;
   }
@@ -990,31 +937,34 @@ export class ISOFile {
    * @bundle isofile-write.js
    */
   static writeInitializationSegment(
-    ftyp: { write: (arg0: unknown) => void },
-    moov: { add: (arg0: string) => any; traks: string | any[]; write: (arg0: unknown) => void },
-    total_duration: unknown,
-    sample_duration: unknown,
+    ftyp: ftypBox,
+    moov: moovBox,
+    total_duration: number,
+    sample_duration: number,
   ) {
     Log.debug('ISOFile', 'Generating initialization segment');
 
     const stream = new DataStream();
     stream.endianness = DataStream.BIG_ENDIAN;
+    // @ts-expect-error FIXME: expects MultiBufferStream
     ftyp.write(stream);
 
     /* we can now create the new mvex box */
-    let mvex = moov.add('mvex');
+    const mvex = moov.addBox(new mvexBox());
     if (total_duration) {
-      mvex.add('mehd').set('fragment_duration', total_duration);
+      const mehd = mvex.addBox(new mehdBox());
+      mehd.fragment_duration = total_duration;
     }
     for (let i = 0; i < moov.traks.length; i++) {
-      mvex
-        .add('trex')
-        .set('track_id', moov.traks[i].tkhd.track_id)
-        .set('default_sample_description_index', 1)
-        .set('default_sample_duration', sample_duration)
-        .set('default_sample_size', 0)
-        .set('default_sample_flags', 1 << 16);
+      const trex = mvex.addBox(new trexBox());
+      trex.track_id = moov.traks[i].tkhd.track_id;
+      trex.default_sample_description_index = 1;
+      trex.default_sample_duration = sample_duration;
+      trex.default_sample_size = 0;
+      trex.default_sample_flags = 1 << 16;
     }
+
+    // @ts-expect-error FIXME: fix stream types
     moov.write(stream);
 
     return stream.buffer;
@@ -1024,6 +974,7 @@ export class ISOFile {
   save(name: string) {
     const stream = new DataStream();
     stream.endianness = DataStream.BIG_ENDIAN;
+    // @ts-expect-error FIXME: figure out stream-type
     this.write(stream);
     stream.save(name);
   }
@@ -1032,15 +983,13 @@ export class ISOFile {
   getBuffer() {
     const stream = new DataStream();
     stream.endianness = DataStream.BIG_ENDIAN;
+    // @ts-expect-error   fix stream type
     this.write(stream);
     return stream.buffer;
   }
 
   /** @bundle isofile-write.js */
   initializeSegmentation() {
-    // let initSegs: unknown[];
-    // let trak: { tkhd: { track_id: number } };
-    // let seg: { id?: unknown; user?: unknown; buffer?: unknown };
     if (this.onSegment === null) {
       Log.warn('MP4Box', 'No segmentation callback set!');
     }
@@ -1051,7 +1000,7 @@ export class ISOFile {
     }
     const initSegs = [];
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
-      const moov = new BoxParser.moovBox();
+      const moov = new moovBox();
       moov.mvhd = this.moov.mvhd;
       moov.boxes.push(moov.mvhd);
       const trak = this.getTrackById(this.fragmentedTracks[i].id);
@@ -1119,11 +1068,11 @@ export class ISOFile {
 
   /** @bundle isofile-sample-processing.js */
   static initSampleGroups(
-    trak: { sample_groups_info: unknown[] },
-    traf: { sample_groups_info: unknown[] } | null,
+    trak: trakBox,
+    traf: trafBox | null,
     sbgps: string | any[],
     trak_sgpds: string | any[],
-    traf_sgpds: string | any[] | undefined,
+    traf_sgpds?: string | any[],
   ) {
     let sample_group_info: SampleGroupInfo;
     let sample_group_key: string;
@@ -1200,10 +1149,10 @@ export class ISOFile {
     var index: number;
     sample.sample_groups = [];
     for (k in sample_groups_info) {
-      sample.sample_groups[k] = {};
-      sample.sample_groups[k].grouping_type = sample_groups_info[k].grouping_type;
-      sample.sample_groups[k].grouping_type_parameter =
-        sample_groups_info[k].grouping_type_parameter;
+      sample.sample_groups[k] = {
+        grouping_type: sample_groups_info[k].grouping_type,
+        grouping_type_parameter: sample_groups_info[k].grouping_type_parameter,
+      } as SampleGroup;
       if (sample_number >= sample_groups_info[k].last_sample_in_run) {
         if (sample_groups_info[k].last_sample_in_run < 0) {
           sample_groups_info[k].last_sample_in_run = 0;
@@ -1223,7 +1172,7 @@ export class ISOFile {
         sample.sample_groups[k].group_description_index = -1; // special value for not defined
       }
       if (sample.sample_groups[k].group_description_index !== 0) {
-        let description: unknown;
+        let description: Description;
         if (sample_groups_info[k].fragment_description) {
           description = sample_groups_info[k].fragment_description;
         } else {
@@ -1251,16 +1200,7 @@ export class ISOFile {
   }
 
   /** @bundle isofile-sample-processing.js */
-  static process_sdtp(
-    sdtp: {
-      is_leading: { [x: string]: unknown };
-      sample_depends_on: { [x: string]: unknown };
-      sample_is_depended_on: { [x: string]: unknown };
-      sample_has_redundancy: { [x: string]: unknown };
-    },
-    sample: Sample,
-    number: number,
-  ) {
+  static process_sdtp(sdtp: sdtpBox, sample: Sample, number: number) {
     if (!sample) {
       return;
     }
@@ -1279,42 +1219,12 @@ export class ISOFile {
 
   /* Build initial sample list from  sample tables */
   buildSampleLists() {
-    var i: number;
-    var trak: unknown;
-    for (i = 0; i < this.moov.traks.length; i++) {
-      trak = this.moov.traks[i];
-      this.buildTrakSampleLists(trak);
+    for (let i = 0; i < this.moov.traks.length; i++) {
+      this.buildTrakSampleLists(this.moov.traks[i]);
     }
   }
 
-  buildTrakSampleLists(trak: {
-    samples: { duration: unknown }[];
-    samples_duration: number;
-    samples_size: number;
-    mdia: {
-      minf: {
-        stbl: {
-          stco: unknown;
-          co64: unknown;
-          stsc: unknown;
-          stsz: unknown;
-          stz2: unknown;
-          stts: unknown;
-          ctts: unknown;
-          stss: unknown;
-          stsd: unknown;
-          subs: unknown;
-          stdp: unknown;
-          sbgps: unknown;
-          sgpds: unknown;
-          sdtp: unknown;
-        };
-      };
-      mdhd: { timescale: unknown; duration: number };
-    };
-    tkhd: { track_id: number };
-    sample_groups_info: Array<SampleGroupInfo>;
-  }) {
+  buildTrakSampleLists(trak: trakBox) {
     var j: number, k: unknown;
     var chunk_run_index: number,
       chunk_index: number,
@@ -1325,17 +1235,18 @@ export class ISOFile {
     trak.samples = [];
     trak.samples_duration = 0;
     trak.samples_size = 0;
-    let stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
-    let stsc = trak.mdia.minf.stbl.stsc;
-    let stsz = trak.mdia.minf.stbl.stsz || trak.mdia.minf.stbl.stz2;
-    let stts = trak.mdia.minf.stbl.stts;
-    let ctts = trak.mdia.minf.stbl.ctts;
-    let stss = trak.mdia.minf.stbl.stss;
-    let stsd = trak.mdia.minf.stbl.stsd;
-    let subs = trak.mdia.minf.stbl.subs;
-    let stdp = trak.mdia.minf.stbl.stdp;
-    let sbgps = trak.mdia.minf.stbl.sbgps;
-    let sgpds = trak.mdia.minf.stbl.sgpds;
+
+    const stco = trak.mdia.minf.stbl.stco || trak.mdia.minf.stbl.co64;
+    const stsc = trak.mdia.minf.stbl.stsc;
+    const stsz = trak.mdia.minf.stbl.stsz || trak.mdia.minf.stbl.stz2;
+    const stts = trak.mdia.minf.stbl.stts;
+    const ctts = trak.mdia.minf.stbl.ctts;
+    const stss = trak.mdia.minf.stbl.stss;
+    const stsd = trak.mdia.minf.stbl.stsd;
+    const subs = trak.mdia.minf.stbl.subs;
+    const stdp = trak.mdia.minf.stbl.stdp;
+    const sbgps = trak.mdia.minf.stbl.sbgps;
+    const sgpds = trak.mdia.minf.stbl.sgpds;
 
     let last_sample_in_stts_run = -1;
     let stts_run_index = -1;
@@ -1353,14 +1264,16 @@ export class ISOFile {
 
     /* we build the samples one by one and compute their properties */
     for (j = 0; j < stsz.sample_sizes.length; j++) {
-      var sample = {};
-      sample.number = j;
-      sample.track_id = trak.tkhd.track_id;
-      sample.timescale = trak.mdia.mdhd.timescale;
-      sample.alreadyRead = 0;
+      var sample = {
+        number: j,
+        track_id: trak.tkhd.track_id,
+        timescale: trak.mdia.mdhd.timescale,
+        alreadyRead: 0,
+        size: stsz.sample_sizes[j],
+      } as Sample;
+
       trak.samples[j] = sample;
       /* size can be known directly */
-      sample.size = stsz.sample_sizes[j];
       trak.samples_size += sample.size;
       /* computing chunk-based properties (offset, sample description index)*/
       if (j === 0) {
@@ -1489,83 +1402,42 @@ export class ISOFile {
    * @bundle isofile-sample-processing.js
    */
   updateSampleLists() {
-    var i: number, j: number, k: number;
-    var default_sample_description_index: number,
-      default_sample_duration: unknown,
-      default_sample_size: unknown,
-      default_sample_flags: unknown;
-    var last_run_position: number;
-    var box: { type: string },
-      moof: { trafs: string | any[]; start: number },
-      traf: {
-        tfhd: {
-          track_id: number;
-          flags: number;
-          default_sample_description_index: unknown;
-          default_sample_duration: unknown;
-          default_sample_size: unknown;
-          default_sample_flags: unknown;
-          base_data_offset: number;
-        };
-        sample_number: number;
-        sbgps: string | any[];
-        sgpds: string | any[];
-        truns: string | any[];
-        first_sample_index: unknown;
-        tfdt: { baseMediaDecodeTime: unknown };
-        sample_groups_info: unknown;
-        subs: { entries: string | any[] };
-      },
-      trak: {
-        mdia: {
-          minf: { stbl: { sgpds: string | any[]; stsd: unknown[]; sbgps: string | any[] } };
-          mdhd: { timescale: unknown };
-        };
-        samples: unknown[];
-        tkhd: { track_id: number };
-        samples_size: unknown;
-        samples_duration: unknown;
-        first_traf_merged: boolean;
-        has_fragment_subsamples: boolean;
-      },
-      trex: {
-        default_sample_description_index: unknown;
-        default_sample_duration: unknown;
-        default_sample_size: unknown;
-        default_sample_flags: unknown;
-      };
-    var sample: Sample;
-    var sample_flags: number;
+    let default_sample_description_index: number;
+    let default_sample_duration: number;
+    let default_sample_size: number;
+    let default_sample_flags: number;
+    let last_run_position: number;
 
     if (this.moov === undefined) {
       return;
     }
+
     /* if the input file is fragmented and fetched in multiple downloads, we need to update the list of samples */
     while (this.lastMoofIndex < this.moofs.length) {
-      box = this.moofs[this.lastMoofIndex];
+      const box = this.moofs[this.lastMoofIndex];
       this.lastMoofIndex++;
       if (box.type == 'moof') {
-        moof = box;
-        for (i = 0; i < moof.trafs.length; i++) {
-          traf = moof.trafs[i];
-          trak = this.getTrackById(traf.tfhd.track_id);
-          trex = this.getTrexById(traf.tfhd.track_id);
-          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DESC) {
+        const moof = box;
+        for (let i = 0; i < moof.trafs.length; i++) {
+          const traf = moof.trafs[i];
+          const trak = this.getTrackById(traf.tfhd.track_id);
+          const trex = this.getTrexById(traf.tfhd.track_id);
+          if (traf.tfhd.flags & TFHD_FLAG_SAMPLE_DESC) {
             default_sample_description_index = traf.tfhd.default_sample_description_index;
           } else {
             default_sample_description_index = trex ? trex.default_sample_description_index : 1;
           }
-          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_DUR) {
+          if (traf.tfhd.flags & TFHD_FLAG_SAMPLE_DUR) {
             default_sample_duration = traf.tfhd.default_sample_duration;
           } else {
             default_sample_duration = trex ? trex.default_sample_duration : 0;
           }
-          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_SIZE) {
+          if (traf.tfhd.flags & TFHD_FLAG_SAMPLE_SIZE) {
             default_sample_size = traf.tfhd.default_sample_size;
           } else {
             default_sample_size = trex ? trex.default_sample_size : 0;
           }
-          if (traf.tfhd.flags & BoxParser.TFHD_FLAG_SAMPLE_FLAGS) {
+          if (traf.tfhd.flags & TFHD_FLAG_SAMPLE_FLAGS) {
             default_sample_flags = traf.tfhd.default_sample_flags;
           } else {
             default_sample_flags = trex ? trex.default_sample_flags : 0;
@@ -1575,10 +1447,10 @@ export class ISOFile {
           if (traf.sbgps.length > 0) {
             ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
           }
-          for (j = 0; j < traf.truns.length; j++) {
+          for (let j = 0; j < traf.truns.length; j++) {
             var trun = traf.truns[j];
-            for (k = 0; k < trun.sample_count; k++) {
-              sample = {};
+            for (let k = 0; k < trun.sample_count; k++) {
+              const sample: Sample = {};
               sample.moof_number = this.lastMoofIndex;
               sample.number_in_traf = traf.sample_number;
               traf.sample_number++;
@@ -1590,12 +1462,12 @@ export class ISOFile {
               sample.description_index = default_sample_description_index - 1;
               sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
               sample.size = default_sample_size;
-              if (trun.flags & BoxParser.TRUN_FLAGS_SIZE) {
+              if (trun.flags & TRUN_FLAGS_SIZE) {
                 sample.size = trun.sample_size[k];
               }
               trak.samples_size += sample.size;
               sample.duration = default_sample_duration;
-              if (trun.flags & BoxParser.TRUN_FLAGS_DURATION) {
+              if (trun.flags & TRUN_FLAGS_DURATION) {
                 sample.duration = trun.sample_duration[k];
               }
               trak.samples_duration += sample.duration;
@@ -1612,13 +1484,13 @@ export class ISOFile {
                 trak.first_traf_merged = true;
               }
               sample.cts = sample.dts;
-              if (trun.flags & BoxParser.TRUN_FLAGS_CTS_OFFSET) {
+              if (trun.flags & TRUN_FLAGS_CTS_OFFSET) {
                 sample.cts = sample.dts + trun.sample_composition_time_offset[k];
               }
-              sample_flags = default_sample_flags;
-              if (trun.flags & BoxParser.TRUN_FLAGS_FLAGS) {
+              let sample_flags = default_sample_flags;
+              if (trun.flags & TRUN_FLAGS_FLAGS) {
                 sample_flags = trun.sample_flags[k];
-              } else if (k === 0 && trun.flags & BoxParser.TRUN_FLAGS_FIRST_FLAG) {
+              } else if (k === 0 && trun.flags & TRUN_FLAGS_FIRST_FLAG) {
                 sample_flags = trun.first_sample_flags;
               }
               sample.is_sync = (sample_flags >> 16) & 0x1 ? false : true;
@@ -1628,9 +1500,9 @@ export class ISOFile {
               sample.has_redundancy = (sample_flags >> 20) & 0x3;
               sample.degradation_priority = sample_flags & 0xffff;
               //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
-              var bdop = traf.tfhd.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
-              var dbim = traf.tfhd.flags & BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
-              var dop = trun.flags & BoxParser.TRUN_FLAGS_DATA_OFFSET ? true : false;
+              var bdop = traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
+              var dbim = traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
+              var dop = trun.flags & TRUN_FLAGS_DATA_OFFSET ? true : false;
               var bdo = 0;
               if (!bdop) {
                 if (!dbim) {
@@ -1674,9 +1546,9 @@ export class ISOFile {
           if (traf.subs) {
             trak.has_fragment_subsamples = true;
             var sample_index = traf.first_sample_index;
-            for (j = 0; j < traf.subs.entries.length; j++) {
+            for (let j = 0; j < traf.subs.entries.length; j++) {
               sample_index += traf.subs.entries[j].sample_delta;
-              sample = trak.samples[sample_index - 1];
+              const sample = trak.samples[sample_index - 1];
               sample.subsamples = traf.subs.entries[j].subsamples;
             }
           }
@@ -1692,11 +1564,8 @@ export class ISOFile {
    *
    * @bundle isofile-sample-processing.js
    */
-  getSample(
-    trak: { samples: { [x: string]: unknown }; tkhd: { track_id: string } },
-    sampleNum: string,
-  ) {
-    var buffer: { byteLength: number; fileStart: number; usedBytes: number };
+  getSample(trak: trakBox, sampleNum: number) {
+    var buffer: MP4BoxBuffer;
     var sample = trak.samples[sampleNum];
 
     if (!this.moov) {
@@ -1750,13 +1619,13 @@ export class ISOFile {
               ')',
           );
 
-          DataStream.memcpy({
-            dst: sample.data.buffer,
-            dstOffset: sample.alreadyRead,
-            src: buffer,
-            srcOffset: sample.offset + sample.alreadyRead - buffer.fileStart,
-            byteLength: sample.size - sample.alreadyRead,
-          });
+          DataStream.memcpy(
+            sample.data.buffer,
+            sample.alreadyRead,
+            buffer,
+            sample.offset + sample.alreadyRead - buffer.fileStart,
+            sample.size - sample.alreadyRead,
+          );
 
           /* update the number of bytes used in this buffer and check if it needs to be removed */
           buffer.usedBytes += sample.size - sample.alreadyRead;
@@ -1785,13 +1654,15 @@ export class ISOFile {
               ')',
           );
 
-          DataStream.memcpy({
-            dst: sample.data.buffer,
-            dstOffset: sample.alreadyRead,
-            src: buffer,
-            srcOffset: sample.offset + sample.alreadyRead - buffer.fileStart,
-            byteLength: lengthAfterStart,
-          });
+          // NOTE:  this was an error before
+          //        it used to be DataStream.memcpy({...})
+          DataStream.memcpy(
+            sample.data.buffer,
+            sample.alreadyRead,
+            buffer,
+            sample.offset + sample.alreadyRead - buffer.fileStart,
+            lengthAfterStart,
+          );
           sample.alreadyRead += lengthAfterStart;
 
           /* update the number of bytes used in this buffer and check if it needs to be removed */
@@ -1811,7 +1682,7 @@ export class ISOFile {
    *
    * @bundle isofile-sample-processing.js
    */
-  releaseSample(trak: { samples: { [x: string]: unknown } }, sampleNum: string | number) {
+  releaseSample(trak: trakBox, sampleNum: number) {
     var sample = trak.samples[sampleNum];
     if (sample.data) {
       this.samplesDataSize -= sample.size;
@@ -1866,7 +1737,7 @@ export class ISOFile {
    *
    * @bundle isofile-sample-processing.js
    */
-  getTrackById(id: number) {
+  getTrackById(id: number): trakBox {
     if (this.moov === undefined) {
       return null;
     }
@@ -1878,71 +1749,44 @@ export class ISOFile {
   }
 
   /** @bundle isofile-item-processing.js */
-  items = [];
-
-  /** @bundle isofile-item-processing.js */
-  entity_groups = [];
-
-  /**
-   * size of the buffers allocated for samples
-   *
-   * @bundle isofile-item-processing.js
-   */
-  itemsDataSize = 0;
-
-  /** @bundle isofile-item-processing.js */
   flattenItemInfo() {
-    var items = this.items;
-    var entity_groups = this.entity_groups;
-    var i: number, j: number;
-    var item: {
-      id?: unknown;
-      ref_to?: unknown;
-      name?: unknown;
-      protection?: unknown;
-      type?: unknown;
-      content_type?: unknown;
-      content_encoding?: unknown;
-      source?: unknown;
-      extents?: unknown;
-      size?: unknown;
-      properties?: unknown;
-    };
-    var meta = this.meta;
+    let items = this.items;
+    let entity_groups = this.entity_groups;
+    let i: number, j: number;
+    let meta = this.meta;
     if (meta === null || meta === undefined) return;
     if (meta.hdlr === undefined) return;
     if (meta.iinf === undefined) return;
     for (i = 0; i < meta.iinf.item_infos.length; i++) {
-      item = {};
-      item.id = meta.iinf.item_infos[i].item_ID;
-      items[item.id] = item;
-      item.ref_to = [];
-      item.name = meta.iinf.item_infos[i].item_name;
-      if (meta.iinf.item_infos[i].protection_index > 0) {
-        item.protection = meta.ipro.protections[meta.iinf.item_infos[i].protection_index - 1];
-      }
-      if (meta.iinf.item_infos[i].item_type) {
-        item.type = meta.iinf.item_infos[i].item_type;
-      } else {
-        item.type = 'mime';
-      }
-      item.content_type = meta.iinf.item_infos[i].content_type;
-      item.content_encoding = meta.iinf.item_infos[i].content_encoding;
+      const id = meta.iinf.item_infos[i].item_ID;
+      items[id] = {
+        id,
+        name: meta.iinf.item_infos[i].item_name,
+        ref_to: [],
+        content_type: meta.iinf.item_infos[i].content_type,
+        content_encoding: meta.iinf.item_infos[i].content_encoding,
+        type: meta.iinf.item_infos[i].item_type ? meta.iinf.item_infos[i].item_type : 'mime',
+        protection:
+          meta.iinf.item_infos[i].protection_index > 0
+            ? meta.ipro.protections[meta.iinf.item_infos[i].protection_index - 1]
+            : undefined,
+      };
     }
     if (meta.grpl) {
       for (i = 0; i < meta.grpl.boxes.length; i++) {
-        entity_group = {};
-        entity_group.id = meta.grpl.boxes[i].group_id;
-        entity_group.entity_ids = meta.grpl.boxes[i].entity_ids;
-        entity_group.type = meta.grpl.boxes[i].type;
+        const entityGroup = meta.grpl.boxes[i] as EntityToGroup;
+        const entity_group = {
+          id: entityGroup.group_id,
+          entity_ids: entityGroup.entity_ids,
+          type: entityGroup.type,
+        };
         entity_groups[entity_group.id] = entity_group;
       }
     }
     if (meta.iloc) {
       for (i = 0; i < meta.iloc.items.length; i++) {
-        var offset: unknown;
-        var itemloc = meta.iloc.items[i];
-        item = items[itemloc.item_ID];
+        const itemloc = meta.iloc.items[i];
+        const item = items[itemloc.item_ID];
         if (itemloc.data_reference_index !== 0) {
           Log.warn('Item storage with reference to other files: not supported');
           item.source = meta.dinf.boxes[itemloc.data_reference_index - 1];
@@ -1960,10 +1804,11 @@ export class ISOFile {
         item.extents = [];
         item.size = 0;
         for (j = 0; j < itemloc.extents.length; j++) {
-          item.extents[j] = {};
-          item.extents[j].offset = itemloc.extents[j].extent_offset + itemloc.base_offset;
-          item.extents[j].length = itemloc.extents[j].extent_length;
-          item.extents[j].alreadyRead = 0;
+          item.extents[j] = {
+            offset: itemloc.extents[j].extent_offset + itemloc.base_offset,
+            length: itemloc.extents[j].extent_length,
+            alreadyRead: 0,
+          };
           item.size += item.extents[j].length;
         }
       }
@@ -1984,14 +1829,12 @@ export class ISOFile {
         var ipma = meta.iprp.ipmas[k];
         for (i = 0; i < ipma.associations.length; i++) {
           var association = ipma.associations[i];
-          item = items[association.id];
-          if (!item) {
-            item = entity_groups[association.id];
-          }
+          const item = items[association.id] ?? entity_groups[association.id];
           if (item) {
             if (item.properties === undefined) {
-              item.properties = {};
-              item.properties.boxes = [];
+              item.properties = {
+                boxes: [],
+              };
             }
             for (j = 0; j < association.props.length; j++) {
               var propEntry = association.props[j];
@@ -2011,20 +1854,12 @@ export class ISOFile {
   }
 
   /** @bundle isofile-item-processing.js */
-  getItem(item_id: string) {
-    let buffer: Buffer;
-    let item: {
-      data: Uint8Array;
-      size: string | number | Iterable<number>;
-      alreadyRead: number;
-      extents: string | any[];
-    };
-
+  getItem(item_id: number) {
     if (!this.meta) {
       return null;
     }
 
-    item = this.items[item_id];
+    const item = this.items[item_id];
     if (!item.data && item.size) {
       /* Not yet fetched */
       item.data = new Uint8Array(item.size);
@@ -2054,7 +1889,7 @@ export class ISOFile {
       } else {
         var index = this.stream.findPosition(true, extent.offset + extent.alreadyRead, false);
         if (index > -1) {
-          buffer = this.stream.buffers[index];
+          const buffer = this.stream.buffers[index];
           var lengthAfterStart =
             buffer.byteLength - (extent.offset + extent.alreadyRead - buffer.fileStart);
           if (extent.length - extent.alreadyRead <= lengthAfterStart) {
@@ -2150,8 +1985,8 @@ export class ISOFile {
    *
    * @bundle isofile-item-processing.js
    */
-  releaseItem(item_id: string | number) {
-    var item = this.items[item_id];
+  releaseItem(item_id: number) {
+    const item = this.items[item_id];
     if (item.data) {
       this.itemsDataSize -= item.size;
       item.data = null;
@@ -2167,7 +2002,7 @@ export class ISOFile {
   }
 
   /** @bundle isofile-item-processing.js */
-  processItems(callback: (arg0: never) => void) {
+  processItems(callback: (item: Item) => void) {
     for (var i in this.items) {
       var item = this.items[i];
       this.getItem(item.id);
@@ -2209,11 +2044,10 @@ export class ISOFile {
   }
 
   /** @bundle isofile-item-processing.js */
-  itemToFragmentedTrackFile(_options: {}) {
-    var options = _options || {};
+  itemToFragmentedTrackFile({ itemId }: { itemId?: number } = {}) {
     var item = null;
-    if (options.itemId) {
-      item = this.getItem(options.itemId);
+    if (itemId) {
+      item = this.getItem(itemId);
     } else {
       item = this.getPrimaryItem();
     }
@@ -2222,7 +2056,10 @@ export class ISOFile {
     var file = new ISOFile();
     file.discardMdatData = false;
     // assuming the track type is the same as the item type
-    var trackOptions = { type: item.type, description_boxes: item.properties.boxes };
+    var trackOptions: IsoFileOptions = {
+      type: item.type,
+      description_boxes: item.properties.boxes,
+    };
     if (item.properties.ispe) {
       trackOptions.width = item.properties.ispe.image_width;
       trackOptions.height = item.properties.ispe.image_height;
@@ -2263,7 +2100,7 @@ export class ISOFile {
   discardMdatData = false;
 
   /** @bundle isofile-advanced-parsing.js */
-  processIncompleteBox(ret: { type: string; size: number; start: number; hdr_size: unknown }) {
+  processIncompleteBox(ret: IncompleteBox) {
     let box: Box | null;
 
     /* we did not have enough bytes in the current buffer to parse the entire box */
@@ -2272,7 +2109,7 @@ export class ISOFile {
 
       /* special handling for mdat boxes, since we don't actually need to parse it linearly 
 		   we create the box */
-      box = new BoxParser.mdatBox(ret.size);
+      box = new mdatBox(ret.size);
       this.parsingMdat = box;
       this.boxes.push(box);
       this.mdats.push(box);
@@ -2354,13 +2191,9 @@ export class ISOFile {
 
   /** @bundle isofile-advanced-parsing.js */
   processIncompleteMdat() {
-    var box: { start: unknown; size: unknown } | null;
-    var found: unknown;
-
     /* we are in the parsing of an incomplete mdat box */
-    box = this.parsingMdat;
-
-    found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
+    const box = this.parsingMdat;
+    const found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
     if (found) {
       Log.debug('ISOFile', "Found 'mdat' end in buffered data");
       /* the end of the mdat has been found */
@@ -2405,86 +2238,87 @@ export class ISOFile {
   }
 
   /** @bundle isofile-advanced-creation.js */
-  add = Box.prototype.add;
-  /** @bundle isofile-advanced-creation.js */
   addBox = Box.prototype.addBox;
 
   /** @bundle isofile-advanced-creation.js */
-  init(_options?: IsoFileOptions) {
-    var options = _options || ({} as IsoFileOptions);
-    var ftyp = this.add('ftyp')
-      .set('major_brand', (options.brands && options.brands[0]) || 'iso4')
-      .set('minor_version', 0)
-      .set('compatible_brands', options.brands || ['iso4']);
-    var moov = this.add('moov');
-    moov
-      .add('mvhd')
-      .set('timescale', options.timescale || 600)
-      .set('rate', options.rate || 1 << 16)
-      .set('creation_time', 0)
-      .set('modification_time', 0)
-      .set('duration', options.duration || 0)
-      .set('volume', options.width ? 0 : 0x0100)
-      .set('matrix', [1 << 16, 0, 0, 0, 1 << 16, 0, 0, 0, 0x40000000])
-      .set('next_track_id', 1);
-    moov.add('mvex');
+  init(options: IsoFileOptions = {}) {
+    const ftyp = this.addBox(new ftypBox());
+    ftyp.major_brand = (options.brands && options.brands[0]) || 'iso4';
+    ftyp.minor_version = 0;
+    ftyp.compatible_brands = options.brands || ['iso4'];
+
+    const moov = this.addBox(new moovBox());
+    moov.addBox(new mvexBox());
+
+    const mvhd = moov.addBox(new mvhdBox());
+    mvhd.timescale = options.timescale || 600;
+    mvhd.rate = options.rate || 1 << 16;
+    mvhd.creation_time = 0;
+    mvhd.modification_time = 0;
+    mvhd.duration = options.duration || 0;
+    mvhd.volume = options.width ? 0 : 0x0100;
+    mvhd.matrix = [1 << 16, 0, 0, 0, 1 << 16, 0, 0, 0, 0x40000000];
+    mvhd.next_track_id = 1;
+
     return this;
   }
 
   /** @bundle isofile-advanced-creation.js */
-  addTrack(_options?: IsoFileOptions) {
+  addTrack(_options: IsoFileOptions) {
     if (!this.moov) {
       this.init(_options);
     }
 
-    var options = _options || ({} as IsoFileOptions);
+    const options: IsoFileOptions = _options || {};
+
     options.width = options.width || 320;
     options.height = options.height || 320;
     options.id = options.id || this.moov.mvhd.next_track_id;
     options.type = options.type || 'avc1';
 
-    var trak = this.moov.add('trak');
+    const trak = this.moov.addBox(new trakBox()) as trakBox;
     this.moov.mvhd.next_track_id = options.id + 1;
-    trak
-      .add('tkhd')
-      .set(
-        'flags',
-        BoxParser.TKHD_FLAG_ENABLED | BoxParser.TKHD_FLAG_IN_MOVIE | BoxParser.TKHD_FLAG_IN_PREVIEW,
-      )
-      .set('creation_time', 0)
-      .set('modification_time', 0)
-      .set('track_id', options.id)
-      .set('duration', options.duration || 0)
-      .set('layer', options.layer || 0)
-      .set('alternate_group', 0)
-      .set('volume', 1)
-      .set('matrix', [0, 0, 0, 0, 0, 0, 0, 0, 0])
-      .set('width', options.width << 16)
-      .set('height', options.height << 16);
 
-    var mdia = trak.add('mdia');
-    mdia
-      .add('mdhd')
-      .set('creation_time', 0)
-      .set('modification_time', 0)
-      .set('timescale', options.timescale || 1)
-      .set('duration', options.media_duration || 0)
-      .set('language', options.language || 'und');
+    const tkhd = trak.addBox(new tkhdBox());
+    tkhd.flags = TKHD_FLAG_ENABLED | TKHD_FLAG_IN_MOVIE | TKHD_FLAG_IN_PREVIEW;
+    tkhd.creation_time = 0;
+    tkhd.modification_time = 0;
+    tkhd.track_id = options.id;
+    tkhd.duration = options.duration || 0;
+    tkhd.layer = options.layer || 0;
+    tkhd.alternate_group = 0;
+    tkhd.volume = 1;
+    tkhd.matrix = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    tkhd.width = options.width << 16;
+    tkhd.height = options.height << 16;
 
-    mdia
-      .add('hdlr')
-      .set('handler', options.hdlr || 'vide')
-      .set('name', options.name || 'Track created with MP4Box.js');
+    var mdia = trak.addBox(new mdiaBox());
+    const mdhd = mdia.addBox(new mdhdBox());
+    mdhd.creation_time = 0;
+    mdhd.modification_time = 0;
+    mdhd.timescale = options.timescale || 1;
+    mdhd.duration = options.media_duration || 0;
+    // @ts-expect-error FIXME:   some code expects language to be a number
+    mdhd.language = options.language || 'und';
 
-    mdia.add('elng').set('extended_language', options.language || 'fr-FR');
+    const hdlr = mdia.addBox(new hdlrBox());
+    hdlr.handler = options.hdlr || 'vide';
+    hdlr.name = options.name || 'Track created with MP4Box.js';
 
-    var minf = mdia.add('minf');
+    const elng = mdia.addBox(new elngBox());
+    elng.extended_language = options.language || 'fr-FR';
+
+    const minf = mdia.addBox(new minfBox());
+
     if (BoxParser[options.type + 'SampleEntry'] === undefined) return;
+
     var sample_description_entry = new BoxParser[options.type + 'SampleEntry']();
     sample_description_entry.data_reference_index = 1;
+
     var media_type = '';
-    for (var mediaType in BoxParser.sampleEntryCodes) {
-      var codes = BoxParser.sampleEntryCodes[mediaType];
+
+    for (var mediaType in SampleEntry.codes) {
+      var codes = SampleEntry.codes[mediaType];
       for (var i = 0; i < codes.length; i++) {
         if (codes.indexOf(options.type) > -1) {
           media_type = mediaType;
@@ -2494,54 +2328,57 @@ export class ISOFile {
     }
     switch (media_type) {
       case 'Visual':
-        minf.add('vmhd').set('graphicsmode', 0).set('opcolor', [0, 0, 0]);
-        sample_description_entry
-          .set('width', options.width)
-          .set('height', options.height)
-          .set('horizresolution', 0x48 << 16)
-          .set('vertresolution', 0x48 << 16)
-          .set('frame_count', 1)
-          .set('compressorname', options.type + ' Compressor')
-          .set('depth', 0x18);
+        const vmhd = minf.addBox(new vmhdBox());
+        vmhd.graphicsmode = 0;
+        vmhd.opcolor = [0, 0, 0];
+
+        sample_description_entry.width = options.width;
+        sample_description_entry.height = options.height;
+        sample_description_entry.horizresolution = 0x48 << 16;
+        sample_description_entry.vertresolution = 0x48 << 16;
+        sample_description_entry.frame_count = 1;
+        sample_description_entry.compressorname = options.type + ' Compressor';
+        sample_description_entry.depth = 0x18;
+
         if (options.avcDecoderConfigRecord) {
-          var avcC = new BoxParser.avcCBox();
+          const avcC = sample_description_entry.addBox(new avcCBox());
           avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
-          sample_description_entry.addBox(avcC);
         } else if (options.hevcDecoderConfigRecord) {
-          var hvcC = new BoxParser.hvcCBox();
+          const hvcC = sample_description_entry.addBox(new hvcCBox());
           hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
-          sample_description_entry.addBox(hvcC);
         }
+
         break;
       case 'Audio':
-        minf.add('smhd').set('balance', options.balance || 0);
-        sample_description_entry
-          .set('channel_count', options.channel_count || 2)
-          .set('samplesize', options.samplesize || 16)
-          .set('samplerate', options.samplerate || 1 << 16);
+        const smhd = minf.addBox(new smhdBox());
+        smhd.balance = options.balance || 0;
+
+        sample_description_entry.channel_count = options.channel_count || 2;
+        sample_description_entry.samplesize = options.samplesize || 16;
+        sample_description_entry.samplerate = options.samplerate || 1 << 16;
+
         break;
       case 'Hint':
-        minf.add('hmhd'); // TODO: add properties
+        minf.addBox(new hmhdBox()); // TODO: add properties
         break;
       case 'Subtitle':
-        minf.add('sthd');
+        minf.addBox(new sthdBox());
         switch (options.type) {
           case 'stpp':
-            sample_description_entry
-              .set('namespace', options.namespace || 'nonamespace')
-              .set('schema_location', options.schema_location || '')
-              .set('auxiliary_mime_types', options.auxiliary_mime_types || '');
+            sample_description_entry.namespace = options.namespace || 'nonamespace';
+            sample_description_entry.schema_location = options.schema_location || '';
+            sample_description_entry.auxiliary_mime_types = options.auxiliary_mime_types || '';
             break;
         }
         break;
       case 'Metadata':
-        minf.add('nmhd');
+        minf.addBox(new nmhdBox());
         break;
       case 'System':
-        minf.add('nmhd');
+        minf.addBox(new nmhdBox());
         break;
       default:
-        minf.add('nmhd');
+        minf.addBox(new nmhdBox());
         break;
     }
     if (options.description) {
@@ -2552,114 +2389,166 @@ export class ISOFile {
         sample_description_entry.addBox(b);
       });
     }
-    minf.add('dinf').add('dref').addEntry(new BoxParser['url Box']().set('flags', 0x1));
-    var stbl = minf.add('stbl');
-    stbl.add('stsd').addEntry(sample_description_entry);
-    stbl.add('stts').set('sample_counts', []).set('sample_deltas', []);
-    stbl
-      .add('stsc')
-      .set('first_chunk', [])
-      .set('samples_per_chunk', [])
-      .set('sample_description_index', []);
-    stbl.add('stco').set('chunk_offsets', []);
-    stbl.add('stsz').set('sample_sizes', []);
+    minf.addBox(new dinfBox());
+    // TODO:    there was an error here before: addEntry(new BoxParser['url Box']()...)
+    const dref = minf.addBox(new drefBox());
+    const url = new urlBox();
+    url.flags = 0x1;
+    dref.addEntry(url);
 
-    this.moov.mvex
-      .add('trex')
-      .set('track_id', options.id)
-      .set('default_sample_description_index', options.default_sample_description_index || 1)
-      .set('default_sample_duration', options.default_sample_duration || 0)
-      .set('default_sample_size', options.default_sample_size || 0)
-      .set('default_sample_flags', options.default_sample_flags || 0);
+    const stbl = minf.addBox(new stblBox());
+    const stsd = stbl.addBox(new stsdBox());
+    stsd.addEntry(sample_description_entry);
+
+    const stts = stbl.addBox(new sttsBox());
+    stts.sample_counts = [];
+    stts.sample_deltas = [];
+
+    const stsc = stbl.addBox(new stscBox());
+    stsc.first_chunk = [];
+    stsc.samples_per_chunk = [];
+    stsc.sample_description_index = [];
+
+    const stco = stbl.addBox(new stcoBox());
+    stco.chunk_offsets = [];
+    const stsz = stbl.addBox(new stszBox());
+    stsz.sample_sizes = [];
+
+    const trex = this.moov.mvex.addBox(new trexBox());
+    trex.track_id = options.id;
+    trex.default_sample_description_index = options.default_sample_description_index || 1;
+    trex.default_sample_duration = options.default_sample_duration || 0;
+    trex.default_sample_size = options.default_sample_size || 0;
+    trex.default_sample_flags = options.default_sample_flags || 0;
+
     this.buildTrakSampleLists(trak);
     return options.id;
   }
 
   /** @bundle isofile-advanced-creation.js */
-  addSample(track_id: number, data: Iterable<number>, _options: {} | undefined) {
-    var options = _options || {};
-    var sample = {} as Sample;
-    var trak = this.getTrackById(track_id);
+  addSample(
+    track_id: number,
+    data: Uint8Array,
+    {
+      sample_description_index,
+      duration = 1,
+      cts = 0,
+      dts = 0,
+      is_sync = false,
+      is_leading = 0,
+      depends_on = 0,
+      is_depended_on = 0,
+      has_redundancy = 0,
+      degradation_priority = 0,
+      offset = 0,
+      subsamples,
+    }: {
+      sample_description_index?: number;
+      duration?: number;
+      cts?: number;
+      dts?: number;
+      is_sync?: boolean;
+      is_leading?: number;
+      depends_on?: number;
+      is_depended_on?: number;
+      has_redundancy?: number;
+      degradation_priority?: number;
+      subsamples?: SubSample[];
+      offset?: number;
+    } = {},
+  ) {
+    let trak = this.getTrackById(track_id);
     if (trak === null) return;
-    sample.number = trak.samples.length;
-    sample.track_id = trak.tkhd.track_id;
-    sample.timescale = trak.mdia.mdhd.timescale;
-    sample.description_index = options.sample_description_index
-      ? options.sample_description_index - 1
-      : 0;
-    sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
-    sample.data = data;
-    sample.size = data.byteLength;
-    sample.alreadyRead = sample.size;
-    sample.duration = options.duration || 1;
-    sample.cts = options.cts || 0;
-    sample.dts = options.dts || 0;
-    sample.is_sync = options.is_sync || false;
-    sample.is_leading = options.is_leading || 0;
-    sample.depends_on = options.depends_on || 0;
-    sample.is_depended_on = options.is_depended_on || 0;
-    sample.has_redundancy = options.has_redundancy || 0;
-    sample.degradation_priority = options.degradation_priority || 0;
-    sample.offset = 0;
-    sample.subsamples = options.subsamples;
+
+    const descriptionIndex = sample_description_index ? sample_description_index - 1 : 0;
+
+    const sample = {
+      number: trak.samples.length,
+      track_id: trak.tkhd.track_id,
+      timescale: trak.mdia.mdhd.timescale,
+      description_index: descriptionIndex,
+      description: trak.mdia.minf.stbl.stsd.entries[descriptionIndex],
+      data,
+      size: data.byteLength,
+      alreadyRead: data.byteLength,
+      duration,
+      cts,
+      dts,
+      is_sync,
+      is_leading,
+      depends_on,
+      is_depended_on,
+      has_redundancy,
+      degradation_priority,
+      offset,
+      subsamples,
+    } satisfies Sample;
+
     trak.samples.push(sample);
     trak.samples_size += sample.size;
     trak.samples_duration += sample.duration;
     if (trak.first_dts === undefined) {
-      trak.first_dts = options.dts;
+      trak.first_dts = dts;
     }
 
     this.processSamples();
 
-    var moof = this.createSingleSampleMoof(sample);
-    this.addBox(moof);
+    const moof = this.addBox(this.createSingleSampleMoof(sample));
     moof.computeSize();
     /* adjusting the data_offset now that the moof size is known*/
     moof.trafs[0].truns[0].data_offset = moof.size + 8; //8 is mdat header
-    this.add('mdat').data = new Uint8Array(data);
+
+    const mdat = this.addBox(new mdatBox());
+    mdat.data = new Uint8Array(data);
+
     return sample;
   }
 
   /** @bundle isofile-advanced-creation.js */
   createSingleSampleMoof(sample: Sample) {
-    var sample_flags = 0;
+    let sample_flags = 0;
     if (sample.is_sync) sample_flags = 1 << 25; // sample_depends_on_none (I picture)
     else sample_flags = 1 << 16; // non-sync
 
-    var moof = new BoxParser.moofBox();
-    moof.add('mfhd').set('sequence_number', this.nextMoofNumber);
+    const moof = new moofBox();
+
+    const mfhd = moof.addBox(new mfhdBox());
+    mfhd.sequence_number = this.nextMoofNumber;
+
     this.nextMoofNumber++;
-    var traf = moof.add('traf');
-    var trak = this.getTrackById(sample.track_id);
-    traf
-      .add('tfhd')
-      .set('track_id', sample.track_id)
-      .set('flags', BoxParser.TFHD_FLAG_DEFAULT_BASE_IS_MOOF);
-    traf.add('tfdt').set('baseMediaDecodeTime', sample.dts - (trak.first_dts || 0));
-    traf
-      .add('trun')
-      .set(
-        'flags',
-        BoxParser.TRUN_FLAGS_DATA_OFFSET |
-          BoxParser.TRUN_FLAGS_DURATION |
-          BoxParser.TRUN_FLAGS_SIZE |
-          BoxParser.TRUN_FLAGS_FLAGS |
-          BoxParser.TRUN_FLAGS_CTS_OFFSET,
-      )
-      .set('data_offset', 0)
-      .set('first_sample_flags', 0)
-      .set('sample_count', 1)
-      .set('sample_duration', [sample.duration])
-      .set('sample_size', [sample.size])
-      .set('sample_flags', [sample_flags])
-      .set('sample_composition_time_offset', [sample.cts - sample.dts]);
+
+    const traf = moof.addBox(new trafBox());
+    const trak = this.getTrackById(sample.track_id);
+
+    const tfhd = traf.addBox(new tfhdBox());
+    tfhd.track_id = sample.track_id;
+    tfhd.flags = TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
+
+    const tfdt = traf.addBox(new tfdtBox());
+    tfdt.baseMediaDecodeTime = sample.dts - (trak.first_dts || 0);
+
+    const trun = traf.addBox(new trunBox());
+    trun.flags =
+      TRUN_FLAGS_DATA_OFFSET |
+      TRUN_FLAGS_DURATION |
+      TRUN_FLAGS_SIZE |
+      TRUN_FLAGS_FLAGS |
+      TRUN_FLAGS_CTS_OFFSET;
+    trun.data_offset = 0;
+    trun.first_sample_flags = 0;
+    trun.sample_count = 1;
+    trun.sample_duration = [sample.duration];
+    trun.sample_size = [sample.size];
+    trun.sample_flags = [sample_flags];
+    trun.sample_composition_time_offset = [sample.cts - sample.dts];
+
     return moof;
   }
 
   /** @bundle box-print.js */
-  print(output: { indent: string }) {
+  print(output: Output) {
     output.indent = '';
-    for (var i = 0; i < this.boxes.length; i++) {
+    for (let i = 0; i < this.boxes.length; i++) {
       if (this.boxes[i]) {
         this.boxes[i].print(output);
       }

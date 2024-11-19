@@ -1,16 +1,16 @@
-import { Box } from './box';
-import { BoxParser } from './box-parser';
-import { MultiBufferStream } from './buffer';
-import { Log } from './log';
+import { Box } from '#/box';
+import { BoxParser } from '#/box-parser';
+import { MultiBufferStream } from '#/buffer';
+import { ERR_NOT_ENOUGH_DATA, OK } from '#/constants';
+import { Log } from '#/log';
+import { UUIDBoxes } from './parsing/uuid';
 import { MP4BoxStream } from './stream';
 
-/** @bundle box-parse.js */
-export function parseUUID(stream: MultiBufferStream) {
+export function parseUUID(stream: MultiBufferStream | MP4BoxStream) {
   return parseHex16(stream);
 }
 
-/** @bundle box-parse.js */
-export function parseHex16(stream: MultiBufferStream) {
+export function parseHex16(stream: MultiBufferStream | MP4BoxStream) {
   let hex16 = '';
   for (let i = 0; i < 16; i++) {
     let hex = stream.readUint8().toString(16);
@@ -19,7 +19,6 @@ export function parseHex16(stream: MultiBufferStream) {
   return hex16;
 }
 
-/** @bundle box-parse.js */
 export function parseOneBox(
   stream: MultiBufferStream | MP4BoxStream,
   headerOnly: boolean,
@@ -32,14 +31,14 @@ export function parseOneBox(
   let uuid: string;
   if (stream.getEndPosition() - start < 8) {
     Log.debug('BoxParser', 'Not enough data in stream to parse the type and size of the box');
-    return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
+    return { code: ERR_NOT_ENOUGH_DATA };
   }
   if (parentSize && parentSize < 8) {
     Log.debug('BoxParser', 'Not enough bytes left in the parent box to parse a new box');
-    return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
+    return { code: ERR_NOT_ENOUGH_DATA };
   }
   let size = stream.readUint32();
-  let type = stream.readString(4);
+  const type = stream.readString(4);
   let box_type = type;
   Log.debug(
     'BoxParser',
@@ -50,7 +49,7 @@ export function parseOneBox(
     if (stream.getEndPosition() - stream.getPosition() < 16 || parentSize - hdr_size < 16) {
       stream.seek(start);
       Log.debug('BoxParser', 'Not enough bytes left in the parent box to parse a UUID box');
-      return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
+      return { code: ERR_NOT_ENOUGH_DATA };
     }
     uuid = parseUUID(stream);
     hdr_size += 16;
@@ -66,7 +65,7 @@ export function parseOneBox(
         'BoxParser',
         'Not enough data in stream to parse the extended size of the "' + type + '" box',
       );
-      return { code: BoxParser.ERR_NOT_ENOUGH_DATA };
+      return { code: ERR_NOT_ENOUGH_DATA };
     }
     size = stream.readUint64();
     hdr_size += 8;
@@ -79,7 +78,7 @@ export function parseOneBox(
       if (type !== 'mdat') {
         Log.error('BoxParser', "Unlimited box size not supported for type: '" + type + "'");
         box = new Box(type, size);
-        return { code: BoxParser.OK, box: box, size: box.size };
+        return { code: OK, box: box, size: box.size };
       }
     }
   }
@@ -89,7 +88,7 @@ export function parseOneBox(
       'Box of type ' + type + ' has an invalid size ' + size + ' (too small to be a box)',
     );
     return {
-      code: BoxParser.ERR_NOT_ENOUGH_DATA,
+      code: ERR_NOT_ENOUGH_DATA,
       type: type,
       size: size,
       hdr_size: hdr_size,
@@ -107,7 +106,7 @@ export function parseOneBox(
         parentSize,
     );
     return {
-      code: BoxParser.ERR_NOT_ENOUGH_DATA,
+      code: ERR_NOT_ENOUGH_DATA,
       type: type,
       size: size,
       hdr_size: hdr_size,
@@ -118,7 +117,7 @@ export function parseOneBox(
     stream.seek(start);
     Log.info('BoxParser', "Not enough data in stream to parse the entire '" + type + "' box");
     return {
-      code: BoxParser.ERR_NOT_ENOUGH_DATA,
+      code: ERR_NOT_ENOUGH_DATA,
       type: type,
       size: size,
       hdr_size: hdr_size,
@@ -126,7 +125,7 @@ export function parseOneBox(
     };
   }
   if (headerOnly) {
-    return { code: BoxParser.OK, type: type, size: size, hdr_size: hdr_size, start: start };
+    return { code: OK, type: type, size: size, hdr_size: hdr_size, start: start };
   } else {
     if (BoxParser[type + 'Box']) {
       box = new BoxParser[type + 'Box'](size);
@@ -136,8 +135,8 @@ export function parseOneBox(
         box = new Box(type, size);
         box.has_unparsed_data = true;
       } else {
-        if (BoxParser.UUIDBoxes[uuid]) {
-          box = new BoxParser.UUIDBoxes[uuid](size);
+        if (uuid in UUIDBoxes) {
+          box = new UUIDBoxes[uuid](size);
         } else {
           Log.warn('BoxParser', "Unknown uuid type: '" + uuid + "'");
           box = new Box(type, size);
@@ -157,8 +156,10 @@ export function parseOneBox(
         box_type +
         "' box writing not yet implemented, keeping unparsed data in memory for later write",
     );
+    // @ts-expect-error FIXME: figure out stream-types
     box.parseDataAndRewind(stream);
   }
+  // @ts-expect-error FIXME: figure out stream-types
   box.parse(stream);
   diff = stream.getPosition() - (box.start + box.size);
   if (diff < 0) {
@@ -182,5 +183,5 @@ export function parseOneBox(
     );
     if (box.size !== 0) stream.seek(box.start + box.size);
   }
-  return { code: BoxParser.OK, box: box, size: box.size };
+  return { code: OK, box, size: box.size };
 }

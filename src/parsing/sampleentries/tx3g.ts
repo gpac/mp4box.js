@@ -1,4 +1,4 @@
-import { MultiBufferStream } from '../../buffer';
+import { MultiBufferStream } from '#/buffer';
 import { SubtitleSampleEntry } from './sampleentry';
 
 export class tx3gSampleEntry extends SubtitleSampleEntry {

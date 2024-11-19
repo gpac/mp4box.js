@@ -1,6 +1,6 @@
-import { SampleGroupEntry } from '../../box';
-import { MultiBufferStream } from '../../buffer';
-import { Log } from '../../log';
+import { SampleGroupEntry } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Log } from '#/log';
 
 export class rashSampleGroupEntry extends SampleGroupEntry {
   operation_point_count?: number;

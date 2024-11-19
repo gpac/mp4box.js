@@ -42,7 +42,7 @@ export class MP4BoxStream {
    *            Read methods, simimar to DataStream but simpler            *
    *************************************************************************/
 
-  readAnyInt(size: string | number, signed: boolean) {
+  readAnyInt(size: number, signed: boolean) {
     var res = 0;
     if (this.position + size <= this.buffer.byteLength) {
       switch (size) {

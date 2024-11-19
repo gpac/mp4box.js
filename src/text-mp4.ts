@@ -1,26 +1,28 @@
 import { Box } from './box';
-import { BoxParser } from './box-parser';
+import { parseOneBox } from './box-parse';
+import { OK } from './constants';
 import { MP4BoxStream } from './stream';
+import { Sample, TypedArray } from './types';
 
 /*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
  */
 export class VTTin4Parser {
-  parseSample(data: { buffer: ArrayBuffer }) {
+  parseSample(data: TypedArray) {
     const cues: Box[] = [];
     const stream = new MP4BoxStream(data.buffer);
 
     while (!stream.isEos()) {
-      const cue = BoxParser.parseOneBox(stream, false);
-      if (cue.code === BoxParser.OK && cue.box?.type === 'vttc') {
+      const cue = parseOneBox(stream, false);
+      if (cue.code === OK && cue.box?.type === 'vttc') {
         cues.push(cue.box);
       }
     }
     return cues;
   }
 
-  getText(startTime: number, endTime: number, data: unknown) {
+  getText(startTime: number, endTime: number, data: TypedArray) {
     function pad(n: string | number | any[], width: number, z?: string) {
       z = z || '0';
       n = n + '';
@@ -38,6 +40,7 @@ export class VTTin4Parser {
     for (var i = 0; i < cues.length; i++) {
       var cueIn4 = cues[i];
       string += secToTimestamp(startTime) + ' --> ' + secToTimestamp(endTime) + '\r\n';
+      // @ts-expect-error FIXME: which box should get a payl-property?
       string += cueIn4.payl.text;
     }
     return string;
@@ -45,10 +48,7 @@ export class VTTin4Parser {
 }
 
 export class XMLSubtitlein4Parser {
-  parseSample(sample: {
-    data: { buffer: ArrayBuffer; length: number };
-    subsamples: string | any[];
-  }) {
+  parseSample(sample: Sample) {
     const res = {
       resources: [] as Array<Uint8Array>,
       documentString: '',
@@ -73,14 +73,14 @@ export class XMLSubtitlein4Parser {
 }
 
 export class Textin4Parser {
-  parseSample(sample: { data: { buffer: ArrayBuffer; length: number } }) {
+  parseSample(sample: Sample) {
     var textString: string;
     var stream = new MP4BoxStream(sample.data.buffer);
     textString = stream.readString(sample.data.length);
     return textString;
   }
 
-  parseConfig(data: { buffer: ArrayBuffer }) {
+  parseConfig(data: TypedArray) {
     var textString: string;
     var stream = new MP4BoxStream(data.buffer);
     stream.readUint32(); // version & flags

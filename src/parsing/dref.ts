@@ -1,10 +1,11 @@
-import { FullBox } from '../box';
-import { BoxParser } from '../box-parser';
-import type { MultiBufferStream } from '../buffer';
-import { Log } from '../log';
+import { Box, FullBox } from '#/box';
+import { parseOneBox } from '#/box-parse';
+import { MultiBufferStream } from '#/buffer';
+import { OK } from '#/constants';
+import { Log } from '#/log';
 
 export class drefBox extends FullBox {
-  entries?: unknown[];
+  entries?: Array<Box>;
 
   constructor(size?: number) {
     super('dref', size);
@@ -15,12 +16,8 @@ export class drefBox extends FullBox {
     this.entries = [];
     const entry_count = stream.readUint32();
     for (var i = 0; i < entry_count; i++) {
-      let ret = BoxParser.parseOneBox(
-        stream,
-        false,
-        this.size - (stream.getPosition() - this.start),
-      );
-      if (ret.code === BoxParser.OK) {
+      let ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+      if (ret.code === OK) {
         let box = ret.box;
         this.entries.push(box);
       } else {

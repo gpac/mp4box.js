@@ -1,5 +1,6 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { NaluArray } from '#/types';
 
 export class vvcCBox extends FullBox {
   lengthSizeMinusOne?: number;
@@ -23,7 +24,7 @@ export class vvcCBox extends FullBox {
   max_picture_width?: number;
   max_picture_height?: number;
   avg_frame_rate?: number;
-  nalu_arrays?: unknown[];
+  nalu_arrays?: Array<NaluArray>;
 
   constructor(size?: number) {
     super('vvcC', size);
@@ -138,7 +139,7 @@ export class vvcCBox extends FullBox {
     this.nalu_arrays = [];
     var num_of_arrays = stream.readUint8();
     for (let i = 0; i < num_of_arrays; i++) {
-      var nalu_array = [];
+      const nalu_array = [] as NaluArray;
       this.nalu_arrays.push(nalu_array);
 
       bitReader.stream_read_1_bytes(stream);

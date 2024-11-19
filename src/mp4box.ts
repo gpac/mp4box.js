@@ -3,14 +3,13 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
+import { ISOFile } from '#/isofile';
 import { MultiBufferStream } from './buffer';
-import { ISOFile } from './isofile';
 
 export const MP4Box = {
-  createFile(_keepMdatData: boolean | undefined, _stream: MultiBufferStream) {
+  createFile(keepMdatData = true, stream: MultiBufferStream) {
     /* Boolean indicating if bytes containing media data should be kept in memory */
-    var keepMdatData = _keepMdatData !== undefined ? _keepMdatData : true;
-    var file = new ISOFile(_stream);
+    var file = new ISOFile(stream);
     file.discardMdatData = keepMdatData ? false : true;
     return file;
   },

@@ -1,5 +1,5 @@
-import { SampleGroupEntry } from '../../box';
-import { MultiBufferStream } from '../../buffer';
+import { SampleGroupEntry } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 export class avllSampleGroupEntry extends SampleGroupEntry {
   layerNumber?: number;

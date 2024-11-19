@@ -1,4 +1,4 @@
-import { MultiBufferStream } from '../../buffer';
+import { MultiBufferStream } from '#/buffer';
 import { MetadataSampleEntry } from './sampleentry';
 
 export class wvttSampleEntry extends MetadataSampleEntry {

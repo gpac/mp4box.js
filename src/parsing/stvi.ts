@@ -1,6 +1,7 @@
-import { FullBox } from '../box';
-import { BoxParser } from '../box-parser';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { parseOneBox } from '#/box-parse';
+import { MultiBufferStream } from '#/buffer';
+import { OK } from '#/constants';
 
 export class stviBox extends FullBox {
   single_view_allowed?: number;
@@ -20,12 +21,8 @@ export class stviBox extends FullBox {
     this.stereo_indication_type = stream.readString(length);
     this.boxes = [];
     while (stream.getPosition() < this.start + this.size) {
-      const ret = BoxParser.parseOneBox(
-        stream,
-        false,
-        this.size - (stream.getPosition() - this.start),
-      );
-      if (ret.code === BoxParser.OK) {
+      const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+      if (ret.code === OK) {
         const box = ret.box;
         this.boxes.push(box);
         this[box.type] = box;

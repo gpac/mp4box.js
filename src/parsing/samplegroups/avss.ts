@@ -1,5 +1,5 @@
-import { SampleGroupEntry } from '../../box';
-import { MultiBufferStream } from '../../buffer';
+import { SampleGroupEntry } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 interface Dependency {
   subSeqDirectionFlag: number;

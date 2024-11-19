@@ -1,7 +1,9 @@
-import { FullBox, SampleEntry } from '../box';
-import { BoxParser } from '../box-parser';
-import { MultiBufferStream } from '../buffer';
-import { Log } from '../log';
+import { FullBox, SampleEntry } from '#/box';
+import { parseOneBox } from '#/box-parse';
+import { BoxParser } from '#/box-parser';
+import { MultiBufferStream } from '#/buffer';
+import { OK } from '#/constants';
+import { Log } from '#/log';
 
 export class stsdBox extends FullBox {
   entries?: Array<SampleEntry>;
@@ -12,25 +14,27 @@ export class stsdBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    let box: SampleEntry;
     this.entries = [];
+
     const entryCount = stream.readUint32();
+
     for (let i = 1; i <= entryCount; i++) {
-      let ret = BoxParser.parseOneBox(
-        stream,
-        true,
-        this.size - (stream.getPosition() - this.start),
-      );
-      if (ret.code === BoxParser.OK) {
+      let ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
+
+      if (ret.code === OK) {
+        let box: SampleEntry;
         if (BoxParser[ret.type + 'SampleEntry']) {
           box = new BoxParser[ret.type + 'SampleEntry'](ret.size);
           box.hdr_size = ret.hdr_size;
           box.start = ret.start;
         } else {
           Log.warn('BoxParser', 'Unknown sample entry type: ' + ret.type);
-          box = new BoxParser.SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start);
+          // @ts-expect-error FIXME: incorrect signature
+          box = new SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start);
         }
-        if (box.write === BoxParser.SampleEntry.prototype.write) {
+
+        // TODO: something funky
+        if (box.write === SampleEntry.prototype.write) {
           Log.info(
             'BoxParser',
             'SampleEntry ' +
@@ -39,6 +43,7 @@ export class stsdBox extends FullBox {
           );
           box.parseDataAndRewind(stream);
         }
+
         box.parse(stream);
         this.entries.push(box);
       } else {

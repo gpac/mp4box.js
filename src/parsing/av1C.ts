@@ -1,5 +1,5 @@
-import { Box } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { Box } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 import { Log } from '../log';
 
 export class av1CBox extends Box {
@@ -25,7 +25,8 @@ export class av1CBox extends Box {
 
   parse(stream: MultiBufferStream) {
     let tmp = stream.readUint8();
-    if ((tmp >> 7) & (0x1 !== 1)) {
+    // NOTE:  This used to be if ((tmp >> 7) & 0x1 !== 1)
+    if (((tmp >> 7) & 0x1) !== 1) {
       Log.error('av1C marker problem');
       return;
     }

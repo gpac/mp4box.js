@@ -1,5 +1,6 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { Sample } from '#/types';
 
 export class stscBox extends FullBox {
   first_chunk?: number[];
@@ -38,7 +39,7 @@ export class stscBox extends FullBox {
     }
   }
 
-  unpack(samples: unknown[]) {
+  unpack(samples: Array<Sample>) {
     let l = 0;
     let m = 0;
     for (let i = 0; i < this.first_chunk.length; i++) {

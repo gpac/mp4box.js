@@ -1,6 +1,23 @@
-import { Buffer } from './constants';
-import { DataStream } from './DataStream';
-import { Log } from './log';
+import { DataStream } from '#/DataStream';
+import { Log } from '#/log';
+import { MP4BoxBuffer } from '#/types';
+
+/**
+ * helper functions to concatenate two ArrayBuffer objects
+ * @param buffer1
+ * @param buffer2
+ * @return the concatenation of buffer1 and buffer2 in that order
+ */
+function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
+  Log.debug(
+    'ArrayBuffer',
+    'Trying to create a new buffer of size: ' + (buffer1.byteLength + buffer2.byteLength),
+  );
+  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+  tmp.set(new Uint8Array(buffer1), 0);
+  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+  return tmp.buffer as MP4BoxBuffer;
+}
 
 /**
  * MultiBufferStream is a class that acts as a SimpleStream for parsing
@@ -10,10 +27,11 @@ import { Log } from './log';
  * It inherits also from DataStream for all read/write/alloc operations
  */
 export class MultiBufferStream extends DataStream {
-  buffers: Buffer[];
+  buffers: MP4BoxBuffer[];
   bufferIndex: number;
 
-  constructor(buffer?: Buffer) {
+  constructor(buffer?: MP4BoxBuffer) {
+    // @ts-ignore FIXME expects byteLength
     super(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
     // List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non-overlapping
     this.buffers = [];
@@ -30,7 +48,7 @@ export class MultiBufferStream extends DataStream {
    ***********************************************************************************/
 
   initialized() {
-    var firstBuffer: { fileStart: number };
+    var firstBuffer: MP4BoxBuffer;
     if (this.bufferIndex > -1) {
       return true;
     } else if (this.buffers.length > 0) {
@@ -53,36 +71,19 @@ export class MultiBufferStream extends DataStream {
   }
 
   /**
-   * helper functions to concatenate two ArrayBuffer objects
-   * @param  {ArrayBuffer} buffer1
-   * @param  {ArrayBuffer} buffer2
-   * @return {ArrayBuffer} the concatenation of buffer1 and buffer2 in that order
-   */
-  static concat(buffer1: Iterable<number>, buffer2: Iterable<number>) {
-    Log.debug(
-      'ArrayBuffer',
-      'Trying to create a new buffer of size: ' + (buffer1.byteLength + buffer2.byteLength),
-    );
-    var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-    tmp.set(new Uint8Array(buffer1), 0);
-    tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-    return tmp.buffer;
-  }
-
-  /**
    * Reduces the size of a given buffer, but taking the part between offset and offset+newlength
    * @param  {ArrayBuffer} buffer
    * @param  {Number}      offset    the start of new buffer
    * @param  {Number}      newLength the length of the new buffer
    * @return {ArrayBuffer}           the new buffer
    */
-  reduceBuffer(buffer: Buffer, offset: number, newLength: number) {
+  reduceBuffer(buffer: MP4BoxBuffer, offset: number, newLength: number) {
     var smallB: Uint8Array;
     smallB = new Uint8Array(newLength);
     smallB.set(new Uint8Array(buffer, offset, newLength));
-    smallB.buffer.fileStart = buffer.fileStart + offset;
-    smallB.buffer.usedBytes = 0;
-    return smallB.buffer;
+    (smallB.buffer as MP4BoxBuffer).fileStart = buffer.fileStart + offset;
+    (smallB.buffer as MP4BoxBuffer).usedBytes = 0;
+    return smallB.buffer as MP4BoxBuffer;
   }
 
   /**
@@ -91,7 +92,7 @@ export class MultiBufferStream extends DataStream {
    *  if the new buffer overrides/replaces the 0-th buffer (for instance because it is bigger),
    *  updates the DataStream buffer for parsing
    */
-  insertBuffer(ab: Buffer) {
+  insertBuffer(ab: MP4BoxBuffer) {
     var to_add = true;
     /* TODO: improve insertion if many buffers */
     for (var i = 0; i < this.buffers.length; i++) {
@@ -178,38 +179,40 @@ export class MultiBufferStream extends DataStream {
    * @param  {Object} info callback method for display
    */
   logBufferLevel(info?: unknown) {
-    var i: number;
-    var buffer: { fileStart: unknown; byteLength: unknown; usedBytes: unknown };
-    var used: string | number, total: string | number;
-    var ranges = [];
-    var range: { start?: unknown; end?: unknown };
-    var bufferedString = '';
-    used = 0;
-    total = 0;
-    for (i = 0; i < this.buffers.length; i++) {
-      buffer = this.buffers[i];
+    const ranges = [];
+    let bufferedString = '';
+    let range: { start?: number; end?: number };
+    let used = 0;
+    let total = 0;
+
+    for (let i = 0; i < this.buffers.length; i++) {
+      const buffer = this.buffers[i];
       if (i === 0) {
-        range = {};
+        range = {
+          start: buffer.fileStart,
+          end: buffer.fileStart + buffer.byteLength,
+        };
         ranges.push(range);
-        range.start = buffer.fileStart;
-        range.end = buffer.fileStart + buffer.byteLength;
         bufferedString += '[' + range.start + '-';
       } else if (range.end === buffer.fileStart) {
         range.end = buffer.fileStart + buffer.byteLength;
       } else {
-        range = {};
-        range.start = buffer.fileStart;
+        range = {
+          start: buffer.fileStart,
+          end: buffer.fileStart + buffer.byteLength,
+        };
         bufferedString += ranges[ranges.length - 1].end - 1 + '], [' + range.start + '-';
-        range.end = buffer.fileStart + buffer.byteLength;
         ranges.push(range);
       }
       used += buffer.usedBytes;
       total += buffer.byteLength;
     }
+
     if (ranges.length > 0) {
       bufferedString += range.end - 1 + ']';
     }
-    var log = info ? Log.info : Log.debug;
+
+    const log = info ? Log.info : Log.debug;
     if (this.buffers.length === 0) {
       log('MultiBufferStream', 'No more buffer in memory');
     } else {
@@ -228,10 +231,8 @@ export class MultiBufferStream extends DataStream {
   }
 
   cleanBuffers() {
-    var i: string | number;
-    var buffer: { usedBytes: unknown; byteLength: unknown };
-    for (i = 0; i < this.buffers.length; i++) {
-      buffer = this.buffers[i];
+    for (let i = 0; i < this.buffers.length; i++) {
+      const buffer = this.buffers[i];
       if (buffer.usedBytes === buffer.byteLength) {
         Log.debug('MultiBufferStream', 'Removing buffer #' + i);
         this.buffers.splice(i, 1);
@@ -241,14 +242,13 @@ export class MultiBufferStream extends DataStream {
   }
 
   mergeNextBuffer() {
-    var next_buffer: { fileStart: unknown };
     if (this.bufferIndex + 1 < this.buffers.length) {
-      next_buffer = this.buffers[this.bufferIndex + 1];
+      const next_buffer = this.buffers[this.bufferIndex + 1];
       if (next_buffer.fileStart === this.buffer.fileStart + this.buffer.byteLength) {
         var oldLength = this.buffer.byteLength;
         var oldUsedBytes = this.buffer.usedBytes;
         var oldFileStart = this.buffer.fileStart;
-        this.buffers[this.bufferIndex] = ArrayBuffer.concat(this.buffer, next_buffer);
+        this.buffers[this.bufferIndex] = concatBuffers(this.buffer, next_buffer);
         this.buffer = this.buffers[this.bufferIndex];
         this.buffers.splice(this.bufferIndex + 1, 1);
         this.buffer.usedBytes = oldUsedBytes; /* TODO: should it be += ? */
@@ -284,20 +284,11 @@ export class MultiBufferStream extends DataStream {
    * @return {Number}               the index of the buffer holding the seeked file position, -1 if not found.
    */
   findPosition(fromStart: boolean, filePosition: number, markAsUsed: boolean) {
-    var i: number;
-    var abuffer = null;
-    var index = -1;
-
-    /* find the buffer with the largest position smaller than the given position */
-    if (fromStart === true) {
-      /* the reposition can be in the past, we need to check from the beginning of the list of buffers */
-      i = 0;
-    } else {
-      i = this.bufferIndex;
-    }
+    let index = -1;
+    let i = fromStart === true ? 0 : this.bufferIndex;
 
     while (i < this.buffers.length) {
-      abuffer = this.buffers[i];
+      const abuffer = this.buffers[i];
       if (abuffer.fileStart <= filePosition) {
         index = i;
         if (markAsUsed) {
@@ -314,14 +305,14 @@ export class MultiBufferStream extends DataStream {
       i++;
     }
 
-    if (index !== -1) {
-      abuffer = this.buffers[index];
-      if (abuffer.fileStart + abuffer.byteLength >= filePosition) {
-        Log.debug('MultiBufferStream', 'Found position in existing buffer #' + index);
-        return index;
-      } else {
-        return -1;
-      }
+    if (index === -1) {
+      return -1;
+    }
+
+    const abuffer = this.buffers[index];
+    if (abuffer.fileStart + abuffer.byteLength >= filePosition) {
+      Log.debug('MultiBufferStream', 'Found position in existing buffer #' + index);
+      return index;
     } else {
       return -1;
     }
@@ -334,16 +325,13 @@ export class MultiBufferStream extends DataStream {
    * @param  {Number} inputindex Index of the buffer to start from
    * @return {Number}            The largest file position found in the buffers
    */
-  findEndContiguousBuf(inputindex: number) {
-    var i: number;
-    var currentBuf: { fileStart: unknown; byteLength: unknown };
-    var nextBuf: { fileStart: unknown };
-    var index = inputindex !== undefined ? inputindex : this.bufferIndex;
-    currentBuf = this.buffers[index];
+  findEndContiguousBuf(inputindex?: number) {
+    let index = inputindex !== undefined ? inputindex : this.bufferIndex;
+    let currentBuf = this.buffers[index];
     /* find the end of the contiguous range of data */
     if (this.buffers.length > index + 1) {
-      for (i = index + 1; i < this.buffers.length; i++) {
-        nextBuf = this.buffers[i];
+      for (let i = index + 1; i < this.buffers.length; i++) {
+        const nextBuf = this.buffers[i];
         if (nextBuf.fileStart === currentBuf.fileStart + currentBuf.byteLength) {
           currentBuf = nextBuf;
         } else {
@@ -362,7 +350,7 @@ export class MultiBufferStream extends DataStream {
    *                      buffer that holds the given position
    */
   getEndFilePositionAfter(pos: number) {
-    var index = this.findPosition(true, pos, false);
+    const index = this.findPosition(true, pos, false);
     if (index !== -1) {
       return this.findEndContiguousBuf(index);
     } else {
@@ -406,9 +394,8 @@ export class MultiBufferStream extends DataStream {
    *                                should be marked as used for garbage collection
    * @return {Boolean}              true if the seek succeeded, false otherwise
    */
-  override seek(filePosition: number, fromStart: boolean, markAsUsed: boolean) {
-    var index: number;
-    index = this.findPosition(fromStart, filePosition, markAsUsed);
+  override seek(filePosition: number, fromStart?: boolean, markAsUsed?: boolean) {
+    const index = this.findPosition(fromStart, filePosition, markAsUsed);
     if (index !== -1) {
       this.buffer = this.buffers[index];
       this.bufferIndex = index;

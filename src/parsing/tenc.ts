@@ -1,6 +1,6 @@
-import { FullBox } from '../box';
-import { BoxParser } from '../box-parser';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { parseHex16 } from '#/box-parse';
+import { MultiBufferStream } from '#/buffer';
 
 export class tencBox extends FullBox {
   default_crypt_byte_block?: number;
@@ -27,7 +27,7 @@ export class tencBox extends FullBox {
     }
     this.default_isProtected = stream.readUint8();
     this.default_Per_Sample_IV_Size = stream.readUint8();
-    this.default_KID = BoxParser.parseHex16(stream);
+    this.default_KID = parseHex16(stream);
     if (this.default_isProtected === 1 && this.default_Per_Sample_IV_Size === 0) {
       this.default_constant_IV_size = stream.readUint8();
       this.default_constant_IV = stream.readUint8Array(this.default_constant_IV_size);

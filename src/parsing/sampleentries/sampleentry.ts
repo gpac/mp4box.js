@@ -1,6 +1,21 @@
-import { SampleEntry } from '../../box';
-import { BoxParser } from '../../box-parser';
-import { MultiBufferStream } from '../../buffer';
+import { SampleEntry } from '#/box';
+import { MultiBufferStream } from '#/buffer';
+import { av1CBox } from '#/parsing/av1C';
+import { avcCBox } from '#/parsing/avcC';
+import { sinfBox } from '#/parsing/defaults';
+import { esdsBox } from '#/parsing/esds';
+import { hvcCBox } from '#/parsing/hvcC';
+import { vvcCBox } from '#/parsing/vvcC';
+
+/** @bundle box-codecs.js */
+function decimalToHex(d: unknown, padding?: number | null) {
+  let hex = Number(d).toString(16);
+  padding = typeof padding === 'undefined' || padding === null ? (padding = 2) : padding;
+  while (hex.length < padding) {
+    hex = '0' + hex;
+  }
+  return hex;
+}
 
 // Base SampleEntry types with default parsing
 export class HintSampleEntry extends SampleEntry {
@@ -168,16 +183,14 @@ export class AudioSampleEntry extends SampleEntry {
 }
 
 class avcCSampleEntryBase extends VisualSampleEntry {
-  avcC: unknown;
+  avcC: avcCBox;
   /** @bundle box-codecs.js */
   getCodec() {
     const baseCodec = super.getCodec();
     if (this.avcC) {
-      return `${baseCodec}.${BoxParser.decimalToHex(
-        this.avcC.AVCProfileIndication,
-      )}${BoxParser.decimalToHex(this.avcC.profile_compatibility)}${BoxParser.decimalToHex(
-        this.avcC.AVCLevelIndication,
-      )}`;
+      return `${baseCodec}.${decimalToHex(this.avcC.AVCProfileIndication)}${decimalToHex(
+        this.avcC.profile_compatibility,
+      )}${decimalToHex(this.avcC.AVCLevelIndication)}`;
     } else {
       return baseCodec;
     }
@@ -210,18 +223,16 @@ export class avc4SampleEntry extends avcCSampleEntryBase {
 }
 
 export class av01SampleEntry extends VisualSampleEntry {
-  av1C: unknown;
+  av1C: av1CBox;
   constructor(size?: number) {
     super('av01', size);
   }
   /** @bundle box-codecs.js */
   getCodec(): string {
-    var baseCodec = BoxParser.SampleEntry.prototype.getCodec.call(this);
-    var level = this.av1C.seq_level_idx_0;
-    if (level < 10) {
-      level = '0' + level;
-    }
-    var bitdepth;
+    const baseCodec = SampleEntry.prototype.getCodec.call(this);
+    const level_idx_0 = this.av1C.seq_level_idx_0;
+    const level = level_idx_0 < 10 ? '0' + level_idx_0 : level_idx_0;
+    let bitdepth: string;
     if (this.av1C.seq_profile === 2 && this.av1C.high_bitdepth === 1) {
       bitdepth = this.av1C.twelve_bit === 1 ? '12' : '10';
     } else if (this.av1C.seq_profile <= 2) {
@@ -248,7 +259,7 @@ export class dav1SampleEntry extends VisualSampleEntry {
 }
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
-  hvcC: unknown;
+  hvcC: hvcCBox;
 
   /** @bundle box-codecs.js */
   getCodec(): string {
@@ -280,7 +291,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
         reversed <<= 1;
         val >>= 1;
       }
-      baseCodec += BoxParser.decimalToHex(reversed, 0);
+      baseCodec += decimalToHex(reversed, 0);
       baseCodec += '.';
       if (this.hvcC.general_tier_flag === 0) {
         baseCodec += 'L';
@@ -293,9 +304,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       for (i = 5; i >= 0; i--) {
         if (this.hvcC.general_constraint_indicator[i] || hasByte) {
           constraint_string =
-            '.' +
-            BoxParser.decimalToHex(this.hvcC.general_constraint_indicator[i], 0) +
-            constraint_string;
+            '.' + decimalToHex(this.hvcC.general_constraint_indicator[i], 0) + constraint_string;
           hasByte = true;
         }
       }
@@ -343,7 +352,7 @@ export class dvheSampleEntry extends VisualSampleEntry {
 
 /** @babel box-codecs.js */
 class vvcCSampleEntryBase extends VisualSampleEntry {
-  vvcC: unknown;
+  vvcC: vvcCBox;
   getCodec() {
     let baseCodec = super.getCodec();
     if (this.vvcC) {
@@ -359,7 +368,9 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
       if (this.vvcC.general_constraint_info) {
         const bytes = [];
         let byte = 0;
+        // @ts-ignore   FIXME: shouldn't it be ptl_frame_only_constraint_flag?
         byte |= this.vvcC.ptl_frame_only_constraint << 7;
+        // @ts-ignore   FIXME: shouldn't it be ptl_multilayer_enabled_flag?
         byte |= this.vvcC.ptl_multilayer_enabled << 6;
         var last_nonzero;
         for (let i = 0; i < this.vvcC.general_constraint_info.length; ++i) {
@@ -486,7 +497,7 @@ export class uncvSampleEntry extends VisualSampleEntry {
 }
 
 export class mp4aSampleEntry extends AudioSampleEntry {
-  esds: unknown;
+  esds: esdsBox;
 
   constructor(size?: number) {
     super('mp4a', size);
@@ -497,7 +508,7 @@ export class mp4aSampleEntry extends AudioSampleEntry {
     if (this.esds && this.esds.esd) {
       const oti = this.esds.esd.getOTI();
       const dsi = this.esds.esd.getAudioConfig();
-      return baseCodec + '.' + BoxParser.decimalToHex(oti) + (dsi ? '.' + dsi : '');
+      return baseCodec + '.' + decimalToHex(oti) + (dsi ? '.' + dsi : '');
     } else {
       return baseCodec;
     }
@@ -572,29 +583,33 @@ export class encaSampleEntry extends AudioSampleEntry {
 }
 
 export class encuSampleEntry extends SubtitleSampleEntry {
+  sinfs: Array<sinfBox> = [];
+  subBoxNames = ['sinf'] as const;
   constructor(size?: number) {
     super('encu', size);
-    this.addSubBoxArrays(['sinf']);
   }
 }
 
 export class encsSampleEntry extends SystemSampleEntry {
+  sinfs: Array<sinfBox> = [];
+  subBoxNames = ['sinf'] as const;
   constructor(size?: number) {
     super('encs', size);
-    this.addSubBoxArrays(['sinf']);
   }
 }
 
 export class enctSampleEntry extends TextSampleEntry {
+  sinfs: Array<sinfBox> = [];
+  subBoxNames = ['sinf'] as const;
   constructor(size?: number) {
     super('enct', size);
-    this.addSubBoxArrays(['sinf']);
   }
 }
 
 export class encmSampleEntry extends MetadataSampleEntry {
+  sinfs: Array<sinfBox> = [];
+  subBoxNames = ['sinf'] as const;
   constructor(size?: number) {
     super('encm', size);
-    this.addSubBoxArrays(['sinf']);
   }
 }

@@ -1,13 +1,13 @@
-import { FullBox } from '../box';
-import type { MultiBufferStream } from '../buffer';
+import { FullBox } from '#/box';
+import { MultiBufferStream } from '#/buffer';
 
 export class emsgBox extends FullBox {
   timescale?: number;
   presentation_time?: number;
   event_duration?: number;
   id?: number;
-  scheme_id_uri?: unknown;
-  value?: unknown;
+  scheme_id_uri?: string;
+  value?: string;
   presentation_time_delta?: number;
   message_data?: Uint8Array;
 
