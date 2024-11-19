@@ -1,9 +1,9 @@
 import { ContainerBox, FullBox } from '#/box';
+import { dinfBox, grplBox, iproBox, iprpBox } from '#/boxes/defaults';
+import { hdlrBox } from '#/boxes/hdlr';
+import { iinfBox } from '#/boxes/iinf';
+import { ilocBox } from '#/boxes/iloc';
 import { MultiBufferStream } from '#/buffer';
-import { dinfBox, grplBox, iproBox, iprpBox } from '#/parsing/defaults';
-import { hdlrBox } from '#/parsing/hdlr';
-import { iinfBox } from '#/parsing/iinf';
-import { ilocBox } from '#/parsing/iloc';
 import { irefBox } from './iref';
 import { pitmBox } from './pitm';
 

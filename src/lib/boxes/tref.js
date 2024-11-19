@@ -1,4 +1,4 @@
-import { OK } from '../constants';
+import { OK } from '#//constants';
 
 BoxParser.trefBox.prototype.parse = function (stream) {
   var ret;

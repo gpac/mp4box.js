@@ -1,8 +1,8 @@
+import { SampleGroupEntry } from '#//box';
+import { Log } from '#//log';
 import { MultiBufferStream } from '#/buffer';
-import { SampleGroupEntry } from '../../box';
-import { Log } from '../../log';
 
-export class tsclSampleGroupEntry extends SampleGroupEntry {
+export class stsaSampleGroupEntry extends SampleGroupEntry {
   parse(stream: MultiBufferStream) {
     Log.warn('BoxParser', 'Sample Group type: ' + this.grouping_type + ' not fully parsed');
   }

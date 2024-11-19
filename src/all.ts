@@ -8,11 +8,16 @@ export * from '#/log';
 export * from '#/stream';
 export * from '#/text-mp4';
 
-import * as ALL_CODECS from '#/codecs-all';
-import { register } from './registry';
+import { registerBox, registerUUID } from '#/box-registry';
+import { UUIDBoxes } from '#/boxes/uuid';
+import * as ALL_BOXES from './all-boxes';
 
-Object.entries(ALL_CODECS).forEach(([key, instance]) => {
-  register(key, instance);
+Object.entries(ALL_BOXES).forEach(([key, instance]) => {
+  registerBox(key, instance);
 });
 
-export type AllCodecs = typeof ALL_CODECS;
+Object.entries(UUIDBoxes).forEach(([key, instance]) => {
+  registerUUID(key, instance);
+});
+
+export type AllBoxes = typeof ALL_BOXES;

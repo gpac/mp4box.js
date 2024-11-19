@@ -4,12 +4,11 @@
  */
 
 import { MultiBufferStream } from '#/buffer';
-// import * as BOXES from '#/codecs-all';
 import { ERR_NOT_ENOUGH_DATA, MAX_SIZE, OK } from '#/constants';
 import { Log } from '#/log';
 import { MP4BoxStream } from '#/stream';
 import type { Output } from '#/types';
-import { CODECS } from './registry';
+import { BoxRegistry, UUIDRegistry } from './box-registry';
 
 class BoxBase {
   boxes: Array<Box> = [];
@@ -671,16 +670,16 @@ export function parseOneBox(
   if (headerOnly) {
     return { code: OK, type: type, size: size, hdr_size: hdr_size, start: start };
   } else {
-    if (CODECS[type + 'Box']) {
-      box = new CODECS[type + 'Box'](size);
+    if (BoxRegistry[type + 'Box']) {
+      box = new BoxRegistry[type + 'Box'](size);
     } else {
       if (type !== 'uuid') {
         Log.warn('BoxParser', "Unknown box type: '" + type + "'");
         box = new Box(type, size);
         box.has_unparsed_data = true;
       } else {
-        if (false /* uuid in UUIDBoxes */) {
-          /* box = new UUIDBoxes[uuid](size); */
+        if (uuid in UUIDRegistry) {
+          box = new UUIDRegistry[uuid](size);
         } else {
           Log.warn('BoxParser', "Unknown uuid type: '" + uuid + "'");
           box = new Box(type, size);

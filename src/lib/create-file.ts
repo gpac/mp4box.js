@@ -3,8 +3,8 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
+import { MultiBufferStream } from '#/buffer';
 import { ISOFile } from '#/isofile';
-import { MultiBufferStream } from './buffer';
 
 export function createFile(keepMdatData = true, stream: MultiBufferStream) {
   /* Boolean indicating if bytes containing media data should be kept in memory */

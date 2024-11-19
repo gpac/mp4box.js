@@ -3,9 +3,9 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
+import { MultiBufferStream } from '#/buffer';
 import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
-import { MultiBufferStream } from './buffer';
 
 const ES_DescrTag = 0x03;
 const DecoderConfigDescrTag = 0x04;

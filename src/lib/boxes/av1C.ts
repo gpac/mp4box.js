@@ -1,6 +1,6 @@
 import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { Log } from '../log';
+import { Log } from '#/log';
 
 export class av1CBox extends Box {
   version?: number;

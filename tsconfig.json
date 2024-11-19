@@ -16,7 +16,7 @@
     "useDefineForClassFields": false,
     "allowJs": true,
     "paths": {
-      "#/*": ["./src/*"]
+      "#/*": ["./src/lib/*"]
     }
   },
   "include": ["./src/**/*"]

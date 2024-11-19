@@ -1,11 +1,11 @@
 import { SampleEntry } from '#/box';
+import { av1CBox } from '#/boxes/av1C';
+import { avcCBox } from '#/boxes/avcC';
+import { sinfBox } from '#/boxes/defaults';
+import { esdsBox } from '#/boxes/esds';
+import { hvcCBox } from '#/boxes/hvcC';
+import { vvcCBox } from '#/boxes/vvcC';
 import { MultiBufferStream } from '#/buffer';
-import { av1CBox } from '#/parsing/av1C';
-import { avcCBox } from '#/parsing/avcC';
-import { sinfBox } from '#/parsing/defaults';
-import { esdsBox } from '#/parsing/esds';
-import { hvcCBox } from '#/parsing/hvcC';
-import { vvcCBox } from '#/parsing/vvcC';
 
 /** @bundle box-codecs.js */
 function decimalToHex(d: unknown, padding?: number | null) {

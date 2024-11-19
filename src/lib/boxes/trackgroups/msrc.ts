@@ -1,3 +1,3 @@
-import { TrackGroupTypeBox } from '../../box';
+import { TrackGroupTypeBox } from '#//box';
 
 export class msrcTrackGroupTypeBox extends TrackGroupTypeBox {}

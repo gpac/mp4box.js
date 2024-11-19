@@ -28,7 +28,7 @@ export default defineConfig({
     lib: {
       entry: {
         all: resolve(__dirname, 'src/all.ts'),
-        // simple: resolve(__dirname, 'src/simple.ts'),
+        simple: resolve(__dirname, 'src/simple.ts'),
       },
       name: 'repl',
       fileName: (format, name) => `${name}.js`,

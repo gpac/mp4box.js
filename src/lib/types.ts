@@ -1,8 +1,8 @@
 import type { Box } from '#/box';
+import type { trakBox } from '#/boxes/defaults';
+import type { SubSample } from '#/boxes/subs';
 import type { DataStream } from '#/DataStream';
-import type { SubSample } from '#/parsing/subs';
 import type { MP4BoxStream } from '#/stream';
-import type { trakBox } from './parsing/defaults';
 
 export type ValidStream = DataStream | MP4BoxStream;
 

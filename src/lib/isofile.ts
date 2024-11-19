@@ -5,6 +5,49 @@
 
 import { Box, parseOneBox, SampleEntry } from '#/box';
 import { boxEqual } from '#/box-diff';
+import { avcCBox } from '#/boxes/avcC';
+import {
+  dinfBox,
+  hmhdBox,
+  mdatBox,
+  mdiaBox,
+  minfBox,
+  moofBox,
+  moovBox,
+  mvexBox,
+  nmhdBox,
+  stblBox,
+  trafBox,
+  trakBox,
+} from '#/boxes/defaults';
+import { drefBox } from '#/boxes/dref';
+import { elngBox } from '#/boxes/elng';
+import { EntityToGroup } from '#/boxes/EntityToGroup';
+import { ftypBox } from '#/boxes/ftyp';
+import { hdlrBox } from '#/boxes/hdlr';
+import { hvcCBox } from '#/boxes/hvcC';
+import { mdhdBox } from '#/boxes/mdhd';
+import { mehdBox } from '#/boxes/mehd';
+import { metaBox } from '#/boxes/meta';
+import { mfhdBox } from '#/boxes/mfhd';
+import { mvhdBox } from '#/boxes/mvhd';
+import { sbgpBox } from '#/boxes/sbgp';
+import { sdtpBox } from '#/boxes/sdtp';
+import { sidxBox } from '#/boxes/sidx';
+import { smhdBox } from '#/boxes/smhd';
+import { stcoBox } from '#/boxes/stco';
+import { sthdBox } from '#/boxes/sthd';
+import { stscBox } from '#/boxes/stsc';
+import { stsdBox } from '#/boxes/stsd';
+import { stszBox } from '#/boxes/stsz';
+import { sttsBox } from '#/boxes/stts';
+import { SubSample } from '#/boxes/subs';
+import { tfdtBox } from '#/boxes/tfdt';
+import { tfhdBox } from '#/boxes/tfhd';
+import { tkhdBox } from '#/boxes/tkhd';
+import { trexBox } from '#/boxes/trex';
+import { trunBox } from '#/boxes/trun';
+import { vmhdBox } from '#/boxes/vmhd';
 import { MultiBufferStream } from '#/buffer';
 import {
   ERR_NOT_ENOUGH_DATA,
@@ -26,49 +69,6 @@ import {
 } from '#/constants';
 import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
-import { avcCBox } from '#/parsing/avcC';
-import {
-  dinfBox,
-  hmhdBox,
-  mdatBox,
-  mdiaBox,
-  minfBox,
-  moofBox,
-  moovBox,
-  mvexBox,
-  nmhdBox,
-  stblBox,
-  trafBox,
-  trakBox,
-} from '#/parsing/defaults';
-import { drefBox } from '#/parsing/dref';
-import { elngBox } from '#/parsing/elng';
-import { EntityToGroup } from '#/parsing/EntityToGroup';
-import { ftypBox } from '#/parsing/ftyp';
-import { hdlrBox } from '#/parsing/hdlr';
-import { hvcCBox } from '#/parsing/hvcC';
-import { mdhdBox } from '#/parsing/mdhd';
-import { mehdBox } from '#/parsing/mehd';
-import { metaBox } from '#/parsing/meta';
-import { mfhdBox } from '#/parsing/mfhd';
-import { mvhdBox } from '#/parsing/mvhd';
-import { sbgpBox } from '#/parsing/sbgp';
-import { sdtpBox } from '#/parsing/sdtp';
-import { sidxBox } from '#/parsing/sidx';
-import { smhdBox } from '#/parsing/smhd';
-import { stcoBox } from '#/parsing/stco';
-import { sthdBox } from '#/parsing/sthd';
-import { stscBox } from '#/parsing/stsc';
-import { stsdBox } from '#/parsing/stsd';
-import { stszBox } from '#/parsing/stsz';
-import { sttsBox } from '#/parsing/stts';
-import { SubSample } from '#/parsing/subs';
-import { tfdtBox } from '#/parsing/tfdt';
-import { tfhdBox } from '#/parsing/tfhd';
-import { tkhdBox } from '#/parsing/tkhd';
-import { trexBox } from '#/parsing/trex';
-import { trunBox } from '#/parsing/trun';
-import { vmhdBox } from '#/parsing/vmhd';
 import { MP4BoxStream } from '#/stream';
 import type {
   Description,
@@ -84,8 +84,8 @@ import type {
   SampleGroup,
   Track,
 } from '#/types';
-import { urlBox } from './parsing/url';
-import { CODECS } from './registry';
+import { BoxRegistry } from './box-registry';
+import { urlBox } from './boxes/url';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;
@@ -2313,9 +2313,9 @@ export class ISOFile {
 
     const minf = mdia.addBox(new minfBox());
 
-    if (CODECS[options.type + 'SampleEntry'] === undefined) return;
+    if (BoxRegistry[options.type + 'SampleEntry'] === undefined) return;
 
-    var sample_description_entry = new CODECS[options.type + 'SampleEntry']();
+    var sample_description_entry = new BoxRegistry[options.type + 'SampleEntry']();
     sample_description_entry.data_reference_index = 1;
 
     var media_type = '';
