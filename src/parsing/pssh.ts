@@ -1,6 +1,5 @@
-import { FullBox } from '#/box';
+import { FullBox, parseHex16 } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { parseHex16 } from '../box-parse';
 
 export class psshBox extends FullBox {
   system_id?: unknown;

@@ -1,5 +1,4 @@
-import { Box } from './box';
-import { parseOneBox } from './box-parse';
+import { Box, parseOneBox } from './box';
 import { OK } from './constants';
 import { MP4BoxStream } from './stream';
 import { Sample, TypedArray } from './types';

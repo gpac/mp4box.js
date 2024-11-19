@@ -1,6 +1,6 @@
-import { FullBox, Output } from '#/box';
+import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { Matrix } from '#/types';
+import type { Matrix, Output } from '#/types';
 
 export class mvhdBox extends FullBox {
   creation_time?: number;

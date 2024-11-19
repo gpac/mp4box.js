@@ -1,5 +1,4 @@
-import { FullBox } from '#/box';
-import { parseHex16 } from '#/box-parse';
+import { FullBox, parseHex16 } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class tencBox extends FullBox {

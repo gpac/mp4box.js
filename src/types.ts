@@ -1,8 +1,8 @@
-import { Box } from '#/box';
-import { DataStream } from '#/DataStream';
-import { SubSample } from '#/parsing/subs';
-import { MP4BoxStream } from '#/stream';
-import { trakBox } from './parsing/defaults';
+import type { Box } from '#/box';
+import type { DataStream } from '#/DataStream';
+import type { SubSample } from '#/parsing/subs';
+import type { MP4BoxStream } from '#/stream';
+import type { trakBox } from './parsing/defaults';
 
 export type ValidStream = DataStream | MP4BoxStream;
 
@@ -221,6 +221,11 @@ export type NaluArray = Array<Nalu> & {
   nalu_type: number;
   length: number;
 };
+
+export interface Output {
+  log: (message: string) => void;
+  indent: string;
+}
 
 /**********************************************************************************/
 /*                                                                                */

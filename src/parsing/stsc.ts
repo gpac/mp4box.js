@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { Sample } from '#/types';
+import type { Sample } from '#/types';
 
 export class stscBox extends FullBox {
   first_chunk?: number[];

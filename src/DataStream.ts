@@ -1,5 +1,5 @@
 import { MAX_SIZE } from '#/constants';
-import { MP4BoxBuffer, StructDefinition, StructType, TypedArray } from '#/types';
+import type { MP4BoxBuffer, StructDefinition, StructType, TypedArray } from '#/types';
 
 /* 
   TODO: fix endianness for 24/64-bit fields
@@ -664,7 +664,7 @@ export class DataStream {
    * @type {boolean}
    * @bundle DataStream-write.js
    */
-  _dynamicSize = 0;
+  _dynamicSize = 1;
 
   /** @bundle DataStream-write.js */
   get dynamicSize() {

@@ -1,6 +1,5 @@
-import { FullBox } from '#/box';
+import { FullBox, parseOneBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { parseOneBox } from '../box-parse';
 import { OK } from '../constants';
 
 export class trepBox extends FullBox {

@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { Sample } from '#/types';
+import type { Sample } from '#/types';
 import { Log } from '../log';
 
 export class cttsBox extends FullBox {

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
@@ -27,19 +25,19 @@ export class Log {
     }
     if (LOG_LEVEL_DEBUG >= log_level) {
       console.debug(
-        '[' + Log.getDurationString(new Date() - start, 1000) + ']',
+        '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
         msg,
       );
     }
   }
-  static log(module: { msg: unknown }, msg?: unknown) {
+  static log(module: { msg: string }, msg?: unknown) {
     this.debug(module.msg);
   }
-  static info(module: string, msg?: unknown) {
+  static info(module: string, msg?: string) {
     if (LOG_LEVEL_INFO >= log_level) {
       console.info(
-        '[' + Log.getDurationString(new Date() - start, 1000) + ']',
+        '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
         msg,
       );
@@ -48,7 +46,7 @@ export class Log {
   static warn(module: string, msg?: unknown) {
     if (LOG_LEVEL_WARNING >= log_level) {
       console.warn(
-        '[' + Log.getDurationString(new Date() - start, 1000) + ']',
+        '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
         msg,
       );
@@ -57,7 +55,7 @@ export class Log {
   static error(module: string, msg?: unknown) {
     if (LOG_LEVEL_ERROR >= log_level) {
       console.error(
-        '[' + Log.getDurationString(new Date() - start, 1000) + ']',
+        '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
         msg,
       );
@@ -104,9 +102,9 @@ export class Log {
   }
   /* Helper function to stringify HTML5 TimeRanges objects */
   static printRanges(ranges: {
-    length: unknown;
-    start: (arg0: number) => any;
-    end: (arg0: number) => any;
+    length: number;
+    start: (index: number) => any;
+    end: (index: number) => any;
   }) {
     var length = ranges.length;
     if (length > 0) {

@@ -3,10 +3,8 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
-import { Box, Output, SampleEntry } from '#/box';
+import { Box, parseOneBox, SampleEntry } from '#/box';
 import { boxEqual } from '#/box-diff';
-import { parseOneBox } from '#/box-parse';
-import { BoxParser } from '#/box-parser';
 import { MultiBufferStream } from '#/buffer';
 import {
   ERR_NOT_ENOUGH_DATA,
@@ -72,7 +70,7 @@ import { trexBox } from '#/parsing/trex';
 import { trunBox } from '#/parsing/trun';
 import { vmhdBox } from '#/parsing/vmhd';
 import { MP4BoxStream } from '#/stream';
-import {
+import type {
   Description,
   ExtractedTrack,
   FragmentedTrack,
@@ -81,11 +79,13 @@ import {
   Item,
   Movie,
   MP4BoxBuffer,
+  Output,
   Sample,
   SampleGroup,
   Track,
 } from '#/types';
 import { urlBox } from './parsing/url';
+import { CODECS } from './registry';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;
@@ -441,7 +441,6 @@ export class ISOFile {
   getInfo() {
     let movie = {} as Movie;
     let trak: trakBox;
-    let track: Track;
     let ref: Track['references'][number];
     let sample_desc: SampleEntry;
     var _1904 = new Date('1904-01-01T00:00:00Z').getTime();
@@ -471,9 +470,13 @@ export class ISOFile {
       for (let i = 0; i < this.moov.traks.length; i++) {
         trak = this.moov.traks[i];
         sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
-        track = {
+        const size = trak.samples_size;
+        const timescale = trak.mdia.mdhd.timescale;
+        const samples_duration = trak.samples_duration;
+        const track: Track = {
           id: trak.tkhd.track_id,
-          name: trak.mdia.hdlr.name,
+          // FIXME: hdlr is sometimes not defined
+          name: trak.mdia.hdlr?.name,
           created: new Date(_1904 + trak.tkhd.creation_time * 1000),
           modified: new Date(_1904 + trak.tkhd.modification_time * 1000),
           movie_duration: trak.tkhd.duration,
@@ -484,10 +487,10 @@ export class ISOFile {
           matrix: trak.tkhd.matrix,
           track_width: trak.tkhd.width / (1 << 16),
           track_height: trak.tkhd.height / (1 << 16),
-          timescale: trak.mdia.mdhd.timescale,
+          timescale,
           cts_shift: trak.mdia.minf.stbl.cslg,
           duration: trak.mdia.mdhd.duration,
-          samples_duration: trak.samples_duration,
+          samples_duration,
           codec: sample_desc.getCodec(),
           kind:
             trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: '', value: '' },
@@ -496,12 +499,12 @@ export class ISOFile {
             ? trak.mdia.elng.extended_language
             : trak.mdia.mdhd.languageString,
           nb_samples: trak.samples.length,
-          size: trak.samples_size,
-          bitrate: (track.size * 8 * track.timescale) / track.samples_duration,
+          size,
+          bitrate: (size * 8 * timescale) / samples_duration,
+          references: [],
         };
 
         movie.tracks.push(track);
-        track.references = [];
         if (trak.tref) {
           for (let j = 0; j < trak.tref.boxes.length; j++) {
             ref = {
@@ -2310,9 +2313,9 @@ export class ISOFile {
 
     const minf = mdia.addBox(new minfBox());
 
-    if (BoxParser[options.type + 'SampleEntry'] === undefined) return;
+    if (CODECS[options.type + 'SampleEntry'] === undefined) return;
 
-    var sample_description_entry = new BoxParser[options.type + 'SampleEntry']();
+    var sample_description_entry = new CODECS[options.type + 'SampleEntry']();
     sample_description_entry.data_reference_index = 1;
 
     var media_type = '';

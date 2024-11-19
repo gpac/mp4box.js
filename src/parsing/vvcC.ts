@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { NaluArray } from '#/types';
+import type { NaluArray } from '#/types';
 
 export class vvcCBox extends FullBox {
   lengthSizeMinusOne?: number;

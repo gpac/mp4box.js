@@ -1,7 +1,7 @@
 import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
-import { Sample } from '#/types';
+import type { Sample } from '#/types';
 
 export class sttsBox extends FullBox {
   sample_counts: number[] = [];

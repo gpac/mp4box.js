@@ -1,8 +1,7 @@
-import { Box } from '#/box';
+import { Box, parseOneBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { parseOneBox } from '../box-parse';
-import { OK } from '../constants';
-import { Log } from '../log';
+import { OK } from '#/constants';
+import { Log } from '#/log';
 
 export interface ItemInfo {
   item_ID: number;

@@ -1,6 +1,5 @@
+import { UUIDBox, parseHex16 } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { UUIDBox } from '../../box';
-import { parseHex16 } from '../../box-parse';
 
 export const UUIDBoxes = {
   // piff

@@ -28,7 +28,7 @@ import { tkhdBox } from '#/parsing/tkhd';
 import { trexBox } from '#/parsing/trex';
 import { trunBox } from '#/parsing/trun';
 import { tycoBox } from '#/parsing/tyco';
-import { Sample } from '#/types';
+import type { Sample } from '#/types';
 import { sdtpBox } from './sdtp';
 import { tfdtBox } from './tfdt';
 import { tfhdBox } from './tfhd';
@@ -160,9 +160,10 @@ export class edtsBox extends ContainerBox {
 }
 export class mdiaBox extends ContainerBox {
   elng?: elngBox;
+  hdlr?: hdlrBox;
   mdhd: mdhdBox;
   minf: minfBox;
-  hdlr: hdlrBox;
+
   constructor(size?: number) {
     super('mdia', size);
   }

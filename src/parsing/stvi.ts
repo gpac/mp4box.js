@@ -1,5 +1,4 @@
-import { FullBox } from '#/box';
-import { parseOneBox } from '#/box-parse';
+import { FullBox, parseOneBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 

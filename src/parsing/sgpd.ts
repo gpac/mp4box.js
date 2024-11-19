@@ -1,7 +1,8 @@
 import { FullBox, SampleGroupEntry } from '#/box';
-import { BoxParser } from '#/box-parser';
 import { MultiBufferStream } from '#/buffer';
+// import * as BOXES from '#/codecs-all';
 import { Log } from '#/log';
+import { CODECS } from '#/registry';
 
 export class sgpdBox extends FullBox {
   grouping_type?:
@@ -48,8 +49,8 @@ export class sgpdBox extends FullBox {
     var entry_count = stream.readUint32();
     for (var i = 0; i < entry_count; i++) {
       let entry: SampleGroupEntry;
-      if (BoxParser[this.grouping_type + 'SampleGroupEntry']) {
-        entry = new BoxParser[this.grouping_type + 'SampleGroupEntry'](this.grouping_type);
+      if (CODECS[this.grouping_type + 'SampleGroupEntry']) {
+        entry = new CODECS[this.grouping_type + 'SampleGroupEntry'](this.grouping_type);
       } else {
         entry = new SampleGroupEntry(this.grouping_type);
       }

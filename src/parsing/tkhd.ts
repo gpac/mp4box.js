@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { Matrix } from '#/types';
+import type { Matrix } from '#/types';
 
 export class tkhdBox extends FullBox {
   creation_time?: number;

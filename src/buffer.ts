@@ -1,6 +1,6 @@
 import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
-import { MP4BoxBuffer } from '#/types';
+import type { MP4BoxBuffer } from '#/types';
 
 /**
  * helper functions to concatenate two ArrayBuffer objects

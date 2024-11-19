@@ -1,6 +1,6 @@
 import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { NaluArray } from '#/types';
+import type { NaluArray } from '#/types';
 
 export class hvcCBox extends Box {
   configurationVersion?: number;

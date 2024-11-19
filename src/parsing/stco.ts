@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
-import { Sample } from '#/types';
+import type { Sample } from '#/types';
 
 export class stcoBox extends FullBox {
   chunk_offsets?: number[];

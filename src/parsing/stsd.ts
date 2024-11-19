@@ -1,9 +1,8 @@
-import { FullBox, SampleEntry } from '#/box';
-import { parseOneBox } from '#/box-parse';
-import { BoxParser } from '#/box-parser';
+import { FullBox, SampleEntry, parseOneBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
+import { CODECS } from '#/registry';
 
 export class stsdBox extends FullBox {
   entries?: Array<SampleEntry>;
@@ -23,8 +22,8 @@ export class stsdBox extends FullBox {
 
       if (ret.code === OK) {
         let box: SampleEntry;
-        if (BoxParser[ret.type + 'SampleEntry']) {
-          box = new BoxParser[ret.type + 'SampleEntry'](ret.size);
+        if (CODECS[ret.type + 'SampleEntry']) {
+          box = new CODECS[ret.type + 'SampleEntry'](ret.size);
           box.hdr_size = ret.hdr_size;
           box.start = ret.start;
         } else {

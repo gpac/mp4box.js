@@ -31,21 +31,23 @@ export class avcCBox extends Box {
     toparse = this.size - this.hdr_size - 6;
     this.SPS = [];
     for (i = 0; i < this.nb_SPS_nalus; i++) {
+      const length = stream.readUint16();
       this.SPS[i] = {
-        length: stream.readUint16(),
-        nalu: stream.readUint8Array(this.SPS[i].length),
+        length,
+        nalu: stream.readUint8Array(length),
       };
-      toparse -= 2 + this.SPS[i].length;
+      toparse -= 2 + length;
     }
     this.nb_PPS_nalus = stream.readUint8();
     toparse--;
     this.PPS = [];
     for (i = 0; i < this.nb_PPS_nalus; i++) {
+      const length = stream.readUint16();
       this.PPS[i] = {
-        length: stream.readUint16(),
-        nalu: stream.readUint8Array(this.PPS[i].length),
+        length,
+        nalu: stream.readUint8Array(length),
       };
-      toparse -= 2 + this.PPS[i].length;
+      toparse -= 2 + length;
     }
     if (toparse > 0) {
       this.ext = stream.readUint8Array(toparse);

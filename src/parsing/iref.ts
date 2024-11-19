@@ -1,5 +1,9 @@
-import { Box, SingleItemTypeReferenceBox, SingleItemTypeReferenceBoxLarge } from '#/box';
-import { parseOneBox } from '#/box-parse';
+import {
+  Box,
+  SingleItemTypeReferenceBox,
+  SingleItemTypeReferenceBoxLarge,
+  parseOneBox,
+} from '#/box';
 import { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
