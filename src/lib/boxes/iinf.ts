@@ -2,20 +2,12 @@ import { Box, parseOneBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
-
-export interface ItemInfo {
-  item_ID: number;
-  protection_index: number;
-  item_type: unknown;
-  item_name: string;
-  content_type: unknown;
-  content_encoding: unknown;
-}
+import { infeBox } from './infe';
 
 export class iinfBox extends Box {
   version?: number;
   entry_count?: number;
-  item_infos?: Array<ItemInfo>;
+  item_infos?: Array<infeBox>;
 
   constructor(size?: number) {
     super('iinf', size);
@@ -33,10 +25,11 @@ export class iinfBox extends Box {
     for (let i = 0; i < this.entry_count; i++) {
       const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
-        if (ret.box.type !== 'infe') {
+        if (ret.box instanceof infeBox) {
+          this.item_infos[i] = ret.box;
+        } else {
           Log.error('BoxParser', "Expected 'infe' box, got " + ret.box.type);
         }
-        this.item_infos[i] = ret.box;
       } else {
         return;
       }
