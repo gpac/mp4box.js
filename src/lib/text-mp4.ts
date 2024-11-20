@@ -22,7 +22,7 @@ export class VTTin4Parser {
   }
 
   getText(startTime: number, endTime: number, data: TypedArray) {
-    function pad(n: string | number | any[], width: number, z?: string) {
+    function pad(n: string | number | Array<unknown>, width: number, z?: string) {
       z = z || '0';
       n = n + '';
       return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;

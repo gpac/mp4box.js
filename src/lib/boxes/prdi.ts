@@ -3,7 +3,7 @@ import { MultiBufferStream } from '#/buffer';
 
 export class prdiBox extends FullBox {
   step_count?: number;
-  item_count?: number[];
+  item_count?: Array<number>;
 
   constructor(size?: number) {
     super('prdi', size);

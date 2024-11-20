@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class co64Box extends FullBox {
-  chunk_offsets?: number[];
+  chunk_offsets?: Array<number>;
 
   constructor(size?: number) {
     super('co64', size);

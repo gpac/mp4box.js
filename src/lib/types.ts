@@ -12,7 +12,7 @@ export interface FragmentedTrack {
   trak: trakBox;
   segmentStream: DataStream;
   nb_samples: number;
-  rapAlignement: unknown;
+  rapAlignement: boolean;
 }
 export interface ExtractedTrack {
   id: number;
@@ -164,16 +164,16 @@ export type IncompleteBox =
       hdr_size?: undefined;
       start?: undefined;
     }
-  | { code: number; type: any; size: number; hdr_size: number; start: number; box?: undefined };
+  | { code: number; type: unknown; size: number; hdr_size: number; start: number; box?: undefined };
 
 export interface Item {
   id?: number;
   ref_to?: Array<{ type: unknown; id: unknown }>;
-  name?: unknown;
+  name?: string;
   protection?: unknown;
-  type?: unknown;
-  content_type?: unknown;
-  content_encoding?: unknown;
+  type?: string;
+  content_type?: string;
+  content_encoding?: string;
   source?: unknown;
   extents?: Array<{
     alreadyRead?: number;
@@ -252,13 +252,16 @@ type PrimitiveType =
 type EndianType = `${'uint' | 'int' | 'float'}${64 | 32 | 16 | 8}${'le' | 'be'}`;
 
 type ComplexType =
-  | { get(dataStream: any, struct: any): any; set?(dataStream: any, struct: any): void }
+  | {
+      get(dataStream: unknown, struct: unknown): unknown;
+      set?(dataStream: unknown, struct: unknown): void;
+    }
   | [name: string, type: StructDefinition];
 
 type ArrayType = [
   '[]',
   PrimitiveType | EndianType,
-  number | string | ((struct: any, dataStream: any, type: any) => number),
+  number | string | ((struct: unknown, dataStream: unknown, type: unknown) => number),
 ];
 
 type FnType = (dataStream: DataStream, struct: Record<string, unknown>) => number;

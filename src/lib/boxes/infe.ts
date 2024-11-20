@@ -5,12 +5,12 @@ import { Log } from '../log';
 export class infeBox extends FullBox {
   item_ID?: number;
   item_protection_index?: number;
-  item_name?: unknown;
-  content_type?: unknown;
-  content_encoding?: unknown;
+  item_name?: string;
+  content_type?: string;
+  content_encoding?: string;
   extension_type?: string;
   item_type?: string;
-  item_uri_type?: unknown;
+  item_uri_type?: string;
 
   constructor(size?: number) {
     super('infe', size);

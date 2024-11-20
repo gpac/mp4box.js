@@ -3,9 +3,9 @@ import { MultiBufferStream } from '#/buffer';
 import type { Sample } from '#/types';
 
 export class stscBox extends FullBox {
-  first_chunk?: number[];
-  samples_per_chunk?: number[];
-  sample_description_index?: number[];
+  first_chunk?: Array<number>;
+  samples_per_chunk?: Array<number>;
+  sample_description_index?: Array<number>;
 
   constructor(size?: number) {
     super('stsc', size);

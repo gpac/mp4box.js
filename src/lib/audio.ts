@@ -21,7 +21,7 @@ export class AudioSpecificConfig {
     return audioObjectType;
   }
 
-  parse(stream: MP4BoxStream, audioObjectType: unknown) {
+  parse(stream: MP4BoxStream, audioObjectType: number) {
     let tmp = stream.readUint8();
     this.samplingFrequencyIndex = tmp >> 4;
     if (this.samplingFrequencyIndex === 0xf) {

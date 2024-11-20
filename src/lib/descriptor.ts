@@ -14,11 +14,11 @@ const SLConfigDescrTag = 0x06;
 
 export class Descriptor {
   descs = [];
-  data: unknown;
+  data: Uint8Array;
 
   constructor(public tag: unknown, public size: number) {}
 
-  parse(stream: { readUint8Array: (arg0: unknown) => any }) {
+  parse(stream: DataStream) {
     this.data = stream.readUint8Array(this.size);
   }
 
@@ -44,11 +44,11 @@ export class Descriptor {
 }
 
 export class ES_Descriptor extends Descriptor {
+  dependsOn_ES_ID: number;
   ES_ID: number;
   flags: number;
-  dependsOn_ES_ID: number;
-  URL: unknown;
   OCR_ES_ID: number;
+  URL: string;
 
   constructor(size?: number) {
     super(ES_DescrTag, size);
@@ -106,12 +106,12 @@ export class ES_Descriptor extends Descriptor {
 }
 
 class DecoderConfigDescriptor extends Descriptor {
+  avgBitrate: number;
+  bufferSize: number;
+  maxBitrate: number;
   oti: number;
   streamType: number;
   upStream: boolean;
-  bufferSize: number;
-  maxBitrate: number;
-  avgBitrate: number;
 
   constructor(size: number) {
     super(DecoderConfigDescrTag, size);

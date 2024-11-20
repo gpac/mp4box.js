@@ -27,7 +27,7 @@ function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
  * It inherits also from DataStream for all read/write/alloc operations
  */
 export class MultiBufferStream extends DataStream {
-  buffers: MP4BoxBuffer[];
+  buffers: Array<MP4BoxBuffer>;
   bufferIndex: number;
 
   constructor(buffer?: MP4BoxBuffer) {
@@ -177,7 +177,7 @@ export class MultiBufferStream extends DataStream {
    * Displays the status of the buffers (number and used bytes)
    * @param  {Object} info callback method for display
    */
-  logBufferLevel(info?: unknown) {
+  logBufferLevel(info?: boolean) {
     const ranges = [];
     let bufferedString = '';
     let range: { start?: number; end?: number };

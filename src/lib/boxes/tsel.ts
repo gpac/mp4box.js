@@ -3,7 +3,7 @@ import { MultiBufferStream } from '#/buffer';
 
 export class tselBox extends FullBox {
   switch_group?: number;
-  attribute_list?: number[];
+  attribute_list?: Array<number>;
 
   constructor(size?: number) {
     super('tsel', size);

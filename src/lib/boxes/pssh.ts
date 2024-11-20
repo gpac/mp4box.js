@@ -2,8 +2,8 @@ import { FullBox, parseHex16 } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class psshBox extends FullBox {
-  system_id?: unknown;
-  kid?: string[];
+  system_id?: string;
+  kid?: Array<string>;
 
   constructor(size?: number) {
     super('pssh', size);

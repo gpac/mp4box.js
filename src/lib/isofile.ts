@@ -41,6 +41,7 @@ import {
 } from '#/boxes/sampleentries/sampleentry';
 import { sbgpBox } from '#/boxes/sbgp';
 import { sdtpBox } from '#/boxes/sdtp';
+import { sgpdBox } from '#/boxes/sgpd';
 import { sidxBox } from '#/boxes/sidx';
 import { smhdBox } from '#/boxes/smhd';
 import { stcoBox } from '#/boxes/stco';
@@ -93,7 +94,6 @@ import type {
   Track,
 } from '#/types';
 import { stppSampleEntry } from '../all-boxes';
-
 import { BoxRegistry } from './box-registry';
 import { urlBox } from './boxes/url';
 
@@ -138,7 +138,7 @@ export class ISOFile {
     | ((id: number, user: unknown, buffer: ArrayBuffer, nextSample: number, last: boolean) => void)
     | null = null;
   /** Callback to call when samples are ready */
-  onSamples: ((id: any, user: any, samples: Array<Sample>) => void) | null = null;
+  onSamples: ((id: unknown, user: unknown, samples: Array<Sample>) => void) | null = null;
   /** Callback to call when there is an error in the parsing or processing of samples */
   onError: (() => void) | null = null;
 
@@ -702,7 +702,7 @@ export class ISOFile {
     return result;
   }
 
-  static _sweep(type: boolean, result: (typeof ISOFile)[], returnEarly: unknown) {
+  static _sweep(type: boolean, result: Array<typeof ISOFile>, returnEarly: unknown) {
     if (this.type && this.type == type) result.push(this);
     for (const box in this.boxes) {
       if (result.length && returnEarly) return;
@@ -881,7 +881,7 @@ export class ISOFile {
     }
   }
 
-  equal(b: { boxes: string | any[] }) {
+  equal(b: { boxes: Array<Box> }) {
     let box_index = 0;
     while (box_index < this.boxes.length && box_index < b.boxes.length) {
       const a_box = this.boxes[box_index];
@@ -1076,9 +1076,9 @@ export class ISOFile {
   static initSampleGroups(
     trak: trakBox,
     traf: trafBox | null,
-    sbgps: string | any[],
-    trak_sgpds: string | any[],
-    traf_sgpds?: string | any[],
+    sbgps: Array<sbgpBox>,
+    trak_sgpds: Array<sgpdBox>,
+    traf_sgpds?: Array<sgpdBox>,
   ) {
     if (traf) {
       traf.sample_groups_info = [];
@@ -1101,14 +1101,14 @@ export class ISOFile {
       }
       for (let l = 0; l < trak_sgpds.length; l++) {
         if (trak_sgpds[l].grouping_type === sbgps[k].grouping_type) {
-          sample_group_info.description = trak_sgpds[l];
+          sample_group_info.description = trak_sgpds[l] as Description;
           sample_group_info.description.used = true;
         }
       }
       if (traf_sgpds) {
         for (let l = 0; l < traf_sgpds.length; l++) {
           if (traf_sgpds[l].grouping_type === sbgps[k].grouping_type) {
-            sample_group_info.fragment_description = traf_sgpds[l];
+            sample_group_info.fragment_description = traf_sgpds[l] as Description;
             sample_group_info.fragment_description.used = true;
             sample_group_info.is_fragment = true;
           }

@@ -4,7 +4,7 @@ import { MultiBufferStream } from '#/buffer';
 export class ftypBox extends Box {
   major_brand?: string;
   minor_version?: number;
-  compatible_brands?: string[];
+  compatible_brands?: Array<string>;
 
   constructor(size?: number) {
     super('ftyp', size);

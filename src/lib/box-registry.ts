@@ -1,6 +1,6 @@
 import { Box, SampleGroupEntry, UUIDBox } from '#/box';
 
-type Constructor<T> = new (...args: unknown[]) => T;
+type Constructor<T> = new (...args: Array<unknown>) => T;
 type Registry<T> = Record<string, Constructor<T>>;
 
 export const BoxRegistry = {} as Registry<Box>;

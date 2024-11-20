@@ -3,9 +3,9 @@ import { MultiBufferStream } from '#/buffer';
 
 export class cdefBox extends Box {
   channel_count?: number;
-  channel_indexes?: number[];
-  channel_types?: number[];
-  channel_associations?: number[];
+  channel_indexes?: Array<number>;
+  channel_types?: Array<number>;
+  channel_associations?: Array<number>;
 
   constructor(size?: number) {
     super('cdef', size);

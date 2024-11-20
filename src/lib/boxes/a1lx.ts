@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class a1lxBox extends Box {
-  layer_size?: number[];
+  layer_size?: Array<number>;
 
   constructor(size?: number) {
     super('a1lx', size);

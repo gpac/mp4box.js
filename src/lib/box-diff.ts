@@ -36,7 +36,7 @@ export const DIFF_PRIMITIVE_ARRAY_PROP_NAMES = [
 /** @bundle box-diff.js */
 export function boxEqualFields(box_a: BoxKind, box_b: BoxKind) {
   if (box_a && !box_b) return false;
-  let prop: string | any[];
+  let prop: string | Array<unknown>;
   for (prop in box_a) {
     if (DIFF_BOXES_PROP_NAMES.indexOf(prop as any) > -1) {
       continue;

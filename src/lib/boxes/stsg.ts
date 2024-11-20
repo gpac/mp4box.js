@@ -3,7 +3,7 @@ import { MultiBufferStream } from '#/buffer';
 
 export class stsgBox extends FullBox {
   grouping_type?: number;
-  group_description_index?: number[];
+  group_description_index?: Array<number>;
 
   constructor(size?: number) {
     super('stsg', size);

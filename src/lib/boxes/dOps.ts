@@ -10,7 +10,7 @@ export class dOpsBox extends Box {
   ChannelMappingFamily?: number;
   StreamCount?: number;
   CoupledCount?: number;
-  ChannelMapping?: number[];
+  ChannelMapping?: Array<number>;
 
   constructor(size?: number) {
     super('dOps', size);

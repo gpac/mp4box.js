@@ -5,7 +5,7 @@ import { MultiBufferStream } from '#/buffer';
 export class EntityToGroup extends FullBox {
   group_id?: number;
   num_entities_in_group?: number;
-  entity_ids?: number[];
+  entity_ids?: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -135,9 +135,9 @@ export class prgrBox extends EntityToGroup {
 export class pymdBox extends EntityToGroup {
   tile_size_x?: number;
   tile_size_y?: number;
-  layer_binning?: number[];
-  tiles_in_layer_column_minus1?: number[];
-  tiles_in_layer_row_minus1?: number[];
+  layer_binning?: Array<number>;
+  tiles_in_layer_column_minus1?: Array<number>;
+  tiles_in_layer_row_minus1?: Array<number>;
 
   constructor(size?: number) {
     super('pymd', size);

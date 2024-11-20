@@ -10,9 +10,9 @@ export class avcCBox extends Box {
   AVCLevelIndication?: number;
   lengthSizeMinusOne?: number;
   nb_SPS_nalus?: number;
-  SPS?: { length: number; nalu: Uint8Array }[];
+  SPS?: Array<{ length: number; nalu: Uint8Array }>;
   nb_PPS_nalus?: number;
-  PPS?: { length: number; nalu: Uint8Array }[];
+  PPS?: Array<{ length: number; nalu: Uint8Array }>;
   ext?: Uint8Array;
 
   constructor(size?: number) {

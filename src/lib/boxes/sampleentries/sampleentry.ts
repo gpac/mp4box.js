@@ -8,7 +8,7 @@ import { vvcCBox } from '#/boxes/vvcC';
 import { MultiBufferStream } from '#/buffer';
 
 /** @bundle box-codecs.js */
-function decimalToHex(d: unknown, padding?: number | null) {
+function decimalToHex(d: number | string, padding?: number | null) {
   let hex = Number(d).toString(16);
   padding = typeof padding === 'undefined' || padding === null ? (padding = 2) : padding;
   while (hex.length < padding) {

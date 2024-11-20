@@ -28,6 +28,7 @@ export class sgpdBox extends FullBox {
   default_group_description_index?: number;
   default_sample_description_index?: number;
   entries?: SampleGroupEntry[];
+  used?: boolean;
 
   constructor(size?: number) {
     super('sgpd', size);

@@ -3,8 +3,8 @@ import { MultiBufferStream } from '#/buffer';
 
 export class cmpdBox extends Box {
   component_count?: number;
-  component_types?: number[];
-  component_type_urls?: string[];
+  component_types?: Array<number>;
+  component_type_urls?: Array<string>;
 
   constructor(size?: number) {
     super('cmpd', size);

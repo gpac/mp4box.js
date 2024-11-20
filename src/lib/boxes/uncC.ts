@@ -4,10 +4,10 @@ import { MultiBufferStream } from '#/buffer';
 export class uncCBox extends FullBox {
   profile?: number;
   component_count?: number;
-  component_index?: number[];
-  component_bit_depth_minus_one?: number[];
-  component_format?: number[];
-  component_align_size?: number[];
+  component_index?: Array<number>;
+  component_bit_depth_minus_one?: Array<number>;
+  component_format?: Array<number>;
+  component_align_size?: Array<number>;
   sampling_type?: number;
   interleave_type?: number;
   block_size?: number;

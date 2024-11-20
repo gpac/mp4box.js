@@ -6,7 +6,7 @@ export class tencBox extends FullBox {
   default_skip_byte_block?: number;
   default_isProtected?: number;
   default_Per_Sample_IV_Size?: number;
-  default_KID?: unknown;
+  default_KID?: string;
   default_constant_IV_size?: number;
   default_constant_IV?: Uint8Array;
 

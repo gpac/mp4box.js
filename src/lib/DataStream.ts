@@ -542,7 +542,7 @@ export class DataStream {
    *                               little-endian. Set false for big-endian.
    * @return The converted typed array.
    */
-  static nativeToEndian(typedArray: TypedArray, littleEndian: unknown) {
+  static nativeToEndian(typedArray: TypedArray, littleEndian: boolean) {
     if (this.endianness == littleEndian) {
       return typedArray;
     } else {
@@ -1151,7 +1151,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeType(type: StructType, value: number, struct?: Record<string, number>) {
-    let tp: string[];
+    let tp: Array<string>;
     if (typeof type == 'function') {
       // @ts-expect-error FIXME: incorrect signature, expects DataStream, Struct
       return type(this, value);
@@ -1400,7 +1400,7 @@ export class DataStream {
    * @return  Returns the object on successful read, null on unsuccessful.
    * @bundle DataStream-read-struct.js
    */
-  readType(type: StructType, struct: Record<string, string>) {
+  readType(type: StructType, struct: Record<string, string>): any {
     if (typeof type == 'function') {
       return type(this, struct);
     }
@@ -1415,7 +1415,7 @@ export class DataStream {
     let value:
       | null
       | number
-      | Array<number>
+      | Array<unknown>
       | Uint8Array
       | Uint16Array
       | Uint32Array
@@ -1424,11 +1424,12 @@ export class DataStream {
       | Int32Array
       | Float32Array
       | Float64Array = null;
+
     let lengthOverride = null;
     let charset: string | number = 'ASCII';
     let pos = this.position;
-    let tp: string[];
-    let u: null;
+    let tp: Array<string>;
+    let u: unknown;
 
     if (typeof type == 'string' && /:/.test(type)) {
       tp = type.split(':');

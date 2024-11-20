@@ -4,8 +4,8 @@ import { Log } from '#/log';
 import type { Sample } from '#/types';
 
 export class sttsBox extends FullBox {
-  sample_counts: number[] = [];
-  sample_deltas: number[] = [];
+  sample_counts: Array<number> = [];
+  sample_deltas: Array<number> = [];
 
   constructor(size?: number) {
     super('stts', size);

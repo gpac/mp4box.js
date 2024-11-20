@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class stssBox extends FullBox {
-  sample_numbers?: number[];
+  sample_numbers?: Array<number>;
 
   constructor(size?: number) {
     super('stss', size);
