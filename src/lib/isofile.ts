@@ -526,7 +526,7 @@ export class ISOFile {
           track.edits = trak.edts.elst.entries;
         }
 
-        if (sample_desc.isAudio()) {
+        if (sample_desc instanceof AudioSampleEntry) {
           track.type = 'audio';
           movie.audioTracks.push(track);
           track.audio = {
@@ -534,20 +534,20 @@ export class ISOFile {
             channel_count: sample_desc.getChannelCount(),
             sample_size: sample_desc.getSampleSize(),
           };
-        } else if (sample_desc.isVideo()) {
+        } else if (sample_desc instanceof VisualSampleEntry) {
           track.type = 'video';
           movie.videoTracks.push(track);
           track.video = {
             width: sample_desc.getWidth(),
             height: sample_desc.getHeight(),
           };
-        } else if (sample_desc.isSubtitle()) {
+        } else if (sample_desc instanceof SubtitleSampleEntry) {
           track.type = 'subtitles';
           movie.subtitleTracks.push(track);
-        } else if (sample_desc.isHint()) {
+        } else if (sample_desc instanceof HintSampleEntry) {
           track.type = 'metadata';
           movie.hintTracks.push(track);
-        } else if (sample_desc.isMetadata()) {
+        } else if (sample_desc instanceof MetadataSampleEntry) {
           track.type = 'metadata';
           movie.metadataTracks.push(track);
         } else {
