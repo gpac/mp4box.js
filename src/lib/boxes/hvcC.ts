@@ -1,5 +1,5 @@
 import { Box } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import { DataStream } from '#/DataStream';
 import { MP4BoxStream } from '#/stream';
 import type { NaluArray } from '#/types';
 
@@ -27,7 +27,7 @@ export class hvcCBox extends Box {
     super('hvcC', size);
   }
 
-  parse(stream: MultiBufferStream | MP4BoxStream) {
+  parse(stream: DataStream | MP4BoxStream) {
     this.configurationVersion = stream.readUint8();
     let tmp_byte = stream.readUint8();
     this.general_profile_space = tmp_byte >> 6;
@@ -67,7 +67,7 @@ export class hvcCBox extends Box {
   }
 
   /** @bundle writing/write.js */
-  write(stream: MultiBufferStream) {
+  write(stream: DataStream) {
     this.size = 23;
 
     for (let i = 0; i < this.nalu_arrays.length; i++) {

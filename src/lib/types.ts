@@ -1,8 +1,19 @@
 import type { Box } from '#/box';
 import type { trakBox } from '#/boxes/defaults';
+import * as SAMPLE_ENTRIES from '#/boxes/sampleentries';
 import type { SubSample } from '#/boxes/subs';
 import type { DataStream } from '#/DataStream';
 import type { MP4BoxStream } from '#/stream';
+
+type InstanceUnion<T> = T extends new (...args: any[]) => infer R ? R : never;
+
+export type SampleEntryKind = InstanceUnion<(typeof SAMPLE_ENTRIES)[keyof typeof SAMPLE_ENTRIES]>;
+
+export type FilterInstances<T, X> = T extends new (...args: any[]) => infer R
+  ? R extends X
+    ? R
+    : never
+  : never;
 
 export type ValidStream = DataStream | MP4BoxStream;
 

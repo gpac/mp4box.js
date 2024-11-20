@@ -6,6 +6,7 @@ import { esdsBox } from '#/boxes/esds';
 import { hvcCBox } from '#/boxes/hvcC';
 import { vvcCBox } from '#/boxes/vvcC';
 import { MultiBufferStream } from '#/buffer';
+import { vpcCBox } from '../vpcC';
 
 /** @bundle box-codecs.js */
 function decimalToHex(d: number | string, padding?: number | null) {
@@ -439,7 +440,7 @@ export class vvcNSampleEntry extends VisualSampleEntry {
 }
 
 class vpcCSampleEntryBase extends VisualSampleEntry {
-  vpcC: { level: number; bitDepth: number; profile: number };
+  vpcC: vpcCBox;
   getCodec() {
     let baseCodec = super.getCodec();
     let level: number | string = this.vpcC.level;

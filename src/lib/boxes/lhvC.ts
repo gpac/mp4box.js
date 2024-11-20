@@ -34,7 +34,7 @@ export class lhvCBox extends Box {
     const numOfArrays = stream.readUint8();
 
     for (let i = 0; i < numOfArrays; i++) {
-      let nalu_array = [] as unknown as NaluArray;
+      let nalu_array = [] as NaluArray;
       this.nalu_arrays.push(nalu_array);
       tmp_byte = stream.readUint8();
       nalu_array.completeness = (tmp_byte & 0x80) >> 7;

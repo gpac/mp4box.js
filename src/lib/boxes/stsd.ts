@@ -3,9 +3,10 @@ import { BoxRegistry } from '#/box-registry';
 import { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
+import { SampleEntryKind } from '#/types';
 
 export class stsdBox extends FullBox {
-  entries: Array<SampleEntry>;
+  entries: Array<SampleEntryKind>;
 
   constructor(size?: number) {
     super('stsd', size);

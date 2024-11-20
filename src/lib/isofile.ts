@@ -936,7 +936,6 @@ export class ISOFile {
 
     const mdat = new mdatBox();
     mdat.data = sample.data;
-    // @ts-expect-error FIXME: expects MultiBufferStream
     mdat.write(stream);
     return stream;
   }
@@ -2315,7 +2314,7 @@ export class ISOFile {
 
     if (BoxRegistry[options.type + 'SampleEntry'] === undefined) return;
 
-    const sample_description_entry = new BoxRegistry[options.type + 'SampleEntry']();
+    const sample_description_entry = new BoxRegistry[options.type + 'SampleEntry']() as SampleEntry;
     (sample_description_entry as SampleEntry).data_reference_index = 1;
 
     if (sample_description_entry instanceof VisualSampleEntry) {
@@ -2376,7 +2375,7 @@ export class ISOFile {
       });
     }
     minf.addBox(new dinfBox());
-    // TODO:    there was an error here before: addEntry(new BoxParser['url Box']()...)
+    // NOTE:    there was an error here before: addEntry(new BoxParser['url Box']()...)
     const dref = minf.addBox(new drefBox());
     const url = new urlBox();
     url.flags = 0x1;

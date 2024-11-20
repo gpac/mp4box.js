@@ -9,9 +9,10 @@ import { Log } from '#/log';
 import { MP4BoxStream } from '#/stream';
 import type { Output } from '#/types';
 import { BoxRegistry, UUIDRegistry } from './box-registry';
+import { DataStream } from './DataStream';
 
 class BoxBase {
-  boxes: Array<Box> = [];
+  boxes: Array<BoxBase> = [];
   data: Array<number> | Uint8Array;
   hdr_size?: number;
   language: number;
@@ -32,12 +33,12 @@ class BoxBase {
     return box;
   }
 
-  /* set<TProp extends keyof this>(prop: TProp, value: this[TProp]) {
+  set<TProp extends keyof this>(prop: TProp, value: this[TProp]) {
     this[prop] = value;
     return this;
-  } */
+  }
 
-  addEntry(value: unknown, _prop?: string) {
+  addEntry(value: Box, _prop?: string) {
     const prop = _prop || 'entries';
     if (!this[prop]) {
       this[prop] = [];
@@ -47,7 +48,7 @@ class BoxBase {
   }
 
   /** @bundle box-write.js */
-  writeHeader(stream: MultiBufferStream, msg?: string) {
+  writeHeader(stream: DataStream, msg?: string) {
     this.size += 8;
     if (this.size > MAX_SIZE) {
       this.size += 8;
@@ -82,7 +83,7 @@ class BoxBase {
   }
 
   /** @bundle box-write.js */
-  write(stream: MultiBufferStream) {
+  write(stream: DataStream) {
     if (this.type === 'mdat') {
       /* TODO: fix this */
       if (this.data) {
@@ -131,7 +132,7 @@ class BoxBase {
   }
 
   /** @bundle box-parse.js */
-  parseDataAndRewind(stream: MultiBufferStream) {
+  parseDataAndRewind(stream: MultiBufferStream | MP4BoxStream) {
     this.data = stream.readUint8Array(this.size - this.hdr_size);
     // rewinding
     stream.position -= this.size - this.hdr_size;
@@ -523,12 +524,12 @@ export class TrackReferenceTypeBox extends BoxBase {
     super(type, size);
   }
 
-  parse(stream: MultiBufferStream) {
+  parse(stream: DataStream) {
     this.track_ids = stream.readUint32Array((this.size - this.hdr_size) / 4);
   }
 
   /** @bundle box-write.js */
-  write(stream: MultiBufferStream) {
+  write(stream: DataStream) {
     this.size = this.track_ids.length * 4;
     this.writeHeader(stream);
     stream.writeUint32Array(this.track_ids);

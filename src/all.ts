@@ -25,4 +25,4 @@ Object.entries(ALL_SAMPLE_GROUPS).forEach(([key, sampleGroup]) => {
   registerSampleGroup(key, sampleGroup);
 });
 
-export type AllBoxes = typeof ALL_BOXES;
+export type AllBoxes = (typeof ALL_BOXES)[keyof typeof ALL_BOXES];
