@@ -17,8 +17,9 @@
     "useDefineForClassFields": false,
     "allowJs": true,
     "paths": {
-      "#/*": ["./src/lib/*"]
+      "#/*": ["./src/*"],
+      "@types": ["./entries/types"]
     }
   },
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*", "./entries/**/*"]
 }

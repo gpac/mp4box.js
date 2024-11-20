@@ -27,12 +27,12 @@ export default defineConfig({
     minify: false,
     lib: {
       entry: {
-        all: resolve(__dirname, 'src/all.ts'),
-        simple: resolve(__dirname, 'src/simple.ts'),
+        all: resolve(__dirname, 'entries/all.ts'),
+        simple: resolve(__dirname, 'entries/simple.ts'),
       },
       name: 'repl',
-      fileName: (format, name) => `${name}.js`,
-      formats: ['es'],
+      fileName: (format, name) => `${name}.${format === 'es' ? 'js' : 'cjs'}`,
+      formats: ['es', 'cjs'],
     },
   },
   css: {
