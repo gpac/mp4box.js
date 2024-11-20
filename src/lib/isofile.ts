@@ -31,6 +31,14 @@ import { mehdBox } from '#/boxes/mehd';
 import { metaBox } from '#/boxes/meta';
 import { mfhdBox } from '#/boxes/mfhd';
 import { mvhdBox } from '#/boxes/mvhd';
+import {
+  AudioSampleEntry,
+  HintSampleEntry,
+  MetadataSampleEntry,
+  SubtitleSampleEntry,
+  SystemSampleEntry,
+  VisualSampleEntry,
+} from '#/boxes/sampleentries/sampleentry';
 import { sbgpBox } from '#/boxes/sbgp';
 import { sdtpBox } from '#/boxes/sdtp';
 import { sidxBox } from '#/boxes/sidx';
@@ -2315,75 +2323,55 @@ export class ISOFile {
 
     if (BoxRegistry[options.type + 'SampleEntry'] === undefined) return;
 
-    var sample_description_entry = new BoxRegistry[options.type + 'SampleEntry']();
+    const sample_description_entry = new BoxRegistry[options.type + 'SampleEntry']();
     sample_description_entry.data_reference_index = 1;
 
-    var media_type = '';
+    if (sample_description_entry instanceof VisualSampleEntry) {
+      const vmhd = minf.addBox(new vmhdBox());
+      vmhd.graphicsmode = 0;
+      vmhd.opcolor = [0, 0, 0];
 
-    for (var mediaType in SampleEntry.codes) {
-      var codes = SampleEntry.codes[mediaType];
-      for (var i = 0; i < codes.length; i++) {
-        if (codes.indexOf(options.type) > -1) {
-          media_type = mediaType;
-          break;
-        }
+      sample_description_entry.width = options.width;
+      sample_description_entry.height = options.height;
+      sample_description_entry.horizresolution = 0x48 << 16;
+      sample_description_entry.vertresolution = 0x48 << 16;
+      sample_description_entry.frame_count = 1;
+      sample_description_entry.compressorname = options.type + ' Compressor';
+      sample_description_entry.depth = 0x18;
+
+      if (options.avcDecoderConfigRecord) {
+        const avcC = sample_description_entry.addBox(new avcCBox());
+        avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
+      } else if (options.hevcDecoderConfigRecord) {
+        const hvcC = sample_description_entry.addBox(new hvcCBox());
+        hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
       }
+    } else if (sample_description_entry instanceof AudioSampleEntry) {
+      const smhd = minf.addBox(new smhdBox());
+      smhd.balance = options.balance || 0;
+
+      sample_description_entry.channel_count = options.channel_count || 2;
+      sample_description_entry.samplesize = options.samplesize || 16;
+      sample_description_entry.samplerate = options.samplerate || 1 << 16;
+    } else if (sample_description_entry instanceof HintSampleEntry) {
+      minf.addBox(new hmhdBox()); // TODO: add properties
+    } else if (sample_description_entry instanceof SubtitleSampleEntry) {
+      minf.addBox(new sthdBox());
+      switch (options.type) {
+        case 'stpp':
+          sample_description_entry.namespace = options.namespace || 'nonamespace';
+          sample_description_entry.schema_location = options.schema_location || '';
+          sample_description_entry.auxiliary_mime_types = options.auxiliary_mime_types || '';
+          break;
+      }
+    } else if (sample_description_entry instanceof MetadataSampleEntry) {
+      minf.addBox(new nmhdBox());
+    } else if (sample_description_entry instanceof SystemSampleEntry) {
+      minf.addBox(new nmhdBox());
+    } else {
+      minf.addBox(new nmhdBox());
     }
-    switch (media_type) {
-      case 'Visual':
-        const vmhd = minf.addBox(new vmhdBox());
-        vmhd.graphicsmode = 0;
-        vmhd.opcolor = [0, 0, 0];
 
-        sample_description_entry.width = options.width;
-        sample_description_entry.height = options.height;
-        sample_description_entry.horizresolution = 0x48 << 16;
-        sample_description_entry.vertresolution = 0x48 << 16;
-        sample_description_entry.frame_count = 1;
-        sample_description_entry.compressorname = options.type + ' Compressor';
-        sample_description_entry.depth = 0x18;
-
-        if (options.avcDecoderConfigRecord) {
-          const avcC = sample_description_entry.addBox(new avcCBox());
-          avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
-        } else if (options.hevcDecoderConfigRecord) {
-          const hvcC = sample_description_entry.addBox(new hvcCBox());
-          hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
-        }
-
-        break;
-      case 'Audio':
-        const smhd = minf.addBox(new smhdBox());
-        smhd.balance = options.balance || 0;
-
-        sample_description_entry.channel_count = options.channel_count || 2;
-        sample_description_entry.samplesize = options.samplesize || 16;
-        sample_description_entry.samplerate = options.samplerate || 1 << 16;
-
-        break;
-      case 'Hint':
-        minf.addBox(new hmhdBox()); // TODO: add properties
-        break;
-      case 'Subtitle':
-        minf.addBox(new sthdBox());
-        switch (options.type) {
-          case 'stpp':
-            sample_description_entry.namespace = options.namespace || 'nonamespace';
-            sample_description_entry.schema_location = options.schema_location || '';
-            sample_description_entry.auxiliary_mime_types = options.auxiliary_mime_types || '';
-            break;
-        }
-        break;
-      case 'Metadata':
-        minf.addBox(new nmhdBox());
-        break;
-      case 'System':
-        minf.addBox(new nmhdBox());
-        break;
-      default:
-        minf.addBox(new nmhdBox());
-        break;
-    }
     if (options.description) {
       sample_description_entry.addBox(options.description);
     }
