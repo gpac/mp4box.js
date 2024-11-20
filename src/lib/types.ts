@@ -1,19 +1,24 @@
-import type { Box, ContainerBox, FullBox, SampleEntry, SampleGroupEntry, UUIDBox } from '#/box';
+import type { Box } from '#/box';
 import type { trakBox } from '#/boxes/defaults';
-import * as SAMPLE_ENTRIES from '#/boxes/sampleentries';
 import type { SubSample } from '#/boxes/subs';
 import type { DataStream } from '#/DataStream';
-import * as DESCRIPTORS from '#/descriptor';
+import type * as DESCRIPTORS from '#/descriptor';
 import type { MP4BoxStream } from '#/stream';
+import type * as BOXES from '../all-boxes';
+import type { UUID_BOXES } from './boxes/uuid';
 
-type InstanceUnion<T> = T extends new (...args: any[]) => infer R ? R : never;
-type ValueOf<T> = T[keyof T];
-type KindOf<T> = InstanceUnion<ValueOf<T>>;
+declare global {
+  namespace MP4Box {
+    type BoxRegistry = Partial<typeof BOXES & typeof UUID_BOXES>;
+    type BoxKind = InstanceUnion<ValueOf<BoxRegistry>>;
 
-export type SampleEntryKind = KindOf<typeof SAMPLE_ENTRIES>;
-export type DescriptorKind = KindOf<typeof DESCRIPTORS>;
-export type BoxKind = Box | FullBox | ContainerBox | SampleEntry | SampleGroupEntry | UUIDBox;
+    type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
+    type DescriptorKind = InstanceUnion<ValueOf<DescriptorRegistry>>;
+  }
+}
 
+export type ValueOf<T> = T[keyof T];
+export type InstanceUnion<T> = T extends new (...args: any[]) => infer R ? R : never;
 export type FilterInstances<T, X> = T extends new (...args: any[]) => infer R
   ? R extends X
     ? R
@@ -163,24 +168,14 @@ export interface Description {
   version: number;
 }
 
-export type IncompleteBox =
-  | {
-      code: number;
-      box?: undefined;
-      size?: undefined;
-      type?: undefined;
-      hdr_size?: undefined;
-      start?: undefined;
-    }
-  | {
-      code: number;
-      box: Box;
-      size: number;
-      type?: undefined;
-      hdr_size?: undefined;
-      start?: undefined;
-    }
-  | { code: number; type: unknown; size: number; hdr_size: number; start: number; box?: undefined };
+export type IncompleteBox = {
+  code: number;
+  box?: Box;
+  size: number;
+  type?: unknown;
+  hdr_size?: number;
+  start?: number;
+};
 
 export interface Item {
   id?: number;

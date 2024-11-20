@@ -1,7 +1,7 @@
 import { UUIDBox, parseHex16 } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-export const UUIDBoxes = {
+export const UUID_BOXES = {
   // piff
   a5d40b30e81411ddba2f0800200c9a66: class piffLsmBox extends UUIDBox {
     LiveServerManifest: string;

@@ -2,7 +2,7 @@ import { FullBox, SampleGroupEntry } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 // import * as BOXES from '#/codecs-all';
 import { Log } from '#/log';
-import { SampleGroupRegistry } from '#/registry';
+import { BoxRegistry } from '#/registry';
 
 export class sgpdBox extends FullBox {
   grouping_type:
@@ -50,10 +50,8 @@ export class sgpdBox extends FullBox {
     const entry_count = stream.readUint32();
     for (let i = 0; i < entry_count; i++) {
       let entry: SampleGroupEntry;
-      if (SampleGroupRegistry[this.grouping_type + 'SampleGroupEntry']) {
-        entry = new SampleGroupRegistry[this.grouping_type + 'SampleGroupEntry'](
-          this.grouping_type,
-        );
+      if (`${this.grouping_type}SampleGroupEntry` in BoxRegistry) {
+        entry = new BoxRegistry[`${this.grouping_type}SampleGroupEntry`](this.grouping_type);
       } else {
         entry = new SampleGroupEntry(this.grouping_type);
       }

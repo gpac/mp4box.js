@@ -93,7 +93,7 @@ import type {
   SampleGroup,
   Track,
 } from '#/types';
-import { stppSampleEntry } from '../all-boxes';
+import type { stppSampleEntry } from '../all-boxes';
 import { urlBox } from './boxes/url';
 import { BoxRegistry } from './registry';
 
@@ -2239,7 +2239,7 @@ export class ISOFile {
   }
 
   /** @bundle isofile-advanced-creation.js */
-  addBox = Box.prototype.addBox;
+  addBox = Box.prototype.addBox.bind(this);
 
   /** @bundle isofile-advanced-creation.js */
   init(options: IsoFileOptions = {}) {

@@ -5,11 +5,11 @@
 
 import { MultiBufferStream } from '#/buffer';
 import { ERR_NOT_ENOUGH_DATA, MAX_SIZE, OK } from '#/constants';
+import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
+import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
 import type { Output } from '#/types';
-import { DataStream } from './DataStream';
-import { BoxRegistry, UUIDRegistry } from './registry';
 
 class BoxBase {
   boxes: Array<BoxBase> = [];
@@ -679,8 +679,9 @@ export function parseOneBox(
         box = new Box(type, size);
         box.has_unparsed_data = true;
       } else {
-        if (uuid in UUIDRegistry) {
-          box = new UUIDRegistry[uuid](size);
+        BoxRegistry.UUID_BOXES;
+        if (uuid in BoxRegistry) {
+          box = new BoxRegistry[uuid](size);
         } else {
           Log.warn('BoxParser', "Unknown uuid type: '" + uuid + "'");
           box = new Box(type, size);

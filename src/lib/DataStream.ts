@@ -584,7 +584,7 @@ export class DataStream {
    *                           Defaults to ASCII.
    * @return The read string.
    */
-  readString(length: number, encoding?: string | null) {
+  readString(length: number, encoding?: string | null): string {
     if (encoding == null || encoding == 'ASCII') {
       return fromCharCodeUint8(
         this.mapUint8Array(length == null ? this.byteLength - this.position : length),
