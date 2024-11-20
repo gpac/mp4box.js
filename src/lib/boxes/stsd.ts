@@ -1,9 +1,9 @@
 import { FullBox, SampleEntry, parseOneBox } from '#/box';
-import { BoxRegistry } from '#/box-registry';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
-import { SampleEntryKind } from '#/types';
+import { BoxRegistry } from '#/registry';
+import type { SampleEntryKind } from '#/types';
 
 export class stsdBox extends FullBox {
   entries: Array<SampleEntryKind>;

@@ -1,5 +1,5 @@
 import { FullBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 export class prftBox extends FullBox {
   ref_track_id: number;

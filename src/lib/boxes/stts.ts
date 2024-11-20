@@ -1,5 +1,5 @@
 import { FullBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 import type { Sample } from '#/types';
 

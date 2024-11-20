@@ -1,5 +1,5 @@
 import { Box, parseOneBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
 import { infeBox } from './infe';
@@ -25,6 +25,7 @@ export class iinfBox extends Box {
     for (let i = 0; i < this.entry_count; i++) {
       const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
+        // NEEDS REVIEW:   this was `ret.box.type == 'infe'` before.
         if (ret.box instanceof infeBox) {
           this.item_infos[i] = ret.box;
         } else {

@@ -1,5 +1,5 @@
 import { Box } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 export class sdpBox extends Box {
   sdptext?: string;

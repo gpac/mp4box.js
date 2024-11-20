@@ -50,7 +50,7 @@ import { stscBox } from '#/boxes/stsc';
 import { stsdBox } from '#/boxes/stsd';
 import { stszBox } from '#/boxes/stsz';
 import { sttsBox } from '#/boxes/stts';
-import { SubSample } from '#/boxes/subs';
+import type { SubSample } from '#/boxes/subs';
 import { tfdtBox } from '#/boxes/tfdt';
 import { tfhdBox } from '#/boxes/tfhd';
 import { tkhdBox } from '#/boxes/tkhd';
@@ -94,8 +94,8 @@ import type {
   Track,
 } from '#/types';
 import { stppSampleEntry } from '../all-boxes';
-import { BoxRegistry } from './box-registry';
 import { urlBox } from './boxes/url';
+import { BoxRegistry } from './registry';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;
@@ -484,8 +484,7 @@ export class ISOFile {
         const samples_duration = trak.samples_duration;
         const track: Track = {
           id: trak.tkhd.track_id,
-          // FIXME: hdlr is sometimes not defined
-          name: trak.mdia.hdlr?.name,
+          name: trak.mdia.hdlr.name,
           created: new Date(_1904 + trak.tkhd.creation_time * 1000),
           modified: new Date(_1904 + trak.tkhd.modification_time * 1000),
           movie_duration: trak.tkhd.duration,

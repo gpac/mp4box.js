@@ -1,5 +1,5 @@
 import { Box } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { MP4BoxStream } from '#/stream';
 import { DataStream } from '../DataStream';
 

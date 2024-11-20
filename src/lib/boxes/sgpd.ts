@@ -1,8 +1,8 @@
 import { FullBox, SampleGroupEntry } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 // import * as BOXES from '#/codecs-all';
-import { SampleGroupRegistry } from '#/box-registry';
 import { Log } from '#/log';
+import { SampleGroupRegistry } from '#/registry';
 
 export class sgpdBox extends FullBox {
   grouping_type:

@@ -1,6 +1,6 @@
 import { Log } from '#//log';
 import { FullBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 interface Level {
   padding_flag: number;

@@ -8,8 +8,8 @@ import { ERR_NOT_ENOUGH_DATA, MAX_SIZE, OK } from '#/constants';
 import { Log } from '#/log';
 import { MP4BoxStream } from '#/stream';
 import type { Output } from '#/types';
-import { BoxRegistry, UUIDRegistry } from './box-registry';
 import { DataStream } from './DataStream';
+import { BoxRegistry, UUIDRegistry } from './registry';
 
 class BoxBase {
   boxes: Array<BoxBase> = [];
@@ -544,8 +544,6 @@ export class UUIDBox extends FullBoxBase {
   }
 }
 
-export type BoxKind = Box | FullBox | ContainerBox | SampleEntry | SampleGroupEntry | UUIDBox;
-
 /**********************************************************************************/
 /*                                                                                */
 /*                                  Parse Utils                                   */
@@ -702,7 +700,6 @@ export function parseOneBox(
         box_type +
         "' box writing not yet implemented, keeping unparsed data in memory for later write",
     );
-    // @ts-expect-error FIXME: figure out stream-types
     box.parseDataAndRewind(stream);
   }
   // @ts-expect-error FIXME: figure out stream-types

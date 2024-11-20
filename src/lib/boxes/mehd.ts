@@ -1,6 +1,6 @@
 import { Log } from '#//log';
 import { FullBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 export class mehdBox extends FullBox {
   fragment_duration: number;

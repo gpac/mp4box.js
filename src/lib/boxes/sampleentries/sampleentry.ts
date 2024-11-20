@@ -5,7 +5,7 @@ import { sinfBox } from '#/boxes/defaults';
 import { esdsBox } from '#/boxes/esds';
 import { hvcCBox } from '#/boxes/hvcC';
 import { vvcCBox } from '#/boxes/vvcC';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { vpcCBox } from '../vpcC';
 
 /** @bundle box-codecs.js */

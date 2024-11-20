@@ -1,13 +1,18 @@
-import type { Box } from '#/box';
+import type { Box, ContainerBox, FullBox, SampleEntry, SampleGroupEntry, UUIDBox } from '#/box';
 import type { trakBox } from '#/boxes/defaults';
 import * as SAMPLE_ENTRIES from '#/boxes/sampleentries';
 import type { SubSample } from '#/boxes/subs';
 import type { DataStream } from '#/DataStream';
+import * as DESCRIPTORS from '#/descriptor';
 import type { MP4BoxStream } from '#/stream';
 
 type InstanceUnion<T> = T extends new (...args: any[]) => infer R ? R : never;
+type ValueOf<T> = T[keyof T];
+type KindOf<T> = InstanceUnion<ValueOf<T>>;
 
-export type SampleEntryKind = InstanceUnion<(typeof SAMPLE_ENTRIES)[keyof typeof SAMPLE_ENTRIES]>;
+export type SampleEntryKind = KindOf<typeof SAMPLE_ENTRIES>;
+export type DescriptorKind = KindOf<typeof DESCRIPTORS>;
+export type BoxKind = Box | FullBox | ContainerBox | SampleEntry | SampleGroupEntry | UUIDBox;
 
 export type FilterInstances<T, X> = T extends new (...args: any[]) => infer R
   ? R extends X

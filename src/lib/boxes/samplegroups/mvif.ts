@@ -1,5 +1,5 @@
 import { SampleGroupEntry } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class mvifSampleGroupEntry extends SampleGroupEntry {

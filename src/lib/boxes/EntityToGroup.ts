@@ -1,5 +1,5 @@
 import { FullBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 // ISO/IEC 14496-12:2022 Section 8.18.3 Entity to group box
 export class EntityToGroup extends FullBox {

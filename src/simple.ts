@@ -5,7 +5,7 @@ export * from '#/isofile';
 export * from '#/log';
 export * from '#/stream';
 
-import { registerBox } from '#/box-registry';
+import { registerBox } from '#/registry';
 import * as SIMPLE_BOXES from './simple-boxes';
 
 Object.entries(SIMPLE_BOXES).forEach(([key, instance]) => {

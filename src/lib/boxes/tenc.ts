@@ -1,5 +1,5 @@
 import { FullBox, parseHex16 } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 export class tencBox extends FullBox {
   default_crypt_byte_block: number;

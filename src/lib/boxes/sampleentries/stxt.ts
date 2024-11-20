@@ -1,4 +1,4 @@
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { SubtitleSampleEntry } from './sampleentry';
 
 export class stxtSampleEntry extends SubtitleSampleEntry {

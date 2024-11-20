@@ -1,4 +1,5 @@
-import { Box, BoxKind } from '#/box';
+import { Box } from '#/box';
+import type { BoxKind } from '#/types';
 
 export const DIFF_BOXES_PROP_NAMES = [
   'boxes',

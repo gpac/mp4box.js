@@ -1,5 +1,5 @@
 import { FullBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import {
   TRUN_FLAGS_CTS_OFFSET,
   TRUN_FLAGS_DATA_OFFSET,

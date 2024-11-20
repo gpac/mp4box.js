@@ -1,6 +1,6 @@
 import { OK } from '#//constants';
 import { Box, parseOneBox, TrackReferenceTypeBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 // NOTE:    This previously did not have a class constructor

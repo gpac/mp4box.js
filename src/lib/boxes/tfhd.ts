@@ -1,5 +1,5 @@
 import { FullBox } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 import {
   TFHD_FLAG_BASE_DATA_OFFSET,
   TFHD_FLAG_SAMPLE_DESC,

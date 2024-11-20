@@ -1270,7 +1270,7 @@ export class DataStream {
           }
           break;
         } else {
-          // TODO: this said this.writeStruct before
+          // NEEDS REVIEW: this said this.writeStruct before
           this.writeType(type, value);
           break;
         }

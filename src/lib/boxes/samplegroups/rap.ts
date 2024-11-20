@@ -1,5 +1,5 @@
 import { SampleGroupEntry } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 export class rapSampleGroupEntry extends SampleGroupEntry {
   num_leading_samples_known: number;

@@ -1,6 +1,6 @@
 import { SampleGroupEntry } from '#//box';
 import { Log } from '#//log';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 export class tsasSampleGroupEntry extends SampleGroupEntry {
   parse(stream: MultiBufferStream) {

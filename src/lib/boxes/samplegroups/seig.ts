@@ -1,5 +1,5 @@
 import { SampleGroupEntry, parseHex16 } from '#/box';
-import { MultiBufferStream } from '#/buffer';
+import type { MultiBufferStream } from '#/buffer';
 
 export class seigSampleGroupEntry extends SampleGroupEntry {
   reserved: number;
