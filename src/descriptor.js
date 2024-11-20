@@ -160,6 +160,13 @@ var MPEG4DescriptorParser = function () {
 	return this;
 }
 
+var MPEG4DescriptorWriter = function (descriptor) {
+	this.writeOneDescriptor = function (stream) {
+		// TODO: implement
+	}
+}
+
 if (typeof exports !== 'undefined') {
 	exports.MPEG4DescriptorParser = MPEG4DescriptorParser;
+	exports.MPEG4DescriptorWriter = MPEG4DescriptorWriter;
 }
