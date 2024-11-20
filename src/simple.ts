@@ -4,7 +4,6 @@ export * from '#/create-file';
 export * from '#/isofile';
 export * from '#/log';
 export * from '#/stream';
-export * from '#/text-mp4';
 
 import { registerBox } from '#/box-registry';
 import * as SIMPLE_BOXES from './simple-boxes';

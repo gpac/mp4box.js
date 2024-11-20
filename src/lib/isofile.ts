@@ -92,6 +92,8 @@ import type {
   SampleGroup,
   Track,
 } from '#/types';
+import { stppSampleEntry } from '../all-boxes';
+
 import { BoxRegistry } from './box-registry';
 import { urlBox } from './boxes/url';
 
@@ -194,32 +196,30 @@ export class ISOFile {
   setSegmentOptions(
     id: number,
     user: unknown,
-    options: { nbSamples: number; rapAlignement: boolean },
+    {
+      nbSamples: nb_samples = 1000,
+      rapAlignement = true,
+    }: { nbSamples?: number; rapAlignement?: boolean } = {},
   ) {
-    var trak = this.getTrackById(id);
+    const trak = this.getTrackById(id);
     if (trak) {
-      const fragTrack: FragmentedTrack = {
-        id: id,
-        user: user,
-        trak: trak,
+      const fragTrack = {
+        id,
+        user,
+        trak,
         segmentStream: null,
-        nb_samples: 1000,
-        rapAlignement: true,
+        nb_samples,
+        rapAlignement,
       };
       this.fragmentedTracks.push(fragTrack);
       trak.nextSample = 0;
-
-      if (options) {
-        if (options.nbSamples) fragTrack.nb_samples = options.nbSamples;
-        if (options.rapAlignement) fragTrack.rapAlignement = options.rapAlignement;
-      }
     }
   }
 
   unsetSegmentOptions(id: number) {
-    var index = -1;
-    for (var i = 0; i < this.fragmentedTracks.length; i++) {
-      var fragTrack = this.fragmentedTracks[i];
+    let index = -1;
+    for (let i = 0; i < this.fragmentedTracks.length; i++) {
+      const fragTrack = this.fragmentedTracks[i];
       if (fragTrack.id == id) {
         index = i;
       }
@@ -229,20 +229,21 @@ export class ISOFile {
     }
   }
 
-  setExtractionOptions(id: number, user: unknown, options: { nbSamples: number }) {
+  setExtractionOptions(
+    id: number,
+    user: unknown,
+    { nbSamples: nb_samples = 1000 }: { nbSamples: number },
+  ) {
     let trak = this.getTrackById(id);
     if (trak) {
-      var extractTrack = {} as ExtractedTrack;
-      this.extractedTracks.push(extractTrack);
-      extractTrack.id = id;
-      extractTrack.user = user;
-      extractTrack.trak = trak;
+      this.extractedTracks.push({
+        id,
+        user,
+        trak,
+        nb_samples,
+        samples: [],
+      });
       trak.nextSample = 0;
-      extractTrack.nb_samples = 1000;
-      extractTrack.samples = [];
-      if (options) {
-        if (options.nbSamples) extractTrack.nb_samples = options.nbSamples;
-      }
     }
   }
 
@@ -358,7 +359,7 @@ export class ISOFile {
   /* Processes a new ArrayBuffer (with a fileStart property)
      Returns the next expected file position, or undefined if not ready to parse */
   appendBuffer(ab: MP4BoxBuffer, last: boolean) {
-    var nextFileStart: number;
+    let nextFileStart: number;
     if (!this.checkBuffer(ab)) {
       return;
     }
@@ -447,11 +448,8 @@ export class ISOFile {
   }
 
   getInfo() {
-    let movie = {} as Movie;
-    let trak: trakBox;
-    let ref: Track['references'][number];
-    let sample_desc: SampleEntry;
-    var _1904 = new Date('1904-01-01T00:00:00Z').getTime();
+    const movie = {} as Movie;
+    const _1904 = new Date('1904-01-01T00:00:00Z').getTime();
 
     if (this.moov) {
       movie.hasMoov = true;
@@ -476,8 +474,8 @@ export class ISOFile {
       movie.hintTracks = [];
       movie.otherTracks = [];
       for (let i = 0; i < this.moov.traks.length; i++) {
-        trak = this.moov.traks[i];
-        sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
+        const trak = this.moov.traks[i];
+        const sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
         const size = trak.samples_size;
         const timescale = trak.mdia.mdhd.timescale;
         const samples_duration = trak.samples_duration;
@@ -515,11 +513,10 @@ export class ISOFile {
         movie.tracks.push(track);
         if (trak.tref) {
           for (let j = 0; j < trak.tref.boxes.length; j++) {
-            ref = {
+            track.references.push({
               type: trak.tref.boxes[j].type,
               track_ids: trak.tref.boxes[j].track_ids,
-            };
-            track.references.push(ref);
+            });
           }
         }
         if (trak.edts) {
@@ -597,7 +594,7 @@ export class ISOFile {
        and create a fragment with it */
     if (this.isFragmentationInitialized && this.onSegment !== null) {
       for (let i = 0; i < this.fragmentedTracks.length; i++) {
-        var fragTrak = this.fragmentedTracks[i];
+        const fragTrak = this.fragmentedTracks[i];
         const trak = fragTrak.trak;
         while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
           /* The sample information is there (either because the file is not fragmented and this is not the last sample,
@@ -606,7 +603,7 @@ export class ISOFile {
             'ISOFile',
             'Creating media fragment on track #' + fragTrak.id + ' for sample ' + trak.nextSample,
           );
-          var result = this.createFragment(fragTrak.id, trak.nextSample, fragTrak.segmentStream);
+          const result = this.createFragment(fragTrak.id, trak.nextSample, fragTrak.segmentStream);
           if (result) {
             fragTrak.segmentStream = result;
             trak.nextSample++;
@@ -656,14 +653,14 @@ export class ISOFile {
       /* For each track marked for data export,
          check if the next sample is there (i.e. has been downloaded) and send it */
       for (let i = 0; i < this.extractedTracks.length; i++) {
-        var extractTrak = this.extractedTracks[i];
+        const extractTrak = this.extractedTracks[i];
         const trak = extractTrak.trak;
         while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
           Log.debug(
             'ISOFile',
             'Exporting on track #' + extractTrak.id + ' sample #' + trak.nextSample,
           );
-          var sample = this.getSample(trak, trak.nextSample);
+          const sample = this.getSample(trak, trak.nextSample);
           if (sample) {
             trak.nextSample++;
             extractTrak.samples.push(sample);
@@ -695,26 +692,26 @@ export class ISOFile {
 
   /* Find and return specific boxes using recursion and early return */
   getBox(type: unknown) {
-    var result = this.getBoxes(type, true);
+    const result = this.getBoxes(type, true);
     return result.length ? result[0] : null;
   }
 
   getBoxes(type: unknown, returnEarly: boolean) {
-    var result = [];
+    const result = [];
     ISOFile._sweep.call(this, type, result, returnEarly);
     return result;
   }
 
   static _sweep(type: boolean, result: (typeof ISOFile)[], returnEarly: unknown) {
     if (this.type && this.type == type) result.push(this);
-    for (var box in this.boxes) {
+    for (const box in this.boxes) {
       if (result.length && returnEarly) return;
       ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
     }
   }
 
   getTrackSamplesInfo(track_id: number) {
-    var track = this.getTrackById(track_id);
+    const track = this.getTrackById(track_id);
     if (track) {
       return track.samples;
     } else {
@@ -723,17 +720,17 @@ export class ISOFile {
   }
 
   getTrackSample(track_id: number, number: number) {
-    var track = this.getTrackById(track_id);
-    var sample = this.getSample(track, number);
+    const track = this.getTrackById(track_id);
+    const sample = this.getSample(track, number);
     return sample;
   }
 
   /* Called by the application to release the resources associated to samples already forwarded to the application */
   releaseUsedSamples(id: number, sampleNum: number) {
-    var size = 0;
-    var trak = this.getTrackById(id);
+    let size = 0;
+    const trak = this.getTrackById(id);
     if (!trak.lastValidSample) trak.lastValidSample = 0;
-    for (var i = trak.lastValidSample; i < sampleNum; i++) {
+    for (let i = trak.lastValidSample; i < sampleNum; i++) {
       size += this.releaseSample(trak, i);
     }
     Log.info(
@@ -772,9 +769,6 @@ export class ISOFile {
   /* Finds the byte offset for a given time on a given track
      also returns the time of the previous rap */
   seekTrack(time: number, useRap: unknown, trak: trakBox) {
-    let j: number;
-    let sample: Sample;
-    let seek_offset = Infinity;
     let rap_seek_sample_num = 0;
     let seek_sample_num = 0;
     let timescale: number = null!;
@@ -790,8 +784,8 @@ export class ISOFile {
       return { offset: 0, time: 0 };
     }
 
-    for (j = 0; j < trak.samples.length; j++) {
-      sample = trak.samples[j];
+    for (let j = 0; j < trak.samples.length; j++) {
+      const sample = trak.samples[j];
       if (j === 0) {
         seek_sample_num = 0;
         timescale = sample.timescale;
@@ -815,7 +809,8 @@ export class ISOFile {
       }
       seek_sample_num++;
     }
-    seek_offset = trak.samples[seek_sample_num].offset + trak.samples[seek_sample_num].alreadyRead;
+    const seek_offset =
+      trak.samples[seek_sample_num].offset + trak.samples[seek_sample_num].alreadyRead;
     Log.info(
       'ISOFile',
       'Seeking to ' +
@@ -887,10 +882,10 @@ export class ISOFile {
   }
 
   equal(b: { boxes: string | any[] }) {
-    var box_index = 0;
+    let box_index = 0;
     while (box_index < this.boxes.length && box_index < b.boxes.length) {
-      var a_box = this.boxes[box_index];
-      var b_box = b.boxes[box_index];
+      const a_box = this.boxes[box_index];
+      const b_box = b.boxes[box_index];
       if (!boxEqual(a_box, b_box)) {
         return false;
       }
@@ -904,24 +899,24 @@ export class ISOFile {
    * @bundle isofile-write.js
    */
   write(outstream: MultiBufferStream) {
-    for (var i = 0; i < this.boxes.length; i++) {
+    for (let i = 0; i < this.boxes.length; i++) {
       this.boxes[i].write(outstream);
     }
   }
 
   /** @bundle isofile-write.js */
   createFragment(track_id: number, sampleNumber: number, _stream: DataStream) {
-    var trak = this.getTrackById(track_id);
-    var sample = this.getSample(trak, sampleNumber);
+    const trak = this.getTrackById(track_id);
+    const sample = this.getSample(trak, sampleNumber);
     if (sample == null) {
       this.setNextSeekPositionFromSample(trak.samples[sampleNumber]);
       return null;
     }
 
-    var stream = _stream || new DataStream();
+    const stream = _stream || new DataStream();
     stream.endianness = DataStream.BIG_ENDIAN;
 
-    var moof = this.createSingleSampleMoof(sample);
+    const moof = this.createSingleSampleMoof(sample);
     // @ts-expect-error FIXME: expects MultiBufferStream
     moof.write(stream);
 
@@ -936,7 +931,7 @@ export class ISOFile {
       moof.trafs[0].truns[0].data_offset,
     );
 
-    var mdat = new mdatBox();
+    const mdat = new mdatBox();
     mdat.data = sample.data;
     // @ts-expect-error FIXME: expects MultiBufferStream
     mdat.write(stream);
@@ -1072,7 +1067,7 @@ export class ISOFile {
         ctts.sample_offsets = [];
       }
       const stss = trak.mdia.minf.stbl.stss;
-      var k = trak.mdia.minf.stbl.boxes.indexOf(stss);
+      const k = trak.mdia.minf.stbl.boxes.indexOf(stss);
       if (k != -1) trak.mdia.minf.stbl.boxes[k] = null;
     }
   }
@@ -1085,9 +1080,6 @@ export class ISOFile {
     trak_sgpds: string | any[],
     traf_sgpds?: string | any[],
   ) {
-    let sample_group_info: SampleGroupInfo;
-    let sample_group_key: string;
-
     if (traf) {
       traf.sample_groups_info = [];
     }
@@ -1095,8 +1087,8 @@ export class ISOFile {
       trak.sample_groups_info = [];
     }
     for (let k = 0; k < sbgps.length; k++) {
-      sample_group_key = sbgps[k].grouping_type + '/' + sbgps[k].grouping_type_parameter;
-      sample_group_info = new SampleGroupInfo(
+      const sample_group_key = sbgps[k].grouping_type + '/' + sbgps[k].grouping_type_parameter;
+      const sample_group_info = new SampleGroupInfo(
         sbgps[k].grouping_type,
         sbgps[k].grouping_type_parameter,
         sbgps[k],
@@ -1126,8 +1118,8 @@ export class ISOFile {
     if (!traf) {
       for (let k = 0; k < trak_sgpds.length; k++) {
         if (!trak_sgpds[k].used && trak_sgpds[k].version >= 2) {
-          sample_group_key = trak_sgpds[k].grouping_type + '/0';
-          sample_group_info = new SampleGroupInfo(trak_sgpds[k].grouping_type, 0);
+          const sample_group_key = trak_sgpds[k].grouping_type + '/0';
+          const sample_group_info = new SampleGroupInfo(trak_sgpds[k].grouping_type, 0);
           if (!trak.sample_groups_info[sample_group_key]) {
             trak.sample_groups_info[sample_group_key] = sample_group_info;
           }
@@ -1137,8 +1129,8 @@ export class ISOFile {
       if (traf_sgpds) {
         for (let k = 0; k < traf_sgpds.length; k++) {
           if (!traf_sgpds[k].used && traf_sgpds[k].version >= 2) {
-            sample_group_key = traf_sgpds[k].grouping_type + '/0';
-            sample_group_info = new SampleGroupInfo(traf_sgpds[k].grouping_type, 0);
+            const sample_group_key = traf_sgpds[k].grouping_type + '/0';
+            const sample_group_info = new SampleGroupInfo(traf_sgpds[k].grouping_type, 0);
             sample_group_info.is_fragment = true;
             if (!traf.sample_groups_info[sample_group_key]) {
               traf.sample_groups_info[sample_group_key] = sample_group_info;
@@ -1156,10 +1148,8 @@ export class ISOFile {
     sample_number: number,
     sample_groups_info: Array<SampleGroupInfo>,
   ) {
-    var k: string | number;
-    var index: number;
     sample.sample_groups = [];
-    for (k in sample_groups_info) {
+    for (const k in sample_groups_info) {
       sample.sample_groups[k] = {
         grouping_type: sample_groups_info[k].grouping_type,
         grouping_type_parameter: sample_groups_info[k].grouping_type_parameter,
@@ -1190,6 +1180,7 @@ export class ISOFile {
           description = sample_groups_info[k].description;
         }
         if (sample.sample_groups[k].group_description_index > 0) {
+          let index: number;
           if (sample.sample_groups[k].group_description_index > 65535) {
             index = (sample.sample_groups[k].group_description_index >> 16) - 1;
           } else {
@@ -1236,12 +1227,12 @@ export class ISOFile {
   }
 
   buildTrakSampleLists(trak: trakBox) {
-    var j: number, k: unknown;
-    var chunk_run_index: number,
-      chunk_index: number,
-      last_chunk_in_run: number,
-      offset_in_chunk: number,
-      last_sample_in_chunk: number;
+    let j: number;
+    let chunk_run_index: number;
+    let chunk_index: number;
+    let last_chunk_in_run: number;
+    let offset_in_chunk: number;
+    let last_sample_in_chunk: number;
 
     trak.samples = [];
     trak.samples_duration = 0;
@@ -1275,7 +1266,7 @@ export class ISOFile {
 
     /* we build the samples one by one and compute their properties */
     for (j = 0; j < stsz.sample_sizes.length; j++) {
-      var sample = {
+      const sample = {
         number: j,
         track_id: trak.tkhd.track_id,
         timescale: trak.mdia.mdhd.timescale,
@@ -1459,7 +1450,7 @@ export class ISOFile {
             ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
           }
           for (let j = 0; j < traf.truns.length; j++) {
-            var trun = traf.truns[j];
+            let trun = traf.truns[j];
             for (let k = 0; k < trun.sample_count; k++) {
               const sample: Sample = {};
               sample.moof_number = this.lastMoofIndex;
@@ -1511,10 +1502,10 @@ export class ISOFile {
               sample.has_redundancy = (sample_flags >> 20) & 0x3;
               sample.degradation_priority = sample_flags & 0xffff;
               //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
-              var bdop = traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
-              var dbim = traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
-              var dop = trun.flags & TRUN_FLAGS_DATA_OFFSET ? true : false;
-              var bdo = 0;
+              const bdop = traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
+              const dbim = traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
+              const dop = trun.flags & TRUN_FLAGS_DATA_OFFSET ? true : false;
+              let bdo = 0;
               if (!bdop) {
                 if (!dbim) {
                   if (j === 0) {
@@ -1556,7 +1547,7 @@ export class ISOFile {
           }
           if (traf.subs) {
             trak.has_fragment_subsamples = true;
-            var sample_index = traf.first_sample_index;
+            let sample_index = traf.first_sample_index;
             for (let j = 0; j < traf.subs.entries.length; j++) {
               sample_index += traf.subs.entries[j].sample_delta;
               const sample = trak.samples[sample_index - 1];
@@ -1576,8 +1567,7 @@ export class ISOFile {
    * @bundle isofile-sample-processing.js
    */
   getSample(trak: trakBox, sampleNum: number) {
-    var buffer: MP4BoxBuffer;
-    var sample = trak.samples[sampleNum];
+    const sample = trak.samples[sampleNum];
 
     if (!this.moov) {
       return null;
@@ -1607,10 +1597,10 @@ export class ISOFile {
 
     /* The sample has only been partially fetched, we need to check in all buffers */
     while (true) {
-      var index = this.stream.findPosition(true, sample.offset + sample.alreadyRead, false);
+      let index = this.stream.findPosition(true, sample.offset + sample.alreadyRead, false);
       if (index > -1) {
-        buffer = this.stream.buffers[index];
-        var lengthAfterStart =
+        const buffer = this.stream.buffers[index];
+        let lengthAfterStart =
           buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
         if (sample.size - sample.alreadyRead <= lengthAfterStart) {
           /* the (rest of the) sample is entirely contained in this buffer */
@@ -1694,7 +1684,7 @@ export class ISOFile {
    * @bundle isofile-sample-processing.js
    */
   releaseSample(trak: trakBox, sampleNum: number) {
-    var sample = trak.samples[sampleNum];
+    const sample = trak.samples[sampleNum];
     if (sample.data) {
       this.samplesDataSize -= sample.size;
       sample.data = null;
@@ -1716,10 +1706,9 @@ export class ISOFile {
    * @bundle isofile-sample-processing.js
    */
   getCodecs() {
-    var i: number;
-    var codecs = '';
-    for (i = 0; i < this.moov.traks.length; i++) {
-      var trak = this.moov.traks[i];
+    let codecs = '';
+    for (let i = 0; i < this.moov.traks.length; i++) {
+      const trak = this.moov.traks[i];
       if (i > 0) {
         codecs += ',';
       }
@@ -1734,10 +1723,9 @@ export class ISOFile {
    * @bundle isofile-sample-processing.js
    */
   getTrexById(id: number) {
-    var i: number;
     if (!this.moov || !this.moov.mvex) return null;
-    for (i = 0; i < this.moov.mvex.trexs.length; i++) {
-      var trex = this.moov.mvex.trexs[i];
+    for (let i = 0; i < this.moov.mvex.trexs.length; i++) {
+      const trex = this.moov.mvex.trexs[i];
       if (trex.track_id == id) return trex;
     }
     return null;
@@ -1752,8 +1740,8 @@ export class ISOFile {
     if (this.moov === undefined) {
       return null;
     }
-    for (var j = 0; j < this.moov.traks.length; j++) {
-      var trak = this.moov.traks[j];
+    for (let j = 0; j < this.moov.traks.length; j++) {
+      let trak = this.moov.traks[j];
       if (trak.tkhd.track_id == id) return trak;
     }
     return null;
@@ -1761,14 +1749,13 @@ export class ISOFile {
 
   /** @bundle isofile-item-processing.js */
   flattenItemInfo() {
-    let items = this.items;
-    let entity_groups = this.entity_groups;
-    let i: number, j: number;
-    let meta = this.meta;
+    const items = this.items;
+    const entity_groups = this.entity_groups;
+    const meta = this.meta;
     if (meta === null || meta === undefined) return;
     if (meta.hdlr === undefined) return;
     if (meta.iinf === undefined) return;
-    for (i = 0; i < meta.iinf.item_infos.length; i++) {
+    for (let i = 0; i < meta.iinf.item_infos.length; i++) {
       const id = meta.iinf.item_infos[i].item_ID;
       items[id] = {
         id,
@@ -1778,13 +1765,15 @@ export class ISOFile {
         content_encoding: meta.iinf.item_infos[i].content_encoding,
         type: meta.iinf.item_infos[i].item_type ? meta.iinf.item_infos[i].item_type : 'mime',
         protection:
-          meta.iinf.item_infos[i].protection_index > 0
-            ? meta.ipro.protections[meta.iinf.item_infos[i].protection_index - 1]
+          // NOTE:   This was `meta.iinf.item_infos[i].protection_index` before
+          meta.iinf.item_infos[i].item_protection_index > 0
+            ? // NOTE:   This was `meta.iinf.item_infos[i].protection_index` before
+              meta.ipro.protections[meta.iinf.item_infos[i].item_protection_index - 1]
             : undefined,
       };
     }
     if (meta.grpl) {
-      for (i = 0; i < meta.grpl.boxes.length; i++) {
+      for (let i = 0; i < meta.grpl.boxes.length; i++) {
         const entityGroup = meta.grpl.boxes[i] as EntityToGroup;
         const entity_group = {
           id: entityGroup.group_id,
@@ -1795,7 +1784,7 @@ export class ISOFile {
       }
     }
     if (meta.iloc) {
-      for (i = 0; i < meta.iloc.items.length; i++) {
+      for (let i = 0; i < meta.iloc.items.length; i++) {
         const itemloc = meta.iloc.items[i];
         const item = items[itemloc.item_ID];
         if (itemloc.data_reference_index !== 0) {
@@ -1814,7 +1803,7 @@ export class ISOFile {
         }
         item.extents = [];
         item.size = 0;
-        for (j = 0; j < itemloc.extents.length; j++) {
+        for (let j = 0; j < itemloc.extents.length; j++) {
           item.extents[j] = {
             offset: itemloc.extents[j].extent_offset + itemloc.base_offset,
             length: itemloc.extents[j].extent_length,
@@ -1828,18 +1817,18 @@ export class ISOFile {
       items[meta.pitm.item_id].primary = true;
     }
     if (meta.iref) {
-      for (i = 0; i < meta.iref.references.length; i++) {
-        var ref = meta.iref.references[i];
-        for (j = 0; j < ref.references.length; j++) {
+      for (let i = 0; i < meta.iref.references.length; i++) {
+        let ref = meta.iref.references[i];
+        for (let j = 0; j < ref.references.length; j++) {
           items[ref.from_item_ID].ref_to.push({ type: ref.type, id: ref.references[j] });
         }
       }
     }
     if (meta.iprp) {
-      for (var k = 0; k < meta.iprp.ipmas.length; k++) {
-        var ipma = meta.iprp.ipmas[k];
-        for (i = 0; i < ipma.associations.length; i++) {
-          var association = ipma.associations[i];
+      for (let k = 0; k < meta.iprp.ipmas.length; k++) {
+        let ipma = meta.iprp.ipmas[k];
+        for (let i = 0; i < ipma.associations.length; i++) {
+          let association = ipma.associations[i];
           const item = items[association.id] ?? entity_groups[association.id];
           if (item) {
             if (item.properties === undefined) {
@@ -1847,13 +1836,13 @@ export class ISOFile {
                 boxes: [],
               };
             }
-            for (j = 0; j < association.props.length; j++) {
-              var propEntry = association.props[j];
+            for (let j = 0; j < association.props.length; j++) {
+              let propEntry = association.props[j];
               if (
                 propEntry.property_index > 0 &&
                 propEntry.property_index - 1 < meta.iprp.ipco.boxes.length
               ) {
-                var propbox = meta.iprp.ipco.boxes[propEntry.property_index - 1];
+                let propbox = meta.iprp.ipco.boxes[propEntry.property_index - 1];
                 item.properties[propbox.type] = propbox;
                 item.properties.boxes.push(propbox);
               }
@@ -1893,15 +1882,15 @@ export class ISOFile {
 
     /* The item has only been partially fetched, we need to check in all buffers to find the remaining extents*/
 
-    for (var i = 0; i < item.extents.length; i++) {
-      var extent = item.extents[i];
+    for (let i = 0; i < item.extents.length; i++) {
+      const extent = item.extents[i];
       if (extent.alreadyRead === extent.length) {
         continue;
       } else {
-        var index = this.stream.findPosition(true, extent.offset + extent.alreadyRead, false);
+        const index = this.stream.findPosition(true, extent.offset + extent.alreadyRead, false);
         if (index > -1) {
           const buffer = this.stream.buffers[index];
-          var lengthAfterStart =
+          const lengthAfterStart =
             buffer.byteLength - (extent.offset + extent.alreadyRead - buffer.fileStart);
           if (extent.length - extent.alreadyRead <= lengthAfterStart) {
             /* the (rest of the) extent is entirely contained in this buffer */
@@ -2002,8 +1991,8 @@ export class ISOFile {
       this.itemsDataSize -= item.size;
       item.data = null;
       item.alreadyRead = 0;
-      for (var i = 0; i < item.extents.length; i++) {
-        var extent = item.extents[i];
+      for (let i = 0; i < item.extents.length; i++) {
+        const extent = item.extents[i];
         extent.alreadyRead = 0;
       }
       return item.size;
@@ -2014,8 +2003,8 @@ export class ISOFile {
 
   /** @bundle isofile-item-processing.js */
   processItems(callback: (item: Item) => void) {
-    for (var i in this.items) {
-      var item = this.items[i];
+    for (let i in this.items) {
+      const item = this.items[i];
       this.getItem(item.id);
       if (callback && !item.sent) {
         callback(item);
@@ -2027,8 +2016,8 @@ export class ISOFile {
 
   /** @bundle isofile-item-processing.js */
   hasItem(name: unknown) {
-    for (var i in this.items) {
-      var item = this.items[i];
+    for (let i in this.items) {
+      const item = this.items[i];
       if (item.name === name) {
         return item.id;
       }
@@ -2056,7 +2045,7 @@ export class ISOFile {
 
   /** @bundle isofile-item-processing.js */
   itemToFragmentedTrackFile({ itemId }: { itemId?: number } = {}) {
-    var item = null;
+    let item = null;
     if (itemId) {
       item = this.getItem(itemId);
     } else {
@@ -2064,10 +2053,10 @@ export class ISOFile {
     }
     if (item == null) return null;
 
-    var file = new ISOFile();
+    const file = new ISOFile();
     file.discardMdatData = false;
     // assuming the track type is the same as the item type
-    var trackOptions: IsoFileOptions = {
+    const trackOptions: IsoFileOptions = {
       type: item.type,
       description_boxes: item.properties.boxes,
     };
@@ -2075,7 +2064,7 @@ export class ISOFile {
       trackOptions.width = item.properties.ispe.image_width;
       trackOptions.height = item.properties.ispe.image_height;
     }
-    var trackId = file.addTrack(trackOptions);
+    const trackId = file.addTrack(trackOptions);
     if (trackId) {
       file.addSample(trackId, item.data);
       return file;
@@ -2303,7 +2292,7 @@ export class ISOFile {
     tkhd.width = options.width << 16;
     tkhd.height = options.height << 16;
 
-    var mdia = trak.addBox(new mdiaBox());
+    const mdia = trak.addBox(new mdiaBox());
     const mdhd = mdia.addBox(new mdhdBox());
     mdhd.creation_time = 0;
     mdhd.modification_time = 0;
@@ -2324,7 +2313,7 @@ export class ISOFile {
     if (BoxRegistry[options.type + 'SampleEntry'] === undefined) return;
 
     const sample_description_entry = new BoxRegistry[options.type + 'SampleEntry']();
-    sample_description_entry.data_reference_index = 1;
+    (sample_description_entry as SampleEntry).data_reference_index = 1;
 
     if (sample_description_entry instanceof VisualSampleEntry) {
       const vmhd = minf.addBox(new vmhdBox());
@@ -2359,9 +2348,12 @@ export class ISOFile {
       minf.addBox(new sthdBox());
       switch (options.type) {
         case 'stpp':
-          sample_description_entry.namespace = options.namespace || 'nonamespace';
-          sample_description_entry.schema_location = options.schema_location || '';
-          sample_description_entry.auxiliary_mime_types = options.auxiliary_mime_types || '';
+          (sample_description_entry as stppSampleEntry).namespace =
+            options.namespace || 'nonamespace';
+          (sample_description_entry as stppSampleEntry).schema_location =
+            options.schema_location || '';
+          (sample_description_entry as stppSampleEntry).auxiliary_mime_types =
+            options.auxiliary_mime_types || '';
           break;
       }
     } else if (sample_description_entry instanceof MetadataSampleEntry) {
@@ -2376,7 +2368,7 @@ export class ISOFile {
       sample_description_entry.addBox(options.description);
     }
     if (options.description_boxes) {
-      options.description_boxes.forEach(function (b: unknown) {
+      options.description_boxes.forEach(function (b) {
         sample_description_entry.addBox(b);
       });
     }

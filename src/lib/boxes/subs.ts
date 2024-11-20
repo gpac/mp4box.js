@@ -27,14 +27,14 @@ export class subsBox extends FullBox {
     this.entries = [];
     let subsample_count;
     for (let i = 0; i < entry_count; i++) {
-      var sampleInfo = {} as SampleInfo;
+      const sampleInfo = {} as SampleInfo;
       this.entries[i] = sampleInfo;
       sampleInfo.sample_delta = stream.readUint32();
       sampleInfo.subsamples = [];
       subsample_count = stream.readUint16();
       if (subsample_count > 0) {
         for (let j = 0; j < subsample_count; j++) {
-          var subsample = {} as SubSample;
+          const subsample = {} as SubSample;
           sampleInfo.subsamples.push(subsample);
           if (this.version == 1) {
             subsample.size = stream.readUint32();

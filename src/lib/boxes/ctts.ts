@@ -22,7 +22,7 @@ export class cttsBox extends FullBox {
         /* some files are buggy and declare version=0 while using signed offsets.
            The likelyhood of using the most significant bit in a 32-bits time offset is very low,
            so using signed value here as well */
-        var value = stream.readInt32();
+        const value = stream.readInt32();
         if (value < 0) {
           Log.warn('BoxParser', 'ctts box uses negative values without using version 1');
         }

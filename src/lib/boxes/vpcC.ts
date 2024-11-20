@@ -21,11 +21,10 @@ export class vpcCBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    var tmp;
     if (this.version === 1) {
       this.profile = stream.readUint8();
       this.level = stream.readUint8();
-      tmp = stream.readUint8();
+      const tmp = stream.readUint8();
       this.bitDepth = tmp >> 4;
       this.chromaSubsampling = (tmp >> 1) & 0x7;
       this.videoFullRangeFlag = tmp & 0x1;
@@ -37,7 +36,7 @@ export class vpcCBox extends FullBox {
     } else {
       this.profile = stream.readUint8();
       this.level = stream.readUint8();
-      tmp = stream.readUint8();
+      let tmp = stream.readUint8();
       this.bitDepth = (tmp >> 4) & 0xf;
       this.colorSpace = tmp & 0xf;
       tmp = stream.readUint8();

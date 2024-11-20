@@ -31,7 +31,7 @@ export class lhvCBox extends Box {
     this.lengthSizeMinusOne = tmp_byte & 0x3;
 
     this.nalu_arrays = [];
-    var numOfArrays = stream.readUint8();
+    const numOfArrays = stream.readUint8();
 
     for (let i = 0; i < numOfArrays; i++) {
       let nalu_array = [] as unknown as NaluArray;

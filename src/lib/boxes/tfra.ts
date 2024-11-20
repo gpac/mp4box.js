@@ -21,13 +21,13 @@ export class tfraBox extends FullBox {
     this.parseFullHeader(stream);
     this.track_ID = stream.readUint32();
     stream.readUint24();
-    var tmp_byte = stream.readUint8();
+    const tmp_byte = stream.readUint8();
     this.length_size_of_traf_num = (tmp_byte >> 4) & 0x3;
     this.length_size_of_trun_num = (tmp_byte >> 2) & 0x3;
     this.length_size_of_sample_num = tmp_byte & 0x3;
     this.entries = [];
-    var number_of_entries = stream.readUint32();
-    for (var i = 0; i < number_of_entries; i++) {
+    const number_of_entries = stream.readUint32();
+    for (let i = 0; i < number_of_entries; i++) {
       if (this.version === 1) {
         this.time = stream.readUint64();
         this.moof_offset = stream.readUint64();

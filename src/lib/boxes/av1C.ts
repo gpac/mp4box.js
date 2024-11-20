@@ -63,7 +63,7 @@ export class av1CBox extends Box {
       }
     }
 
-    var configOBUs_length = this.size - this.hdr_size - 4;
+    const configOBUs_length = this.size - this.hdr_size - 4;
     this.configOBUs = stream.readUint8Array(configOBUs_length);
   }
 }

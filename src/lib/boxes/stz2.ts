@@ -20,7 +20,7 @@ export class stz2Box extends FullBox {
       const sample_count = stream.readUint32();
       if (this.field_size === 4) {
         for (let i = 0; i < sample_count; i += 2) {
-          var tmp = stream.readUint8();
+          const tmp = stream.readUint8();
           this.sample_sizes[i] = (tmp >> 4) & 0xf;
           this.sample_sizes[i + 1] = tmp & 0xf;
         }

@@ -13,7 +13,7 @@ export class seigSampleGroupEntry extends SampleGroupEntry {
 
   parse(stream: MultiBufferStream) {
     this.reserved = stream.readUint8();
-    var tmp = stream.readUint8();
+    const tmp = stream.readUint8();
     this.crypt_byte_block = tmp >> 4;
     this.skip_byte_block = tmp & 0xf;
     this.isProtected = stream.readUint8();

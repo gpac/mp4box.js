@@ -224,6 +224,7 @@ export class avc4SampleEntry extends avcCSampleEntryBase {
 
 export class av01SampleEntry extends VisualSampleEntry {
   av1C: av1CBox;
+
   constructor(size?: number) {
     super('av01', size);
   }
@@ -263,8 +264,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
 
   /** @bundle box-codecs.js */
   getCodec(): string {
-    var i;
-    var baseCodec = super.getCodec();
+    let baseCodec = super.getCodec();
     if (this.hvcC) {
       baseCodec += '.';
       switch (this.hvcC.general_profile_space) {
@@ -283,9 +283,9 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       }
       baseCodec += this.hvcC.general_profile_idc;
       baseCodec += '.';
-      var val = this.hvcC.general_profile_compatibility;
-      var reversed = 0;
-      for (i = 0; i < 32; i++) {
+      let val = this.hvcC.general_profile_compatibility;
+      let reversed = 0;
+      for (let i = 0; i < 32; i++) {
         reversed |= val & 1;
         if (i == 31) break;
         reversed <<= 1;
@@ -299,9 +299,9 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
         baseCodec += 'H';
       }
       baseCodec += this.hvcC.general_level_idc;
-      var hasByte = false;
-      var constraint_string = '';
-      for (i = 5; i >= 0; i--) {
+      let hasByte = false;
+      let constraint_string = '';
+      for (let i = 5; i >= 0; i--) {
         if (this.hvcC.general_constraint_indicator[i] || hasByte) {
           constraint_string =
             '.' + decimalToHex(this.hvcC.general_constraint_indicator[i], 0) + constraint_string;
@@ -372,7 +372,7 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
         byte |= this.vvcC.ptl_frame_only_constraint << 7;
         // @ts-ignore   FIXME: shouldn't it be ptl_multilayer_enabled_flag?
         byte |= this.vvcC.ptl_multilayer_enabled << 6;
-        var last_nonzero;
+        let last_nonzero;
         for (let i = 0; i < this.vvcC.general_constraint_info.length; ++i) {
           byte |= (this.vvcC.general_constraint_info[i] >> 2) & 0x3f;
           bytes.push(byte);
@@ -585,6 +585,7 @@ export class encaSampleEntry extends AudioSampleEntry {
 export class encuSampleEntry extends SubtitleSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
+
   constructor(size?: number) {
     super('encu', size);
   }
@@ -593,6 +594,7 @@ export class encuSampleEntry extends SubtitleSampleEntry {
 export class encsSampleEntry extends SystemSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
+
   constructor(size?: number) {
     super('encs', size);
   }
@@ -601,6 +603,7 @@ export class encsSampleEntry extends SystemSampleEntry {
 export class enctSampleEntry extends TextSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
+
   constructor(size?: number) {
     super('enct', size);
   }
@@ -609,6 +612,7 @@ export class enctSampleEntry extends TextSampleEntry {
 export class encmSampleEntry extends MetadataSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
+
   constructor(size?: number) {
     super('encm', size);
   }

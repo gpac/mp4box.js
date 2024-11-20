@@ -23,7 +23,7 @@ export class stsdBox extends FullBox {
       if (ret.code === OK) {
         let box: SampleEntry;
         if (BoxRegistry[ret.type + 'SampleEntry']) {
-          box = new BoxRegistry[ret.type + 'SampleEntry'](ret.size);
+          box = new BoxRegistry[ret.type + 'SampleEntry'](ret.size) as SampleEntry;
           box.hdr_size = ret.hdr_size;
           box.start = ret.start;
         } else {

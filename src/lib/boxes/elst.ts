@@ -18,8 +18,8 @@ export class elstBox extends FullBox {
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
     this.entries = [];
-    var entry_count = stream.readUint32();
-    for (var i = 0; i < entry_count; i++) {
+    const entry_count = stream.readUint32();
+    for (let i = 0; i < entry_count; i++) {
       let entry: Entry = {
         segment_duration: this.version === 1 ? stream.readUint64() : stream.readUint32(),
         media_time: this.version === 1 ? stream.readInt64() : stream.readInt32(),
@@ -37,8 +37,8 @@ export class elstBox extends FullBox {
     this.size = 4 + 12 * this.entries.length;
     this.writeHeader(stream);
     stream.writeUint32(this.entries.length);
-    for (var i = 0; i < this.entries.length; i++) {
-      var entry = this.entries[i];
+    for (let i = 0; i < this.entries.length; i++) {
+      const entry = this.entries[i];
       stream.writeUint32(entry.segment_duration);
       stream.writeInt32(entry.media_time);
       stream.writeInt16(entry.media_rate_integer);

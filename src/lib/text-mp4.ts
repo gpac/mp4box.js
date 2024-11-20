@@ -28,16 +28,16 @@ export class VTTin4Parser {
       return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
     }
     function secToTimestamp(insec: number) {
-      var h = Math.floor(insec / 3600);
-      var m = Math.floor((insec - h * 3600) / 60);
-      var s = Math.floor(insec - h * 3600 - m * 60);
-      var ms = Math.floor((insec - h * 3600 - m * 60 - s) * 1000);
+      const h = Math.floor(insec / 3600);
+      const m = Math.floor((insec - h * 3600) / 60);
+      const s = Math.floor(insec - h * 3600 - m * 60);
+      const ms = Math.floor((insec - h * 3600 - m * 60 - s) * 1000);
       return '' + pad(h, 2) + ':' + pad(m, 2) + ':' + pad(s, 2) + '.' + pad(ms, 3);
     }
-    var cues = this.parseSample(data);
-    var string = '';
-    for (var i = 0; i < cues.length; i++) {
-      var cueIn4 = cues[i];
+    const cues = this.parseSample(data);
+    let string = '';
+    for (let i = 0; i < cues.length; i++) {
+      let cueIn4 = cues[i];
       string += secToTimestamp(startTime) + ' --> ' + secToTimestamp(endTime) + '\r\n';
       // @ts-expect-error FIXME: which box should get a payl-property?
       string += cueIn4.payl.text;
@@ -73,15 +73,15 @@ export class XMLSubtitlein4Parser {
 
 export class Textin4Parser {
   parseSample(sample: Sample) {
-    var textString: string;
-    var stream = new MP4BoxStream(sample.data.buffer);
+    let textString: string;
+    let stream = new MP4BoxStream(sample.data.buffer);
     textString = stream.readString(sample.data.length);
     return textString;
   }
 
   parseConfig(data: TypedArray) {
-    var textString: string;
-    var stream = new MP4BoxStream(data.buffer);
+    let textString: string;
+    let stream = new MP4BoxStream(data.buffer);
     stream.readUint32(); // version & flags
     textString = stream.readCString();
     return textString;

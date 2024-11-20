@@ -24,7 +24,7 @@ export class rashSampleGroupEntry extends SampleGroupEntry {
       } else {
         this.target_rate_share = [];
         this.available_bitrate = [];
-        for (var i = 0; i < this.operation_point_count; i++) {
+        for (let i = 0; i < this.operation_point_count; i++) {
           this.available_bitrate[i] = stream.readUint32();
           this.target_rate_share[i] = stream.readUint16();
         }

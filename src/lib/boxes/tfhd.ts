@@ -22,7 +22,7 @@ export class tfhdBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    var readBytes = 0;
+    let readBytes = 0;
     this.track_id = stream.readUint32();
     if (this.size - this.hdr_size > readBytes && this.flags & TFHD_FLAG_BASE_DATA_OFFSET) {
       this.base_data_offset = stream.readUint64();

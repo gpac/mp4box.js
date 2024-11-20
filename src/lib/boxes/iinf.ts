@@ -22,8 +22,6 @@ export class iinfBox extends Box {
   }
 
   parse(stream: MultiBufferStream) {
-    var ret;
-
     if (this.version === 0) {
       this.entry_count = stream.readUint16();
     } else {
@@ -32,8 +30,8 @@ export class iinfBox extends Box {
 
     this.item_infos = [];
 
-    for (var i = 0; i < this.entry_count; i++) {
-      ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+    for (let i = 0; i < this.entry_count; i++) {
+      const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
         if (ret.box.type !== 'infe') {
           Log.error('BoxParser', "Expected 'infe' box, got " + ret.box.type);

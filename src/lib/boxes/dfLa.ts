@@ -11,11 +11,11 @@ export class dfLaBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    var BLOCKTYPE_MASK = 0x7f;
-    var LASTMETADATABLOCKFLAG_MASK = 0x80;
+    const BLOCKTYPE_MASK = 0x7f;
+    const LASTMETADATABLOCKFLAG_MASK = 0x80;
 
-    var boxesFound = [];
-    var knownBlockTypes = [
+    const boxesFound = [];
+    const knownBlockTypes = [
       'STREAMINFO',
       'PADDING',
       'APPLICATION',
@@ -28,9 +28,9 @@ export class dfLaBox extends FullBox {
 
     // for (i=0; ; i++) { // to end of box
     do {
-      var flagAndType = stream.readUint8();
+      const flagAndType = stream.readUint8();
 
-      var type = Math.min(flagAndType & BLOCKTYPE_MASK, knownBlockTypes.length - 1);
+      const type = Math.min(flagAndType & BLOCKTYPE_MASK, knownBlockTypes.length - 1);
 
       // if this is a STREAMINFO block, read the true samplerate since this
       // can be different to the AudioSampleEntry samplerate.

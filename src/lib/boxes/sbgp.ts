@@ -24,8 +24,8 @@ export class sbgpBox extends FullBox {
       this.grouping_type_parameter = 0;
     }
     this.entries = [];
-    var entry_count = stream.readUint32();
-    for (var i = 0; i < entry_count; i++) {
+    const entry_count = stream.readUint32();
+    for (let i = 0; i < entry_count; i++) {
       this.entries.push({
         sample_count: stream.readInt32(),
         group_description_index: stream.readInt32(),
@@ -42,8 +42,8 @@ export class sbgpBox extends FullBox {
     stream.writeString(this.grouping_type, null, 4);
     stream.writeUint32(this.grouping_type_parameter);
     stream.writeUint32(this.entries.length);
-    for (var i = 0; i < this.entries.length; i++) {
-      var entry = this.entries[i];
+    for (let i = 0; i < this.entries.length; i++) {
+      let entry = this.entries[i];
       stream.writeInt32(entry.sample_count);
       stream.writeInt32(entry.group_description_index);
     }

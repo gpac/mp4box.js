@@ -13,7 +13,7 @@ export class EntityToGroup extends FullBox {
     this.num_entities_in_group = stream.readUint32();
     this.entity_ids = [];
     for (let i = 0; i < this.num_entities_in_group; i++) {
-      var entity_id = stream.readUint32();
+      const entity_id = stream.readUint32();
       this.entity_ids.push(entity_id);
     }
   }
@@ -148,8 +148,8 @@ export class pymdBox extends EntityToGroup {
     this.group_id = stream.readUint32();
     this.num_entities_in_group = stream.readUint32();
     this.entity_ids = [];
-    for (var i = 0; i < this.num_entities_in_group; i++) {
-      var entity_id = stream.readUint32();
+    for (let i = 0; i < this.num_entities_in_group; i++) {
+      const entity_id = stream.readUint32();
       this.entity_ids.push(entity_id);
     }
 
@@ -158,7 +158,7 @@ export class pymdBox extends EntityToGroup {
     this.layer_binning = [];
     this.tiles_in_layer_column_minus1 = [];
     this.tiles_in_layer_row_minus1 = [];
-    for (i = 0; i < this.num_entities_in_group; i++) {
+    for (let i = 0; i < this.num_entities_in_group; i++) {
       this.layer_binning[i] = stream.readUint16();
       this.tiles_in_layer_row_minus1[i] = stream.readUint16();
       this.tiles_in_layer_column_minus1[i] = stream.readUint16();

@@ -13,13 +13,13 @@ export class psshBox extends FullBox {
     this.parseFullHeader(stream);
     this.system_id = parseHex16(stream);
     if (this.version > 0) {
-      var count = stream.readUint32();
+      const count = stream.readUint32();
       this.kid = [];
-      for (var i = 0; i < count; i++) {
+      for (let i = 0; i < count; i++) {
         this.kid[i] = parseHex16(stream);
       }
     }
-    var datasize = stream.readUint32();
+    const datasize = stream.readUint32();
     if (datasize > 0) {
       this.data = stream.readUint8Array(datasize);
     }

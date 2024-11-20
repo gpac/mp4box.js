@@ -20,7 +20,7 @@ export class tencBox extends FullBox {
     if (this.version === 0) {
       stream.readUint8();
     } else {
-      var tmp = stream.readUint8();
+      const tmp = stream.readUint8();
       this.default_crypt_byte_block = (tmp >> 4) & 0xf;
       this.default_skip_byte_block = tmp & 0xf;
     }

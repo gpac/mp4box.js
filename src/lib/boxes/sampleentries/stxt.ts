@@ -17,7 +17,7 @@ export class stxtSampleEntry extends SubtitleSampleEntry {
   }
 
   getCodec() {
-    var baseCodec = super.getCodec();
+    const baseCodec = super.getCodec();
     if (this.mime_format) {
       return baseCodec + '.' + this.mime_format;
     } else {

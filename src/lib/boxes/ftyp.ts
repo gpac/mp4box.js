@@ -16,7 +16,7 @@ export class ftypBox extends Box {
     this.minor_version = stream.readUint32();
     toparse -= 8;
     this.compatible_brands = [];
-    var i = 0;
+    let i = 0;
     while (toparse >= 4) {
       this.compatible_brands[i] = stream.readString(4);
       toparse -= 4;
@@ -30,7 +30,7 @@ export class ftypBox extends Box {
     this.writeHeader(stream);
     stream.writeString(this.major_brand, null, 4);
     stream.writeUint32(this.minor_version);
-    for (var i = 0; i < this.compatible_brands.length; i++) {
+    for (let i = 0; i < this.compatible_brands.length; i++) {
       stream.writeString(this.compatible_brands[i], null, 4);
     }
   }

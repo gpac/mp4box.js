@@ -14,7 +14,7 @@ export class drefBox extends FullBox {
     this.parseFullHeader(stream);
     this.entries = [];
     const entry_count = stream.readUint32();
-    for (var i = 0; i < entry_count; i++) {
+    for (let i = 0; i < entry_count; i++) {
       let ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
         let box = ret.box;
@@ -32,7 +32,7 @@ export class drefBox extends FullBox {
     this.size = 4; //
     this.writeHeader(stream);
     stream.writeUint32(this.entries.length);
-    for (var i = 0; i < this.entries.length; i++) {
+    for (let i = 0; i < this.entries.length; i++) {
       this.entries[i].write(stream);
       this.size += this.entries[i].size;
     }

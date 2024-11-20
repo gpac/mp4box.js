@@ -24,7 +24,7 @@ export interface ExtractedTrack {
 
 export interface IsoFileOptions {
   brands?: Array<string>;
-  description_boxes?: Array<unknown>;
+  description_boxes?: Array<Box>;
   duration?: number;
   height?: number;
   id?: number;
@@ -46,7 +46,7 @@ export interface IsoFileOptions {
   namespace?: string;
   schema_location?: string;
   auxiliary_mime_types?: string;
-  description?: string;
+  description?: Box;
   default_sample_description_index?: number;
   default_sample_duration?: number;
   default_sample_size?: number;

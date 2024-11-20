@@ -108,6 +108,7 @@ export class bxmlBox extends FullBox {
 }
 export class iproBox extends FullBox {
   protections: Array<unknown>;
+
   constructor(size?: number) {
     super('ipro', size);
   }
@@ -120,10 +121,11 @@ export class iproBox extends FullBox {
 /**********************************************************************************/
 
 export class moovBox extends ContainerBox {
-  timescale: number;
-  mvhd: mvhdBox;
-  mvex: mvexBox;
-  iods: iodsBox;
+  timescale?: number;
+  mvhd?: mvhdBox;
+  mvex?: mvexBox;
+  iods?: iodsBox;
+
   traks: Array<trakBox> = [];
   psshs: Array<psshBox> = [];
   subBoxNames = ['trak', 'pssh'] as const;
@@ -133,17 +135,17 @@ export class moovBox extends ContainerBox {
   }
 }
 export class trakBox extends ContainerBox {
-  mdia: mdiaBox;
-  tkhd: tkhdBox;
-  tref: trefBox;
-  edts: edtsBox;
-  samples_duration: number;
-  udta: udtaBox;
-  samples: Array<Sample>;
-  samples_size: number;
-  nextSample: number;
-  lastValidSample: number;
-  sample_groups_info: Array<SampleGroupInfo>;
+  mdia?: mdiaBox;
+  tkhd?: tkhdBox;
+  tref?: trefBox;
+  edts?: edtsBox;
+  samples_duration?: number;
+  udta?: udtaBox;
+  samples?: Array<Sample>;
+  samples_size?: number;
+  nextSample?: number;
+  lastValidSample?: number;
+  sample_groups_info?: Array<SampleGroupInfo>;
   first_dts?: number;
   first_traf_merged?: boolean;
   has_fragment_subsamples?: boolean;
@@ -153,7 +155,8 @@ export class trakBox extends ContainerBox {
   }
 }
 export class edtsBox extends ContainerBox {
-  elst: elstBox;
+  elst?: elstBox;
+
   constructor(size?: number) {
     super('edts', size);
   }
@@ -169,7 +172,8 @@ export class mdiaBox extends ContainerBox {
   }
 }
 export class minfBox extends ContainerBox {
-  stbl: stblBox;
+  stbl?: stblBox;
+
   constructor(size?: number) {
     super('minf', size);
   }
@@ -180,8 +184,8 @@ export class dinfBox extends ContainerBox {
   }
 }
 export class stblBox extends ContainerBox {
-  cslg: cslgBox;
-  stsd: stsdBox;
+  cslg?: cslgBox;
+  stsd?: stsdBox;
   stsc?: stscBox;
   stco?: stcoBox;
   co64?: co64Box;
@@ -197,12 +201,13 @@ export class stblBox extends ContainerBox {
   sgpds: Array<sgpdBox> = [];
   sbgps: Array<sbgpBox> = [];
   subBoxNames = ['sgpd', 'sbgp'];
+
   constructor(size?: number) {
     super('stbl', size);
   }
 }
 export class mvexBox extends ContainerBox {
-  mehd: mehdBox;
+  mehd?: mehdBox;
 
   trexs: Array<trexBox> = [];
   subBoxNames = ['trex'];
@@ -214,6 +219,7 @@ export class mvexBox extends ContainerBox {
 export class moofBox extends ContainerBox {
   trafs: Array<trafBox> = [];
   subBoxNames = ['traf'];
+
   constructor(size?: number) {
     super('moof', size);
   }
@@ -224,13 +230,12 @@ export class trafBox extends ContainerBox {
   tfhd?: tfhdBox;
   tfdt?: tfdtBox;
   subs?: subsBox;
+  sample_groups_info?: Array<SampleGroupInfo>;
 
   truns: Array<trunBox> = [];
   sgpds: Array<sgpdBox> = [];
   sbgps: Array<sbgpBox> = [];
   subBoxNames = ['trun', 'sgpd', 'sbgp'];
-
-  sample_groups_info?: Array<SampleGroupInfo>;
 
   constructor(size?: number) {
     super('traf', size);
@@ -256,6 +261,7 @@ export class trefBox extends ContainerBox {
 export class mfraBox extends ContainerBox {
   tfras: Array<tfraBox> = [];
   subBoxNames = ['tfra'] as const;
+
   constructor(size?: number) {
     super('mfra', size);
   }
@@ -309,6 +315,7 @@ export class trgrBox extends ContainerBox {
 export class udtaBox extends ContainerBox {
   kinds: Array<kindBox> = [];
   subBoxNames = ['kind'] as const;
+
   constructor(size?: number) {
     super('udta', size);
   }
@@ -318,6 +325,7 @@ export class iprpBox extends ContainerBox {
 
   ipmas: Array<ipmaBox> = [];
   subBoxNames = ['ipma'] as const;
+
   constructor(size?: number) {
     super('iprp', size);
   }
@@ -340,6 +348,7 @@ export class j2kHBox extends ContainerBox {
 export class etypBox extends ContainerBox {
   tycos: Array<tycoBox> = [];
   subBoxNames = ['tyco'] as const;
+
   constructor(size?: number) {
     super('etyp', size);
   }

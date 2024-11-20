@@ -63,11 +63,11 @@ export class Log {
   }
   /* Helper function to print a duration value in the form H:MM:SS.MS */
   static getDurationString(duration: number, _timescale?: number) {
-    var neg: boolean;
+    let neg: boolean;
     /* Helper function to print a number on a fixed number of digits */
     function pad(number: string | number, length: number) {
-      var str = '' + number;
-      var a = str.split('.');
+      const str = '' + number;
+      const a = str.split('.');
       while (a[0].length < length) {
         a[0] = '0' + a[0];
       }
@@ -79,13 +79,13 @@ export class Log {
     } else {
       neg = false;
     }
-    var timescale = _timescale || 1;
-    var duration_sec = duration / timescale;
-    var hours = Math.floor(duration_sec / 3600);
+    const timescale = _timescale || 1;
+    let duration_sec = duration / timescale;
+    const hours = Math.floor(duration_sec / 3600);
     duration_sec -= hours * 3600;
-    var minutes = Math.floor(duration_sec / 60);
+    const minutes = Math.floor(duration_sec / 60);
     duration_sec -= minutes * 60;
-    var msec = duration_sec * 1000;
+    let msec = duration_sec * 1000;
     duration_sec = Math.floor(duration_sec);
     msec -= duration_sec * 1000;
     msec = Math.floor(msec);
@@ -106,10 +106,10 @@ export class Log {
     start: (index: number) => any;
     end: (index: number) => any;
   }) {
-    var length = ranges.length;
+    const length = ranges.length;
     if (length > 0) {
-      var str = '';
-      for (var i = 0; i < length; i++) {
+      let str = '';
+      for (let i = 0; i < length; i++) {
         if (i > 0) str += ',';
         str +=
           '[' +

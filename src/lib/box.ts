@@ -38,7 +38,7 @@ class BoxBase {
   } */
 
   addEntry(value: unknown, _prop?: string) {
-    var prop = _prop || 'entries';
+    const prop = _prop || 'entries';
     if (!this[prop]) {
       this[prop] = [];
     }
@@ -140,7 +140,7 @@ class BoxBase {
   /** @bundle box-parse.js */
   parseLanguage(stream: MultiBufferStream) {
     this.language = stream.readUint16();
-    var chars = [];
+    const chars = [];
     chars[0] = (this.language >> 10) & 0x1f;
     chars[1] = (this.language >> 5) & 0x1f;
     chars[2] = this.language & 0x1f;
@@ -207,7 +207,7 @@ export class ContainerBoxBase extends BoxBase {
   write(stream: MultiBufferStream) {
     this.size = 0;
     this.writeHeader(stream);
-    for (var i = 0; i < this.boxes.length; i++) {
+    for (let i = 0; i < this.boxes.length; i++) {
       if (this.boxes[i]) {
         this.boxes[i].write(stream);
         this.size += this.boxes[i].size;
@@ -221,9 +221,9 @@ export class ContainerBoxBase extends BoxBase {
   /** @bundle box-print.js */
   print(output: Output) {
     this.printHeader(output);
-    for (var i = 0; i < this.boxes.length; i++) {
+    for (let i = 0; i < this.boxes.length; i++) {
       if (this.boxes[i]) {
-        var prev_indent = output.indent;
+        let prev_indent = output.indent;
         output.indent += ' ';
         this.boxes[i].print(output);
         output.indent = prev_indent;
@@ -371,7 +371,7 @@ class SampleEntryBase extends ContainerBoxBase {
 
   /** @bundle writing/sampleentry.js */
   writeFooter(stream: MultiBufferStream) {
-    for (var i = 0; i < this.boxes.length; i++) {
+    for (let i = 0; i < this.boxes.length; i++) {
       this.boxes[i].write(stream);
       this.size += this.boxes[i].size;
     }
@@ -481,14 +481,15 @@ export class TrackGroupTypeBox extends FullBoxBase {
 export class SingleItemTypeReferenceBox extends BoxBase {
   from_item_ID: number;
   references: Array<{ to_item_ID: number }>;
+
   constructor(type: string, size: number, public hdr_size: number, public start: number) {
     super(type, size);
   }
   parse(stream: MultiBufferStream): void {
     this.from_item_ID = stream.readUint16();
-    var count = stream.readUint16();
+    const count = stream.readUint16();
     this.references = [];
-    for (var i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       this.references[i] = {
         to_item_ID: stream.readUint16(),
       };
@@ -506,9 +507,9 @@ export class SingleItemTypeReferenceBoxLarge extends BoxBase {
   }
   parse(stream: MultiBufferStream): void {
     this.from_item_ID = stream.readUint32();
-    var count = stream.readUint16();
+    const count = stream.readUint16();
     this.references = [];
-    for (var i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       this.references[i] = {
         to_item_ID: stream.readUint32(),
       };
@@ -536,6 +537,7 @@ export class TrackReferenceTypeBox extends BoxBase {
 
 export class UUIDBox extends FullBoxBase {
   static codes: Record<string, typeof UUIDBox> = {};
+
   constructor(uuid: string, size?: number) {
     super('uuid', size, uuid);
   }

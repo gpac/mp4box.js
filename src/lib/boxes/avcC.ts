@@ -20,17 +20,15 @@ export class avcCBox extends Box {
   }
 
   parse(stream: DataStream | MP4BoxStream) {
-    var i;
-    var toparse;
     this.configurationVersion = stream.readUint8();
     this.AVCProfileIndication = stream.readUint8();
     this.profile_compatibility = stream.readUint8();
     this.AVCLevelIndication = stream.readUint8();
     this.lengthSizeMinusOne = stream.readUint8() & 0x3;
     this.nb_SPS_nalus = stream.readUint8() & 0x1f;
-    toparse = this.size - this.hdr_size - 6;
+    let toparse = this.size - this.hdr_size - 6;
     this.SPS = [];
-    for (i = 0; i < this.nb_SPS_nalus; i++) {
+    for (let i = 0; i < this.nb_SPS_nalus; i++) {
       const length = stream.readUint16();
       this.SPS[i] = {
         length,
@@ -41,7 +39,7 @@ export class avcCBox extends Box {
     this.nb_PPS_nalus = stream.readUint8();
     toparse--;
     this.PPS = [];
-    for (i = 0; i < this.nb_PPS_nalus; i++) {
+    for (let i = 0; i < this.nb_PPS_nalus; i++) {
       const length = stream.readUint16();
       this.PPS[i] = {
         length,

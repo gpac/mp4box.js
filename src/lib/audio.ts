@@ -10,8 +10,8 @@ export class AudioSpecificConfig {
   extensionSamplingFrequencyIndex?: number;
 
   static getAudioObjectType(stream: MP4BoxStream) {
-    var tmp = stream.readUint8();
-    var audioObjectType = tmp >> 3;
+    let tmp = stream.readUint8();
+    let audioObjectType = tmp >> 3;
     if (audioObjectType === 0x1f) {
       audioObjectType = 32;
       audioObjectType += tmp & 0x7;
@@ -22,7 +22,7 @@ export class AudioSpecificConfig {
   }
 
   parse(stream: MP4BoxStream, audioObjectType: unknown) {
-    var tmp = stream.readUint8();
+    let tmp = stream.readUint8();
     this.samplingFrequencyIndex = tmp >> 4;
     if (this.samplingFrequencyIndex === 0xf) {
       this.samplingFrequency = (tmp & 0xf) << 20;

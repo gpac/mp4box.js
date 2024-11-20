@@ -13,7 +13,7 @@ function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
     'ArrayBuffer',
     'Trying to create a new buffer of size: ' + (buffer1.byteLength + buffer2.byteLength),
   );
-  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+  const tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
   tmp.set(new Uint8Array(buffer1), 0);
   tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
   return tmp.buffer as MP4BoxBuffer;
@@ -48,11 +48,10 @@ export class MultiBufferStream extends DataStream {
    ***********************************************************************************/
 
   initialized() {
-    var firstBuffer: MP4BoxBuffer;
     if (this.bufferIndex > -1) {
       return true;
     } else if (this.buffers.length > 0) {
-      firstBuffer = this.buffers[0];
+      const firstBuffer = this.buffers[0];
       if (firstBuffer.fileStart === 0) {
         this.buffer = firstBuffer;
         this.bufferIndex = 0;
@@ -78,8 +77,7 @@ export class MultiBufferStream extends DataStream {
    * @return {ArrayBuffer}           the new buffer
    */
   reduceBuffer(buffer: MP4BoxBuffer, offset: number, newLength: number) {
-    var smallB: Uint8Array;
-    smallB = new Uint8Array(newLength);
+    const smallB = new Uint8Array(newLength);
     smallB.set(new Uint8Array(buffer, offset, newLength));
     (smallB.buffer as MP4BoxBuffer).fileStart = buffer.fileStart + offset;
     (smallB.buffer as MP4BoxBuffer).usedBytes = 0;
@@ -93,10 +91,11 @@ export class MultiBufferStream extends DataStream {
    *  updates the DataStream buffer for parsing
    */
   insertBuffer(ab: MP4BoxBuffer) {
-    var to_add = true;
+    let to_add = true;
+    let i = 0;
     /* TODO: improve insertion if many buffers */
-    for (var i = 0; i < this.buffers.length; i++) {
-      var b = this.buffers[i]!;
+    for (; i < this.buffers.length; i++) {
+      const b = this.buffers[i]!;
       if (ab.fileStart <= b.fileStart) {
         /* the insertion position is found */
         if (ab.fileStart === b.fileStart) {
@@ -147,8 +146,8 @@ export class MultiBufferStream extends DataStream {
         break;
       } else if (ab.fileStart < b.fileStart + b.byteLength) {
         /* the new buffer overlaps its beginning with the end of the current buffer */
-        var offset = b.fileStart + b.byteLength - ab.fileStart;
-        var newLength = ab.byteLength - offset;
+        const offset = b.fileStart + b.byteLength - ab.fileStart;
+        const newLength = ab.byteLength - offset;
         if (newLength > 0) {
           /* the new buffer is bigger than the current overlap, drop the overlapping part and try again inserting the remaining buffer */
           ab = this.reduceBuffer(ab, offset, newLength);
@@ -245,9 +244,9 @@ export class MultiBufferStream extends DataStream {
     if (this.bufferIndex + 1 < this.buffers.length) {
       const next_buffer = this.buffers[this.bufferIndex + 1];
       if (next_buffer.fileStart === this.buffer.fileStart + this.buffer.byteLength) {
-        var oldLength = this.buffer.byteLength;
-        var oldUsedBytes = this.buffer.usedBytes;
-        var oldFileStart = this.buffer.fileStart;
+        const oldLength = this.buffer.byteLength;
+        const oldUsedBytes = this.buffer.usedBytes;
+        const oldFileStart = this.buffer.fileStart;
         this.buffers[this.bufferIndex] = concatBuffers(this.buffer, next_buffer);
         this.buffer = this.buffers[this.bufferIndex];
         this.buffers.splice(this.bufferIndex + 1, 1);

@@ -11,7 +11,7 @@ export class vvnCBox extends FullBox {
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
     // VvcNALUConfigBox
-    var tmp = stream.readUint8();
+    const tmp = stream.readUint8();
     this.lengthSizeMinusOne = tmp & 0x3;
   }
 }

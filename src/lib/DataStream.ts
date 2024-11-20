@@ -56,8 +56,8 @@ export class DataStream {
     if (!this._dynamicSize) {
       return;
     }
-    var req = this._byteOffset + this.position + extra;
-    var blen = this._buffer.byteLength;
+    const req = this._byteOffset + this.position + extra;
+    let blen = this._buffer.byteLength;
     if (req <= blen) {
       if (req > this._byteLength) {
         this._byteLength = req;
@@ -70,9 +70,9 @@ export class DataStream {
     while (req > blen) {
       blen *= 2;
     }
-    var buf = new ArrayBuffer(blen);
-    var src = new Uint8Array(this._buffer);
-    var dst = new Uint8Array(buf, 0, src.length);
+    const buf = new ArrayBuffer(blen);
+    const src = new Uint8Array(this._buffer);
+    const dst = new Uint8Array(buf, 0, src.length);
     dst.set(src);
     this.buffer = buf;
     this._byteLength = req;
@@ -88,9 +88,9 @@ export class DataStream {
     if (this._byteLength == this._buffer.byteLength) {
       return;
     }
-    var buf = new ArrayBuffer(this._byteLength);
-    var dst = new Uint8Array(buf);
-    var src = new Uint8Array(this._buffer, 0, dst.length);
+    const buf = new ArrayBuffer(this._byteLength);
+    const dst = new Uint8Array(buf);
+    const src = new Uint8Array(this._buffer, 0, dst.length);
     dst.set(src);
     this.buffer = buf;
   }
@@ -173,7 +173,7 @@ export class DataStream {
    *   @return
    */
   seek(pos: number) {
-    var npos = Math.max(0, Math.min(this.byteLength, pos));
+    const npos = Math.max(0, Math.min(this.byteLength, pos));
     this.position = isNaN(npos) || !isFinite(npos) ? 0 : npos;
   }
 
@@ -198,7 +198,7 @@ export class DataStream {
    */
   mapUint8Array(length: number) {
     this._realloc(length * 1);
-    var arr = new Uint8Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Uint8Array(this._buffer, this.byteOffset + this.position, length);
     this.position += length * 1;
     return arr;
   }
@@ -212,7 +212,7 @@ export class DataStream {
    */
   readInt32Array(length: number | null, endianness?: boolean | null) {
     length = length == null ? this.byteLength - this.position / 4 : length;
-    var arr = new Int32Array(length);
+    const arr = new Int32Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -234,7 +234,7 @@ export class DataStream {
    */
   readInt16Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 2 : length;
-    var arr = new Int16Array(length);
+    const arr = new Int16Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -256,7 +256,7 @@ export class DataStream {
    */
   readInt8Array(length: number | null) {
     length = length == null ? this.byteLength - this.position : length;
-    var arr = new Int8Array(length);
+    const arr = new Int8Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -277,7 +277,7 @@ export class DataStream {
    */
   readUint32Array(length: number | null, endianness?: boolean | null) {
     length = length == null ? this.byteLength - this.position / 4 : length;
-    var arr = new Uint32Array(length);
+    const arr = new Uint32Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -299,7 +299,7 @@ export class DataStream {
    */
   readUint16Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 2 : length;
-    var arr = new Uint16Array(length);
+    const arr = new Uint16Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -321,7 +321,7 @@ export class DataStream {
    */
   readUint8Array(length: number | null) {
     length = length == null ? this.byteLength - this.position : length;
-    var arr = new Uint8Array(length);
+    const arr = new Uint8Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -342,7 +342,7 @@ export class DataStream {
    */
   readFloat64Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 8 : length;
-    var arr = new Float64Array(length);
+    const arr = new Float64Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -364,7 +364,7 @@ export class DataStream {
    */
   readFloat32Array(length: number | null, endianness?: boolean) {
     length = length == null ? this.byteLength - this.position / 4 : length;
-    var arr = new Float32Array(length);
+    const arr = new Float32Array(length);
     DataStream.memcpy(
       arr.buffer,
       0,
@@ -384,7 +384,7 @@ export class DataStream {
    * @return The read number.
    */
   readInt32(endianness?: boolean | null) {
-    var v = this._dataView.getInt32(
+    const v = this._dataView.getInt32(
       this.position,
       endianness == null ? this.endianness : endianness,
     );
@@ -399,7 +399,7 @@ export class DataStream {
    * @return The read number.
    */
   readInt16(endianness?: boolean) {
-    var v = this._dataView.getInt16(
+    const v = this._dataView.getInt16(
       this.position,
       endianness == null ? this.endianness : endianness,
     );
@@ -413,7 +413,7 @@ export class DataStream {
    * @return The read number.
    */
   readInt8() {
-    var v = this._dataView.getInt8(this.position);
+    const v = this._dataView.getInt8(this.position);
     this.position += 1;
     return v;
   }
@@ -425,7 +425,7 @@ export class DataStream {
    * @return The read number.
    */
   readUint32(endianness?: boolean | null) {
-    var v = this._dataView.getUint32(
+    const v = this._dataView.getUint32(
       this.position,
       endianness == null ? this.endianness : endianness,
     );
@@ -440,7 +440,7 @@ export class DataStream {
    * @return The read number.
    */
   readUint16(endianness?: boolean | null) {
-    var v = this._dataView.getUint16(
+    const v = this._dataView.getUint16(
       this.position,
       endianness == null ? this.endianness : endianness,
     );
@@ -454,7 +454,7 @@ export class DataStream {
    * @return The read number.
    */
   readUint8() {
-    var v = this._dataView.getUint8(this.position);
+    const v = this._dataView.getUint8(this.position);
     this.position += 1;
     return v;
   }
@@ -557,10 +557,10 @@ export class DataStream {
    * @return The converted typed array.
    */
   static flipArrayEndianness(typedArray: TypedArray) {
-    var u8 = new Uint8Array(typedArray.buffer, typedArray.byteOffset, typedArray.byteLength);
-    for (var i = 0; i < typedArray.byteLength; i += typedArray.BYTES_PER_ELEMENT) {
-      for (var j = i + typedArray.BYTES_PER_ELEMENT - 1, k = i; j > k; j--, k++) {
-        var tmp = u8[k];
+    const u8 = new Uint8Array(typedArray.buffer, typedArray.byteOffset, typedArray.byteLength);
+    for (let i = 0; i < typedArray.byteLength; i += typedArray.BYTES_PER_ELEMENT) {
+      for (let j = i + typedArray.BYTES_PER_ELEMENT - 1, k = i; j > k; j--, k++) {
+        const tmp = u8[k];
         u8[k] = u8[j];
         u8[j] = tmp;
       }
@@ -602,14 +602,14 @@ export class DataStream {
    * @return The read string.
    */
   readCString(length?: number | null) {
+    let i = 0;
     const blen = this.byteLength - this.position;
     const u8 = new Uint8Array(this._buffer, this._byteOffset + this.position);
     let len = blen;
-    let i: number;
     if (length != null) {
       len = Math.min(length, blen);
     }
-    for (i = 0; i < len && u8[i] !== 0; i++); // find first zero byte
+    for (; i < len && u8[i] !== 0; i++); // find first zero byte
     const s = fromCharCodeUint8(this.mapUint8Array(i));
     if (length != null) {
       this.position += len - i;
@@ -717,7 +717,7 @@ export class DataStream {
       );
       this.mapInt32Array(array.length, endianness);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeInt32(array[i], endianness);
       }
     }
@@ -745,7 +745,7 @@ export class DataStream {
       );
       this.mapInt16Array(array.length, endianness);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeInt16(array[i], endianness);
       }
     }
@@ -772,7 +772,7 @@ export class DataStream {
       );
       this.mapInt8Array(array.length);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeInt8(array[i]);
       }
     }
@@ -800,7 +800,7 @@ export class DataStream {
       );
       this.mapUint32Array(array.length, endianness);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeUint32(array[i], endianness);
       }
     }
@@ -828,7 +828,7 @@ export class DataStream {
       );
       this.mapUint16Array(array.length, endianness);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeUint16(array[i], endianness);
       }
     }
@@ -855,7 +855,7 @@ export class DataStream {
       );
       this.mapUint8Array(array.length);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeUint8(array[i]);
       }
     }
@@ -883,7 +883,7 @@ export class DataStream {
       );
       this.mapFloat64Array(array.length, endianness);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeFloat64(array[i], endianness);
       }
     }
@@ -911,7 +911,7 @@ export class DataStream {
       );
       this.mapFloat32Array(array.length, endianness);
     } else {
-      for (var i = 0; i < array.length; i++) {
+      for (let i = 0; i < array.length; i++) {
         this.writeFloat32(array[i], endianness);
       }
     }
@@ -1080,7 +1080,7 @@ export class DataStream {
     let i = 0;
     if (encoding == null || encoding == 'ASCII') {
       if (length != null) {
-        var len = Math.min(value.length, length);
+        const len = Math.min(value.length, length);
         for (i = 0; i < len; i++) {
           this.writeUint8(value.charCodeAt(i));
         }
@@ -1263,9 +1263,9 @@ export class DataStream {
       default:
         // @ts-expect-error FIXME: fix type narrowing
         if (type.length == 3) {
-          var ta = type[1];
+          const ta = type[1];
           // @ts-expect-error FIXME: value is type number
-          for (var i = 0; i < value.length; i++) {
+          for (let i = 0; i < value.length; i++) {
             this.writeType(ta, value[i]);
           }
           break;
@@ -1284,7 +1284,7 @@ export class DataStream {
 
   /** @bundle DataStream-write.js */
   writeUint64(value: number) {
-    var h = Math.floor(value / MAX_SIZE);
+    const h = Math.floor(value / MAX_SIZE);
     this.writeUint32(h);
     this.writeUint32(value & 0xffffffff);
   }
@@ -1298,7 +1298,7 @@ export class DataStream {
 
   /** @bundle DataStream-write.js */
   adjustUint32(position: number, value: number) {
-    var pos = this.position;
+    const pos = this.position;
     this.seek(position);
     this.writeUint32(value);
     this.seek(pos);
@@ -1362,7 +1362,7 @@ export class DataStream {
   readStruct(structDefinition: StructDefinition) {
     const struct: Record<string, string> = {};
     const p = this.position;
-    for (var i = 0; i < structDefinition.length; i += 1) {
+    for (let i = 0; i < structDefinition.length; i += 1) {
       const t = structDefinition[i][1];
       const v = this.readType(t, struct);
       if (v == null) {
@@ -1601,7 +1601,7 @@ export class DataStream {
               while (true) {
                 const p = this.position;
                 try {
-                  var o = this.readType(ta, struct);
+                  const o = this.readType(ta, struct);
                   if (o == null) {
                     this.position = p;
                     break;
@@ -1645,7 +1645,7 @@ export class DataStream {
    */
   mapInt32Array(length: number, endianness?: boolean) {
     this._realloc(length * 4);
-    var arr = new Int32Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Int32Array(this._buffer, this.byteOffset + this.position, length);
     DataStream.arrayToNative(arr, endianness == null ? DataStream.endianness : endianness);
     this.position += length * 4;
     return arr;
@@ -1666,7 +1666,7 @@ export class DataStream {
    */
   mapInt16Array(length: number, endianness: boolean) {
     this._realloc(length * 2);
-    var arr = new Int16Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Int16Array(this._buffer, this.byteOffset + this.position, length);
     DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += length * 2;
     return arr;
@@ -1684,7 +1684,7 @@ export class DataStream {
    */
   mapInt8Array(length: number, endianness?: boolean) {
     this._realloc(length * 1);
-    var arr = new Int8Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Int8Array(this._buffer, this.byteOffset + this.position, length);
     this.position += length * 1;
     return arr;
   }
@@ -1704,7 +1704,7 @@ export class DataStream {
    */
   mapUint32Array(length: number, endianness?: boolean) {
     this._realloc(length * 4);
-    var arr = new Uint32Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Uint32Array(this._buffer, this.byteOffset + this.position, length);
     DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += length * 4;
     return arr;
@@ -1725,7 +1725,7 @@ export class DataStream {
    */
   mapUint16Array(length: number, endianness?: boolean) {
     this._realloc(length * 2);
-    var arr = new Uint16Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Uint16Array(this._buffer, this.byteOffset + this.position, length);
     DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += length * 2;
     return arr;
@@ -1746,7 +1746,7 @@ export class DataStream {
    */
   mapFloat64Array(length: number, endianness?: boolean) {
     this._realloc(length * 8);
-    var arr = new Float64Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Float64Array(this._buffer, this.byteOffset + this.position, length);
     DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += length * 8;
     return arr;
@@ -1767,7 +1767,7 @@ export class DataStream {
    */
   mapFloat32Array(length: number, endianness?: boolean) {
     this._realloc(length * 4);
-    var arr = new Float32Array(this._buffer, this.byteOffset + this.position, length);
+    const arr = new Float32Array(this._buffer, this.byteOffset + this.position, length);
     DataStream.arrayToNative(arr, endianness == null ? this.endianness : endianness);
     this.position += length * 4;
     return arr;
@@ -1775,8 +1775,8 @@ export class DataStream {
 }
 
 function fromCharCodeUint8(uint8arr: Uint8Array) {
-  var arr: Array<number> = [];
-  for (var i = 0; i < uint8arr.length; i++) {
+  const arr: Array<number> = [];
+  for (let i = 0; i < uint8arr.length; i++) {
     arr[i] = uint8arr[i];
   }
   return String.fromCharCode.apply(null, arr);

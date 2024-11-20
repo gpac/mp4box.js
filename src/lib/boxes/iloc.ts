@@ -47,7 +47,7 @@ export class ilocBox extends FullBox {
     } else {
       throw 'version of iloc box not supported';
     }
-    for (var i = 0; i < item_count; i++) {
+    for (let i = 0; i < item_count; i++) {
       let item_ID = 0;
       let construction_method = 0;
       let base_offset = 0;
@@ -81,9 +81,9 @@ export class ilocBox extends FullBox {
       }
 
       const extents: Array<Extent> = [];
-      var extent_count = stream.readUint16();
+      const extent_count = stream.readUint16();
 
-      for (var j = 0; j < extent_count; j++) {
+      for (let j = 0; j < extent_count; j++) {
         let extent_index = 0;
         let extent_offset = 0;
         let extent_length = 0;

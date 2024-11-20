@@ -11,7 +11,7 @@ export class paytBox extends Box {
 
   parse(stream: MultiBufferStream) {
     this.payloadID = stream.readUint32();
-    var count = stream.readUint8();
+    const count = stream.readUint8();
     this.rtpmap_string = stream.readString(count);
   }
 }

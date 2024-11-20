@@ -20,13 +20,13 @@ export class levaBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    var count = stream.readUint8();
+    const count = stream.readUint8();
     this.levels = [];
-    for (var i = 0; i < count; i++) {
-      var level = {} as Level;
+    for (let i = 0; i < count; i++) {
+      const level = {} as Level;
       this.levels[i] = level;
       level.track_ID = stream.readUint32();
-      var tmp_byte = stream.readUint8();
+      const tmp_byte = stream.readUint8();
       level.padding_flag = tmp_byte >> 7;
       level.assignment_type = tmp_byte & 0x7f;
       switch (level.assignment_type) {

@@ -25,7 +25,7 @@ export class trunBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    var readBytes = 0;
+    let readBytes = 0;
     this.sample_count = stream.readUint32();
     readBytes += 4;
     if (this.size - this.hdr_size > readBytes && this.flags & TRUN_FLAGS_DATA_OFFSET) {
@@ -45,7 +45,7 @@ export class trunBox extends FullBox {
     this.sample_flags = [];
     this.sample_composition_time_offset = [];
     if (this.size - this.hdr_size > readBytes) {
-      for (var i = 0; i < this.sample_count; i++) {
+      for (let i = 0; i < this.sample_count; i++) {
         if (this.flags & TRUN_FLAGS_DURATION) {
           this.sample_duration[i] = stream.readUint32();
         }
@@ -97,7 +97,7 @@ export class trunBox extends FullBox {
     if (this.flags & TRUN_FLAGS_FIRST_FLAG) {
       stream.writeUint32(this.first_sample_flags);
     }
-    for (var i = 0; i < this.sample_count; i++) {
+    for (let i = 0; i < this.sample_count; i++) {
       if (this.flags & TRUN_FLAGS_DURATION) {
         stream.writeUint32(this.sample_duration[i]);
       }

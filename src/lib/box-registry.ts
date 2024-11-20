@@ -1,15 +1,19 @@
-import type { AllBoxes } from '../all';
-import type { UUIDBoxes } from './boxes/uuid';
+import { Box, SampleGroupEntry, UUIDBox } from '#/box';
 
-export const BoxRegistry = {} as AllBoxes;
-export const UUIDRegistry = {} as typeof UUIDBoxes;
+type Constructor<T> = new (...args: unknown[]) => T;
+type Registry<T> = Record<string, Constructor<T>>;
 
-export function registerBox(name: string, box: new (...args: unknown[]) => unknown) {
+export const BoxRegistry = {} as Registry<Box>;
+export function registerBox(name: string, box: Constructor<Box>) {
   BoxRegistry[name] = box;
-  return box;
 }
 
-export function registerUUID(name: string, box: new (...args: unknown[]) => unknown) {
+export const SampleGroupRegistry = {} as Registry<SampleGroupEntry>;
+export function registerSampleGroup(name: string, box: Constructor<SampleGroupEntry>) {
+  SampleGroupRegistry[name] = box;
+}
+
+export const UUIDRegistry = {} as Registry<UUIDBox>;
+export function registerUUID(name: string, box: Constructor<UUIDBox>) {
   UUIDRegistry[name] = box;
-  return box;
 }

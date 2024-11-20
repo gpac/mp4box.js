@@ -46,7 +46,7 @@ export class uncCBox extends FullBox {
       this.sampling_type = stream.readUint8();
       this.interleave_type = stream.readUint8();
       this.block_size = stream.readUint8();
-      var flags = stream.readUint8();
+      const flags = stream.readUint8();
       this.component_little_endian = (flags >> 7) & 0x1;
       this.block_pad_lsb = (flags >> 6) & 0x1;
       this.block_little_endian = (flags >> 5) & 0x1;

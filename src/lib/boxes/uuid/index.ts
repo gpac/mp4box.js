@@ -31,7 +31,7 @@ export const UUIDBoxes = {
     parse(stream: MultiBufferStream): void {
       this.parseFullHeader(stream);
       this.system_id = parseHex16(stream);
-      var datasize = stream.readUint32();
+      const datasize = stream.readUint32();
       if (datasize > 0) {
         this.data = stream.readUint8Array(datasize);
       }
@@ -71,9 +71,9 @@ export const UUIDBoxes = {
       this.fragment_count = stream.readUint8();
       this.entries = [];
 
-      for (var i = 0; i < this.fragment_count; i++) {
-        var absolute_time = 0;
-        var absolute_duration = 0;
+      for (let i = 0; i < this.fragment_count; i++) {
+        let absolute_time = 0;
+        let absolute_duration = 0;
 
         if (this.version === 1) {
           absolute_time = stream.readUint64();

@@ -1,7 +1,7 @@
 import { FullBox, SampleGroupEntry } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 // import * as BOXES from '#/codecs-all';
-import { BoxRegistry } from '#/box-registry';
+import { SampleGroupRegistry } from '#/box-registry';
 import { Log } from '#/log';
 
 export class sgpdBox extends FullBox {
@@ -46,11 +46,13 @@ export class sgpdBox extends FullBox {
       this.default_group_description_index = stream.readUint32();
     }
     this.entries = [];
-    var entry_count = stream.readUint32();
-    for (var i = 0; i < entry_count; i++) {
+    const entry_count = stream.readUint32();
+    for (let i = 0; i < entry_count; i++) {
       let entry: SampleGroupEntry;
-      if (BoxRegistry[this.grouping_type + 'SampleGroupEntry']) {
-        entry = new BoxRegistry[this.grouping_type + 'SampleGroupEntry'](this.grouping_type);
+      if (SampleGroupRegistry[this.grouping_type + 'SampleGroupEntry']) {
+        entry = new SampleGroupRegistry[this.grouping_type + 'SampleGroupEntry'](
+          this.grouping_type,
+        );
       } else {
         entry = new SampleGroupEntry(this.grouping_type);
       }

@@ -10,9 +10,9 @@ export class padbBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    var sample_count = stream.readUint32();
+    const sample_count = stream.readUint32();
     this.padbits = [];
-    for (var i = 0; i < Math.floor((sample_count + 1) / 2); i++) {
+    for (let i = 0; i < Math.floor((sample_count + 1) / 2); i++) {
       // TODO: is this a bug?
       this.padbits = stream.readUint8();
     }

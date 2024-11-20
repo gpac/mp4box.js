@@ -29,7 +29,7 @@ export class MP4BoxStream {
   }
 
   seek(pos: number) {
-    var npos = Math.max(0, Math.min(this.buffer.byteLength, pos));
+    const npos = Math.max(0, Math.min(this.buffer.byteLength, pos));
     this.position = isNaN(npos) || !isFinite(npos) ? 0 : npos;
     return true;
   }
@@ -43,7 +43,7 @@ export class MP4BoxStream {
    *************************************************************************/
 
   readAnyInt(size: number, signed: boolean) {
-    var res = 0;
+    let res = 0;
     if (this.position + size <= this.buffer.byteLength) {
       switch (size) {
         case 1:
@@ -116,8 +116,8 @@ export class MP4BoxStream {
 
   readString(length: number) {
     if (this.position + length <= this.buffer.byteLength) {
-      var s = '';
-      for (var i = 0; i < length; i++) {
+      let s = '';
+      for (let i = 0; i < length; i++) {
         s += String.fromCharCode(this.readUint8());
       }
       return s;
@@ -127,9 +127,9 @@ export class MP4BoxStream {
   }
 
   readCString(): string {
-    var arr = [];
+    const arr = [];
     while (true) {
-      var b = this.readUint8();
+      const b = this.readUint8();
       if (b !== 0) {
         arr.push(b);
       } else {
@@ -156,40 +156,40 @@ export class MP4BoxStream {
   }
 
   readUint8Array(length: number) {
-    var arr = new Uint8Array(length);
-    for (var i = 0; i < length; i++) {
+    const arr = new Uint8Array(length);
+    for (let i = 0; i < length; i++) {
       arr[i] = this.readUint8();
     }
     return arr;
   }
 
   readInt16Array(length: number) {
-    var arr = new Int16Array(length);
-    for (var i = 0; i < length; i++) {
+    const arr = new Int16Array(length);
+    for (let i = 0; i < length; i++) {
       arr[i] = this.readInt16();
     }
     return arr;
   }
 
   readUint16Array(length: number) {
-    var arr = new Int16Array(length);
-    for (var i = 0; i < length; i++) {
+    const arr = new Int16Array(length);
+    for (let i = 0; i < length; i++) {
       arr[i] = this.readUint16();
     }
     return arr;
   }
 
   readUint32Array(length: number) {
-    var arr = new Uint32Array(length);
-    for (var i = 0; i < length; i++) {
+    const arr = new Uint32Array(length);
+    for (let i = 0; i < length; i++) {
       arr[i] = this.readUint32();
     }
     return arr;
   }
 
   readInt32Array(length: number) {
-    var arr = new Int32Array(length);
-    for (var i = 0; i < length; i++) {
+    const arr = new Int32Array(length);
+    for (let i = 0; i < length; i++) {
       arr[i] = this.readInt32();
     }
     return arr;

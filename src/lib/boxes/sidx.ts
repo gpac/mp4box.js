@@ -40,7 +40,7 @@ export class sidxBox extends FullBox {
 
     const count = stream.readUint16();
 
-    for (var i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       const type = stream.readUint32();
       const subsegment_duration = stream.readUint32();
       const sap = stream.readUint32();
@@ -68,8 +68,8 @@ export class sidxBox extends FullBox {
     stream.writeUint32(this.first_offset);
     stream.writeUint16(0);
     stream.writeUint16(this.references.length);
-    for (var i = 0; i < this.references.length; i++) {
-      var ref = this.references[i];
+    for (let i = 0; i < this.references.length; i++) {
+      const ref = this.references[i];
       stream.writeUint32((ref.reference_type << 31) | ref.referenced_size);
       stream.writeUint32(ref.subsegment_duration);
       stream.writeUint32((ref.starts_with_SAP << 31) | (ref.SAP_type << 28) | ref.SAP_delta_time);

@@ -10,7 +10,7 @@ export class imirBox extends Box {
   }
 
   parse(stream: MultiBufferStream) {
-    var tmp = stream.readUint8();
+    const tmp = stream.readUint8();
     this.reserved = tmp >> 7;
     this.axis = tmp & 1;
   }

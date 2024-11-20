@@ -1,8 +1,8 @@
 import { OK } from '#//constants';
 
 BoxParser.trefBox.prototype.parse = function (stream) {
-  var ret;
-  var box;
+  let ret;
+  let box;
   while (stream.getPosition() < this.start + this.size) {
     ret = BoxParser.parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
     if (ret.code === OK) {

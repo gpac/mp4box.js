@@ -14,7 +14,7 @@ export class stsgBox extends FullBox {
     this.grouping_type = stream.readUint32();
     const count = stream.readUint16();
     this.group_description_index = [];
-    for (var i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       this.group_description_index[i] = stream.readUint32();
     }
   }

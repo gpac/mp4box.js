@@ -27,7 +27,7 @@ export class dOpsBox extends Box {
       this.StreamCount = stream.readUint8();
       this.CoupledCount = stream.readUint8();
       this.ChannelMapping = [];
-      for (var i = 0; i < this.OutputChannelCount; i++) {
+      for (let i = 0; i < this.OutputChannelCount; i++) {
         this.ChannelMapping[i] = stream.readUint8();
       }
     }

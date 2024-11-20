@@ -33,7 +33,7 @@ export class vvcCBox extends FullBox {
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
     // helper object to simplify extracting individual bits
-    var bitReader = {
+    const bitReader = {
       held_bits: undefined,
       num_held_bits: 0,
 
@@ -47,7 +47,7 @@ export class vvcCBox extends FullBox {
       },
 
       extract_bits: function (num_bits) {
-        var ret = (this.held_bits >> (this.num_held_bits - num_bits)) & ((1 << num_bits) - 1);
+        const ret = (this.held_bits >> (this.num_held_bits - num_bits)) & ((1 << num_bits) - 1);
         this.num_held_bits -= num_bits;
         return ret;
       },
@@ -87,9 +87,9 @@ export class vvcCBox extends FullBox {
         this.general_constraint_info = new Uint8Array(this.num_bytes_constraint_info);
         if (this.num_bytes_constraint_info) {
           for (let i = 0; i < this.num_bytes_constraint_info - 1; i++) {
-            var cnstr1 = bitReader.extract_bits(6);
+            const cnstr1 = bitReader.extract_bits(6);
             bitReader.stream_read_1_bytes(stream);
-            var cnstr2 = bitReader.extract_bits(2);
+            const cnstr2 = bitReader.extract_bits(2);
 
             this.general_constraint_info[i] = (cnstr1 << 2) | cnstr2;
           }
@@ -104,7 +104,7 @@ export class vvcCBox extends FullBox {
           bitReader.stream_read_1_bytes(stream);
           this.ptl_sublayer_present_mask = 0;
           for (let j = this.num_sublayers - 2; j >= 0; --j) {
-            var val = bitReader.extract_bits(1);
+            const val = bitReader.extract_bits(1);
             this.ptl_sublayer_present_mask |= val << j;
           }
           for (let j = this.num_sublayers; j <= 8 && this.num_sublayers > 1; ++j) {
@@ -133,11 +133,11 @@ export class vvcCBox extends FullBox {
       this.avg_frame_rate = stream.readUint16();
     }
 
-    var VVC_NALU_OPI = 12;
-    var VVC_NALU_DEC_PARAM = 13;
+    const VVC_NALU_OPI = 12;
+    const VVC_NALU_DEC_PARAM = 13;
 
     this.nalu_arrays = [];
-    var num_of_arrays = stream.readUint8();
+    const num_of_arrays = stream.readUint8();
     for (let i = 0; i < num_of_arrays; i++) {
       const nalu_array = [] as NaluArray;
       this.nalu_arrays.push(nalu_array);
@@ -147,13 +147,13 @@ export class vvcCBox extends FullBox {
       bitReader.extract_bits(2); // reserved
       nalu_array.nalu_type = bitReader.extract_bits(5);
 
-      var numNalus = 1;
+      let numNalus = 1;
       if (nalu_array.nalu_type != VVC_NALU_DEC_PARAM && nalu_array.nalu_type != VVC_NALU_OPI) {
         numNalus = stream.readUint16();
       }
 
       for (let j = 0; j < numNalus; j++) {
-        var len = stream.readUint16();
+        const len = stream.readUint16();
         nalu_array.push({
           data: stream.readUint8Array(len),
           length: len,

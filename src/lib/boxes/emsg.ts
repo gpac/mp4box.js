@@ -32,7 +32,7 @@ export class emsgBox extends FullBox {
       this.event_duration = stream.readUint32();
       this.id = stream.readUint32();
     }
-    var message_size =
+    let message_size =
       this.size -
       this.hdr_size -
       (4 * 4 + (this.scheme_id_uri.length + 1) + (this.value.length + 1));
