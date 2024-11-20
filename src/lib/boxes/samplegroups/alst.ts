@@ -2,10 +2,10 @@ import { SampleGroupEntry } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class alstSampleGroupEntry extends SampleGroupEntry {
-  first_output_sample?: number;
-  sample_offset?: Array<number>;
-  num_output_samples?: Array<number>;
-  num_total_samples?: Array<number>;
+  first_output_sample: number;
+  sample_offset: Array<number>;
+  num_output_samples: Array<number>;
+  num_total_samples: Array<number>;
 
   parse(stream: MultiBufferStream) {
     const roll_count = stream.readUint16();

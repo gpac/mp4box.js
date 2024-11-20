@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class elngBox extends FullBox {
-  extended_language?: string;
+  extended_language: string;
 
   constructor(size?: number) {
     super('elng', size);

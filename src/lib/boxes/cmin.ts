@@ -2,12 +2,12 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class cminBox extends Box {
-  focal_length_x?: number;
-  principal_point_x?: number;
-  principal_point_y?: number;
-  flags?: number;
-  focal_length_y?: number;
-  skew_factor?: number;
+  focal_length_x: number;
+  principal_point_x: number;
+  principal_point_y: number;
+  flags: number;
+  focal_length_y: number;
+  skew_factor: number;
 
   constructor(size?: number) {
     super('cmin', size);

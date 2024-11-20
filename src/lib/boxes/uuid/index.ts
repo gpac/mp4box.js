@@ -4,9 +4,9 @@ import { MultiBufferStream } from '#/buffer';
 export const UUIDBoxes = {
   // piff
   a5d40b30e81411ddba2f0800200c9a66: class piffLsmBox extends UUIDBox {
-    LiveServerManifest?: string;
+    LiveServerManifest: string;
 
-    constructor(size: number) {
+    constructor(size?: number) {
       super('a5d40b30e81411ddba2f0800200c9a66', size);
     }
 
@@ -22,9 +22,9 @@ export const UUIDBoxes = {
     }
   },
   d08a4f1810f34a82b6c832d8aba183d3: class piffPsshBox extends UUIDBox {
-    system_id?: string;
+    system_id: string;
 
-    constructor(size: number) {
+    constructor(size?: number) {
       super('d08a4f1810f34a82b6c832d8aba183d3', size);
     }
 
@@ -38,16 +38,16 @@ export const UUIDBoxes = {
     }
   },
   a2394f525a9b4f14a2446c427c648df4: class piffSencBox extends UUIDBox {
-    constructor(size: number) {
+    constructor(size?: number) {
       super('a2394f525a9b4f14a2446c427c648df4', size);
     }
   },
   '8974dbce7be74c5184f97148f9882554': class piffTencBox extends UUIDBox {
-    default_AlgorithmID?: number;
-    default_IV_size?: number;
-    default_KID?: string;
+    default_AlgorithmID: number;
+    default_IV_size: number;
+    default_KID: string;
 
-    constructor(size: number) {
+    constructor(size?: number) {
       super('8974dbce7be74c5184f97148f9882554', size);
     }
 
@@ -59,10 +59,10 @@ export const UUIDBoxes = {
     }
   },
   d4807ef2ca3946958e5426cb9e46a79f: class piffTfrfBox extends UUIDBox {
-    fragment_count?: number;
-    entries?: { absolute_time: number; absolute_duration: number }[];
+    fragment_count: number;
+    entries: { absolute_time: number; absolute_duration: number }[];
 
-    constructor(size: number) {
+    constructor(size?: number) {
       super('d4807ef2ca3946958e5426cb9e46a79f', size);
     }
 
@@ -91,10 +91,10 @@ export const UUIDBoxes = {
     }
   },
   '6d1d9b0542d544e680e2141daff757b2': class piffTfxdBox extends UUIDBox {
-    absolute_time?: number;
-    duration?: number;
+    absolute_time: number;
+    duration: number;
 
-    constructor(size: number) {
+    constructor(size?: number) {
       super('6d1d9b0542d544e680e2141daff757b2', size);
     }
 

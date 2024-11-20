@@ -3,7 +3,7 @@ import { MultiBufferStream } from '#/buffer';
 import type { Sample } from '#/types';
 
 export class stcoBox extends FullBox {
-  chunk_offsets?: Array<number>;
+  chunk_offsets: Array<number>;
 
   constructor(size?: number) {
     super('stco', size);

@@ -4,7 +4,7 @@ import { OK } from '#/constants';
 import { Log } from '#/log';
 
 export class drefBox extends FullBox {
-  entries?: Array<Box>;
+  entries: Array<Box>;
 
   constructor(size?: number) {
     super('dref', size);

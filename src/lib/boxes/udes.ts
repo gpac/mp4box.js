@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class udesBox extends FullBox {
-  lang?: string;
-  name?: string;
-  description?: string;
-  tags?: string;
+  lang: string;
+  name: string;
+  description: string;
+  tags: string;
 
   constructor(size?: number) {
     super('udes', size);

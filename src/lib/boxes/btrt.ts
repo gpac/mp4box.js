@@ -2,9 +2,9 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class btrtBox extends Box {
-  bufferSizeDB?: number;
-  maxBitrate?: number;
-  avgBitrate?: number;
+  bufferSizeDB: number;
+  maxBitrate: number;
+  avgBitrate: number;
 
   constructor(size?: number) {
     super('btrt', size);

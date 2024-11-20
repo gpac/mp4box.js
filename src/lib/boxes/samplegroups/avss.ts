@@ -2,15 +2,15 @@ import { SampleGroupEntry } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class avssSampleGroupEntry extends SampleGroupEntry {
-  subSequenceIdentifier?: number;
-  layerNumber?: number;
-  durationFlag?: number;
-  avgRateFlag?: number;
-  duration?: number;
-  accurateStatisticsFlag?: number;
-  avgBitRate?: number;
-  avgFrameRate?: number;
-  dependency?: Array<{
+  subSequenceIdentifier: number;
+  layerNumber: number;
+  durationFlag: number;
+  avgRateFlag: number;
+  duration: number;
+  accurateStatisticsFlag: number;
+  avgBitRate: number;
+  avgFrameRate: number;
+  dependency: Array<{
     subSeqDirectionFlag: number;
     layerNumber: number;
     subSequenceIdentifier: number;

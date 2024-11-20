@@ -3,9 +3,9 @@ import { MultiBufferStream } from '#/buffer';
 
 // ISO/IEC 14496-12:2022 Section 8.18.3 Entity to group box
 export class EntityToGroup extends FullBox {
-  group_id?: number;
-  num_entities_in_group?: number;
-  entity_ids?: Array<number>;
+  group_id: number;
+  num_entities_in_group: number;
+  entity_ids: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -133,11 +133,11 @@ export class prgrBox extends EntityToGroup {
 
 // Image Pyramid entity group (ISO/IEC 23008-12:20xx Section 6.8.11)
 export class pymdBox extends EntityToGroup {
-  tile_size_x?: number;
-  tile_size_y?: number;
-  layer_binning?: Array<number>;
-  tiles_in_layer_column_minus1?: Array<number>;
-  tiles_in_layer_row_minus1?: Array<number>;
+  tile_size_x: number;
+  tile_size_y: number;
+  layer_binning: Array<number>;
+  tiles_in_layer_column_minus1: Array<number>;
+  tiles_in_layer_row_minus1: Array<number>;
 
   constructor(size?: number) {
     super('pymd', size);

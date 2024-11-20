@@ -3,14 +3,14 @@ import { MultiBufferStream } from '#/buffer';
 import type { Matrix, Output } from '#/types';
 
 export class mvhdBox extends FullBox {
-  creation_time?: number;
-  modification_time?: number;
-  timescale?: number;
-  duration?: number;
-  rate?: number;
-  volume?: number;
-  next_track_id?: number;
-  matrix?: Matrix;
+  creation_time: number;
+  modification_time: number;
+  timescale: number;
+  duration: number;
+  rate: number;
+  volume: number;
+  next_track_id: number;
+  matrix: Matrix;
 
   constructor(size?: number) {
     super('mvhd', size);

@@ -2,10 +2,10 @@ import { MultiBufferStream } from '#/buffer';
 import { SubtitleSampleEntry } from './sampleentry';
 
 export class stxtSampleEntry extends SubtitleSampleEntry {
-  content_encoding?: string;
-  mime_format?: string;
+  content_encoding: string;
+  mime_format: string;
 
-  constructor(size: number) {
+  constructor(size?: number) {
     super('stxt', size);
   }
 

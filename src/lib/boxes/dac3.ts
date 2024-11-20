@@ -2,12 +2,12 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class dac3Box extends Box {
-  fscod?: number;
-  bsid?: number;
-  bsmod?: number;
-  acmod?: number;
-  lfeon?: number;
-  bit_rate_code?: number;
+  fscod: number;
+  bsid: number;
+  bsmod: number;
+  acmod: number;
+  lfeon: number;
+  bit_rate_code: number;
 
   constructor(size?: number) {
     super('dac3', size);

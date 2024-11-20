@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class smhdBox extends FullBox {
-  balance?: number;
+  balance: number;
 
   constructor(size?: number) {
     super('smhd', size);

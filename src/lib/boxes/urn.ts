@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class urnBox extends FullBox {
-  name?: string;
-  location?: string;
+  name: string;
+  location: string;
 
   constructor(size?: number) {
     super('urn', size);

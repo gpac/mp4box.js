@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class frmaBox extends Box {
-  data_format?: string;
+  data_format: string;
 
   constructor(size?: number) {
     super('frma', size);

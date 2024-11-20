@@ -2,13 +2,13 @@ import { FullBox, parseHex16 } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class tencBox extends FullBox {
-  default_crypt_byte_block?: number;
-  default_skip_byte_block?: number;
-  default_isProtected?: number;
-  default_Per_Sample_IV_Size?: number;
-  default_KID?: string;
-  default_constant_IV_size?: number;
-  default_constant_IV?: Uint8Array;
+  default_crypt_byte_block: number;
+  default_skip_byte_block: number;
+  default_isProtected: number;
+  default_Per_Sample_IV_Size: number;
+  default_KID: string;
+  default_constant_IV_size: number;
+  default_constant_IV: Uint8Array;
 
   constructor(size?: number) {
     super('tenc', size);

@@ -4,8 +4,8 @@ import type { Sample } from '#/types';
 import { Log } from '../log';
 
 export class cttsBox extends FullBox {
-  sample_counts?: Array<number>;
-  sample_offsets?: Array<number>;
+  sample_counts: Array<number>;
+  sample_offsets: Array<number>;
 
   constructor(size?: number) {
     super('ctts', size);

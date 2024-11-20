@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class vmhdBox extends FullBox {
-  graphicsmode?: number;
-  opcolor?: Uint16Array | [number, number, number];
+  graphicsmode: number;
+  opcolor: Uint16Array | [number, number, number];
 
   constructor(size?: number) {
     super('vmhd', size);

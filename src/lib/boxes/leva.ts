@@ -7,12 +7,12 @@ interface Level {
   track_ID: number;
   assignment_type: number;
   grouping_type: string;
-  grouping_type_parameter?: number;
-  sub_track_id?: number;
+  grouping_type_parameter: number;
+  sub_track_id: number;
 }
 
 export class levaBox extends FullBox {
-  levels?: Array<Level>;
+  levels: Array<Level>;
 
   constructor(size?: number) {
     super('leva', size);

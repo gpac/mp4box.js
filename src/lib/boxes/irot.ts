@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class irotBox extends Box {
-  angle?: number;
+  angle: number;
 
   constructor(size?: number) {
     super('irot', size);

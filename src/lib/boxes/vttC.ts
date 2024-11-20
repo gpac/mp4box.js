@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class vttCBox extends Box {
-  text?: string;
+  text: string;
 
   constructor(size?: number) {
     super('vttC', size);

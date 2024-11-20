@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class clliBox extends Box {
-  max_content_light_level?: number;
-  max_pic_average_light_level?: number;
+  max_content_light_level: number;
+  max_pic_average_light_level: number;
 
   constructor(size?: number) {
     super('clli', size);

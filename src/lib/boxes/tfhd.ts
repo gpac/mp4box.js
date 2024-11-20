@@ -9,12 +9,12 @@ import {
 } from '../constants';
 
 export class tfhdBox extends FullBox {
-  track_id?: number;
-  base_data_offset?: number;
-  default_sample_description_index?: number;
-  default_sample_duration?: number;
-  default_sample_size?: number;
-  default_sample_flags?: number;
+  track_id: number;
+  base_data_offset: number;
+  default_sample_description_index: number;
+  default_sample_duration: number;
+  default_sample_size: number;
+  default_sample_flags: number;
 
   constructor(size?: number) {
     super('tfhd', size);

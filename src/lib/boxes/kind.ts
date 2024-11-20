@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class kindBox extends FullBox {
-  schemeURI?: string;
-  value?: string;
+  schemeURI: string;
+  value: string;
 
   constructor(size?: number) {
     super('kind', size);

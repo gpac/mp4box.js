@@ -3,16 +3,16 @@ import { MultiBufferStream } from '#/buffer';
 import type { Matrix } from '#/types';
 
 export class tkhdBox extends FullBox {
-  creation_time?: number;
-  modification_time?: number;
-  track_id?: number;
-  duration?: number;
-  layer?: number;
-  alternate_group?: number;
-  volume?: number;
-  matrix?: Matrix;
-  width?: number;
-  height?: number;
+  creation_time: number;
+  modification_time: number;
+  track_id: number;
+  duration: number;
+  layer: number;
+  alternate_group: number;
+  volume: number;
+  matrix: Matrix;
+  width: number;
+  height: number;
 
   constructor(size?: number) {
     super('tkhd', size);

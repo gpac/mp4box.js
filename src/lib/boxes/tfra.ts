@@ -2,16 +2,16 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class tfraBox extends FullBox {
-  track_ID?: number;
-  length_size_of_traf_num?: number;
-  length_size_of_trun_num?: number;
-  length_size_of_sample_num?: number;
-  entries?: Array<unknown>;
-  time?: number;
-  moof_offset?: number;
-  traf_number?: number;
-  trun_number?: number;
-  sample_number?: number;
+  track_ID: number;
+  length_size_of_traf_num: number;
+  length_size_of_trun_num: number;
+  length_size_of_sample_num: number;
+  entries: Array<unknown>;
+  time: number;
+  moof_offset: number;
+  traf_number: number;
+  trun_number: number;
+  sample_number: number;
 
   constructor(size?: number) {
     super('tfra', size);

@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class pixiBox extends FullBox {
-  num_channels?: number;
-  bits_per_channels?: Array<number>;
+  num_channels: number;
+  bits_per_channels: Array<number>;
 
   constructor(size?: number) {
     super('pixi', size);

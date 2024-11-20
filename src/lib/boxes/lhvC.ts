@@ -9,13 +9,13 @@ type NaluArray = Array<{
 };
 
 export class lhvCBox extends Box {
-  configurationVersion?: number;
-  min_spatial_segmentation_idc?: number;
-  parallelismType?: number;
-  numTemporalLayers?: number;
-  temporalIdNested?: number;
-  lengthSizeMinusOne?: number;
-  nalu_arrays?: Array<NaluArray>;
+  configurationVersion: number;
+  min_spatial_segmentation_idc: number;
+  parallelismType: number;
+  numTemporalLayers: number;
+  temporalIdNested: number;
+  lengthSizeMinusOne: number;
+  nalu_arrays: Array<NaluArray>;
 
   constructor(size?: number) {
     super('lhvC', size);

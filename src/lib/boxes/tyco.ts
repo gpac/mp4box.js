@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class tycoBox extends Box {
-  compatible_brands?: Array<string>;
+  compatible_brands: Array<string>;
 
   constructor(size?: number) {
     super('tyco', size);

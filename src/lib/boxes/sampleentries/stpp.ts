@@ -2,11 +2,11 @@ import { MultiBufferStream } from '#/buffer';
 import { SubtitleSampleEntry } from './sampleentry';
 
 export class stppSampleEntry extends SubtitleSampleEntry {
-  namespace?: string;
-  schema_location?: string;
-  auxiliary_mime_types?: string;
+  namespace: string;
+  schema_location: string;
+  auxiliary_mime_types: string;
 
-  constructor(size: number) {
+  constructor(size?: number) {
     super('stpp', size);
   }
 

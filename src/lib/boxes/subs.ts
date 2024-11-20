@@ -15,7 +15,7 @@ interface SampleInfo {
 }
 
 export class subsBox extends FullBox {
-  entries?: SampleInfo[];
+  entries: SampleInfo[];
 
   constructor(size?: number) {
     super('subs', size);

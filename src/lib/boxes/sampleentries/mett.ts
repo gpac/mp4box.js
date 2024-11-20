@@ -2,10 +2,10 @@ import { MultiBufferStream } from '#/buffer';
 import { MetadataSampleEntry } from './sampleentry';
 
 export class mettSampleEntry extends MetadataSampleEntry {
-  content_encoding?: string;
-  mime_format?: string;
+  content_encoding: string;
+  mime_format: string;
 
-  constructor(size: number) {
+  constructor(size?: number) {
     super('mett', size);
   }
 

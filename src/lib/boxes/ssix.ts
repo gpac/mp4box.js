@@ -10,7 +10,7 @@ interface SubSegment {
 }
 
 export class ssixBox extends FullBox {
-  subsegments?: SubSegment[];
+  subsegments: SubSegment[];
 
   constructor(size?: number) {
     super('ssix', size);

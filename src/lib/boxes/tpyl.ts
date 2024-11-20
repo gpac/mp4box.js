@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class tpylBox extends Box {
-  bytessent?: number;
+  bytessent: number;
 
   constructor(size?: number) {
     super('tpyl', size);

@@ -10,8 +10,8 @@ import { Log } from '#/log';
 import { MP4BoxStream } from '#/stream';
 
 export class irefBox extends Box {
-  references?: { references: Array<unknown>; from_item_ID: number; type: unknown }[];
-  version?: number;
+  references: { references: Array<unknown>; from_item_ID: number; type: unknown }[];
+  version: number;
 
   constructor(size?: number) {
     super('iref', size);

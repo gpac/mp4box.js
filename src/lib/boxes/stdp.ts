@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class stdpBox extends FullBox {
-  priority?: Array<number>;
+  priority: Array<number>;
 
   constructor(size?: number) {
     super('stpd', size);

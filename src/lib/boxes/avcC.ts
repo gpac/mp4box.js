@@ -4,16 +4,16 @@ import { MP4BoxStream } from '#/stream';
 import { DataStream } from '../DataStream';
 
 export class avcCBox extends Box {
-  configurationVersion?: number;
-  AVCProfileIndication?: number;
-  profile_compatibility?: number;
-  AVCLevelIndication?: number;
-  lengthSizeMinusOne?: number;
-  nb_SPS_nalus?: number;
-  SPS?: Array<{ length: number; nalu: Uint8Array }>;
-  nb_PPS_nalus?: number;
-  PPS?: Array<{ length: number; nalu: Uint8Array }>;
-  ext?: Uint8Array;
+  configurationVersion: number;
+  AVCProfileIndication: number;
+  profile_compatibility: number;
+  AVCLevelIndication: number;
+  lengthSizeMinusOne: number;
+  nb_SPS_nalus: number;
+  SPS: Array<{ length: number; nalu: Uint8Array }>;
+  nb_PPS_nalus: number;
+  PPS: Array<{ length: number; nalu: Uint8Array }>;
+  ext: Uint8Array;
 
   constructor(size?: number) {
     super('avcC', size);

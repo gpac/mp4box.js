@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class mdhdBox extends FullBox {
-  creation_time?: number;
-  modification_time?: number;
-  timescale?: number;
-  duration?: number;
+  creation_time: number;
+  modification_time: number;
+  timescale: number;
+  duration: number;
 
   constructor(size?: number) {
     super('mdhd', size);

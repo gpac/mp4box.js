@@ -12,9 +12,9 @@ interface IndSub {
 }
 
 export class dec3Box extends Box {
-  data_rate?: number;
-  num_ind_sub?: number;
-  ind_subs?: Array<IndSub>;
+  data_rate: number;
+  num_ind_sub: number;
+  ind_subs: Array<IndSub>;
 
   constructor(size?: number) {
     super('dec3', size);

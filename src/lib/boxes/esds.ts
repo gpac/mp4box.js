@@ -4,7 +4,7 @@ import { DataStream } from '../DataStream';
 import { ES_Descriptor, MPEG4DescriptorParser } from '../descriptor';
 
 export class esdsBox extends FullBox {
-  esd?: ES_Descriptor;
+  esd: ES_Descriptor;
 
   constructor(size?: number) {
     super('esds', size);

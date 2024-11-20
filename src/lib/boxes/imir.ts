@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class imirBox extends Box {
-  reserved?: number;
-  axis?: number;
+  reserved: number;
+  axis: number;
 
   constructor(size?: number) {
     super('imir', size);

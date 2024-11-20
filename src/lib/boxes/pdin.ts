@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class pdinBox extends Box {
-  rate?: Array<number>;
-  initial_delay?: Array<number>;
+  rate: Array<number>;
+  initial_delay: Array<number>;
 
   constructor(size?: number) {
     super('pdin', size);

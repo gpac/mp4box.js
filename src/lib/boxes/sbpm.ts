@@ -9,15 +9,15 @@ class Pixel {
 }
 
 export class sbpmBox extends FullBox {
-  component_count?: number;
-  component_index?: Array<number>;
-  correction_applied?: boolean;
-  num_bad_rows?: number;
-  num_bad_cols?: number;
-  num_bad_pixels?: number;
-  bad_rows?: Array<number>;
-  bad_columns?: Array<number>;
-  bad_pixels?: Pixel[];
+  component_count: number;
+  component_index: Array<number>;
+  correction_applied: boolean;
+  num_bad_rows: number;
+  num_bad_cols: number;
+  num_bad_pixels: number;
+  bad_rows: Array<number>;
+  bad_columns: Array<number>;
+  bad_pixels: Pixel[];
 
   constructor(size?: number) {
     super('sbpm', size);

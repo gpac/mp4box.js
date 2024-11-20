@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class sdtpBox extends FullBox {
-  is_leading?: Array<number>;
-  sample_depends_on?: Array<number>;
-  sample_is_depended_on?: Array<number>;
-  sample_has_redundancy?: Array<number>;
+  is_leading: Array<number>;
+  sample_depends_on: Array<number>;
+  sample_is_depended_on: Array<number>;
+  sample_has_redundancy: Array<number>;
 
   constructor(size?: number) {
     super('sdtp', size);

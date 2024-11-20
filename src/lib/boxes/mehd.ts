@@ -3,7 +3,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class mehdBox extends FullBox {
-  fragment_duration?: number;
+  fragment_duration: number;
 
   constructor(size?: number) {
     super('mehd', size);

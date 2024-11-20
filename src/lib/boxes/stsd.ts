@@ -5,7 +5,7 @@ import { OK } from '#/constants';
 import { Log } from '#/log';
 
 export class stsdBox extends FullBox {
-  entries?: Array<SampleEntry>;
+  entries: Array<SampleEntry>;
 
   constructor(size?: number) {
     super('stsd', size);

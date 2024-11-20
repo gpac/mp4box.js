@@ -2,10 +2,10 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class hdlrBox extends Box {
-  version?: number;
-  handler?: string;
-  name?: string;
-  flags?: number;
+  version: number;
+  handler: string;
+  name: string;
+  flags: number;
 
   constructor(size?: number) {
     super('hldr', size);

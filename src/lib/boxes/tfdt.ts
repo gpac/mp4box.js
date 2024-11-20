@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class tfdtBox extends FullBox {
-  baseMediaDecodeTime?: number;
+  baseMediaDecodeTime: number;
 
   constructor(size?: number) {
     super('tfdt', size);

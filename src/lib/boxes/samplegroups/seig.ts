@@ -2,14 +2,14 @@ import { SampleGroupEntry, parseHex16 } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class seigSampleGroupEntry extends SampleGroupEntry {
-  reserved?: number;
-  crypt_byte_block?: number;
-  skip_byte_block?: number;
-  isProtected?: number;
-  Per_Sample_IV_Size?: number;
-  KID?: unknown;
-  constant_IV_size?: number;
-  constant_IV?: number | Uint8Array;
+  reserved: number;
+  crypt_byte_block: number;
+  skip_byte_block: number;
+  isProtected: number;
+  Per_Sample_IV_Size: number;
+  KID: unknown;
+  constant_IV_size: number;
+  constant_IV: number | Uint8Array;
 
   parse(stream: MultiBufferStream) {
     this.reserved = stream.readUint8();

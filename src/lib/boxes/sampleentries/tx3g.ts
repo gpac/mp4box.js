@@ -2,14 +2,14 @@ import { MultiBufferStream } from '#/buffer';
 import { SubtitleSampleEntry } from './sampleentry';
 
 export class tx3gSampleEntry extends SubtitleSampleEntry {
-  displayFlags?: number;
-  horizontal_justification?: number;
-  vertical_justification?: number;
-  bg_color_rgba?: Uint8Array;
-  box_record?: Int16Array;
-  style_record?: Uint8Array;
+  displayFlags: number;
+  horizontal_justification: number;
+  vertical_justification: number;
+  bg_color_rgba: Uint8Array;
+  box_record: Int16Array;
+  style_record: Uint8Array;
 
-  constructor(size: number) {
+  constructor(size?: number) {
     super('tx3g', size);
   }
 

@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class enofBox extends FullBox {
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
 
   constructor(size?: number) {
     super('enof', size);

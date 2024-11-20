@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class paytBox extends Box {
-  payloadID?: number;
-  rtpmap_string?: string;
+  payloadID: number;
+  rtpmap_string: string;
 
   constructor(size?: number) {
     super('payt', size);

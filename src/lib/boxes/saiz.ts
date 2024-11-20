@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class saizBox extends FullBox {
-  aux_info_type?: number;
-  aux_info_type_parameter?: number;
-  default_sample_info_size?: number;
-  sample_info_size?: Array<number>;
+  aux_info_type: number;
+  aux_info_type_parameter: number;
+  default_sample_info_size: number;
+  sample_info_size: Array<number>;
 
   constructor(size?: number) {
     super('saiz', size);

@@ -7,9 +7,9 @@ interface Entry {
 }
 
 export class sbgpBox extends FullBox {
-  grouping_type?: string;
-  grouping_type_parameter?: number;
-  entries?: Array<Entry>;
+  grouping_type: string;
+  grouping_type_parameter: number;
+  entries: Array<Entry>;
 
   constructor(size?: number) {
     super('sbgp', size);

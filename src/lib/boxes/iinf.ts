@@ -5,9 +5,9 @@ import { Log } from '#/log';
 import { infeBox } from './infe';
 
 export class iinfBox extends Box {
-  version?: number;
-  entry_count?: number;
-  item_infos?: Array<infeBox>;
+  version: number;
+  entry_count: number;
+  item_infos: Array<infeBox>;
 
   constructor(size?: number) {
     super('iinf', size);

@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class ispeBox extends Box {
-  image_width?: number;
-  image_height?: number;
+  image_width: number;
+  image_height: number;
 
   constructor(size?: number) {
     super('ispe', size);

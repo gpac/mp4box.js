@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class saioBox extends FullBox {
-  aux_info_type?: number;
-  aux_info_type_parameter?: number;
-  offset?: Array<number>;
+  aux_info_type: number;
+  aux_info_type_parameter: number;
+  offset: Array<number>;
 
   constructor(size?: number) {
     super('saio', size);

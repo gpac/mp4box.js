@@ -2,11 +2,11 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class cslgBox extends FullBox {
-  compositionToDTSShift?: number;
-  leastDecodeToDisplayDelta?: number;
-  greatestDecodeToDisplayDelta?: number;
-  compositionStartTime?: number;
-  compositionEndTime?: number;
+  compositionToDTSShift: number;
+  leastDecodeToDisplayDelta: number;
+  greatestDecodeToDisplayDelta: number;
+  compositionStartTime: number;
+  compositionEndTime: number;
 
   constructor(size?: number) {
     super('cslg', size);

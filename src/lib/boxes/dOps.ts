@@ -2,15 +2,15 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class dOpsBox extends Box {
-  Version?: number;
-  OutputChannelCount?: number;
-  PreSkip?: number;
-  InputSampleRate?: number;
-  OutputGain?: number;
-  ChannelMappingFamily?: number;
-  StreamCount?: number;
-  CoupledCount?: number;
-  ChannelMapping?: Array<number>;
+  Version: number;
+  OutputChannelCount: number;
+  PreSkip: number;
+  InputSampleRate: number;
+  OutputGain: number;
+  ChannelMappingFamily: number;
+  StreamCount: number;
+  CoupledCount: number;
+  ChannelMapping: Array<number>;
 
   constructor(size?: number) {
     super('dOps', size);

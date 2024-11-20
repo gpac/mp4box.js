@@ -11,11 +11,11 @@ interface Reference {
 }
 
 export class sidxBox extends FullBox {
-  reference_ID?: number;
-  timescale?: number;
-  earliest_presentation_time?: number;
-  first_offset?: number;
-  references?: Reference[];
+  reference_ID: number;
+  timescale: number;
+  earliest_presentation_time: number;
+  first_offset: number;
+  references: Reference[];
 
   constructor(size?: number) {
     super('sidx', size);

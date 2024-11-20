@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class dfLaBox extends FullBox {
-  samplerate?: number;
-  numMetadataBlocks?: string;
+  samplerate: number;
+  numMetadataBlocks: string;
 
   constructor(size?: number) {
     super('dfLa', size);

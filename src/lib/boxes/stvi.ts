@@ -3,9 +3,9 @@ import { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 
 export class stviBox extends FullBox {
-  single_view_allowed?: number;
-  stereo_scheme?: number;
-  stereo_indication_type?: string;
+  single_view_allowed: number;
+  stereo_scheme: number;
+  stereo_indication_type: string;
 
   constructor(size?: number) {
     super('stvi', size);

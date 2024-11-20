@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class pmaxBox extends Box {
-  bytes?: number;
+  bytes: number;
 
   constructor(size?: number) {
     super('pmax', size);

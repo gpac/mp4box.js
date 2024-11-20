@@ -8,15 +8,15 @@ import { irefBox } from './iref';
 import { pitmBox } from './pitm';
 
 export class metaBox extends FullBox {
-  hdlr?: hdlrBox;
-  iinf?: iinfBox;
-  ipro?: iproBox;
-  grpl?: grplBox;
-  iloc?: ilocBox;
-  iprp?: iprpBox;
-  pitm?: pitmBox;
-  iref?: irefBox;
-  dinf?: dinfBox;
+  hdlr: hdlrBox;
+  iinf: iinfBox;
+  ipro: iproBox;
+  grpl: grplBox;
+  iloc: ilocBox;
+  iprp: iprpBox;
+  pitm: pitmBox;
+  iref: irefBox;
+  dinf: dinfBox;
 
   constructor(size?: number) {
     super('meta', size);

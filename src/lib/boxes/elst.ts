@@ -9,7 +9,7 @@ interface Entry {
 }
 
 export class elstBox extends FullBox {
-  entries?: Entry[];
+  entries: Entry[];
 
   constructor(size?: number) {
     super('elst', size);

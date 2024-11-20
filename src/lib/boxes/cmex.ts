@@ -2,15 +2,15 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class cmexBox extends Box {
-  flags?: number;
-  pos_x?: number;
-  pos_y?: number;
-  pos_z?: number;
-  version?: number;
-  quat_x?: number;
-  quat_y?: number;
-  quat_z?: number;
-  id?: number;
+  flags: number;
+  pos_x: number;
+  pos_y: number;
+  pos_z: number;
+  version: number;
+  quat_x: number;
+  quat_y: number;
+  quat_z: number;
+  id: number;
 
   constructor(size?: number) {
     super('cmex', size);

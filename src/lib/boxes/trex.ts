@@ -2,11 +2,11 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class trexBox extends FullBox {
-  track_id?: number;
-  default_sample_description_index?: number;
-  default_sample_duration?: number;
-  default_sample_size?: number;
-  default_sample_flags?: number;
+  track_id: number;
+  default_sample_description_index: number;
+  default_sample_duration: number;
+  default_sample_size: number;
+  default_sample_flags: number;
 
   constructor(size?: number) {
     super('trex', size);

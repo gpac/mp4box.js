@@ -2,11 +2,11 @@ import { MultiBufferStream } from '#/buffer';
 import { MetadataSampleEntry } from './sampleentry';
 
 export class metxSampleEntry extends MetadataSampleEntry {
-  content_encoding?: string;
-  namespace?: string;
-  schema_location?: string;
+  content_encoding: string;
+  namespace: string;
+  schema_location: string;
 
-  constructor(size: number) {
+  constructor(size?: number) {
     super('metx', size);
   }
 

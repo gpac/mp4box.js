@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class ccstBox extends FullBox {
-  all_ref_pics_intra?: boolean;
-  intra_pred_used?: boolean;
-  max_ref_per_pic?: number;
+  all_ref_pics_intra: boolean;
+  intra_pred_used: boolean;
+  max_ref_per_pic: number;
 
   constructor(size?: number) {
     super('ccst', size);

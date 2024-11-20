@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class tminBox extends Box {
-  time?: number;
+  time: number;
 
   constructor(size?: number) {
     super('tmin', size);

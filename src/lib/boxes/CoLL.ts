@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class CoLLBox extends FullBox {
-  maxCLL?: number;
-  maxFALL?: number;
+  maxCLL: number;
+  maxFALL: number;
 
   constructor(size?: number) {
     super('CoLL', size);

@@ -2,14 +2,14 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class clapBox extends Box {
-  cleanApertureWidthN?: number;
-  cleanApertureWidthD?: number;
-  cleanApertureHeightN?: number;
-  cleanApertureHeightD?: number;
-  horizOffN?: number;
-  horizOffD?: number;
-  vertOffN?: number;
-  vertOffD?: number;
+  cleanApertureWidthN: number;
+  cleanApertureWidthD: number;
+  cleanApertureHeightN: number;
+  cleanApertureHeightD: number;
+  horizOffN: number;
+  horizOffD: number;
+  vertOffN: number;
+  vertOffD: number;
 
   constructor(size?: number) {
     super('clap', size);

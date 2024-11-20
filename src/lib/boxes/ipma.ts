@@ -7,9 +7,9 @@ export interface Assocation {
 }
 
 export class ipmaBox extends Box {
-  associations?: Array<Assocation>;
-  version?: number;
-  flags?: number;
+  associations: Array<Assocation>;
+  version: number;
+  flags: number;
 
   constructor(size?: number) {
     super('ipma', size);

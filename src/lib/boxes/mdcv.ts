@@ -9,10 +9,10 @@ class ColorPoint {
 }
 
 export class mdcvBox extends Box {
-  display_primaries?: Array<ColorPoint>;
-  white_point?: ColorPoint;
-  max_display_mastering_luminance?: number;
-  min_display_mastering_luminance?: number;
+  display_primaries: Array<ColorPoint>;
+  white_point: ColorPoint;
+  max_display_mastering_luminance: number;
+  min_display_mastering_luminance: number;
 
   constructor(size?: number) {
     super('mdcv', size);

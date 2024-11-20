@@ -2,25 +2,25 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class uncCBox extends FullBox {
-  profile?: number;
-  component_count?: number;
-  component_index?: Array<number>;
-  component_bit_depth_minus_one?: Array<number>;
-  component_format?: Array<number>;
-  component_align_size?: Array<number>;
-  sampling_type?: number;
-  interleave_type?: number;
-  block_size?: number;
-  component_little_endian?: number;
-  block_pad_lsb?: number;
-  block_little_endian?: number;
-  block_reversed?: number;
-  pad_unknown?: number;
-  pixel_size?: number;
-  row_align_size?: number;
-  tile_align_size?: number;
-  num_tile_cols_minus_one?: number;
-  num_tile_rows_minus_one?: number;
+  profile: number;
+  component_count: number;
+  component_index: Array<number>;
+  component_bit_depth_minus_one: Array<number>;
+  component_format: Array<number>;
+  component_align_size: Array<number>;
+  sampling_type: number;
+  interleave_type: number;
+  block_size: number;
+  component_little_endian: number;
+  block_pad_lsb: number;
+  block_little_endian: number;
+  block_reversed: number;
+  pad_unknown: number;
+  pixel_size: number;
+  row_align_size: number;
+  tile_align_size: number;
+  num_tile_cols_minus_one: number;
+  num_tile_rows_minus_one: number;
 
   constructor(size?: number) {
     super('uncC', size);

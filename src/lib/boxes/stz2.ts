@@ -3,9 +3,9 @@ import { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class stz2Box extends FullBox {
-  sample_sizes?: Array<number>;
-  reserved?: number;
-  field_size?: number;
+  sample_sizes: Array<number>;
+  reserved: number;
+  field_size: number;
 
   constructor(size?: number) {
     super('stz2', size);

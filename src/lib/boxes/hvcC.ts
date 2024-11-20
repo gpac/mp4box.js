@@ -4,24 +4,24 @@ import { MP4BoxStream } from '#/stream';
 import type { NaluArray } from '#/types';
 
 export class hvcCBox extends Box {
-  configurationVersion?: number;
-  general_profile_space?: number;
-  general_tier_flag?: number;
-  general_profile_idc?: number;
-  general_profile_compatibility?: number;
-  general_constraint_indicator?: Uint8Array;
-  general_level_idc?: number;
-  min_spatial_segmentation_idc?: number;
-  parallelismType?: number;
-  chroma_format_idc?: number;
-  bit_depth_luma_minus8?: number;
-  bit_depth_chroma_minus8?: number;
-  avgFrameRate?: number;
-  constantFrameRate?: number;
-  numTemporalLayers?: number;
-  temporalIdNested?: number;
-  lengthSizeMinusOne?: number;
-  nalu_arrays?: Array<NaluArray>;
+  configurationVersion: number;
+  general_profile_space: number;
+  general_tier_flag: number;
+  general_profile_idc: number;
+  general_profile_compatibility: number;
+  general_constraint_indicator: Uint8Array;
+  general_level_idc: number;
+  min_spatial_segmentation_idc: number;
+  parallelismType: number;
+  chroma_format_idc: number;
+  bit_depth_luma_minus8: number;
+  bit_depth_chroma_minus8: number;
+  avgFrameRate: number;
+  constantFrameRate: number;
+  numTemporalLayers: number;
+  temporalIdNested: number;
+  lengthSizeMinusOne: number;
+  nalu_arrays: Array<NaluArray>;
 
   constructor(size?: number) {
     super('hvcC', size);

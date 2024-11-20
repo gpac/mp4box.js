@@ -8,11 +8,11 @@ export interface Extent {
 }
 
 export class ilocBox extends FullBox {
-  offset_size?: number;
-  length_size?: number;
-  base_offset_size?: number;
-  index_size?: number;
-  items?: Array<{
+  offset_size: number;
+  length_size: number;
+  base_offset_size: number;
+  index_size: number;
+  items: Array<{
     base_offset: number;
     construction_method: number;
     item_ID: number;

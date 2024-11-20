@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class mskCBox extends FullBox {
-  bits_per_pixel?: number;
+  bits_per_pixel: number;
 
   constructor(size?: number) {
     super('mskC', size);

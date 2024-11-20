@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class schmBox extends FullBox {
-  scheme_type?: string;
-  scheme_version?: number;
-  scheme_uri?: string;
+  scheme_type: string;
+  scheme_version: number;
+  scheme_uri: string;
 
   constructor(size?: number) {
     super('schm', size);

@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class mfhdBox extends FullBox {
-  sequence_number?: number;
+  sequence_number: number;
 
   constructor(size?: number) {
     super('mfhd', size);

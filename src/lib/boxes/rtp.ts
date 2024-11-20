@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class rtpBox extends Box {
-  descriptionformat?: string;
-  sdptext?: string;
+  descriptionformat: string;
+  sdptext: string;
 
   constructor(size?: number) {
     super('rtp', size);

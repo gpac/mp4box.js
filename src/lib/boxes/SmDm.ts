@@ -2,16 +2,16 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class SmDmBox extends FullBox {
-  primaryRChromaticity_x?: number;
-  primaryRChromaticity_y?: number;
-  primaryGChromaticity_x?: number;
-  primaryGChromaticity_y?: number;
-  primaryBChromaticity_x?: number;
-  primaryBChromaticity_y?: number;
-  whitePointChromaticity_x?: number;
-  whitePointChromaticity_y?: number;
-  luminanceMax?: number;
-  luminanceMin?: number;
+  primaryRChromaticity_x: number;
+  primaryRChromaticity_y: number;
+  primaryGChromaticity_x: number;
+  primaryGChromaticity_y: number;
+  primaryBChromaticity_x: number;
+  primaryBChromaticity_y: number;
+  whitePointChromaticity_x: number;
+  whitePointChromaticity_y: number;
+  luminanceMax: number;
+  luminanceMin: number;
 
   constructor(size?: number) {
     super('SmDm', size);

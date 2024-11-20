@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class maxrBox extends Box {
-  period?: number;
-  bytes?: number;
+  period: number;
+  bytes: number;
 
   constructor(size?: number) {
     super('maxr', size);

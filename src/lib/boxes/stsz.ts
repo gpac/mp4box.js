@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class stszBox extends FullBox {
-  sample_sizes?: Array<number>;
-  sample_size?: number;
-  sample_count?: number;
+  sample_sizes: Array<number>;
+  sample_size: number;
+  sample_count: number;
 
   constructor(size?: number) {
     super('stsz', size);

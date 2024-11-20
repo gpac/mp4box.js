@@ -56,13 +56,13 @@ export class TextSampleEntry extends SampleEntry {
 
 //Base SampleEntry types for Audio and Video with specific parsing
 export class VisualSampleEntry extends SampleEntry {
-  width?: number;
-  height?: number;
-  horizresolution?: number;
-  vertresolution?: number;
-  frame_count?: number;
-  compressorname?: string;
-  depth?: number;
+  width: number;
+  height: number;
+  horizresolution: number;
+  vertresolution: number;
+  frame_count: number;
+  compressorname: string;
+  depth: number;
 
   constructor(type: string, size?: number) {
     super(type, size, 'Visual');
@@ -128,9 +128,9 @@ export class VisualSampleEntry extends SampleEntry {
 }
 
 export class AudioSampleEntry extends SampleEntry {
-  channel_count?: number;
-  samplesize?: number;
-  samplerate?: number;
+  channel_count: number;
+  samplesize: number;
+  samplerate: number;
 
   constructor(type: string, size?: number) {
     super(type, size, 'Audio');

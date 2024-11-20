@@ -2,8 +2,8 @@ import { SampleGroupEntry } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class rapSampleGroupEntry extends SampleGroupEntry {
-  num_leading_samples_known?: number;
-  num_leading_samples?: number;
+  num_leading_samples_known: number;
+  num_leading_samples: number;
 
   parse(stream: MultiBufferStream) {
     const tmp_byte = stream.readUint8();

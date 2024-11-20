@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class pitmBox extends FullBox {
-  item_id?: number;
+  item_id: number;
 
   constructor(size?: number) {
     super('pitm', size);

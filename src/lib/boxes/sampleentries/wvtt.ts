@@ -2,7 +2,7 @@ import { MultiBufferStream } from '#/buffer';
 import { MetadataSampleEntry } from './sampleentry';
 
 export class wvttSampleEntry extends MetadataSampleEntry {
-  constructor(size: number) {
+  constructor(size?: number) {
     super('wvtt', size);
   }
 

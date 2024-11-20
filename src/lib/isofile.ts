@@ -173,6 +173,7 @@ export class ISOFile {
 
   /** @bundle isofile-item-processing.js */
   items: Array<Item> = [];
+
   /** @bundle isofile-item-processing.js */
   entity_groups: Array<{
     id: number;
@@ -182,9 +183,9 @@ export class ISOFile {
       boxes: Array<Box>;
     };
   }> = [];
+
   /**
    * size of the buffers allocated for samples
-   *
    * @bundle isofile-item-processing.js
    */
   itemsDataSize = 0;
@@ -231,8 +232,8 @@ export class ISOFile {
 
   setExtractionOptions(
     id: number,
-    user: unknown,
-    { nbSamples: nb_samples = 1000 }: { nbSamples: number },
+    user?: unknown,
+    { nbSamples: nb_samples = 1000 }: { nbSamples?: number } = {},
   ) {
     let trak = this.getTrackById(id);
     if (trak) {
@@ -356,9 +357,11 @@ export class ISOFile {
     return true;
   }
 
-  /* Processes a new ArrayBuffer (with a fileStart property)
-     Returns the next expected file position, or undefined if not ready to parse */
-  appendBuffer(ab: MP4BoxBuffer, last: boolean) {
+  /**
+   * Processes a new ArrayBuffer (with a fileStart property)
+   * Returns the next expected file position, or undefined if not ready to parse
+   */
+  appendBuffer(ab: MP4BoxBuffer, last?: boolean) {
     let nextFileStart: number;
     if (!this.checkBuffer(ab)) {
       return;

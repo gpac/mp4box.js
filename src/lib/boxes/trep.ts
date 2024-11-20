@@ -3,7 +3,7 @@ import { MultiBufferStream } from '#/buffer';
 import { OK } from '../constants';
 
 export class trepBox extends FullBox {
-  track_ID?: number;
+  track_ID: number;
 
   constructor(size?: number) {
     super('trep', size);

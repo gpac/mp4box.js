@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class prftBox extends FullBox {
-  ref_track_id?: number;
-  ntp_timestamp?: number;
-  media_time?: number;
+  ref_track_id: number;
+  ntp_timestamp: number;
+  media_time: number;
 
   constructor(size?: number) {
     super('prft', size);

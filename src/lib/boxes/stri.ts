@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class striBox extends FullBox {
-  switch_group?: number;
-  alternate_group?: number;
-  sub_track_id?: number;
-  attribute_list?: Array<number>;
+  switch_group: number;
+  alternate_group: number;
+  sub_track_id: number;
+  attribute_list: Array<number>;
 
   constructor(size?: number) {
     super('stri', size);

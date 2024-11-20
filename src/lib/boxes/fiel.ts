@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import { MultiBufferStream } from '#/buffer';
 
 export class fielBox extends Box {
-  fieldCount?: number;
-  fieldOrdering?: number;
+  fieldCount: number;
+  fieldOrdering: number;
 
   constructor(size?: number) {
     super('fiel', size);
