@@ -59,7 +59,7 @@ import { trexBox } from '#/boxes/trex';
 import { trunBox } from '#/boxes/trun';
 import { urlBox } from '#/boxes/url';
 import { vmhdBox } from '#/boxes/vmhd';
-import { MultiBufferStream } from '#/buffer';
+import { MP4BoxBuffer, MultiBufferStream } from '#/buffer';
 import {
   ERR_NOT_ENOUGH_DATA,
   TFHD_FLAG_BASE_DATA_OFFSET,
@@ -90,7 +90,6 @@ import type {
   IsoFileOptions,
   Item,
   Movie,
-  MP4BoxBuffer,
   Output,
   Sample,
   SampleGroup,

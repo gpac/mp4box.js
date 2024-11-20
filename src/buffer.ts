@@ -1,6 +1,10 @@
 import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
-import type { MP4BoxBuffer } from '@types';
+
+export class MP4BoxBuffer extends ArrayBuffer {
+  fileStart?: number;
+  usedBytes?: number;
+}
 
 /**
  * helper functions to concatenate two ArrayBuffer objects

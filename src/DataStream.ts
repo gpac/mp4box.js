@@ -1,5 +1,6 @@
 import { MAX_SIZE } from '#/constants';
-import type { MP4BoxBuffer, StructDefinition, StructType, TypedArray } from '@types';
+import type { StructDefinition, StructType, TypedArray } from '@types';
+import { MP4BoxBuffer } from './buffer';
 
 /* 
   TODO: fix endianness for 24/64-bit fields
@@ -38,7 +39,7 @@ export class DataStream {
         this._byteOffset += byteOffset;
       }
     } else {
-      this.buffer = new ArrayBuffer(arrayBuffer || 0);
+      this.buffer = new MP4BoxBuffer(arrayBuffer || 0);
     }
     this.position = 0;
     this.endianness = endianness == null ? DataStream.LITTLE_ENDIAN : endianness;
@@ -70,7 +71,7 @@ export class DataStream {
     while (req > blen) {
       blen *= 2;
     }
-    const buf = new ArrayBuffer(blen);
+    const buf = new MP4BoxBuffer(blen);
     const src = new Uint8Array(this._buffer);
     const dst = new Uint8Array(buf, 0, src.length);
     dst.set(src);
@@ -88,7 +89,7 @@ export class DataStream {
     if (this._byteLength == this._buffer.byteLength) {
       return;
     }
-    const buf = new ArrayBuffer(this._byteLength);
+    const buf = new MP4BoxBuffer(this._byteLength);
     const dst = new Uint8Array(buf);
     const src = new Uint8Array(this._buffer, 0, dst.length);
     dst.set(src);
@@ -687,7 +688,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   shift(offset: number) {
-    const buf = new ArrayBuffer(this._byteLength - offset);
+    const buf = new MP4BoxBuffer(this._byteLength - offset);
     const dst = new Uint8Array(buf);
     const src = new Uint8Array(this._buffer, offset, dst.length);
     dst.set(src);

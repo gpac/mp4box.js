@@ -213,11 +213,6 @@ export type TypedArray =
   | BigInt64Array
   | BigUint64Array;
 
-export interface MP4BoxBuffer extends ArrayBuffer {
-  fileStart?: number;
-  usedBytes?: number;
-}
-
 export interface Nalu {
   data: Uint8Array;
   length?: number;
