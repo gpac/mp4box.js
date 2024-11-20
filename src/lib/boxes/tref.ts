@@ -1,11 +1,9 @@
 import { OK } from '#//constants';
-import { Box, parseOneBox, TrackReferenceTypeBox } from '#/box';
+import { Box, ContainerBox, parseOneBox, TrackReferenceTypeBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
-// NOTE:    This previously did not have a class constructor
-//          So I am not sure if this should extend from Box/FullBox/...
-export class trefBox extends Box {
+export class trefBox extends ContainerBox {
   constructor(size?: number) {
     super('tref', size);
   }

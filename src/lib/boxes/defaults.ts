@@ -246,18 +246,7 @@ export class vttcBox extends ContainerBox {
     super('vttc', size);
   }
 }
-export class trefBox extends ContainerBox {
-  constructor(size?: number) {
-    super('tref', size);
-  }
-}
 
-// NOTE: also imported from parsing/iref.ts
-// export class irefBox extends ContainerBox {
-//   constructor(size?: number) {
-//     super('iref', size);
-//   }
-// }
 export class mfraBox extends ContainerBox {
   tfras: Array<tfraBox> = [];
   subBoxNames = ['tfra'] as const;
