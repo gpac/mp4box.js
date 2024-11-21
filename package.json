@@ -24,8 +24,33 @@
     "url": "http://concolato.wp.mines-telecom.fr/"
   },
   "license": "BSD-3-Clause",
+  "exports": {
+    ".": {
+      "types": "./dist/all.d.ts",
+      "import": "./dist/all.js",
+      "require": "./dist/all.cjs"
+    },
+    "./simple": {
+      "types": "./dist/simple.d.ts",
+      "import": "./dist/simple.js",
+      "require": "./dist/simple.cjs"
+    }
+  },
+  "scripts": {
+    "build": "concurrently \"pnpm build:all\" \"pnpm build:simple\"",
+    "build:all": "concurrently \"pnpm build:all:esm\" \"pnpm build:all:cjs\"",
+    "build:all:esm": "tsup entries/all.ts --format esm --sourcemap --dts",
+    "build:all:cjs": "tsup entries/all.ts --format cjs --sourcemap",
+    "build:simple": "concurrently \"pnpm build:simple:esm\" \"pnpm build:simple:cjs\"",
+    "build:simple:esm": "tsup entries/simple.ts --format esm --sourcemap --dts",
+    "build:simple:cjs": "tsup entries/simple.ts --format cjs --sourcemap",
+    "circular": "dpdm -T ./src/all.ts",
+    "types": "tsc --noEmit --project tsconfig.json"
+  },
   "devDependencies": {
     "blanket": "^1.2.3",
+    "concurrently": "^9.1.0",
+    "dpdm": "^3.14.0",
     "grunt": "^1.0.4",
     "grunt-bump": "^0.8.0",
     "grunt-cli": "^1.2.0",
@@ -43,30 +68,7 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-qunit": "^0.1.4",
     "qunitjs": "^1.23.0",
-    "vite-plugin-dts-bundle-generator": "^2.0.5",
-    "vite-tsconfig-paths": "^5.0.1"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/all.d.ts",
-      "import": "./dist/all.js",
-      "require": "./dist/all.cjs"
-    },
-    "./simple": {
-      "types": "./dist/simple.d.ts",
-      "import": "./dist/simple.js",
-      "require": "./dist/simple.cjs"
-    }
-  },
-  "scripts": {
-    "test": "grunt test --verbose",
-    "build": "vite build .",
-    "circular": "dpdm -T ./src/all.ts",
-    "types": "tsc --noEmit --project tsconfig.json"
-  },
-  "dependencies": {
-    "dpdm": "^3.14.0",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.10"
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3"
   }
 }
