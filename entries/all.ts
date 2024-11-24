@@ -8,6 +8,7 @@ export * from '#/isofile';
 export * from '#/log';
 export * from '#/stream';
 export * from '#/text-mp4';
+export * from './types';
 import { UUID_BOXES } from '#/boxes/uuid';
 import * as DESCRIPTORS from '#/descriptor';
 import { registerBoxes, registerDescriptors } from '#/registry';
