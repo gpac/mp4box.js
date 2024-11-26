@@ -271,13 +271,13 @@ function parseAvs3AudioGASpecificConfig(BitBuffer) {
         BitBuffer.skipBits(1);
     }
     else if (this.data.content_type == 1) {
-        this.data.num_objects = BitBuffer.getBits(7);
+        this.data.number_objects = BitBuffer.getBits(7);
         BitBuffer.skipBits(1);
     }
     else if (this.data.content_type == 2) {
         this.data.channel_number_index = new DescribedValue(BitBuffer.getBits(7), AVS3Achannel_number);
         BitBuffer.skipBits(1);
-        this.data.num_objects = BitBuffer.getBits(7);
+        this.data.number_objects = BitBuffer.getBits(7);
         BitBuffer.skipBits(1);
     }
     else if (this.data.content_type == 3) {
