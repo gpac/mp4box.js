@@ -31,12 +31,41 @@ export class Descriptor {
     return null;
   }
 
-  parseOneDescriptor?(stream: DataStream): DescriptorKinds;
+  parseOneDescriptor(stream: DataStream): DescriptorKinds {
+    let hdrSize = 0;
+    let size = 0;
+    const tag = stream.readUint8();
+    hdrSize++;
+    let byteRead = stream.readUint8();
+    hdrSize++;
+    while (byteRead & 0x80) {
+      size = (byteRead & 0x7f) << 7;
+      byteRead = stream.readUint8();
+      hdrSize++;
+    }
+    size += byteRead & 0x7f;
+    Log.debug(
+      'Descriptor',
+      'Found ' +
+        (descTagToName[tag] || 'Descriptor ' + tag) +
+        ', size ' +
+        size +
+        ' at position ' +
+        stream.getPosition(),
+    );
+    const desc = descTagToName[tag]
+      ? new DESCRIPTOR_CLASSES[descTagToName[tag]](size)
+      : // @ts-expect-error FIXME: Descriptor expects a tag as first parameter
+        new Descriptor(size);
+
+    desc.parse(stream);
+    return desc;
+  }
 
   parseRemainingDescriptors(stream: DataStream) {
     let start = stream.position;
     while (stream.position < start + this.size) {
-      // FIXME: parseOneDescriptor is a method that only MPEG4DescriptorParser implements
+      console.log('this.parseOneDescriptor', this, this.parseOneDescriptor);
       let desc = this.parseOneDescriptor?.(stream);
       this.descs.push(desc);
     }
@@ -169,34 +198,5 @@ export class MPEG4DescriptorParser {
     return descTagToName[tag];
   }
 
-  parseOneDescriptor(stream: DataStream): DescriptorKinds {
-    let hdrSize = 0;
-    let size = 0;
-    const tag = stream.readUint8();
-    hdrSize++;
-    let byteRead = stream.readUint8();
-    hdrSize++;
-    while (byteRead & 0x80) {
-      size = (byteRead & 0x7f) << 7;
-      byteRead = stream.readUint8();
-      hdrSize++;
-    }
-    size += byteRead & 0x7f;
-    Log.debug(
-      'MPEG4DescriptorParser',
-      'Found ' +
-        (descTagToName[tag] || 'Descriptor ' + tag) +
-        ', size ' +
-        size +
-        ' at position ' +
-        stream.getPosition(),
-    );
-    const desc = descTagToName[tag]
-      ? new DESCRIPTOR_CLASSES[descTagToName[tag]](size)
-      : // @ts-expect-error FIXME: Descriptor expects a tag as first parameter
-        new Descriptor(size);
-
-    desc.parse(stream);
-    return desc;
-  }
+  parseOneDescriptor = Descriptor.prototype.parseOneDescriptor;
 }
