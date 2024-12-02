@@ -1,5 +1,6 @@
 import { ContainerBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import { Log } from '#/log';
 
 export class SampleEntry extends ContainerBox {
   data_reference_index?: number;

@@ -58,7 +58,7 @@ import { trexBox } from '#/boxes/trex';
 import { trunBox } from '#/boxes/trun';
 import { urlBox } from '#/boxes/url';
 import { vmhdBox } from '#/boxes/vmhd';
-import { MP4BoxBuffer, MultiBufferStream } from '#/buffer';
+import { MultiBufferStream } from '#/buffer';
 import {
   ERR_NOT_ENOUGH_DATA,
   TFHD_FLAG_BASE_DATA_OFFSET,
@@ -96,6 +96,7 @@ import type {
   Track,
 } from '@types';
 import type { EntityToGroup } from './boxes/EntityToGroup/base';
+import { MP4BoxBuffer } from './mp4boxbuffer';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;

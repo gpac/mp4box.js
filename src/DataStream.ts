@@ -1,6 +1,6 @@
 import { MAX_SIZE } from '#/constants';
 import type { StructDefinition, StructType, TypedArray } from '@types';
-import { MP4BoxBuffer } from './buffer';
+import { MP4BoxBuffer } from './mp4boxbuffer';
 
 /* 
   TODO: fix endianness for 24/64-bit fields

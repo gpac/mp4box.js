@@ -1,11 +1,12 @@
-import type { Box, SampleEntry } from '#/box';
+import type { Box } from '#/box';
 import type { trakBox } from '#/boxes/defaults';
 import type { SubSample } from '#/boxes/subs';
-import { UUID_BOXES } from '#/boxes/uuid';
+import type { UUID_BOXES } from '#/boxes/uuid';
 import type { DataStream } from '#/DataStream';
-import * as DESCRIPTORS from '#/descriptor';
+import type * as DESCRIPTORS from '#/descriptor';
 import type { MP4BoxStream } from '#/stream';
-import * as BOXES from './all-boxes';
+import type { SampleEntry } from './all';
+import type * as BOXES from './all-boxes';
 
 type AllBoxes = Partial<typeof BOXES> & Partial<typeof UUID_BOXES>;
 export namespace MP4Box {
