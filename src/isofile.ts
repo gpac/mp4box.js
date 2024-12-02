@@ -91,6 +91,7 @@ import type {
   Movie,
   Output,
   Sample,
+  SampleEntryKind,
   SampleGroup,
   Track,
 } from '@types';
@@ -122,54 +123,7 @@ export interface IsoFileOptions {
   media_duration?: number;
   rate?: number;
   timescale?: number;
-  type?:
-    | 'ac_3'
-    | 'ac_4'
-    | 'av01'
-    | 'avc1'
-    | 'avc2'
-    | 'avc3'
-    | 'avc4'
-    | 'avs3'
-    | 'dav1'
-    | 'dvh1'
-    | 'dvhe'
-    | 'ec_3'
-    | 'enca'
-    | 'encm'
-    | 'encs'
-    | 'enct'
-    | 'encu'
-    | 'encv'
-    | 'fLaC'
-    | 'hev1'
-    | 'hvc1'
-    | 'hvt1'
-    | 'j2ki'
-    | 'lhe1'
-    | 'mha1'
-    | 'mha2'
-    | 'mhm1'
-    | 'mhm2'
-    | 'mjp2'
-    | 'mjpg'
-    | 'mp4a'
-    | 'Opus'
-    | 'uncv'
-    | 'vp08'
-    | 'vp09'
-    | 'vvc1'
-    | 'vvcN'
-    | 'vvi1'
-    | 'vvs1'
-    | 'sbtt'
-    | 'mett'
-    | 'metx'
-    | 'sbtt'
-    | 'stpp'
-    | 'stxt'
-    | 'tx3g'
-    | 'wvtt';
+  type?: SampleEntryKind['type'];
   width?: number;
   hdlr?: string;
   name?: string;
