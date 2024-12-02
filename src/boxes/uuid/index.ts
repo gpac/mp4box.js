@@ -8,9 +8,6 @@ export const UUID_BOXES = {
 
     type = 'uuid' as const;
     uuid = 'a5d40b30e81411ddba2f0800200c9a66' as const;
-    constructor(size?: number) {
-      super(size);
-    }
 
     parse(stream: MultiBufferStream): void {
       this.parseFullHeader(stream);
@@ -28,9 +25,6 @@ export const UUID_BOXES = {
 
     type = 'uuid' as const;
     uuid = 'd08a4f1810f34a82b6c832d8aba183d3' as const;
-    constructor(size?: number) {
-      super(size);
-    }
 
     parse(stream: MultiBufferStream): void {
       this.parseFullHeader(stream);
@@ -44,9 +38,6 @@ export const UUID_BOXES = {
   a2394f525a9b4f14a2446c427c648df4: class piffSencBox extends FullBox {
     type = 'uuid' as const;
     uuid = 'a2394f525a9b4f14a2446c427c648df4' as const;
-    constructor(size?: number) {
-      super(size);
-    }
   },
   '8974dbce7be74c5184f97148f9882554': class piffTencBox extends FullBox {
     default_AlgorithmID: number;
@@ -55,9 +46,6 @@ export const UUID_BOXES = {
 
     type = 'uuid' as const;
     uuid = '8974dbce7be74c5184f97148f9882554' as const;
-    constructor(size?: number) {
-      super(size);
-    }
 
     parse(stream: MultiBufferStream): void {
       this.parseFullHeader(stream);
@@ -72,9 +60,6 @@ export const UUID_BOXES = {
 
     type = 'uuid' as const;
     uuid = 'd4807ef2ca3946958e5426cb9e46a79f' as const;
-    constructor(size?: number) {
-      super(size);
-    }
 
     parse(stream: MultiBufferStream): void {
       this.parseFullHeader(stream);
@@ -106,9 +91,6 @@ export const UUID_BOXES = {
 
     type = 'uuid' as const;
     uuid = '6d1d9b0542d544e680e2141daff757b2' as const;
-    constructor(size?: number) {
-      super(size);
-    }
 
     parse(stream: MultiBufferStream): void {
       this.parseFullHeader(stream);
