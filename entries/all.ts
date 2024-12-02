@@ -1,5 +1,6 @@
 export * from '#/box';
 export * from '#/box-diff';
+export * from '#/boxes/sampleentries/base';
 export * from '#/buffer';
 export * from '#/create-file';
 export * from '#/DataStream';

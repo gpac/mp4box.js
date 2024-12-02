@@ -1,4 +1,3 @@
-import { SampleEntry } from '#/box';
 import { av1CBox } from '#/boxes/av1C';
 import { avcCBox } from '#/boxes/avcC';
 import { sinfBox } from '#/boxes/defaults';
@@ -78,7 +77,9 @@ export class av01SampleEntry extends VisualSampleEntry {
   }
   /** @bundle box-codecs.js */
   getCodec(): string {
-    const baseCodec = SampleEntry.prototype.getCodec.call(this);
+    // NOTE:    was before `const baseCodec = SampleEntry.prototype.getCodec.call(this);`
+    const baseCodec = super.getCodec();
+
     const level_idx_0 = this.av1C.seq_level_idx_0;
     const level = level_idx_0 < 10 ? '0' + level_idx_0 : level_idx_0;
     let bitdepth: string;

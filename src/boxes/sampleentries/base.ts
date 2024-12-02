@@ -1,5 +1,133 @@
-import { SampleEntry } from '#/box';
+import { ContainerBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+
+export class SampleEntry extends ContainerBox {
+  data_reference_index?: number;
+
+  constructor(size?: number, public hdr_size?: number, public start?: number) {
+    super(size);
+  }
+
+  /** @bundle box-codecs.js */
+  isVideo() {
+    return false;
+  }
+
+  /** @bundle box-codecs.js */
+  isAudio() {
+    return false;
+  }
+
+  /** @bundle box-codecs.js */
+  isSubtitle() {
+    return false;
+  }
+
+  /** @bundle box-codecs.js */
+  isMetadata() {
+    return false;
+  }
+
+  /** @bundle box-codecs.js */
+  isHint() {
+    return false;
+  }
+
+  /** @bundle box-codecs.js */
+  getCodec() {
+    return this.type.replace('.', '');
+  }
+
+  /** @bundle box-codecs.js */
+  getWidth(): number {
+    // @ts-expect-error FIXME: Only stubbed? Expects a number returned.
+    return '';
+  }
+
+  /** @bundle box-codecs.js */
+  getHeight(): number {
+    // @ts-expect-error FIXME: Only stubbed? Expects a number returned.
+    return '';
+  }
+
+  /** @bundle box-codecs.js */
+  getChannelCount(): number {
+    // @ts-expect-error FIXME: Only stubbed? Expects a number returned.
+    return '';
+  }
+
+  /** @bundle box-codecs.js */
+  getSampleRate(): number {
+    // @ts-expect-error FIXME: Only stubbed? Expects a number returned.
+    return '';
+  }
+
+  /** @bundle box-codecs.js */
+  getSampleSize(): number {
+    // @ts-expect-error FIXME: Only stubbed? Expects a number returned.
+    return '';
+  }
+
+  /** @bundle parsing/sampleentries/sampleentry.js */
+  parseHeader(stream: MultiBufferStream) {
+    stream.readUint8Array(6);
+    this.data_reference_index = stream.readUint16();
+    this.hdr_size += 8;
+  }
+
+  /** @bundle parsing/sampleentries/sampleentry.js */
+  parse(stream: MultiBufferStream) {
+    this.parseHeader(stream);
+    this.data = stream.readUint8Array(this.size - this.hdr_size);
+  }
+
+  /** @bundle parsing/sampleentries/sampleentry.js */
+  parseDataAndRewind(stream: MultiBufferStream) {
+    this.parseHeader(stream);
+    this.data = stream.readUint8Array(this.size - this.hdr_size);
+    // restore the header size as if the sample entry header had not been parsed
+    this.hdr_size -= 8;
+    // rewinding
+    stream.position -= this.size - this.hdr_size;
+  }
+
+  /** @bundle parsing/sampleentries/sampleentry.js */
+  parseFooter(stream: MultiBufferStream) {
+    super.parse(stream);
+  }
+
+  /** @bundle writing/sampleentry.js */
+  writeHeader(stream: MultiBufferStream) {
+    this.size = 8;
+    super.writeHeader(stream);
+    stream.writeUint8(0);
+    stream.writeUint8(0);
+    stream.writeUint8(0);
+    stream.writeUint8(0);
+    stream.writeUint8(0);
+    stream.writeUint8(0);
+    stream.writeUint16(this.data_reference_index);
+  }
+
+  /** @bundle writing/sampleentry.js */
+  writeFooter(stream: MultiBufferStream) {
+    for (let i = 0; i < this.boxes.length; i++) {
+      this.boxes[i].write(stream);
+      this.size += this.boxes[i].size;
+    }
+    Log.debug('BoxWriter', 'Adjusting box ' + this.type + ' with new size ' + this.size);
+    stream.adjustUint32(this.sizePosition, this.size);
+  }
+
+  /** @bundle writing/sampleentry.js */
+  write(stream: MultiBufferStream) {
+    this.writeHeader(stream);
+    stream.writeUint8Array(this.data);
+    this.size += this.data.length;
+    Log.debug('BoxWriter', 'Adjusting box ' + this.type + ' with new size ' + this.size);
+    stream.adjustUint32(this.sizePosition, this.size);
+  }
+}
 
 // Base SampleEntry types with default parsing
 export class HintSampleEntry extends SampleEntry {}
