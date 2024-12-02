@@ -6,8 +6,9 @@ export class metxSampleEntry extends MetadataSampleEntry {
   namespace: string;
   schema_location: string;
 
+  type = 'metx' as const;
   constructor(size?: number) {
-    super('metx', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

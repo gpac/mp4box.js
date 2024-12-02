@@ -8,8 +8,9 @@ export class cslgBox extends FullBox {
   compositionStartTime: number;
   compositionEndTime: number;
 
+  type = 'cslg' as const;
   constructor(size?: number) {
-    super('cslg', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

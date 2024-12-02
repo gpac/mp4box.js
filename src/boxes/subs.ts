@@ -17,8 +17,9 @@ interface SampleInfo {
 export class subsBox extends FullBox {
   entries: SampleInfo[];
 
+  type = 'subs' as const;
   constructor(size?: number) {
-    super('subs', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class tfdtBox extends FullBox {
   baseMediaDecodeTime: number;
 
+  type = 'tfdt' as const;
   constructor(size?: number) {
-    super('tfdt', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

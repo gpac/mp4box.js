@@ -16,8 +16,9 @@ export class dec3Box extends Box {
   num_ind_sub: number;
   ind_subs: Array<IndSub>;
 
+  type = 'dec3' as const;
   constructor(size?: number) {
-    super('dec3', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

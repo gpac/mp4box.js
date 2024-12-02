@@ -12,8 +12,9 @@ export class cmexBox extends Box {
   quat_z: number;
   id: number;
 
+  type = 'cmex' as const;
   constructor(size?: number) {
-    super('cmex', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

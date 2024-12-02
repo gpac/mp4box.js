@@ -8,8 +8,9 @@ export class trexBox extends FullBox {
   default_sample_size: number;
   default_sample_flags: number;
 
+  type = 'trex' as const;
   constructor(size?: number) {
-    super('trex', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

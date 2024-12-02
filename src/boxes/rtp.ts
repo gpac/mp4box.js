@@ -5,8 +5,9 @@ export class rtpBox extends Box {
   descriptionformat: string;
   sdptext: string;
 
+  type = 'rtp' as const;
   constructor(size?: number) {
-    super('rtp', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

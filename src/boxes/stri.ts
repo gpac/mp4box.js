@@ -7,8 +7,9 @@ export class striBox extends FullBox {
   sub_track_id: number;
   attribute_list: Array<number>;
 
+  type = 'stri' as const;
   constructor(size?: number) {
-    super('stri', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

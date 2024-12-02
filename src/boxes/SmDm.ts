@@ -13,8 +13,9 @@ export class SmDmBox extends FullBox {
   luminanceMax: number;
   luminanceMin: number;
 
+  type = 'SmDm' as const;
   constructor(size?: number) {
-    super('SmDm', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

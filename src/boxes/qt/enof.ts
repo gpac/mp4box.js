@@ -5,8 +5,9 @@ export class enofBox extends FullBox {
   width: number;
   height: number;
 
+  type = 'enof' as const;
   constructor(size?: number) {
-    super('enof', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

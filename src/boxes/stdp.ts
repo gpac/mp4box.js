@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class stdpBox extends FullBox {
   priority: Array<number>;
 
+  type = 'stpd' as const;
   constructor(size?: number) {
-    super('stpd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

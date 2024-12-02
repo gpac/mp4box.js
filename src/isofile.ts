@@ -22,7 +22,6 @@ import {
 } from '#/boxes/defaults';
 import { drefBox } from '#/boxes/dref';
 import { elngBox } from '#/boxes/elng';
-import { EntityToGroup } from '#/boxes/EntityToGroup';
 import { ftypBox } from '#/boxes/ftyp';
 import { hdlrBox } from '#/boxes/hdlr';
 import { hvcCBox } from '#/boxes/hvcC';
@@ -39,7 +38,7 @@ import {
   SubtitleSampleEntry,
   SystemSampleEntry,
   VisualSampleEntry,
-} from '#/boxes/sampleentries/sampleentry';
+} from '#/boxes/sampleentries/base';
 import { sbgpBox } from '#/boxes/sbgp';
 import { sdtpBox } from '#/boxes/sdtp';
 import { sgpdBox } from '#/boxes/sgpd';
@@ -83,6 +82,7 @@ import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
 import type {
+  BoxKind,
   Description,
   ExtractedTrack,
   FragmentedTrack,
@@ -94,6 +94,7 @@ import type {
   SampleGroup,
   Track,
 } from '@types';
+import type { EntityToGroup } from './boxes/EntityToGroup/base';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;
@@ -112,7 +113,7 @@ export class SampleGroupInfo {
 
 export interface IsoFileOptions {
   brands?: Array<string>;
-  description_boxes?: Array<Box>;
+  description_boxes?: Array<BoxKind>;
   duration?: number;
   height?: number;
   id?: number;
@@ -181,7 +182,7 @@ export interface IsoFileOptions {
   namespace?: string;
   schema_location?: string;
   auxiliary_mime_types?: string;
-  description?: Box;
+  description?: BoxKind;
   default_sample_description_index?: number;
   default_sample_duration?: number;
   default_sample_size?: number;
@@ -370,34 +371,43 @@ export class ISOFile {
           }
         } else {
           /* the box is entirely parsed */
-          const box = ret.box;
-          const box_type = box.type !== 'uuid' ? box.type : box.uuid;
+          const box = ret.box as BoxKind;
           /* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
           this.boxes.push(box);
-          /* but also store box in a property for more direct access */
-          switch (box_type) {
-            case 'mdat':
-              this.mdats.push(box);
-              break;
-            case 'moof':
-              this.moofs.push(box as moofBox);
-              break;
-            case 'moov':
-              this.moovStartFound = true;
-              if (this.mdats.length === 0) {
-                this.isProgressive = true;
-              }
-            /* no break */
-            /* falls through */
-            default:
-              if (this[box_type] !== undefined) {
-                Log.warn(
-                  'ISOFile',
-                  'Duplicate Box of type: ' + box_type + ', overriding previous occurrence',
-                );
-              }
-              this[box_type] = box;
-              break;
+          if (box.type === 'uuid') {
+            if (this[box.uuid] !== undefined) {
+              Log.warn(
+                'ISOFile',
+                'Duplicate Box of uuid: ' + box.uuid + ', overriding previous occurrence',
+              );
+            }
+            this[box.uuid] = box;
+          } else {
+            /* but also store box in a property for more direct access */
+            switch (box.type) {
+              case 'mdat':
+                this.mdats.push(box);
+                break;
+              case 'moof':
+                this.moofs.push(box);
+                break;
+              case 'moov':
+                this.moovStartFound = true;
+                if (this.mdats.length === 0) {
+                  this.isProgressive = true;
+                }
+              /* no break */
+              /* falls through */
+              default:
+                if (this[box.type] !== undefined) {
+                  Log.warn(
+                    'ISOFile',
+                    'Duplicate Box of type: ' + box.type + ', overriding previous occurrence',
+                  );
+                }
+                this[box.type] = box;
+                break;
+            }
           }
           if (this.updateUsedBytes) {
             this.updateUsedBytes(box, ret);
@@ -2178,15 +2188,13 @@ export class ISOFile {
 
   /** @bundle isofile-advanced-parsing.js */
   processIncompleteBox(ret: IncompleteBox) {
-    let box: Box | null;
-
     /* we did not have enough bytes in the current buffer to parse the entire box */
     if (ret.type === 'mdat') {
       /* we had enough bytes to get its type and size and it's an 'mdat' */
 
       /* special handling for mdat boxes, since we don't actually need to parse it linearly 
 		   we create the box */
-      box = new mdatBox(ret.size);
+      const box = new mdatBox(ret.size);
       this.parsingMdat = box;
       this.boxes.push(box);
       this.mdats.push(box);

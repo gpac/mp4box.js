@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class elngBox extends FullBox {
   extended_language: string;
 
+  type = 'elng' as const;
   constructor(size?: number) {
-    super('elng', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

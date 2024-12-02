@@ -9,8 +9,9 @@ export class tx3gSampleEntry extends SubtitleSampleEntry {
   box_record: Int16Array;
   style_record: Uint8Array;
 
+  type = 'tx3g' as const;
   constructor(size?: number) {
-    super('tx3g', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -17,8 +17,9 @@ export class lhvCBox extends Box {
   lengthSizeMinusOne: number;
   nalu_arrays: Array<NaluArray>;
 
+  type = 'lhvC' as const;
   constructor(size?: number) {
-    super('lhvC', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -31,8 +31,9 @@ export class sgpdBox extends FullBox {
   entries: SampleGroupEntry[];
   used: boolean;
 
+  type = 'sgpd' as const;
   constructor(size?: number) {
-    super('sgpd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

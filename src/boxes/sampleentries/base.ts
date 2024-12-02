@@ -2,41 +2,21 @@ import { SampleEntry } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 // Base SampleEntry types with default parsing
-export class HintSampleEntry extends SampleEntry {
-  constructor(type: string, size?: number) {
-    super(type, size, 'Hint');
-  }
-}
+export class HintSampleEntry extends SampleEntry {}
 export class MetadataSampleEntry extends SampleEntry {
-  constructor(type: string, size?: number) {
-    super(type, size, 'Metadata');
-  }
-
   /** @bundle box-codecs.js */
   isMetadata() {
     return true;
   }
 }
 export class SubtitleSampleEntry extends SampleEntry {
-  constructor(type: string, size?: number) {
-    super(type, size, 'Subtitle');
-  }
-
   /** @bundle box-codecs.js */
   isSubtitle() {
     return true;
   }
 }
-export class SystemSampleEntry extends SampleEntry {
-  constructor(type: string, size?: number) {
-    super(type, size, 'System');
-  }
-}
-export class TextSampleEntry extends SampleEntry {
-  constructor(type: string, size?: number) {
-    super(type, size, 'Text');
-  }
-}
+export class SystemSampleEntry extends SampleEntry {}
+export class TextSampleEntry extends SampleEntry {}
 
 //Base SampleEntry types for Audio and Video with specific parsing
 export class VisualSampleEntry extends SampleEntry {
@@ -47,10 +27,6 @@ export class VisualSampleEntry extends SampleEntry {
   frame_count: number;
   compressorname: string;
   depth: number;
-
-  constructor(type: string, size?: number) {
-    super(type, size, 'Visual');
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);
@@ -115,10 +91,6 @@ export class AudioSampleEntry extends SampleEntry {
   channel_count: number;
   samplesize: number;
   samplerate: number;
-
-  constructor(type: string, size?: number) {
-    super(type, size, 'Audio');
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

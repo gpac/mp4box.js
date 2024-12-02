@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class tminBox extends Box {
   time: number;
 
+  type = 'tmin' as const;
   constructor(size?: number) {
-    super('tmin', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

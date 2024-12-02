@@ -9,8 +9,9 @@ export class dac3Box extends Box {
   lfeon: number;
   bit_rate_code: number;
 
+  type = 'dac3' as const;
   constructor(size?: number) {
-    super('dac3', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

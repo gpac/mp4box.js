@@ -11,8 +11,9 @@ export class clapBox extends Box {
   vertOffN: number;
   vertOffD: number;
 
+  type = 'clap' as const;
   constructor(size?: number) {
-    super('clap', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

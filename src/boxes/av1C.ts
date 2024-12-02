@@ -19,8 +19,9 @@ export class av1CBox extends Box {
   reserved_2: number;
   configOBUs: Uint8Array;
 
+  type = 'av1C' as const;
   constructor(size?: number) {
-    super('av1C', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

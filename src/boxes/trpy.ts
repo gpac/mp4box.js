@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class trpyBox extends Box {
   bytessent: number;
 
+  type = 'trpy' as const;
   constructor(size?: number) {
-    super('trpy', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

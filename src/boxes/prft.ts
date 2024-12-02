@@ -6,8 +6,9 @@ export class prftBox extends FullBox {
   ntp_timestamp: number;
   media_time: number;
 
+  type = 'prft' as const;
   constructor(size?: number) {
-    super('prft', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

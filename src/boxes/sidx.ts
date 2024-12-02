@@ -17,8 +17,9 @@ export class sidxBox extends FullBox {
   first_offset: number;
   references: Reference[];
 
+  type = 'sidx' as const;
   constructor(size?: number) {
-    super('sidx', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -5,8 +5,9 @@ import { OK } from '#/constants';
 export class trepBox extends FullBox {
   track_ID: number;
 
+  type = 'trep' as const;
   constructor(size?: number) {
-    super('trep', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -1,14 +1,16 @@
 import { FullBox, parseOneBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
+import type { BoxKind } from '@types';
 
 export class stviBox extends FullBox {
   single_view_allowed: number;
   stereo_scheme: number;
   stereo_indication_type: string;
 
+  type = 'stvi' as const;
   constructor(size?: number) {
-    super('stvi', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {
@@ -22,7 +24,7 @@ export class stviBox extends FullBox {
     while (stream.getPosition() < this.start + this.size) {
       const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
-        const box = ret.box;
+        const box = ret.box as BoxKind;
         this.boxes.push(box);
         this[box.type] = box;
       } else {

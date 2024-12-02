@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class urlBox extends FullBox {
   location?: string;
 
+  type = 'url' as const;
   constructor(size?: number) {
-    super('url', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

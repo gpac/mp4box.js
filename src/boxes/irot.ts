@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class irotBox extends Box {
   angle: number;
 
+  type = 'irot' as const;
   constructor(size?: number) {
-    super('irot', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

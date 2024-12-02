@@ -42,34 +42,39 @@ class avcCSampleEntryBase extends VisualSampleEntry {
 
 // Sample entries inheriting from Audio and Video
 export class avc1SampleEntry extends avcCSampleEntryBase {
+  type = 'avc1' as const;
   constructor(size?: number) {
-    super('avc1', size);
+    super(size);
   }
 }
 
 export class avc2SampleEntry extends avcCSampleEntryBase {
+  type = 'avc2' as const;
   constructor(size?: number) {
-    super('avc2', size);
+    super(size);
   }
 }
 
 export class avc3SampleEntry extends avcCSampleEntryBase {
+  type = 'avc3' as const;
   constructor(size?: number) {
-    super('avc3', size);
+    super(size);
   }
 }
 
 export class avc4SampleEntry extends avcCSampleEntryBase {
+  type = 'avc4' as const;
   constructor(size?: number) {
-    super('avc4', size);
+    super(size);
   }
 }
 
 export class av01SampleEntry extends VisualSampleEntry {
   av1C: av1CBox;
 
+  type = 'av01' as const;
   constructor(size?: number) {
-    super('av01', size);
+    super(size);
   }
   /** @bundle box-codecs.js */
   getCodec(): string {
@@ -97,8 +102,9 @@ export class av01SampleEntry extends VisualSampleEntry {
 }
 
 export class dav1SampleEntry extends VisualSampleEntry {
+  type = 'dav1' as const;
   constructor(size?: number) {
-    super('dav1', size);
+    super(size);
   }
 }
 
@@ -158,38 +164,44 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
 }
 
 export class hvc1SampleEntry extends hvcCSampleEntryBase {
+  type = 'hvc1' as const;
   constructor(size?: number) {
-    super('hvc1', size);
+    super(size);
   }
 }
 
 export class hev1SampleEntry extends hvcCSampleEntryBase {
+  type = 'hev1' as const;
   constructor(size?: number) {
-    super('hev1', size);
+    super(size);
   }
 }
 
 export class hvt1SampleEntry extends VisualSampleEntry {
+  type = 'hvt1' as const;
   constructor(size?: number) {
-    super('hvt1', size);
+    super(size);
   }
 }
 
 export class lhe1SampleEntry extends VisualSampleEntry {
+  type = 'lhe1' as const;
   constructor(size?: number) {
-    super('lhe1', size);
+    super(size);
   }
 }
 
 export class dvh1SampleEntry extends VisualSampleEntry {
+  type = 'dvh1' as const;
   constructor(size?: number) {
-    super('dvh1', size);
+    super(size);
   }
 }
 
 export class dvheSampleEntry extends VisualSampleEntry {
+  type = 'dvhe' as const;
   constructor(size?: number) {
-    super('dvhe', size);
+    super(size);
   }
 }
 
@@ -258,26 +270,30 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
 }
 
 export class vvc1SampleEntry extends vvcCSampleEntryBase {
+  type = 'vvc1' as const;
   constructor(size?: number) {
-    super('vvc1', size);
+    super(size);
   }
 }
 
 export class vvi1SampleEntry extends vvcCSampleEntryBase {
+  type = 'vvi1' as const;
   constructor(size?: number) {
-    super('vvi1', size);
+    super(size);
   }
 }
 
 export class vvs1SampleEntry extends VisualSampleEntry {
+  type = 'vvs1' as const;
   constructor(size?: number) {
-    super('vvs1', size);
+    super(size);
   }
 }
 
 export class vvcNSampleEntry extends VisualSampleEntry {
+  type = 'vvcN' as const;
   constructor(size?: number) {
-    super('vvcN', size);
+    super(size);
   }
 }
 
@@ -298,52 +314,60 @@ class vpcCSampleEntryBase extends VisualSampleEntry {
 }
 
 export class vp08SampleEntry extends vpcCSampleEntryBase {
+  type = 'vp08' as const;
   constructor(size?: number) {
-    super('vp08', size);
+    super(size);
   }
 }
 
 export class vp09SampleEntry extends vpcCSampleEntryBase {
+  type = 'vp09' as const;
   constructor(size?: number) {
-    super('vp09', size);
+    super(size);
   }
 }
 
 export class avs3SampleEntry extends VisualSampleEntry {
+  type = 'avs3' as const;
   constructor(size?: number) {
-    super('avs3', size);
+    super(size);
   }
 }
 
 export class j2kiSampleEntry extends VisualSampleEntry {
+  type = 'j2ki' as const;
   constructor(size?: number) {
-    super('j2ki', size);
+    super(size);
   }
 }
 
 export class mjp2SampleEntry extends VisualSampleEntry {
+  type = 'mjp2' as const;
   constructor(size?: number) {
-    super('mjp2', size);
+    super(size);
   }
 }
 
 export class mjpgSampleEntry extends VisualSampleEntry {
+  type = 'mjpg' as const;
   constructor(size?: number) {
-    super('mjpg', size);
+    super(size);
   }
 }
 
 export class uncvSampleEntry extends VisualSampleEntry {
+  type = 'uncv' as const;
   constructor(size?: number) {
-    super('uncv', size);
+    super(size);
   }
 }
 
 export class mp4aSampleEntry extends AudioSampleEntry {
   esds: esdsBox;
 
+  type = 'mp4a' as const;
   constructor(size?: number) {
-    super('mp4a', size);
+    super(size);
   }
 
   getCodec() {
@@ -359,69 +383,80 @@ export class mp4aSampleEntry extends AudioSampleEntry {
 }
 
 export class ac_3SampleEntry extends AudioSampleEntry {
+  type = 'ac-3' as const;
   constructor(size?: number) {
-    super('ac-3', size);
+    super(size);
   }
 }
 
 export class ac_4SampleEntry extends AudioSampleEntry {
+  type = 'ac-4' as const;
   constructor(size?: number) {
-    super('ac-4', size);
+    super(size);
   }
 }
 
 export class ec_3SampleEntry extends AudioSampleEntry {
+  type = 'ec-3' as const;
   constructor(size?: number) {
-    super('ec-3', size);
+    super(size);
   }
 }
 
 export class OpusSampleEntry extends AudioSampleEntry {
+  type = 'Opus' as const;
   constructor(size?: number) {
-    super('Opus', size);
+    super(size);
   }
 }
 
 export class mha1SampleEntry extends AudioSampleEntry {
+  type = 'mha1' as const;
   constructor(size?: number) {
-    super('mha1', size);
+    super(size);
   }
 }
 
 export class mha2SampleEntry extends AudioSampleEntry {
+  type = 'mha2' as const;
   constructor(size?: number) {
-    super('mha2', size);
+    super(size);
   }
 }
 
 export class mhm1SampleEntry extends AudioSampleEntry {
+  type = 'mhm1' as const;
   constructor(size?: number) {
-    super('mhm1', size);
+    super(size);
   }
 }
 
 export class mhm2SampleEntry extends AudioSampleEntry {
+  type = 'mhm2' as const;
   constructor(size?: number) {
-    super('mhm2', size);
+    super(size);
   }
 }
 
 export class fLaCSampleEntry extends AudioSampleEntry {
+  type = 'fLaC' as const;
   constructor(size?: number) {
-    super('fLaC', size);
+    super(size);
   }
 }
 
 // Encrypted sample entries
 export class encvSampleEntry extends VisualSampleEntry {
+  type = 'encv' as const;
   constructor(size?: number) {
-    super('encv', size);
+    super(size);
   }
 }
 
 export class encaSampleEntry extends AudioSampleEntry {
+  type = 'enca' as const;
   constructor(size?: number) {
-    super('enca', size);
+    super(size);
   }
 }
 
@@ -429,8 +464,9 @@ export class encuSampleEntry extends SubtitleSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
+  type = 'encu' as const;
   constructor(size?: number) {
-    super('encu', size);
+    super(size);
   }
 }
 
@@ -438,8 +474,9 @@ export class encsSampleEntry extends SystemSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
+  type = 'encs' as const;
   constructor(size?: number) {
-    super('encs', size);
+    super(size);
   }
 }
 
@@ -447,8 +484,9 @@ export class enctSampleEntry extends TextSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
+  type = 'enct' as const;
   constructor(size?: number) {
-    super('enct', size);
+    super(size);
   }
 }
 
@@ -456,7 +494,8 @@ export class encmSampleEntry extends MetadataSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
+  type = 'encm' as const;
   constructor(size?: number) {
-    super('encm', size);
+    super(size);
   }
 }

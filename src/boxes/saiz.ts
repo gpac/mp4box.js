@@ -7,8 +7,9 @@ export class saizBox extends FullBox {
   default_sample_info_size: number;
   sample_info_size: Array<number>;
 
+  type = 'saiz' as const;
   constructor(size?: number) {
-    super('saiz', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

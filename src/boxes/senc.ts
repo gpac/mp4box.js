@@ -1,8 +1,9 @@
 import { FullBox } from '#/box';
 
 export class sencBox extends FullBox {
+  type = 'senc' as const;
   constructor(size?: number) {
-    super('senc', size);
+    super(size);
   }
   // Cannot be fully parsed because Per_Sample_IV_Size needs to be known
   /* parse(stream: MultiBufferStream) {

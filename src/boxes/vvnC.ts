@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class vvnCBox extends FullBox {
   lengthSizeMinusOne: number | undefined;
 
+  type = 'vvnC' as const;
   constructor(size?: number) {
-    super('vvnC', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

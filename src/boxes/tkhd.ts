@@ -14,8 +14,9 @@ export class tkhdBox extends FullBox {
   width: number;
   height: number;
 
+  type = 'tkhd' as const;
   constructor(size?: number) {
-    super('tkhd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

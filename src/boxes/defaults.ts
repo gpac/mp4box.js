@@ -41,24 +41,28 @@ import type { Sample } from '@types';
 /**********************************************************************************/
 
 export class mdatBox extends Box {
+  type = 'mdat' as const;
   constructor(size?: number) {
-    super('mdat', size);
+    super(size);
   }
 }
 
 export class idatBox extends Box {
+  type = 'idat' as const;
   constructor(size?: number) {
-    super('idat', size);
+    super(size);
   }
 }
 export class freeBox extends Box {
+  type = 'free' as const;
   constructor(size?: number) {
-    super('free', size);
+    super(size);
   }
 }
 export class skipBox extends Box {
+  type = 'skip' as const;
   constructor(size?: number) {
-    super('skip', size);
+    super(size);
   }
 }
 
@@ -83,35 +87,41 @@ export class skipBox extends Box {
 /**********************************************************************************/
 
 export class hmhdBox extends FullBox {
+  type = 'hmhd' as const;
   constructor(size?: number) {
-    super('hmhd', size);
+    super(size);
   }
 }
 export class nmhdBox extends FullBox {
+  type = 'nmhd' as const;
   constructor(size?: number) {
-    super('nmhd', size);
+    super(size);
   }
 }
 export class iodsBox extends FullBox {
+  type = 'iods' as const;
   constructor(size?: number) {
-    super('iods', size);
+    super(size);
   }
 }
 export class xmlBox extends FullBox {
+  type = 'xml ' as const;
   constructor(size?: number) {
-    super('xml ', size);
+    super(size);
   }
 }
 export class bxmlBox extends FullBox {
+  type = 'bxml' as const;
   constructor(size?: number) {
-    super('bxml', size);
+    super(size);
   }
 }
 export class iproBox extends FullBox {
   protections: Array<unknown>;
 
+  type = 'ipro' as const;
   constructor(size?: number) {
-    super('ipro', size);
+    super(size);
   }
 }
 
@@ -131,8 +141,9 @@ export class moovBox extends ContainerBox {
   psshs: Array<psshBox> = [];
   subBoxNames = ['trak', 'pssh'] as const;
 
+  type = 'moov' as const;
   constructor(size?: number) {
-    super('moov', size);
+    super(size);
   }
 }
 export class trakBox extends ContainerBox {
@@ -151,15 +162,17 @@ export class trakBox extends ContainerBox {
   first_traf_merged: boolean;
   has_fragment_subsamples: boolean;
 
+  type = 'trak' as const;
   constructor(size?: number) {
-    super('trak', size);
+    super(size);
   }
 }
 export class edtsBox extends ContainerBox {
   elst: elstBox;
 
+  type = 'edts' as const;
   constructor(size?: number) {
-    super('edts', size);
+    super(size);
   }
 }
 export class mdiaBox extends ContainerBox {
@@ -168,20 +181,23 @@ export class mdiaBox extends ContainerBox {
   mdhd: mdhdBox;
   minf: minfBox;
 
+  type = 'mdia' as const;
   constructor(size?: number) {
-    super('mdia', size);
+    super(size);
   }
 }
 export class minfBox extends ContainerBox {
   stbl: stblBox;
 
+  type = 'minf' as const;
   constructor(size?: number) {
-    super('minf', size);
+    super(size);
   }
 }
 export class dinfBox extends ContainerBox {
+  type = 'dinf' as const;
   constructor(size?: number) {
-    super('dinf', size);
+    super(size);
   }
 }
 export class stblBox extends ContainerBox {
@@ -203,8 +219,9 @@ export class stblBox extends ContainerBox {
   sbgps: Array<sbgpBox> = [];
   subBoxNames = ['sgpd', 'sbgp'];
 
+  type = 'stbl' as const;
   constructor(size?: number) {
-    super('stbl', size);
+    super(size);
   }
 }
 export class mvexBox extends ContainerBox {
@@ -213,16 +230,18 @@ export class mvexBox extends ContainerBox {
   trexs: Array<trexBox> = [];
   subBoxNames = ['trex'];
 
+  type = 'mvex' as const;
   constructor(size?: number) {
-    super('mvex', size);
+    super(size);
   }
 }
 export class moofBox extends ContainerBox {
   trafs: Array<trafBox> = [];
   subBoxNames = ['traf'];
 
+  type = 'moof' as const;
   constructor(size?: number) {
-    super('moof', size);
+    super(size);
   }
 }
 export class trafBox extends ContainerBox {
@@ -238,13 +257,15 @@ export class trafBox extends ContainerBox {
   sbgps: Array<sbgpBox> = [];
   subBoxNames = ['trun', 'sgpd', 'sbgp'];
 
+  type = 'traf' as const;
   constructor(size?: number) {
-    super('traf', size);
+    super(size);
   }
 }
 export class vttcBox extends ContainerBox {
+  type = 'vttc' as const;
   constructor(size?: number) {
-    super('vttc', size);
+    super(size);
   }
 }
 
@@ -252,62 +273,73 @@ export class mfraBox extends ContainerBox {
   tfras: Array<tfraBox> = [];
   subBoxNames = ['tfra'] as const;
 
+  type = 'mfra' as const;
   constructor(size?: number) {
-    super('mfra', size);
+    super(size);
   }
 }
 export class mecoBox extends ContainerBox {
+  type = 'meco' as const;
   constructor(size?: number) {
-    super('meco', size);
+    super(size);
   }
 }
 
 export class hntiBox extends ContainerBox {
+  type = 'hnti' as const;
   constructor(size?: number) {
-    super('hnti', size);
+    super(size);
   }
 }
 export class hinfBox extends ContainerBox {
+  type = 'hinf' as const;
   constructor(size?: number) {
-    super('hinf', size);
+    super(size);
   }
 }
 export class strkBox extends ContainerBox {
+  type = 'strk' as const;
   constructor(size?: number) {
-    super('strk', size);
+    super(size);
   }
 }
 export class strdBox extends ContainerBox {
+  type = 'strd' as const;
   constructor(size?: number) {
-    super('strd', size);
+    super(size);
   }
 }
 export class sinfBox extends ContainerBox {
+  type = 'sinf' as const;
   constructor(size?: number) {
-    super('sinf', size);
+    super(size);
   }
 }
 export class rinfBox extends ContainerBox {
+  type = 'rinf' as const;
   constructor(size?: number) {
-    super('rinf', size);
+    super(size);
   }
 }
 export class schiBox extends ContainerBox {
+  type = 'schi' as const;
   constructor(size?: number) {
-    super('schi', size);
+    super(size);
   }
 }
 export class trgrBox extends ContainerBox {
+  type = 'trgr' as const;
   constructor(size?: number) {
-    super('trgr', size);
+    super(size);
   }
 }
 export class udtaBox extends ContainerBox {
   kinds: Array<kindBox> = [];
   subBoxNames = ['kind'] as const;
 
+  type = 'udta' as const;
   constructor(size?: number) {
-    super('udta', size);
+    super(size);
   }
 }
 export class iprpBox extends ContainerBox {
@@ -316,30 +348,35 @@ export class iprpBox extends ContainerBox {
   ipmas: Array<ipmaBox> = [];
   subBoxNames = ['ipma'] as const;
 
+  type = 'iprp' as const;
   constructor(size?: number) {
-    super('iprp', size);
+    super(size);
   }
 }
 export class ipcoBox extends ContainerBox {
+  type = 'ipco' as const;
   constructor(size?: number) {
-    super('ipco', size);
+    super(size);
   }
 }
 export class grplBox extends ContainerBox {
+  type = 'grpl' as const;
   constructor(size?: number) {
-    super('grpl', size);
+    super(size);
   }
 }
 export class j2kHBox extends ContainerBox {
+  type = 'j2kH' as const;
   constructor(size?: number) {
-    super('j2kH', size);
+    super(size);
   }
 }
 export class etypBox extends ContainerBox {
   tycos: Array<tycoBox> = [];
   subBoxNames = ['tyco'] as const;
 
+  type = 'etyp' as const;
   constructor(size?: number) {
-    super('etyp', size);
+    super(size);
   }
 }

@@ -18,8 +18,9 @@ export class metaBox extends FullBox {
   iref: irefBox;
   dinf: dinfBox;
 
+  type = 'meta' as const;
   constructor(size?: number) {
-    super('meta', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class stssBox extends FullBox {
   sample_numbers: Array<number>;
 
+  type = 'stss' as const;
   constructor(size?: number) {
-    super('stss', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

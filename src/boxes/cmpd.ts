@@ -6,8 +6,9 @@ export class cmpdBox extends Box {
   component_types: Array<number>;
   component_type_urls: Array<string>;
 
+  type = 'cmpd' as const;
   constructor(size?: number) {
-    super('cmpd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

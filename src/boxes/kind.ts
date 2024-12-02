@@ -5,8 +5,9 @@ export class kindBox extends FullBox {
   schemeURI: string;
   value: string;
 
+  type = 'kind' as const;
   constructor(size?: number) {
-    super('kind', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

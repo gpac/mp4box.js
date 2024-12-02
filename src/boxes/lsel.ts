@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class lselBox extends Box {
   layer_id: number;
 
+  type = 'lsel' as const;
   constructor(size?: number) {
-    super('lsel', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

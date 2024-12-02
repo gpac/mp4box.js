@@ -7,8 +7,9 @@ export class cttsBox extends FullBox {
   sample_counts: Array<number>;
   sample_offsets: Array<number>;
 
+  type = 'ctts' as const;
   constructor(size?: number) {
-    super('ctts', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

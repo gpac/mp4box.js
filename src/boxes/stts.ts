@@ -7,8 +7,9 @@ export class sttsBox extends FullBox {
   sample_counts: Array<number> = [];
   sample_deltas: Array<number> = [];
 
+  type = 'stts' as const;
   constructor(size?: number) {
-    super('stts', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

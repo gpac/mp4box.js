@@ -7,8 +7,9 @@ export class cdefBox extends Box {
   channel_types: Array<number>;
   channel_associations: Array<number>;
 
+  type = 'cdef' as const;
   constructor(size?: number) {
-    super('cdef', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

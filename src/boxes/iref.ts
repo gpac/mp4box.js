@@ -13,8 +13,9 @@ export class irefBox extends Box {
   references: { references: Array<unknown>; from_item_ID: number; type: unknown }[];
   version: number;
 
+  type = 'iref' as const;
   constructor(size?: number) {
-    super('iref', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream | MP4BoxStream) {

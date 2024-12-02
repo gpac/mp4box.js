@@ -11,8 +11,9 @@ interface Entry {
 export class elstBox extends FullBox {
   entries: Entry[];
 
+  type = 'elst' as const;
   constructor(size?: number) {
-    super('elst', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -5,8 +5,9 @@ export class pdinBox extends Box {
   rate: Array<number>;
   initial_delay: Array<number>;
 
+  type = 'pdin' as const;
   constructor(size?: number) {
-    super('pdin', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

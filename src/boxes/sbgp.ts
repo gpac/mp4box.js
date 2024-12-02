@@ -11,8 +11,9 @@ export class sbgpBox extends FullBox {
   grouping_type_parameter: number;
   entries: Array<Entry>;
 
+  type = 'sbgp' as const;
   constructor(size?: number) {
-    super('sbgp', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

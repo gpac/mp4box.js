@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class cprtBox extends FullBox {
   notice: string;
 
+  type = 'cprt' as const;
   constructor(size?: number) {
-    super('cprt', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

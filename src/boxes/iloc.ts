@@ -20,8 +20,9 @@ export class ilocBox extends FullBox {
     extents: Extent[];
   }>;
 
+  type = 'iloc' as const;
   constructor(size?: number) {
-    super('iloc', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

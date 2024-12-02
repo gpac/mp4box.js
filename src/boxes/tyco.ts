@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class tycoBox extends Box {
   compatible_brands: Array<string>;
 
+  type = 'tyco' as const;
   constructor(size?: number) {
-    super('tyco', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

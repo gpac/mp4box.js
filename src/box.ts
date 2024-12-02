@@ -9,10 +9,12 @@ import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
-import type { Output } from '@types';
+import type { BoxKind, Output } from '@types';
 
 class BoxBase {
-  boxes: Array<BoxBase> = [];
+  type?: string;
+  uuid?: string;
+  boxes: Array<Box> = [];
   data: Array<number> | Uint8Array;
   hdr_size?: number;
   language: number;
@@ -21,9 +23,9 @@ class BoxBase {
   start?: number;
   track_ids?: Uint32Array;
 
-  constructor(public type: string, public size = 0, public uuid?: string) {}
+  constructor(public size = 0) {}
 
-  addBox<T extends Box>(box: T): T {
+  addBox<T extends BoxKind>(box: T): T {
     this.boxes.push(box);
     if (this[box.type + 's']) {
       this[box.type + 's'].push(box);
@@ -155,7 +157,12 @@ class BoxBase {
     this.write(stream);
   }
 }
-class FullBoxBase extends BoxBase {
+
+export class Box extends BoxBase {
+  has_unparsed_data?: boolean;
+}
+
+export class FullBox extends BoxBase {
   flags = 0;
   version = 0;
 
@@ -200,7 +207,7 @@ class FullBoxBase extends BoxBase {
   }
 }
 
-export class ContainerBoxBase extends BoxBase {
+export class ContainerBox extends BoxBase {
   subBoxNames?: readonly string[];
 
   /** @bundle box-write.js */
@@ -234,11 +241,10 @@ export class ContainerBoxBase extends BoxBase {
   /** @bundle box-parse.js */
   parse(stream: MultiBufferStream) {
     let ret: ReturnType<typeof parseOneBox>;
-    let box: Box;
     while (stream.getPosition() < this.start + this.size) {
       ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
-        box = ret.box;
+        const box = ret.box as BoxKind;
         /* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
         this.boxes.push(box);
         if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
@@ -261,11 +267,11 @@ export class ContainerBoxBase extends BoxBase {
   }
 }
 
-class SampleEntryBase extends ContainerBoxBase {
+class SampleEntryBase extends ContainerBox {
   data_reference_index?: number;
 
-  constructor(type: string, size?: number, public hdr_size?: number, public start?: number) {
-    super(type, size);
+  constructor(size?: number, public hdr_size?: number, public start?: number) {
+    super(size);
   }
 
   /** @bundle box-codecs.js */
@@ -389,35 +395,9 @@ class SampleEntryBase extends ContainerBoxBase {
   }
 }
 
-export class Box extends BoxBase {
-  has_unparsed_data?: boolean;
-
-  constructor(type: string, size?: number);
-  constructor(type: 'uuid', size: number | undefined, uuid: string);
-  constructor(type: string, size?: number, uuid?: string) {
-    super(type, size, uuid);
-  }
-}
-
-export class FullBox extends FullBoxBase {
-  constructor(type: string, size?: number);
-  constructor(type: 'uuid', size: number | undefined, uuid: string);
-  constructor(type: string, size?: number, uuid?: string) {
-    super(type, size, uuid);
-  }
-}
-
-export class ContainerBox extends ContainerBoxBase {
-  constructor(type: string, size?: number) {
-    super(type, size);
-  }
-}
-
-type SampleEntryType = 'Visual' | 'Audio' | 'Hint' | 'Metadata' | 'Subtitle' | 'System' | 'Text';
-
 export class SampleEntry extends SampleEntryBase {
-  constructor(type: string, size: number | undefined, sampleEntryType: SampleEntryType) {
-    super(type, size);
+  constructor(size: number | undefined) {
+    super(size);
   }
 }
 
@@ -439,11 +419,11 @@ export class SampleGroupEntry {
   }
 }
 
-export class TrackGroupTypeBox extends FullBoxBase {
+export class TrackGroupTypeBox extends FullBox {
   track_group_id: number;
 
-  constructor(type: string, size: number) {
-    super(type, size);
+  constructor(public type: string, size: number) {
+    super(size);
   }
 
   /** @bundle parsing/TrackGroup.js */
@@ -458,8 +438,8 @@ export class SingleItemTypeReferenceBox extends BoxBase {
   from_item_ID: number;
   references: Array<{ to_item_ID: number }>;
 
-  constructor(type: string, size: number, public hdr_size: number, public start: number) {
-    super(type, size);
+  constructor(public type: string, size: number, public hdr_size: number, public start: number) {
+    super(size);
   }
   parse(stream: MultiBufferStream): void {
     this.from_item_ID = stream.readUint16();
@@ -478,8 +458,8 @@ export class SingleItemTypeReferenceBoxLarge extends BoxBase {
   from_item_ID: number;
   references: Array<{ to_item_ID: number }>;
 
-  constructor(type: string, size: number, public hdr_size: number, public start: number) {
-    super(type, size);
+  constructor(public type: string, size: number, public hdr_size: number, public start: number) {
+    super(size);
   }
   parse(stream: MultiBufferStream): void {
     this.from_item_ID = stream.readUint32();
@@ -495,8 +475,8 @@ export class SingleItemTypeReferenceBoxLarge extends BoxBase {
 
 /** @bundle parsing/TrakReference.js */
 export class TrackReferenceTypeBox extends BoxBase {
-  constructor(type: string, size: number, public hdr_size: number, public start: number) {
-    super(type, size);
+  constructor(public type: string, size: number, public hdr_size: number, public start: number) {
+    super(size);
   }
 
   parse(stream: DataStream) {
@@ -508,12 +488,6 @@ export class TrackReferenceTypeBox extends BoxBase {
     this.size = this.track_ids.length * 4;
     this.writeHeader(stream);
     stream.writeUint32Array(this.track_ids);
-  }
-}
-
-export class UUIDBox extends FullBoxBase {
-  constructor(uuid: string, size?: number) {
-    super('uuid', size, uuid);
   }
 }
 
@@ -594,8 +568,9 @@ export function parseOneBox(
       /* box extends till the end of file */
       if (type !== 'mdat') {
         Log.error('BoxParser', "Unlimited box size not supported for type: '" + type + "'");
-        box = new Box(type, size);
-        return { code: OK, box: box, size: box.size };
+        box = new Box(size);
+        box.type = type;
+        return { code: OK, box, size: box.size };
       }
     }
   }
@@ -649,14 +624,16 @@ export function parseOneBox(
     } else {
       if (type !== 'uuid') {
         Log.warn('BoxParser', "Unknown box type: '" + type + "'");
-        box = new Box(type, size);
+        box = new Box(size);
+        box.type = type;
         box.has_unparsed_data = true;
       } else {
         if (uuid in BoxRegistry) {
           box = new BoxRegistry[uuid](size);
         } else {
           Log.warn('BoxParser', "Unknown uuid type: '" + uuid + "'");
-          box = new Box(type, size);
+          box = new Box(size);
+          box.type = type;
           box.uuid = uuid;
           box.has_unparsed_data = true;
         }

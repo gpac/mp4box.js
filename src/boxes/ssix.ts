@@ -12,8 +12,9 @@ interface SubSegment {
 export class ssixBox extends FullBox {
   subsegments: SubSegment[];
 
+  type = 'ssix' as const;
   constructor(size?: number) {
-    super('ssix', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

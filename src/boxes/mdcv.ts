@@ -14,8 +14,9 @@ export class mdcvBox extends Box {
   max_display_mastering_luminance: number;
   min_display_mastering_luminance: number;
 
+  type = 'mdcv' as const;
   constructor(size?: number) {
-    super('mdcv', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

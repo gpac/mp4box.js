@@ -5,8 +5,9 @@ export class stsgBox extends FullBox {
   grouping_type: number;
   group_description_index: Array<number>;
 
+  type = 'stsg' as const;
   constructor(size?: number) {
-    super('stsg', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

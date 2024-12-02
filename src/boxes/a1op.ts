@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class a1opBox extends Box {
   op_index: number;
 
+  type = 'a1op' as const;
   constructor(size?: number) {
-    super('a1op', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

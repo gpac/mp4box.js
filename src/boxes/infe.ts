@@ -12,8 +12,9 @@ export class infeBox extends FullBox {
   item_type: string;
   item_uri_type: string;
 
+  type = 'infe' as const;
   constructor(size?: number) {
-    super('infe', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

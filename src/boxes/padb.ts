@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class padbBox extends FullBox {
   padbits: number | Array<number>;
 
+  type = 'padb' as const;
   constructor(size?: number) {
-    super('padb', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

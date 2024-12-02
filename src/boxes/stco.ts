@@ -5,8 +5,9 @@ import type { Sample } from '@types';
 export class stcoBox extends FullBox {
   chunk_offsets: Array<number>;
 
+  type = 'stco' as const;
   constructor(size?: number) {
-    super('stco', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class co64Box extends FullBox {
   chunk_offsets: Array<number>;
 
+  type = 'co64' as const;
   constructor(size?: number) {
-    super('co64', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

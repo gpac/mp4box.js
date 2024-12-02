@@ -10,8 +10,9 @@ export class tencBox extends FullBox {
   default_constant_IV_size: number;
   default_constant_IV: Uint8Array;
 
+  type = 'tenc' as const;
   constructor(size?: number) {
-    super('tenc', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

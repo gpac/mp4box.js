@@ -6,8 +6,9 @@ export class ccstBox extends FullBox {
   intra_pred_used: boolean;
   max_ref_per_pic: number;
 
+  type = 'ccst' as const;
   constructor(size?: number) {
-    super('ccst', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

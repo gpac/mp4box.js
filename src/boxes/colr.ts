@@ -9,8 +9,9 @@ export class colrBox extends Box {
   full_range_flag: number;
   ICC_profile: Uint8Array;
 
+  type = 'colr' as const;
   constructor(size?: number) {
-    super('colr', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

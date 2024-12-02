@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class sdpBox extends Box {
   sdptext?: string;
 
+  type = 'sdp' as const;
   constructor(size?: number) {
-    super('sdp', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

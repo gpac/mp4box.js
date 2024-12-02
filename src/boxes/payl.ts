@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class paylBox extends Box {
   text: string;
 
+  type = 'payl' as const;
   constructor(size?: number) {
-    super('payl', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

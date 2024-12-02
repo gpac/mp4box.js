@@ -5,8 +5,9 @@ export class pixiBox extends FullBox {
   num_channels: number;
   bits_per_channels: Array<number>;
 
+  type = 'pixi' as const;
   constructor(size?: number) {
-    super('pixi', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

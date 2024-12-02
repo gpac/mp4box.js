@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class dimmBox extends Box {
   bytessent: number;
 
+  type = 'dimm' as const;
   constructor(size?: number) {
-    super('dimm', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

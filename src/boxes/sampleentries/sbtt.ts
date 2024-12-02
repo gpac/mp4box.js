@@ -5,8 +5,9 @@ export class sbttSampleEntry extends SubtitleSampleEntry {
   content_encoding: string;
   mime_format: string;
 
+  type = 'sbtt' as const;
   constructor(size?: number) {
-    super('sbtt', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream): void {

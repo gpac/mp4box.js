@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class txtcBox extends FullBox {
   config: string;
 
+  type = 'txtc' as const;
   constructor(size?: number) {
-    super('txtc', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -13,8 +13,9 @@ export class tfraBox extends FullBox {
   trun_number: number;
   sample_number: number;
 
+  type = 'tfra' as const;
   constructor(size?: number) {
-    super('tfra', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

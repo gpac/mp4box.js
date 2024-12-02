@@ -9,8 +9,9 @@ export class cminBox extends Box {
   focal_length_y: number;
   skew_factor: number;
 
+  type = 'cmin' as const;
   constructor(size?: number) {
-    super('cmin', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

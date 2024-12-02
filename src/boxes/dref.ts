@@ -6,8 +6,9 @@ import { Log } from '#/log';
 export class drefBox extends FullBox {
   entries: Array<Box>;
 
+  type = 'dref' as const;
   constructor(size?: number) {
-    super('dref', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

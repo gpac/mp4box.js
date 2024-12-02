@@ -6,8 +6,9 @@ export class btrtBox extends Box {
   maxBitrate: number;
   avgBitrate: number;
 
+  type = 'btrt' as const;
   constructor(size?: number) {
-    super('btrt', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

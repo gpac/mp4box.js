@@ -19,8 +19,9 @@ export class sbpmBox extends FullBox {
   bad_columns: Array<number>;
   bad_pixels: Pixel[];
 
+  type = 'sbpm' as const;
   constructor(size?: number) {
-    super('sbpm', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -6,8 +6,9 @@ export class stszBox extends FullBox {
   sample_size: number;
   sample_count: number;
 
+  type = 'stsz' as const;
   constructor(size?: number) {
-    super('stsz', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

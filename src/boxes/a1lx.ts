@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class a1lxBox extends Box {
   layer_size: Array<number>;
 
+  type = 'a1lx' as const;
   constructor(size?: number) {
-    super('a1lx', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

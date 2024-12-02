@@ -1,5 +1,4 @@
 import { Box } from '#/box';
-import type { KindOf, MP4Box } from '@types';
 
 export const DIFF_BOXES_PROP_NAMES = [
   'boxes',
@@ -35,10 +34,7 @@ export const DIFF_PRIMITIVE_ARRAY_PROP_NAMES = [
 ] as const;
 
 /** @bundle box-diff.js */
-export function boxEqualFields(
-  box_a: KindOf<MP4Box.BoxRegistry>,
-  box_b: KindOf<MP4Box.BoxRegistry>,
-) {
+export function boxEqualFields(box_a: Box, box_b: Box) {
   if (box_a && !box_b) return false;
   let prop: string | Array<unknown>;
   for (prop in box_a) {
@@ -80,7 +76,7 @@ export function boxEqualFields(
   return true;
 }
 
-export function boxEqual(box_a: KindOf<MP4Box.BoxRegistry>, box_b: KindOf<MP4Box.BoxRegistry>) {
+export function boxEqual(box_a: Box, box_b: Box) {
   if (!boxEqualFields(box_a, box_b)) {
     return false;
   }

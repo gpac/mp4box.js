@@ -16,8 +16,9 @@ export class tfhdBox extends FullBox {
   default_sample_size: number;
   default_sample_flags: number;
 
+  type = 'tfhd' as const;
   constructor(size?: number) {
-    super('tfhd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

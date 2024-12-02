@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class mskCBox extends FullBox {
   bits_per_pixel: number;
 
+  type = 'mskC' as const;
   constructor(size?: number) {
-    super('mskC', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

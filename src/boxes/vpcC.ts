@@ -15,8 +15,9 @@ export class vpcCBox extends FullBox {
   colorSpace: number;
   transferFunction: number;
 
+  type = 'vpcC' as const;
   constructor(size?: number) {
-    super('vpcC', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -11,8 +11,9 @@ export class ipmaBox extends Box {
   version: number;
   flags: number;
 
+  type = 'ipma' as const;
   constructor(size?: number) {
-    super('ipma', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

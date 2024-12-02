@@ -5,8 +5,9 @@ export class prdiBox extends FullBox {
   step_count: number;
   item_count: Array<number>;
 
+  type = 'prdi' as const;
   constructor(size?: number) {
-    super('prdi', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

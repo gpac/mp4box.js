@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class vttCBox extends Box {
   text: string;
 
+  type = 'vttC' as const;
   constructor(size?: number) {
-    super('vttC', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -5,8 +5,9 @@ export class profBox extends FullBox {
   width: number;
   height: number;
 
+  type = 'prof' as const;
   constructor(size?: number) {
-    super('prof', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

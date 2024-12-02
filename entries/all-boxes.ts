@@ -107,6 +107,7 @@ export * from '#/boxes/stz2';
 export * from '#/boxes/subs';
 export * from '#/boxes/tenc';
 export * from '#/boxes/tfdt';
+export * from '#/boxes/tfhd';
 export * from '#/boxes/tfra';
 export * from '#/boxes/tkhd';
 export * from '#/boxes/tmax';

@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class mfroBox extends FullBox {
   _size: number;
 
+  type = 'mfro' as const;
   constructor(size?: number) {
-    super('mfro', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -7,8 +7,9 @@ export class sdtpBox extends FullBox {
   sample_is_depended_on: Array<number>;
   sample_has_redundancy: Array<number>;
 
+  type = 'sdtp' as const;
   constructor(size?: number) {
-    super('sdtp', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

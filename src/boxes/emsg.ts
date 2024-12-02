@@ -11,8 +11,9 @@ export class emsgBox extends FullBox {
   presentation_time_delta: number;
   message_data: Uint8Array;
 
+  type = 'emsg' as const;
   constructor(size?: number) {
-    super('emsg', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

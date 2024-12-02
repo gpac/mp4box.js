@@ -7,8 +7,9 @@ export class stscBox extends FullBox {
   samples_per_chunk: Array<number>;
   sample_description_index: Array<number>;
 
+  type = 'stsc' as const;
   constructor(size?: number) {
-    super('stsc', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

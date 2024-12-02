@@ -12,8 +12,9 @@ export class dOpsBox extends Box {
   CoupledCount: number;
   ChannelMapping: Array<number>;
 
+  type = 'dOps' as const;
   constructor(size?: number) {
-    super('dOps', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class npckBox extends Box {
   packetssent: number;
 
+  type = 'npck' as const;
   constructor(size?: number) {
-    super('npck', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

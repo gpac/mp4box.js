@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class smhdBox extends FullBox {
   balance: number;
 
+  type = 'smhd' as const;
   constructor(size?: number) {
-    super('smhd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

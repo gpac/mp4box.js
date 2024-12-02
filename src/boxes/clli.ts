@@ -5,8 +5,9 @@ export class clliBox extends Box {
   max_content_light_level: number;
   max_pic_average_light_level: number;
 
+  type = 'clli' as const;
   constructor(size?: number) {
-    super('clli', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

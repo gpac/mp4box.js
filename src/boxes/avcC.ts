@@ -15,8 +15,9 @@ export class avcCBox extends Box {
   PPS: Array<{ length: number; nalu: Uint8Array }>;
   ext: Uint8Array;
 
+  type = 'avcC' as const;
   constructor(size?: number) {
-    super('avcC', size);
+    super(size);
   }
 
   parse(stream: DataStream | MP4BoxStream) {

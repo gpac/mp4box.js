@@ -1,19 +1,27 @@
-import type { Box } from '#/box';
+import type { Box, SampleEntry } from '#/box';
 import type { trakBox } from '#/boxes/defaults';
 import type { SubSample } from '#/boxes/subs';
+import { UUID_BOXES } from '#/boxes/uuid';
 import type { DataStream } from '#/DataStream';
 import * as DESCRIPTORS from '#/descriptor';
 import type { MP4BoxStream } from '#/stream';
 import * as BOXES from './all-boxes';
 
+type AllBoxes = Partial<typeof BOXES> & Partial<typeof UUID_BOXES>;
 export namespace MP4Box {
-  export interface BoxRegistry extends Partial<typeof BOXES> {}
+  export interface BoxRegistry extends AllBoxes {}
   export interface DescriptorRegistry extends Partial<typeof DESCRIPTORS> {}
 }
 
 export type ValueOf<T> = T[keyof T];
-export type InstanceUnion<T> = T extends new (...args: any[]) => infer R ? R : never;
-export type KindOf<T> = InstanceUnion<ValueOf<T>>;
+export type InstanceOf<T> = T extends new (...args: any[]) => infer R ? R : never;
+export type KindOf<T> = InstanceOf<ValueOf<T>>;
+export type Extends<TObject, TExtends> = ValueOf<{
+  [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
+}>;
+
+export type BoxKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof Box>>;
+export type SampleEntryKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof SampleEntry>>;
 
 export type FilterInstances<T, X> = T extends new (...args: any[]) => infer R
   ? R extends X

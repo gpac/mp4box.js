@@ -5,8 +5,9 @@ export class paspBox extends Box {
   hSpacing: number;
   vSpacing: number;
 
+  type = 'pasp' as const;
   constructor(size?: number) {
-    super('pasp', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

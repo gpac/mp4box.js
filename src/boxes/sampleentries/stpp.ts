@@ -6,8 +6,9 @@ export class stppSampleEntry extends SubtitleSampleEntry {
   schema_location: string;
   auxiliary_mime_types: string;
 
+  type = 'stpp' as const;
   constructor(size?: number) {
-    super('stpp', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

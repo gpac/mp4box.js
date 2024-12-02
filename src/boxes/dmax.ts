@@ -4,8 +4,9 @@ import type { MultiBufferStream } from '#/buffer';
 export class dmax extends Box {
   time: number;
 
+  type = 'dmax' as const;
   constructor(size?: number) {
-    super('dmax', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

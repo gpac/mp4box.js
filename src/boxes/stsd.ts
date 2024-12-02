@@ -7,8 +7,9 @@ import { BoxRegistry } from '#/registry';
 export class stsdBox extends FullBox {
   entries: Array<SampleEntry>;
 
+  type = 'stsd' as const;
   constructor(size?: number) {
-    super('stsd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

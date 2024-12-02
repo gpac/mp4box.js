@@ -6,8 +6,9 @@ export class ftypBox extends Box {
   minor_version: number;
   compatible_brands: Array<string>;
 
+  type = 'ftyp' as const;
   constructor(size?: number) {
-    super('ftyp', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -12,8 +12,9 @@ export class mvhdBox extends FullBox {
   next_track_id: number;
   matrix: Matrix;
 
+  type = 'mvhd' as const;
   constructor(size?: number) {
-    super('mvhd', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

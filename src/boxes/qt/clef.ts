@@ -5,8 +5,9 @@ export class clefBox extends FullBox {
   width: number;
   height: number;
 
+  type = 'clef' as const;
   constructor(size?: number) {
-    super('clef', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

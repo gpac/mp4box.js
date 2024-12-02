@@ -9,7 +9,8 @@ export class taptBox extends ContainerBox {
   enof: Array<enofBox> = [];
   subBoxNames = ['clef', 'prof', 'enof'] as const;
 
+  type = 'tapt' as const;
   constructor(size?: number) {
-    super('tapt', size);
+    super(size);
   }
 }

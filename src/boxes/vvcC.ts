@@ -26,8 +26,9 @@ export class vvcCBox extends FullBox {
   avg_frame_rate: number;
   nalu_arrays: Array<NaluArray>;
 
+  type = 'vvcC' as const;
   constructor(size?: number) {
-    super('vvcC', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

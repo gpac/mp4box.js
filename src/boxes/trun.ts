@@ -19,8 +19,9 @@ export class trunBox extends FullBox {
   sample_composition_time_offset: Array<number>;
   data_offset_position: number;
 
+  type = 'trun' as const;
   constructor(size?: number) {
-    super('trun', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {

@@ -5,8 +5,9 @@ export class mettSampleEntry extends MetadataSampleEntry {
   content_encoding: string;
   mime_format: string;
 
+  type = 'mett' as const;
   constructor(size?: number) {
-    super('mett', size);
+    super(size);
   }
 
   parse(stream: MultiBufferStream) {
