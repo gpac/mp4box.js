@@ -4,7 +4,7 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class trefBox extends ContainerBox {
-  boxes: Array<TrackReferenceTypeBox>;
+  declare boxes: Array<TrackReferenceTypeBox>;
   type = 'tref' as const;
 
   parse(stream: MultiBufferStream) {

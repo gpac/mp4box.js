@@ -4,7 +4,6 @@ import type { SubSample } from '#/boxes/subs';
 import type { UUID_BOXES } from '#/boxes/uuid';
 import type { DataStream } from '#/DataStream';
 import type * as DESCRIPTORS from '#/descriptor';
-import type { MP4BoxStream } from '#/stream';
 import type { SampleEntry } from './all';
 import type * as BOXES from './all-boxes';
 
@@ -23,14 +22,6 @@ export type Extends<TObject, TExtends> = ValueOf<{
 
 export type BoxKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof Box>>;
 export type SampleEntryKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof SampleEntry>>;
-
-export type FilterInstances<T, X> = T extends new (...args: any[]) => infer R
-  ? R extends X
-    ? R
-    : never
-  : never;
-
-export type ValidStream = DataStream | MP4BoxStream;
 
 export interface FragmentedTrack {
   id: number;
