@@ -6,9 +6,6 @@ export class psshBox extends FullBox {
   kid: Array<string>;
 
   type = 'pssh' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

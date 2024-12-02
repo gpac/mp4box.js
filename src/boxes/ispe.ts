@@ -6,9 +6,6 @@ export class ispeBox extends Box {
   image_height: number;
 
   type = 'ispe' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.image_width = stream.readUint32();

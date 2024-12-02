@@ -9,9 +9,6 @@ export class stviBox extends FullBox {
   stereo_indication_type: string;
 
   type = 'stvi' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

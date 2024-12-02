@@ -6,9 +6,6 @@ export class rtpBox extends Box {
   sdptext: string;
 
   type = 'rtp' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.descriptionformat = stream.readString(4);

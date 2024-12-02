@@ -8,9 +8,6 @@ export class saizBox extends FullBox {
   sample_info_size: Array<number>;
 
   type = 'saiz' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

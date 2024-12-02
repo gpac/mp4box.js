@@ -7,9 +7,6 @@ export class ftypBox extends Box {
   compatible_brands: Array<string>;
 
   type = 'ftyp' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     let toparse = this.size - this.hdr_size;

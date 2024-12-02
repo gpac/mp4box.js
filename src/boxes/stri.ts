@@ -8,9 +8,6 @@ export class striBox extends FullBox {
   attribute_list: Array<number>;
 
   type = 'stri' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

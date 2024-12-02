@@ -5,9 +5,6 @@ export class pitmBox extends FullBox {
   item_id: number;
 
   type = 'pitm' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -6,9 +6,6 @@ export class auxCBox extends FullBox {
   aux_subtype: Uint8Array;
 
   type = 'auxC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

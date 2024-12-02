@@ -10,9 +10,6 @@ export class dac3Box extends Box {
   bit_rate_code: number;
 
   type = 'dac3' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     let tmp_byte1 = stream.readUint8();

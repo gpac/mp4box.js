@@ -6,9 +6,6 @@ export class stcoBox extends FullBox {
   chunk_offsets: Array<number>;
 
   type = 'stco' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

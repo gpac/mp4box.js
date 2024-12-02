@@ -6,9 +6,6 @@ export class pdinBox extends Box {
   initial_delay: Array<number>;
 
   type = 'pdin' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     const count = (this.size - this.hdr_size) / 8;

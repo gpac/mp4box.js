@@ -7,9 +7,6 @@ export class btrtBox extends Box {
   avgBitrate: number;
 
   type = 'btrt' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.bufferSizeDB = stream.readUint32();

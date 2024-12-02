@@ -24,9 +24,6 @@ export class hvcCBox extends Box {
   nalu_arrays: Array<NaluArray>;
 
   type = 'hvcC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: DataStream | MP4BoxStream) {
     this.configurationVersion = stream.readUint8();

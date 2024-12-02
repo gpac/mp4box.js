@@ -16,9 +16,6 @@ export class avcCBox extends Box {
   ext: Uint8Array;
 
   type = 'avcC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: DataStream | MP4BoxStream) {
     this.configurationVersion = stream.readUint8();

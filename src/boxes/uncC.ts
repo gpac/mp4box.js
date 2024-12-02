@@ -23,9 +23,6 @@ export class uncCBox extends FullBox {
   num_tile_rows_minus_one: number;
 
   type = 'uncC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -5,9 +5,6 @@ export class mfroBox extends FullBox {
   _size: number;
 
   type = 'mfro' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

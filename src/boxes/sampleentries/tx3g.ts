@@ -10,9 +10,6 @@ export class tx3gSampleEntry extends SubtitleSampleEntry {
   style_record: Uint8Array;
 
   type = 'tx3g' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

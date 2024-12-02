@@ -27,9 +27,6 @@ export class vvcCBox extends FullBox {
   nalu_arrays: Array<NaluArray>;
 
   type = 'vvcC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

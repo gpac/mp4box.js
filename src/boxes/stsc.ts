@@ -8,9 +8,6 @@ export class stscBox extends FullBox {
   sample_description_index: Array<number>;
 
   type = 'stsc' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

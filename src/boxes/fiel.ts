@@ -6,9 +6,6 @@ export class fielBox extends Box {
   fieldOrdering: number;
 
   type = 'fiel' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.fieldCount = stream.readUint8();

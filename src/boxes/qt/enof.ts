@@ -6,9 +6,6 @@ export class enofBox extends FullBox {
   height: number;
 
   type = 'enof' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

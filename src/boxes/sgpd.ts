@@ -32,9 +32,6 @@ export class sgpdBox extends FullBox {
   used: boolean;
 
   type = 'sgpd' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

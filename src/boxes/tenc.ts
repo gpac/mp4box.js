@@ -11,9 +11,6 @@ export class tencBox extends FullBox {
   default_constant_IV: Uint8Array;
 
   type = 'tenc' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

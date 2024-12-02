@@ -5,9 +5,6 @@ export class stssBox extends FullBox {
   sample_numbers: Array<number>;
 
   type = 'stss' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -9,9 +9,6 @@ export class trexBox extends FullBox {
   default_sample_flags: number;
 
   type = 'trex' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

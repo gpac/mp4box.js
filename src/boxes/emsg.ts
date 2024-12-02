@@ -12,9 +12,6 @@ export class emsgBox extends FullBox {
   message_data: Uint8Array;
 
   type = 'emsg' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

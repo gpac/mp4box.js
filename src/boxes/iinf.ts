@@ -11,9 +11,6 @@ export class iinfBox extends Box {
   item_infos: Array<infeBox>;
 
   type = 'iinf' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     if (this.version === 0) {

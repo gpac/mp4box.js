@@ -6,9 +6,6 @@ export class profBox extends FullBox {
   height: number;
 
   type = 'prof' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -6,9 +6,6 @@ export class imirBox extends Box {
   axis: number;
 
   type = 'imir' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     const tmp = stream.readUint8();

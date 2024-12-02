@@ -6,9 +6,6 @@ export class maxrBox extends Box {
   bytes: number;
 
   type = 'maxr' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.period = stream.readUint32();

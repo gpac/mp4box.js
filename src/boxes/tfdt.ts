@@ -5,9 +5,6 @@ export class tfdtBox extends FullBox {
   baseMediaDecodeTime: number;
 
   type = 'tfdt' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

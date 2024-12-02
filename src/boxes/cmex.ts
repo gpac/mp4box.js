@@ -13,9 +13,6 @@ export class cmexBox extends Box {
   id: number;
 
   type = 'cmex' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     if (this.flags & 0x1) {

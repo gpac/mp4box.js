@@ -12,9 +12,6 @@ export class clapBox extends Box {
   vertOffD: number;
 
   type = 'clap' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.cleanApertureWidthN = stream.readUint32();

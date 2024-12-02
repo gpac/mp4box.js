@@ -20,9 +20,6 @@ export class av1CBox extends Box {
   configOBUs: Uint8Array;
 
   type = 'av1C' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     let tmp = stream.readUint8();

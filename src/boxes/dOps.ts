@@ -13,9 +13,6 @@ export class dOpsBox extends Box {
   ChannelMapping: Array<number>;
 
   type = 'dOps' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.Version = stream.readUint8();

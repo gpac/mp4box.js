@@ -6,9 +6,6 @@ export class urnBox extends FullBox {
   location: string;
 
   type = 'urn' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

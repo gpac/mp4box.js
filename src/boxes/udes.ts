@@ -8,9 +8,6 @@ export class udesBox extends FullBox {
   tags: string;
 
   type = 'udes' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

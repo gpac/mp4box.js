@@ -6,9 +6,6 @@ export class kindBox extends FullBox {
   value: string;
 
   type = 'kind' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -12,9 +12,6 @@ export class sbgpBox extends FullBox {
   entries: Array<Entry>;
 
   type = 'sbgp' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -10,9 +10,6 @@ export class colrBox extends Box {
   ICC_profile: Uint8Array;
 
   type = 'colr' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.colour_type = stream.readString(4);

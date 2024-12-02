@@ -8,9 +8,6 @@ export class cttsBox extends FullBox {
   sample_offsets: Array<number>;
 
   type = 'ctts' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

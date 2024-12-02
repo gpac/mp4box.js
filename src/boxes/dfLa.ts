@@ -6,9 +6,6 @@ export class dfLaBox extends FullBox {
   numMetadataBlocks: string;
 
   type = 'dfLa' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

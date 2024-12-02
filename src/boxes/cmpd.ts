@@ -7,9 +7,6 @@ export class cmpdBox extends Box {
   component_type_urls: Array<string>;
 
   type = 'cmpd' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.component_count = stream.readUint32();

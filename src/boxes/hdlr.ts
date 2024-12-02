@@ -8,9 +8,6 @@ export class hdlrBox extends Box {
   flags: number;
 
   type = 'hdlr' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     if (this.version === 0) {

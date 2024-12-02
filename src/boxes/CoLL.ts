@@ -6,9 +6,6 @@ export class CoLLBox extends FullBox {
   maxFALL: number;
 
   type = 'CoLL' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

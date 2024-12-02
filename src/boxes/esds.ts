@@ -8,9 +8,6 @@ export class esdsBox extends FullBox {
   esd: ES_Descriptor;
 
   type = 'esds' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

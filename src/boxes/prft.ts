@@ -7,9 +7,6 @@ export class prftBox extends FullBox {
   media_time: number;
 
   type = 'prft' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

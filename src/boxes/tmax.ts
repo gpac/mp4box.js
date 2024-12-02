@@ -5,9 +5,6 @@ export class tmaxBox extends Box {
   time: number;
 
   type = 'tmax' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.time = stream.readUint32();

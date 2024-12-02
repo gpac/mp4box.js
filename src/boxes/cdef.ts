@@ -8,9 +8,6 @@ export class cdefBox extends Box {
   channel_associations: Array<number>;
 
   type = 'cdef' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.channel_count = stream.readUint16();

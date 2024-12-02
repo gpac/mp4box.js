@@ -42,39 +42,25 @@ class avcCSampleEntryBase extends VisualSampleEntry {
 // Sample entries inheriting from Audio and Video
 export class avc1SampleEntry extends avcCSampleEntryBase {
   type = 'avc1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class avc2SampleEntry extends avcCSampleEntryBase {
   type = 'avc2' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class avc3SampleEntry extends avcCSampleEntryBase {
   type = 'avc3' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class avc4SampleEntry extends avcCSampleEntryBase {
   type = 'avc4' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class av01SampleEntry extends VisualSampleEntry {
   av1C: av1CBox;
 
   type = 'av01' as const;
-  constructor(size?: number) {
-    super(size);
-  }
+
   /** @bundle box-codecs.js */
   getCodec(): string {
     // NOTE:    was before `const baseCodec = SampleEntry.prototype.getCodec.call(this);`
@@ -104,9 +90,6 @@ export class av01SampleEntry extends VisualSampleEntry {
 
 export class dav1SampleEntry extends VisualSampleEntry {
   type = 'dav1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
@@ -166,44 +149,26 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
 
 export class hvc1SampleEntry extends hvcCSampleEntryBase {
   type = 'hvc1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class hev1SampleEntry extends hvcCSampleEntryBase {
   type = 'hev1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class hvt1SampleEntry extends VisualSampleEntry {
   type = 'hvt1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class lhe1SampleEntry extends VisualSampleEntry {
   type = 'lhe1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class dvh1SampleEntry extends VisualSampleEntry {
   type = 'dvh1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class dvheSampleEntry extends VisualSampleEntry {
   type = 'dvhe' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 /** @babel box-codecs.js */
@@ -272,30 +237,18 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
 
 export class vvc1SampleEntry extends vvcCSampleEntryBase {
   type = 'vvc1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class vvi1SampleEntry extends vvcCSampleEntryBase {
   type = 'vvi1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class vvs1SampleEntry extends VisualSampleEntry {
   type = 'vvs1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class vvcNSampleEntry extends VisualSampleEntry {
   type = 'vvcN' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 class vpcCSampleEntryBase extends VisualSampleEntry {
@@ -316,60 +269,36 @@ class vpcCSampleEntryBase extends VisualSampleEntry {
 
 export class vp08SampleEntry extends vpcCSampleEntryBase {
   type = 'vp08' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class vp09SampleEntry extends vpcCSampleEntryBase {
   type = 'vp09' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class avs3SampleEntry extends VisualSampleEntry {
   type = 'avs3' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class j2kiSampleEntry extends VisualSampleEntry {
   type = 'j2ki' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class mjp2SampleEntry extends VisualSampleEntry {
   type = 'mjp2' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class mjpgSampleEntry extends VisualSampleEntry {
   type = 'mjpg' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class uncvSampleEntry extends VisualSampleEntry {
   type = 'uncv' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class mp4aSampleEntry extends AudioSampleEntry {
   esds: esdsBox;
 
   type = 'mp4a' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   getCodec() {
     const baseCodec = super.getCodec();
@@ -385,80 +314,47 @@ export class mp4aSampleEntry extends AudioSampleEntry {
 
 export class ac_3SampleEntry extends AudioSampleEntry {
   type = 'ac-3' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class ac_4SampleEntry extends AudioSampleEntry {
   type = 'ac-4' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class ec_3SampleEntry extends AudioSampleEntry {
   type = 'ec-3' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class OpusSampleEntry extends AudioSampleEntry {
   type = 'Opus' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class mha1SampleEntry extends AudioSampleEntry {
   type = 'mha1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class mha2SampleEntry extends AudioSampleEntry {
   type = 'mha2' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class mhm1SampleEntry extends AudioSampleEntry {
   type = 'mhm1' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class mhm2SampleEntry extends AudioSampleEntry {
   type = 'mhm2' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class fLaCSampleEntry extends AudioSampleEntry {
   type = 'fLaC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 // Encrypted sample entries
 export class encvSampleEntry extends VisualSampleEntry {
   type = 'encv' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class encaSampleEntry extends AudioSampleEntry {
   type = 'enca' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class encuSampleEntry extends SubtitleSampleEntry {
@@ -466,9 +362,6 @@ export class encuSampleEntry extends SubtitleSampleEntry {
   subBoxNames = ['sinf'] as const;
 
   type = 'encu' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class encsSampleEntry extends SystemSampleEntry {
@@ -476,9 +369,6 @@ export class encsSampleEntry extends SystemSampleEntry {
   subBoxNames = ['sinf'] as const;
 
   type = 'encs' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class enctSampleEntry extends TextSampleEntry {
@@ -486,9 +376,6 @@ export class enctSampleEntry extends TextSampleEntry {
   subBoxNames = ['sinf'] as const;
 
   type = 'enct' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }
 
 export class encmSampleEntry extends MetadataSampleEntry {
@@ -496,7 +383,4 @@ export class encmSampleEntry extends MetadataSampleEntry {
   subBoxNames = ['sinf'] as const;
 
   type = 'encm' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 }

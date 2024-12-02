@@ -7,9 +7,6 @@ export class schmBox extends FullBox {
   scheme_uri: string;
 
   type = 'schm' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

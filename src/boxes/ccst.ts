@@ -7,9 +7,6 @@ export class ccstBox extends FullBox {
   max_ref_per_pic: number;
 
   type = 'ccst' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -6,9 +6,6 @@ export class stxtSampleEntry extends SubtitleSampleEntry {
   mime_format: string;
 
   type = 'stxt' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

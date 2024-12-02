@@ -12,9 +12,6 @@ export class ipmaBox extends Box {
   flags: number;
 
   type = 'ipma' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     const entry_count = stream.readUint32();

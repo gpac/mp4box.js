@@ -5,9 +5,6 @@ export class elngBox extends FullBox {
   extended_language: string;
 
   type = 'elng' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

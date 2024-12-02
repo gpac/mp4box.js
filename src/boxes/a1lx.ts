@@ -5,9 +5,6 @@ export class a1lxBox extends Box {
   layer_size: Array<number>;
 
   type = 'a1lx' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     const large_size = stream.readUint8() & 1;

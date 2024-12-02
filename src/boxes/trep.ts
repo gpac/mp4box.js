@@ -6,9 +6,6 @@ export class trepBox extends FullBox {
   track_ID: number;
 
   type = 'trep' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

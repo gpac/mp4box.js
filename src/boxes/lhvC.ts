@@ -18,9 +18,6 @@ export class lhvCBox extends Box {
   nalu_arrays: Array<NaluArray>;
 
   type = 'lhvC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.configurationVersion = stream.readUint8();

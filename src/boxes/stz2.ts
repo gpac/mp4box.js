@@ -8,9 +8,6 @@ export class stz2Box extends FullBox {
   field_size: number;
 
   type = 'stz2' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

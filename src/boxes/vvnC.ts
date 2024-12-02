@@ -2,12 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class vvnCBox extends FullBox {
-  lengthSizeMinusOne: number | undefined;
+  lengthSizeMinusOne: number;
 
   type = 'vvnC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -18,9 +18,6 @@ export class subsBox extends FullBox {
   entries: SampleInfo[];
 
   type = 'subs' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -5,9 +5,6 @@ export class mfhdBox extends FullBox {
   sequence_number: number;
 
   type = 'mfhd' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

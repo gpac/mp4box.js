@@ -6,9 +6,6 @@ export class stshBox extends FullBox {
   sync_sample_numbers: Array<number>;
 
   type = 'stsh' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

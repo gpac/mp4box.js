@@ -8,9 +8,6 @@ export class sttsBox extends FullBox {
   sample_deltas: Array<number> = [];
 
   type = 'stts' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

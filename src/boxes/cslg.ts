@@ -9,9 +9,6 @@ export class cslgBox extends FullBox {
   compositionEndTime: number;
 
   type = 'cslg' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

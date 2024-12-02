@@ -5,9 +5,6 @@ export class mskCBox extends FullBox {
   bits_per_pixel: number;
 
   type = 'mskC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

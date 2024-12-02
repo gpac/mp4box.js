@@ -15,9 +15,6 @@ export class levaBox extends FullBox {
   levels: Array<Level>;
 
   type = 'leva' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -14,9 +14,6 @@ export class irefBox extends Box {
   version: number;
 
   type = 'iref' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream | MP4BoxStream) {
     let ret;

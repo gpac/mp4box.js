@@ -6,9 +6,6 @@ export class vmhdBox extends FullBox {
   opcolor: Uint16Array | [number, number, number];
 
   type = 'vmhd' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

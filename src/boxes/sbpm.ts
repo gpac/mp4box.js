@@ -20,9 +20,6 @@ export class sbpmBox extends FullBox {
   bad_pixels: Pixel[];
 
   type = 'sbpm' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

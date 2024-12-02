@@ -6,9 +6,6 @@ export class tselBox extends FullBox {
   attribute_list: Array<number>;
 
   type = 'tsel' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

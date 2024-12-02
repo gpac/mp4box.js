@@ -8,9 +8,6 @@ export class mdhdBox extends FullBox {
   duration: number;
 
   type = 'mdhd' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

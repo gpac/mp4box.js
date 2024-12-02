@@ -6,9 +6,6 @@ export class paytBox extends Box {
   rtpmap_string: string;
 
   type = 'payt' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.payloadID = stream.readUint32();

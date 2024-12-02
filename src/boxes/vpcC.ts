@@ -16,9 +16,6 @@ export class vpcCBox extends FullBox {
   transferFunction: number;
 
   type = 'vpcC' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -12,9 +12,6 @@ export class elstBox extends FullBox {
   entries: Entry[];
 
   type = 'elst' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

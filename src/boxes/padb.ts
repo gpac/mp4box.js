@@ -5,9 +5,6 @@ export class padbBox extends FullBox {
   padbits: number | Array<number>;
 
   type = 'padb' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

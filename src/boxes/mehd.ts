@@ -6,9 +6,6 @@ export class mehdBox extends FullBox {
   fragment_duration: number;
 
   type = 'mehd' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

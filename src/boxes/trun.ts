@@ -20,9 +20,6 @@ export class trunBox extends FullBox {
   data_offset_position: number;
 
   type = 'trun' as const;
-  constructor(size?: number) {
-    super(size);
-  }
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
