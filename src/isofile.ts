@@ -2346,15 +2346,10 @@ export class ISOFile {
       minf.addBox(new hmhdBox()); // TODO: add properties
     } else if (sample_description_entry instanceof SubtitleSampleEntry) {
       minf.addBox(new sthdBox());
-      switch (options.type) {
-        case 'stpp':
-          (sample_description_entry as stppSampleEntry).namespace =
-            options.namespace || 'nonamespace';
-          (sample_description_entry as stppSampleEntry).schema_location =
-            options.schema_location || '';
-          (sample_description_entry as stppSampleEntry).auxiliary_mime_types =
-            options.auxiliary_mime_types || '';
-          break;
+      if (sample_description_entry instanceof stppSampleEntry) {
+        sample_description_entry.namespace = options.namespace || 'nonamespace';
+        sample_description_entry.schema_location = options.schema_location || '';
+        sample_description_entry.auxiliary_mime_types = options.auxiliary_mime_types || '';
       }
     } else if (sample_description_entry instanceof MetadataSampleEntry) {
       minf.addBox(new nmhdBox());
