@@ -201,7 +201,6 @@ class FullBoxBase extends BoxBase {
 }
 
 export class ContainerBoxBase extends BoxBase {
-  boxes: Array<BoxBase> = [];
   subBoxNames?: readonly string[];
 
   /** @bundle box-write.js */
@@ -391,64 +390,42 @@ class SampleEntryBase extends ContainerBoxBase {
 }
 
 export class Box extends BoxBase {
-  static codes: Array<string> = [];
   has_unparsed_data?: boolean;
 
   constructor(type: string, size?: number);
   constructor(type: 'uuid', size: number | undefined, uuid: string);
   constructor(type: string, size?: number, uuid?: string) {
     super(type, size, uuid);
-    Box.codes.push(type);
   }
 }
 
 export class FullBox extends FullBoxBase {
-  static codes: Array<string> = [];
-
   constructor(type: string, size?: number);
   constructor(type: 'uuid', size: number | undefined, uuid: string);
   constructor(type: string, size?: number, uuid?: string) {
     super(type, size, uuid);
-    FullBox.codes.push(type);
   }
 }
 
 export class ContainerBox extends ContainerBoxBase {
-  static codes: Array<string> = [];
-
   constructor(type: string, size?: number) {
     super(type, size);
-    ContainerBox.codes.push(type);
   }
 }
 
 type SampleEntryType = 'Visual' | 'Audio' | 'Hint' | 'Metadata' | 'Subtitle' | 'System' | 'Text';
 
 export class SampleEntry extends SampleEntryBase {
-  static codes: Record<SampleEntryType, Array<string>> = {
-    Visual: [],
-    Audio: [],
-    Hint: [],
-    Metadata: [],
-    Subtitle: [],
-    System: [],
-    Text: [],
-  };
-
   constructor(type: string, size: number | undefined, sampleEntryType: SampleEntryType) {
     super(type, size);
-    SampleEntry.codes[sampleEntryType].push(type);
   }
 }
 
 export class SampleGroupEntry {
-  static codes: Array<string> = [];
   data: ArrayLike<number>;
   description_length: number;
 
-  constructor(public grouping_type: string) {
-    SampleGroupEntry.codes.push(grouping_type);
-  }
+  constructor(public grouping_type: string) {}
 
   /** @bundle writing/samplegroups/samplegroup.js */
   write(stream: MultiBufferStream) {
@@ -464,11 +441,9 @@ export class SampleGroupEntry {
 
 export class TrackGroupTypeBox extends FullBoxBase {
   track_group_id: number;
-  static codes: Array<string> = [];
 
   constructor(type: string, size: number) {
     super(type, size);
-    TrackGroupTypeBox.codes.push(type);
   }
 
   /** @bundle parsing/TrackGroup.js */
@@ -537,8 +512,6 @@ export class TrackReferenceTypeBox extends BoxBase {
 }
 
 export class UUIDBox extends FullBoxBase {
-  static codes: Record<string, typeof UUIDBox> = {};
-
   constructor(uuid: string, size?: number) {
     super('uuid', size, uuid);
   }
