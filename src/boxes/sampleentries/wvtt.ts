@@ -1,5 +1,5 @@
-import { MetadataSampleEntry } from '#/boxes/sampleentries/sampleentry';
 import type { MultiBufferStream } from '#/buffer';
+import { MetadataSampleEntry } from './base';
 
 export class wvttSampleEntry extends MetadataSampleEntry {
   constructor(size?: number) {

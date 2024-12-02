@@ -1,5 +1,5 @@
-import { SubtitleSampleEntry } from '#/boxes/sampleentries/sampleentry';
 import type { MultiBufferStream } from '#/buffer';
+import { SubtitleSampleEntry } from './base';
 
 export class stppSampleEntry extends SubtitleSampleEntry {
   namespace: string;
