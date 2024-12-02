@@ -3,7 +3,7 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
-import { Box, parseOneBox, SampleEntry } from '#/box';
+import { Box, parseOneBox } from '#/box';
 import { boxEqual } from '#/box-diff';
 import { avcCBox } from '#/boxes/avcC';
 import {
@@ -87,7 +87,6 @@ import type {
   ExtractedTrack,
   FragmentedTrack,
   IncompleteBox,
-  IsoFileOptions,
   Item,
   Movie,
   Output,
@@ -109,6 +108,84 @@ export class SampleGroupInfo {
     public grouping_type_parameter: unknown,
     public sbgp?: sbgpBox,
   ) {}
+}
+
+export interface IsoFileOptions {
+  brands?: Array<string>;
+  description_boxes?: Array<Box>;
+  duration?: number;
+  height?: number;
+  id?: number;
+  language?: string;
+  layer?: number;
+  media_duration?: number;
+  rate?: number;
+  timescale?: number;
+  type?:
+    | 'ac_3'
+    | 'ac_4'
+    | 'av01'
+    | 'avc1'
+    | 'avc2'
+    | 'avc3'
+    | 'avc4'
+    | 'avs3'
+    | 'dav1'
+    | 'dvh1'
+    | 'dvhe'
+    | 'ec_3'
+    | 'enca'
+    | 'encm'
+    | 'encs'
+    | 'enct'
+    | 'encu'
+    | 'encv'
+    | 'fLaC'
+    | 'hev1'
+    | 'hvc1'
+    | 'hvt1'
+    | 'j2ki'
+    | 'lhe1'
+    | 'mha1'
+    | 'mha2'
+    | 'mhm1'
+    | 'mhm2'
+    | 'mjp2'
+    | 'mjpg'
+    | 'mp4a'
+    | 'Opus'
+    | 'uncv'
+    | 'vp08'
+    | 'vp09'
+    | 'vvc1'
+    | 'vvcN'
+    | 'vvi1'
+    | 'vvs1'
+    | 'sbtt'
+    | 'mett'
+    | 'metx'
+    | 'sbtt'
+    | 'stpp'
+    | 'stxt'
+    | 'tx3g'
+    | 'wvtt';
+  width?: number;
+  hdlr?: string;
+  name?: string;
+  hevcDecoderConfigRecord?: ArrayBuffer;
+  avcDecoderConfigRecord?: ArrayBuffer;
+  balance?: number;
+  channel_count?: number;
+  samplesize?: number;
+  samplerate?: number;
+  namespace?: string;
+  schema_location?: string;
+  auxiliary_mime_types?: string;
+  description?: Box;
+  default_sample_description_index?: number;
+  default_sample_duration?: number;
+  default_sample_size?: number;
+  default_sample_flags?: number;
 }
 
 export class ISOFile {
@@ -2310,23 +2387,26 @@ export class ISOFile {
 
     const minf = mdia.addBox(new minfBox());
 
-    if (BoxRegistry[options.type + 'SampleEntry'] === undefined) return;
+    const sampleEntry = BoxRegistry[`${options.type}SampleEntry`];
 
-    const sample_description_entry = new BoxRegistry[options.type + 'SampleEntry']() as SampleEntry;
-    (sample_description_entry as SampleEntry).data_reference_index = 1;
+    if (!sampleEntry) return;
+
+    const sample_description_entry = new sampleEntry();
+    sample_description_entry.data_reference_index = 1;
 
     if (sample_description_entry instanceof VisualSampleEntry) {
       const vmhd = minf.addBox(new vmhdBox());
       vmhd.graphicsmode = 0;
       vmhd.opcolor = [0, 0, 0];
 
-      sample_description_entry.width = options.width;
-      sample_description_entry.height = options.height;
-      sample_description_entry.horizresolution = 0x48 << 16;
-      sample_description_entry.vertresolution = 0x48 << 16;
-      sample_description_entry.frame_count = 1;
-      sample_description_entry.compressorname = options.type + ' Compressor';
-      sample_description_entry.depth = 0x18;
+      sample_description_entry;
+      (sample_description_entry as VisualSampleEntry).width = options.width;
+      (sample_description_entry as VisualSampleEntry).height = options.height;
+      (sample_description_entry as VisualSampleEntry).horizresolution = 0x48 << 16;
+      (sample_description_entry as VisualSampleEntry).vertresolution = 0x48 << 16;
+      (sample_description_entry as VisualSampleEntry).frame_count = 1;
+      (sample_description_entry as VisualSampleEntry).compressorname = options.type + ' Compressor';
+      (sample_description_entry as VisualSampleEntry).depth = 0x18;
 
       if (options.avcDecoderConfigRecord) {
         const avcC = sample_description_entry.addBox(new avcCBox());
@@ -2339,9 +2419,9 @@ export class ISOFile {
       const smhd = minf.addBox(new smhdBox());
       smhd.balance = options.balance || 0;
 
-      sample_description_entry.channel_count = options.channel_count || 2;
-      sample_description_entry.samplesize = options.samplesize || 16;
-      sample_description_entry.samplerate = options.samplerate || 1 << 16;
+      (sample_description_entry as AudioSampleEntry).channel_count = options.channel_count || 2;
+      (sample_description_entry as AudioSampleEntry).samplesize = options.samplesize || 16;
+      (sample_description_entry as AudioSampleEntry).samplerate = options.samplerate || 1 << 16;
     } else if (sample_description_entry instanceof HintSampleEntry) {
       minf.addBox(new hmhdBox()); // TODO: add properties
     } else if (sample_description_entry instanceof SubtitleSampleEntry) {

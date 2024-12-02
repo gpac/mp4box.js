@@ -39,37 +39,6 @@ export interface ExtractedTrack {
   samples: Array<Sample>;
 }
 
-export interface IsoFileOptions {
-  brands?: Array<string>;
-  description_boxes?: Array<Box>;
-  duration?: number;
-  height?: number;
-  id?: number;
-  language?: string;
-  layer?: number;
-  media_duration?: number;
-  rate?: number;
-  timescale?: number;
-  type?: unknown;
-  width?: number;
-  hdlr?: string;
-  name?: string;
-  hevcDecoderConfigRecord?: ArrayBuffer;
-  avcDecoderConfigRecord?: ArrayBuffer;
-  balance?: number;
-  channel_count?: number;
-  samplesize?: number;
-  samplerate?: number;
-  namespace?: string;
-  schema_location?: string;
-  auxiliary_mime_types?: string;
-  description?: Box;
-  default_sample_description_index?: number;
-  default_sample_duration?: number;
-  default_sample_size?: number;
-  default_sample_flags?: number;
-}
-
 export interface Sample {
   alreadyRead?: number;
   cts?: number;
