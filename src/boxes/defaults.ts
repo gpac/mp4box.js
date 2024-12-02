@@ -164,7 +164,7 @@ export class edtsBox extends ContainerBox {
 }
 export class mdiaBox extends ContainerBox {
   elng: elngBox;
-  hdlr: hdlrBox;
+  hdlr?: hdlrBox;
   mdhd: mdhdBox;
   minf: minfBox;
 
