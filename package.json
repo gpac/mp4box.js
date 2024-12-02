@@ -37,19 +37,12 @@
     }
   },
   "scripts": {
-    "build": "concurrently \"pnpm build:all\" \"pnpm build:simple\"",
-    "build:all": "concurrently \"pnpm build:all:esm\" \"pnpm build:all:cjs\"",
-    "build:all:esm": "tsup entries/all.ts --format esm --sourcemap --dts",
-    "build:all:cjs": "tsup entries/all.ts --format cjs --sourcemap",
-    "build:simple": "concurrently \"pnpm build:simple:esm\" \"pnpm build:simple:cjs\"",
-    "build:simple:esm": "tsup entries/simple.ts --format esm --sourcemap --dts",
-    "build:simple:cjs": "tsup entries/simple.ts --format cjs --sourcemap",
+    "build": "tsup",
     "circular": "dpdm -T ./entries/all.ts",
     "types": "tsc --noEmit --project tsconfig.json"
   },
   "devDependencies": {
     "blanket": "^1.2.3",
-    "concurrently": "^9.1.0",
     "dpdm": "^3.14.0",
     "qunitjs": "^1.23.0",
     "tsup": "^8.3.5",
