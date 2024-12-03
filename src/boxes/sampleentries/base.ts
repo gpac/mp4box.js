@@ -1,6 +1,8 @@
 import { ContainerBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
+import type { avcCBox } from '../avcC';
+import type { hvcCBox } from '../hvcC';
 
 export class SampleEntry extends ContainerBox {
   data_reference_index?: number;
@@ -149,6 +151,11 @@ export class TextSampleEntry extends SampleEntry {}
 
 //Base SampleEntry types for Audio and Video with specific parsing
 export class VisualSampleEntry extends SampleEntry {
+  avcC?: avcCBox;
+  avcCs?: Array<avcCBox>;
+  hvcC?: hvcCBox;
+  hvcCs?: Array<hvcCBox>;
+
   width: number;
   height: number;
   horizresolution: number;

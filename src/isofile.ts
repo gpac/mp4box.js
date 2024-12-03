@@ -192,15 +192,6 @@ export class ISOFile {
   /** Boolean keeping track of the call to onSidx, to avoid double calls */
   sidxSent = false;
 
-  moov: moovBox;
-  nextSeekPosition: number;
-  sidx: sidxBox;
-  meta: metaBox;
-  ftyp: ftypBox;
-  static type: BoxKind['type'];
-  static boxes: Array<Box>;
-  initial_duration: number;
-
   /** @bundle isofile-item-processing.js */
   items: Array<Item> = [];
 
@@ -219,6 +210,20 @@ export class ISOFile {
    * @bundle isofile-item-processing.js
    */
   itemsDataSize = 0;
+
+  moov: moovBox;
+  moovs: Array<moovBox>;
+  sidx: sidxBox;
+  sidxs: Array<sidxBox>;
+  meta: metaBox;
+  metas: Array<metaBox>;
+  ftyp: ftypBox;
+  ftyps: Array<ftypBox>;
+  nextSeekPosition: number;
+  initial_duration: number;
+
+  static type: BoxKind['type'];
+  static boxes: Array<Box>;
 
   constructor(stream?: MultiBufferStream) {
     this.stream = stream || new MultiBufferStream();
@@ -2313,7 +2318,7 @@ export class ISOFile {
     options.id = options.id || this.moov.mvhd.next_track_id;
     options.type = options.type || 'avc1';
 
-    const trak = this.moov.addBox(new trakBox()) as trakBox;
+    const trak = this.moov.addBox(new trakBox());
     this.moov.mvhd.next_track_id = options.id + 1;
 
     const tkhd = trak.addBox(new tkhdBox());

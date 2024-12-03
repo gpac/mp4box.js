@@ -9,7 +9,7 @@ import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
-import type { BoxKind, Output, Reference } from '@types';
+import type { BoxKind, Extends, Output, Reference } from '@types';
 
 class BoxBase {
   type?: string;
@@ -25,7 +25,7 @@ class BoxBase {
 
   constructor(public size = 0) {}
 
-  addBox<T extends BoxKind>(box: T): T {
+  addBox<T extends Extends<this, Box>>(box: T): T {
     this.boxes.push(box);
     if (this[box.type + 's']) {
       this[box.type + 's'].push(box);

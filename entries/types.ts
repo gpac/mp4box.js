@@ -16,9 +16,10 @@ export namespace MP4Box {
 export type ValueOf<T> = T[keyof T];
 export type InstanceOf<T> = T extends new (...args: Array<unknown>) => infer R ? R : never;
 export type KindOf<T> = InstanceOf<ValueOf<T>>;
-export type Extends<TObject, TExtends> = ValueOf<{
+export type Extends<TObject, TExtends> = {
   [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
-}>;
+}[keyof TObject];
+
 export type TupleOf<T, N extends number, R extends T[] = []> = R['length'] extends N
   ? R
   : TupleOf<T, N, [T, ...R]>;

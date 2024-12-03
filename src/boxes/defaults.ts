@@ -33,7 +33,12 @@ import type { trunBox } from '#/boxes/trun';
 import type { tycoBox } from '#/boxes/tyco';
 import type { SampleGroupInfo } from '#/isofile';
 import type { Sample } from '@types';
+import type { drefBox } from './dref';
 import type { EntityToGroup } from './EntityToGroup/base';
+import type { mfhdBox } from './mfhd';
+import type { smhdBox } from './smhd';
+import type { sthdBox } from './sthd';
+import type { vmhdBox } from './vmhd';
 
 /**********************************************************************************/
 /*                                                                                */
@@ -105,8 +110,12 @@ export class iproBox extends FullBox {
 export class moovBox extends ContainerBox {
   timescale: number;
   mvhd: mvhdBox;
+  mvhds: Array<mvhdBox>;
   mvex: mvexBox;
+  mvexs: Array<mvexBox>;
   iods: iodsBox;
+  iodss: Array<iodsBox>;
+  trak: trakBox;
 
   traks: Array<trakBox> = [];
   psshs: Array<psshBox> = [];
@@ -116,11 +125,16 @@ export class moovBox extends ContainerBox {
 }
 export class trakBox extends ContainerBox {
   mdia: mdiaBox;
+  mdias: Array<mdiaBox>;
   tkhd: tkhdBox;
+  tkhds: Array<tkhdBox>;
   tref: trefBox;
+  trefs: Array<trefBox>;
   edts: edtsBox;
-  samples_duration: number;
+  edtss: Array<edtsBox>;
   udta: udtaBox;
+  udtas: Array<udtaBox>;
+  samples_duration: number;
   samples: Array<Sample>;
   samples_size: number;
   nextSample: number;
@@ -134,19 +148,39 @@ export class trakBox extends ContainerBox {
 }
 export class edtsBox extends ContainerBox {
   elst: elstBox;
+  elsts: Array<elstBox>;
 
   type = 'edts' as const;
 }
 export class mdiaBox extends ContainerBox {
   elng: elngBox;
-  hdlr?: hdlrBox;
+  elngs: Array<elngBox>;
+  hdlr: hdlrBox;
+  hdlrs: Array<hdlrBox>;
   mdhd: mdhdBox;
+  mdhds: Array<mdhdBox>;
   minf: minfBox;
+  minfs: Array<minfBox>;
 
   type = 'mdia' as const;
 }
 export class minfBox extends ContainerBox {
   stbl: stblBox;
+  stbls: Array<stblBox>;
+  hmhd: hmhdBox;
+  hmhds: Array<hmhdBox>;
+  vmhd?: vmhdBox;
+  vmhds?: Array<vmhdBox>;
+  smhd?: smhdBox;
+  smhds?: Array<smhdBox>;
+  sthd?: sthdBox;
+  sthds?: Array<sthdBox>;
+  nmhd?: nmhdBox;
+  nmhds?: Array<nmhdBox>;
+  dinf: dinfBox;
+  dinfs: Array<dinfBox>;
+  dref: drefBox;
+  drefs: Array<drefBox>;
 
   type = 'minf' as const;
 }
@@ -155,18 +189,31 @@ export class dinfBox extends ContainerBox {
 }
 export class stblBox extends ContainerBox {
   cslg: cslgBox;
+  cslgs: Array<cslgBox>;
   stsd: stsdBox;
+  stsds: Array<stsdBox>;
   stsc: stscBox;
+  stscs: Array<stscBox>;
   stco: stcoBox;
+  stcos: Array<stcoBox>;
   co64: co64Box;
+  co64s: Array<co64Box>;
   stsz: stszBox;
+  stszs: Array<stszBox>;
   stz2: stz2Box;
+  stz2s: Array<stz2Box>;
   stts: sttsBox;
+  sttss: Array<sttsBox>;
   ctts: cttsBox;
+  cttss: Array<cttsBox>;
   stss: stssBox;
+  stsss: Array<stssBox>;
   subs: subsBox;
+  subss: Array<subsBox>;
   stdp: stdpBox;
+  stdps: Array<stdpBox>;
   sdtp: sdtpBox;
+  sdtps: Array<sdtpBox>;
 
   sgpds: Array<sgpdBox> = [];
   sbgps: Array<sbgpBox> = [];
@@ -175,7 +222,9 @@ export class stblBox extends ContainerBox {
   type = 'stbl' as const;
 }
 export class mvexBox extends ContainerBox {
+  trex: trexBox;
   mehd: mehdBox;
+  mehds: Array<mehdBox>;
 
   trexs: Array<trexBox> = [];
   subBoxNames = ['trex'];
@@ -183,17 +232,26 @@ export class mvexBox extends ContainerBox {
   type = 'mvex' as const;
 }
 export class moofBox extends ContainerBox {
+  mfhd: mfhdBox;
+  mfhds: Array<mfhdBox>;
+  traf: trafBox;
+
   trafs: Array<trafBox> = [];
   subBoxNames = ['traf'];
 
   type = 'moof' as const;
 }
 export class trafBox extends ContainerBox {
+  subs: subsBox;
+  subss: Array<subsBox>;
+  tfdt: tfdtBox;
+  tfdts: Array<tfdtBox>;
+  tfhd: tfhdBox;
+  tfhds: Array<tfhdBox>;
+  trun: trunBox;
+
   first_sample_index: number;
   sample_number: number;
-  tfhd: tfhdBox;
-  tfdt: tfdtBox;
-  subs: subsBox;
   sample_groups_info: Array<SampleGroupInfo>;
 
   truns: Array<trunBox> = [];
