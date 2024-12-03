@@ -50,7 +50,6 @@ import { stscBox } from '#/boxes/stsc';
 import { stsdBox } from '#/boxes/stsd';
 import { stszBox } from '#/boxes/stsz';
 import { sttsBox } from '#/boxes/stts';
-import type { SubSample } from '#/boxes/subs';
 import { tfdtBox } from '#/boxes/tfdt';
 import { tfhdBox } from '#/boxes/tfhd';
 import { tkhdBox } from '#/boxes/tkhd';
@@ -84,6 +83,7 @@ import { MP4BoxStream } from '#/stream';
 import type {
   BoxKind,
   Description,
+  EntityGroup,
   ExtractedTrack,
   FragmentedTrack,
   IncompleteBox,
@@ -92,6 +92,7 @@ import type {
   Output,
   Sample,
   SampleEntryKind,
+  SubSample,
   Track,
 } from '@types';
 import { MP4BoxBuffer } from './mp4boxbuffer';
@@ -135,7 +136,7 @@ export interface IsoFileOptions {
   namespace?: string;
   schema_location?: string;
   auxiliary_mime_types?: string;
-  description?: BoxKind;
+  description?: Box;
   default_sample_description_index?: number;
   default_sample_duration?: number;
   default_sample_size?: number;
@@ -196,14 +197,7 @@ export class ISOFile {
   items: Array<Item> = [];
 
   /** @bundle isofile-item-processing.js */
-  entity_groups: Array<{
-    id: number;
-    entity_ids: Array<number>;
-    type: string;
-    properties?: {
-      boxes: Array<Box>;
-    };
-  }> = [];
+  entity_groups: Array<EntityGroup> = [];
 
   /**
    * size of the buffers allocated for samples
@@ -494,130 +488,137 @@ export class ISOFile {
     return nextFileStart;
   }
 
-  getInfo() {
-    const movie = {} as Movie;
+  getInfo(): Movie {
+    if (!this.moov) {
+      return {
+        hasMoov: false,
+        mime: '',
+      } as Movie;
+    }
+
     const _1904 = new Date('1904-01-01T00:00:00Z').getTime();
+    const isFragmented = this.moov.mvex != null;
 
-    if (this.moov) {
-      movie.hasMoov = true;
-      movie.duration = this.moov.mvhd.duration;
-      movie.timescale = this.moov.mvhd.timescale;
-      movie.isFragmented = this.moov.mvex != null;
-      if (movie.isFragmented && this.moov.mvex.mehd) {
-        movie.fragment_duration = this.moov.mvex.mehd.fragment_duration;
+    const movie: Movie = {
+      hasMoov: true,
+      duration: this.moov.mvhd.duration,
+      timescale: this.moov.mvhd.timescale,
+      isFragmented,
+      fragment_duration:
+        isFragmented && this.moov.mvex.mehd ? this.moov.mvex.mehd.fragment_duration : undefined,
+      isProgressive: this.isProgressive,
+      hasIOD: this.moov.iods != null,
+      brands: [this.ftyp.major_brand].concat(this.ftyp.compatible_brands),
+      created: new Date(_1904 + this.moov.mvhd.creation_time * 1000),
+      modified: new Date(_1904 + this.moov.mvhd.modification_time * 1000),
+      tracks: [] as Array<Track>,
+      audioTracks: [] as Array<Track>,
+      videoTracks: [] as Array<Track>,
+      subtitleTracks: [] as Array<Track>,
+      metadataTracks: [] as Array<Track>,
+      hintTracks: [] as Array<Track>,
+      otherTracks: [] as Array<Track>,
+      mime: '',
+    };
+
+    for (let i = 0; i < this.moov.traks.length; i++) {
+      const trak = this.moov.traks[i];
+
+      const sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
+
+      const size = trak.samples_size;
+      const track_timescale = trak.mdia.mdhd.timescale;
+      const samples_duration = trak.samples_duration;
+      const bitrate = (size * 8 * track_timescale) / samples_duration;
+
+      const track: Track = {
+        samples_duration,
+        bitrate,
+        size,
+        timescale: track_timescale,
+        alternate_group: trak.tkhd.alternate_group,
+        codec: sample_desc.getCodec(),
+        created: new Date(_1904 + trak.tkhd.creation_time * 1000),
+        cts_shift: trak.mdia.minf.stbl.cslg,
+        duration: trak.mdia.mdhd.duration,
+        id: trak.tkhd.track_id,
+        kind:
+          trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: '', value: '' },
+        // NOTE:   trak.mdia.elng used to be trak.mdia.eln
+        language: trak.mdia.elng ? trak.mdia.elng.extended_language : trak.mdia.mdhd.languageString,
+        layer: trak.tkhd.layer,
+        matrix: trak.tkhd.matrix,
+        modified: new Date(_1904 + trak.tkhd.modification_time * 1000),
+        movie_duration: trak.tkhd.duration,
+        movie_timescale: movie.timescale,
+        name: trak.mdia.hdlr.name,
+        nb_samples: trak.samples.length,
+        references: [],
+        track_height: trak.tkhd.height / (1 << 16),
+        track_width: trak.tkhd.width / (1 << 16),
+        volume: trak.tkhd.volume,
+      };
+
+      movie.tracks.push(track);
+
+      if (trak.tref) {
+        for (let j = 0; j < trak.tref.boxes.length; j++) {
+          track.references.push({
+            type: trak.tref.boxes[j].type,
+            track_ids: trak.tref.boxes[j].track_ids,
+          });
+        }
       }
-      movie.isProgressive = this.isProgressive;
-      movie.hasIOD = this.moov.iods != null;
-      movie.brands = [];
-      movie.brands.push(this.ftyp.major_brand);
-      movie.brands = movie.brands.concat(this.ftyp.compatible_brands);
-      movie.created = new Date(_1904 + this.moov.mvhd.creation_time * 1000);
-      movie.modified = new Date(_1904 + this.moov.mvhd.modification_time * 1000);
-      movie.tracks = [];
-      movie.audioTracks = [];
-      movie.videoTracks = [];
-      movie.subtitleTracks = [];
-      movie.metadataTracks = [];
-      movie.hintTracks = [];
-      movie.otherTracks = [];
-      for (let i = 0; i < this.moov.traks.length; i++) {
-        const trak = this.moov.traks[i];
-        const sample_desc = trak.mdia.minf.stbl.stsd.entries[0];
-        const size = trak.samples_size;
-        const timescale = trak.mdia.mdhd.timescale;
-        const samples_duration = trak.samples_duration;
-        const track: Track = {
-          id: trak.tkhd.track_id,
-          name: trak.mdia.hdlr.name,
-          created: new Date(_1904 + trak.tkhd.creation_time * 1000),
-          modified: new Date(_1904 + trak.tkhd.modification_time * 1000),
-          movie_duration: trak.tkhd.duration,
-          movie_timescale: movie.timescale,
-          layer: trak.tkhd.layer,
-          alternate_group: trak.tkhd.alternate_group,
-          volume: trak.tkhd.volume,
-          matrix: trak.tkhd.matrix,
-          track_width: trak.tkhd.width / (1 << 16),
-          track_height: trak.tkhd.height / (1 << 16),
-          timescale,
-          cts_shift: trak.mdia.minf.stbl.cslg,
-          duration: trak.mdia.mdhd.duration,
-          samples_duration,
-          codec: sample_desc.getCodec(),
-          kind:
-            trak.udta && trak.udta.kinds.length ? trak.udta.kinds[0] : { schemeURI: '', value: '' },
-          // NOTE:   trak.mdia.elng used to be trak.mdia.eln
-          language: trak.mdia.elng
-            ? trak.mdia.elng.extended_language
-            : trak.mdia.mdhd.languageString,
-          nb_samples: trak.samples.length,
-          size,
-          bitrate: (size * 8 * timescale) / samples_duration,
-          references: [],
+
+      if (trak.edts) {
+        track.edits = trak.edts.elst.entries;
+      }
+
+      if (sample_desc instanceof AudioSampleEntry) {
+        track.type = 'audio';
+        movie.audioTracks.push(track);
+        track.audio = {
+          sample_rate: sample_desc.getSampleRate(),
+          channel_count: sample_desc.getChannelCount(),
+          sample_size: sample_desc.getSampleSize(),
         };
-
-        movie.tracks.push(track);
-        if (trak.tref) {
-          for (let j = 0; j < trak.tref.boxes.length; j++) {
-            track.references.push({
-              type: trak.tref.boxes[j].type,
-              track_ids: trak.tref.boxes[j].track_ids,
-            });
-          }
-        }
-        if (trak.edts) {
-          track.edits = trak.edts.elst.entries;
-        }
-
-        if (sample_desc instanceof AudioSampleEntry) {
-          track.type = 'audio';
-          movie.audioTracks.push(track);
-          track.audio = {
-            sample_rate: sample_desc.getSampleRate(),
-            channel_count: sample_desc.getChannelCount(),
-            sample_size: sample_desc.getSampleSize(),
-          };
-        } else if (sample_desc instanceof VisualSampleEntry) {
-          track.type = 'video';
-          movie.videoTracks.push(track);
-          track.video = {
-            width: sample_desc.getWidth(),
-            height: sample_desc.getHeight(),
-          };
-        } else if (sample_desc instanceof SubtitleSampleEntry) {
-          track.type = 'subtitles';
-          movie.subtitleTracks.push(track);
-        } else if (sample_desc instanceof HintSampleEntry) {
-          track.type = 'metadata';
-          movie.hintTracks.push(track);
-        } else if (sample_desc instanceof MetadataSampleEntry) {
-          track.type = 'metadata';
-          movie.metadataTracks.push(track);
-        } else {
-          track.type = 'metadata';
-          movie.otherTracks.push(track);
-        }
-      }
-    } else {
-      movie.hasMoov = false;
-    }
-    movie.mime = '';
-    if (movie.hasMoov && movie.tracks) {
-      if (movie.videoTracks && movie.videoTracks.length > 0) {
-        movie.mime += 'video/mp4; codecs="';
-      } else if (movie.audioTracks && movie.audioTracks.length > 0) {
-        movie.mime += 'audio/mp4; codecs="';
+      } else if (sample_desc instanceof VisualSampleEntry) {
+        track.type = 'video';
+        movie.videoTracks.push(track);
+        track.video = {
+          width: sample_desc.getWidth(),
+          height: sample_desc.getHeight(),
+        };
+      } else if (sample_desc instanceof SubtitleSampleEntry) {
+        track.type = 'subtitles';
+        movie.subtitleTracks.push(track);
+      } else if (sample_desc instanceof HintSampleEntry) {
+        track.type = 'metadata';
+        movie.hintTracks.push(track);
+      } else if (sample_desc instanceof MetadataSampleEntry) {
+        track.type = 'metadata';
+        movie.metadataTracks.push(track);
       } else {
-        movie.mime += 'application/mp4; codecs="';
+        track.type = 'metadata';
+        movie.otherTracks.push(track);
       }
-      for (let i = 0; i < movie.tracks.length; i++) {
-        if (i !== 0) movie.mime += ',';
-        movie.mime += movie.tracks[i].codec;
-      }
-      movie.mime += '"; profiles="';
-      movie.mime += this.ftyp.compatible_brands.join();
-      movie.mime += '"';
     }
+
+    if (movie.videoTracks && movie.videoTracks.length > 0) {
+      movie.mime += 'video/mp4; codecs="';
+    } else if (movie.audioTracks && movie.audioTracks.length > 0) {
+      movie.mime += 'audio/mp4; codecs="';
+    } else {
+      movie.mime += 'application/mp4; codecs="';
+    }
+    for (let i = 0; i < movie.tracks.length; i++) {
+      if (i !== 0) movie.mime += ',';
+      movie.mime += movie.tracks[i].codec;
+    }
+    movie.mime += '"; profiles="';
+    movie.mime += this.ftyp.compatible_brands.join();
+    movie.mime += '"';
+
     return movie;
   }
 

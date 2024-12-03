@@ -1,6 +1,5 @@
-import type { Box } from '#/box';
+import type { Box, SampleGroupEntry } from '#/box';
 import type { trakBox } from '#/boxes/defaults';
-import type { SubSample } from '#/boxes/subs';
 import type { UUID_BOXES } from '#/boxes/uuid';
 import type { DataStream } from '#/DataStream';
 import type * as DESCRIPTORS from '#/descriptor';
@@ -13,8 +12,21 @@ export namespace MP4Box {
   export interface DescriptorRegistry extends Partial<typeof DESCRIPTORS> {}
 }
 
+export type TypedArray =
+  | Int8Array
+  | Uint8Array
+  | Uint8ClampedArray
+  | Int16Array
+  | Uint16Array
+  | Int32Array
+  | Uint32Array
+  | Float32Array
+  | Float64Array
+  | BigInt64Array
+  | BigUint64Array;
+
 export type ValueOf<T> = T[keyof T];
-export type InstanceOf<T> = T extends new (...args: Array<unknown>) => infer R ? R : never;
+export type InstanceOf<T> = T extends new (...args: Array<any>) => infer R ? R : never;
 export type KindOf<T> = InstanceOf<ValueOf<T>>;
 export type Extends<TObject, TExtends> = {
   [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
@@ -23,7 +35,6 @@ export type Extends<TObject, TExtends> = {
 export type TupleOf<T, N extends number, R extends T[] = []> = R['length'] extends N
   ? R
   : TupleOf<T, N, [T, ...R]>;
-
 export type NumberTuple<T extends number> = TupleOf<number, T>;
 
 export type BoxKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof Box>>;
@@ -77,119 +88,122 @@ export interface SampleGroup {
   grouping_type: string;
   grouping_type_parameter: number;
   group_description_index?: number;
-  description?: unknown;
+  description?: SampleEntry | SampleGroupEntry;
 }
 
 export interface Track {
-  alternate_group?: number;
+  alternate_group: number;
   audio?: { sample_rate: number; channel_count: number; sample_size: number };
-  bitrate?: number;
-  codec?: string;
-  created?: Date;
-  cts_shift?: BOXES.cslgBox;
-  duration?: number;
+  bitrate: number;
+  codec: string;
+  created: Date;
+  cts_shift: BOXES.cslgBox;
+  duration: number;
   edits?: Entry[];
-  id?: number;
-  kind?: BOXES.kindBox | { schemeURI: ''; value: '' };
-  language?: string;
-  layer?: number;
-  matrix?: Matrix;
-  modified?: Date;
-  movie_duration?: number;
-  movie_timescale?: number;
-  name?: string;
-  nb_samples?: number;
-  references?: Array<{ track_ids: ArrayLike<number>; type: string }>;
-  samples_duration?: number;
+  id: number;
+  kind: BOXES.kindBox | { schemeURI: ''; value: '' };
+  language: string;
+  layer: number;
+  matrix: Matrix;
+  modified: Date;
+  movie_duration: number;
+  movie_timescale: number;
+  name: string;
+  nb_samples: number;
+  references: Array<{ track_ids: ArrayLike<number>; type: string }>;
+  samples_duration: number;
   samples?: Array<Sample>;
-  size?: number;
-  timescale?: number;
-  track_height?: number;
-  track_width?: number;
+  size: number;
+  timescale: number;
+  track_height: number;
+  track_width: number;
   type?: 'audio' | 'video' | 'subtitles' | 'metadata';
   video?: { width: number; height: number };
-  volume?: number;
+  volume: number;
 }
 
 export interface Movie {
-  hasMoov?: boolean;
-  duration?: number;
-  timescale?: number;
-  isFragmented?: boolean;
-  fragment_duration?: number;
-  isProgressive?: boolean;
-  hasIOD?: boolean;
-  brands?: Array<string>;
-  created?: Date;
-  modified?: Date;
-  tracks?: Array<Track>;
-  audioTracks?: Array<Track>;
-  videoTracks?: Array<Track>;
-  subtitleTracks?: Array<Track>;
-  metadataTracks?: Array<Track>;
-  hintTracks?: Array<Track>;
-  otherTracks?: Array<Track>;
+  hasMoov: boolean;
+  audioTracks: Array<Track>;
+  brands: Array<string>;
+  created: Date;
+  duration: number;
+  fragment_duration: number | undefined;
+  hasIOD: boolean;
+  hintTracks: Array<Track>;
+  isFragmented: boolean;
+  isProgressive: boolean;
+  metadataTracks: Array<Track>;
   mime: string;
+  modified: Date;
+  otherTracks: Array<Track>;
+  subtitleTracks: Array<Track>;
+  timescale: number;
+  tracks: Array<Track>;
+  videoTracks: Array<Track>;
 }
 
 export interface Description {
-  used: boolean;
   default_group_description_index: number;
-  entries: Array<unknown>;
+  entries: Array<SampleGroupEntry | SampleEntry>;
+  used: boolean;
   version: number;
 }
 
 export type IncompleteBox = {
-  code: number;
   box?: Box;
-  size?: number;
-  type?: string;
+  code: number;
   hdr_size?: number;
+  size?: number;
   start?: number;
+  type?: string;
 };
 
 export interface Item {
-  id?: number;
-  ref_to?: Array<{
-    type: string;
-    id: Reference;
-  }>;
-  name?: string;
-  protection?: unknown;
-  type?: string;
-  content_type?: string;
+  alreadyRead?: number;
   content_encoding?: string;
-  source?: Box;
+  content_type?: string;
+  data?: Uint8Array;
   extents?: Array<{
     alreadyRead?: number;
     length: number;
     offset: number;
   }>;
-  size?: number;
-  properties?: { boxes: Array<Box> };
-  alreadyRead?: number;
-  data?: Uint8Array;
+  id?: number;
+  name?: string;
   primary?: boolean;
+  properties?: { boxes: Array<Box> };
+  protection?: unknown;
+  ref_to?: Array<{
+    type: string;
+    id: Reference;
+  }>;
   sent?: boolean;
+  size?: number;
+  source?: Box;
+  type?: string;
+}
+
+export interface EntityGroup {
+  id: number;
+  entity_ids: Array<number>;
+  type: string;
+  properties?: {
+    boxes: Array<Box>;
+  };
+}
+
+export interface SubSample {
+  size: number;
+  priority: number;
+  discardable: number;
+  codec_specific_parameters: number;
 }
 
 export type Matrix =
   | Int32Array
   | Uint32Array
   | [number, number, number, number, number, number, number, number, number];
-
-export type TypedArray =
-  | Int8Array
-  | Uint8Array
-  | Uint8ClampedArray
-  | Int16Array
-  | Uint16Array
-  | Int32Array
-  | Uint32Array
-  | Float32Array
-  | Float64Array
-  | BigInt64Array
-  | BigUint64Array;
 
 export interface Nalu {
   data: Uint8Array;

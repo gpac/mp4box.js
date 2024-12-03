@@ -1,12 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-
-export interface SubSample {
-  size: number;
-  priority: number;
-  discardable: number;
-  codec_specific_parameters: number;
-}
+import type { SubSample } from '@types';
 
 interface SampleInfo {
   size: number;
