@@ -7,27 +7,25 @@ import {
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
-import { MP4BoxStream } from '#/stream';
+import type { Reference } from '@types';
 
 export class irefBox extends Box {
-  references: { references: Array<unknown>; from_item_ID: number; type: unknown }[];
+  references: { references: Array<Reference>; from_item_ID: number; type: string }[];
   version: number;
 
   type = 'iref' as const;
 
-  parse(stream: MultiBufferStream | MP4BoxStream) {
-    let ret;
-    let box;
+  parse(stream: MultiBufferStream) {
     this.references = [];
 
     while (stream.getPosition() < this.start + this.size) {
-      ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
+      const ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
-        if (this.version === 0) {
-          box = new SingleItemTypeReferenceBox(ret.type, ret.size, ret.hdr_size, ret.start);
-        } else {
-          box = new SingleItemTypeReferenceBoxLarge(ret.type, ret.size, ret.hdr_size, ret.start);
-        }
+        const box =
+          this.version === 0
+            ? new SingleItemTypeReferenceBox(ret.type, ret.size, ret.hdr_size, ret.start)
+            : new SingleItemTypeReferenceBoxLarge(ret.type, ret.size, ret.hdr_size, ret.start);
+
         if (box.write === Box.prototype.write && box.type !== 'mdat') {
           Log.warn(
             'BoxParser',

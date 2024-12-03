@@ -9,7 +9,7 @@ import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
-import type { BoxKind, Output } from '@types';
+import type { BoxKind, Output, Reference } from '@types';
 
 class BoxBase {
   type?: string;
@@ -302,7 +302,7 @@ export class TrackGroupTypeBox extends FullBox {
 /** @bundle parsing/singleitemtypereference.js */
 export class SingleItemTypeReferenceBox extends BoxBase {
   from_item_ID: number;
-  references: Array<{ to_item_ID: number }>;
+  references: Array<Reference>;
 
   constructor(public type: string, size: number, public hdr_size: number, public start: number) {
     super(size);
@@ -322,7 +322,7 @@ export class SingleItemTypeReferenceBox extends BoxBase {
 /** @bundle parsing/singleitemtypereferencelarge.js */
 export class SingleItemTypeReferenceBoxLarge extends BoxBase {
   from_item_ID: number;
-  references: Array<{ to_item_ID: number }>;
+  references: Array<Reference>;
 
   constructor(public type: string, size: number, public hdr_size: number, public start: number) {
     super(size);

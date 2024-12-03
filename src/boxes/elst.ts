@@ -1,12 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-
-interface Entry {
-  segment_duration: number;
-  media_time: number;
-  media_rate_integer: number;
-  media_rate_fraction: number;
-}
+import type { Entry } from '@types';
 
 export class elstBox extends FullBox {
   entries: Entry[];

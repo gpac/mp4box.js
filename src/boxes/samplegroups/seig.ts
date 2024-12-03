@@ -7,7 +7,7 @@ export class seigSampleGroupEntry extends SampleGroupEntry {
   skip_byte_block: number;
   isProtected: number;
   Per_Sample_IV_Size: number;
-  KID: unknown;
+  KID: string;
   constant_IV_size: number;
   constant_IV: number | Uint8Array;
 

@@ -68,27 +68,27 @@ export interface Sample {
 }
 
 export interface SampleGroup {
-  grouping_type: unknown;
-  grouping_type_parameter: unknown;
-  group_description_index: number;
-  description: Description['entries'][number];
+  grouping_type: string;
+  grouping_type_parameter: number;
+  group_description_index?: number;
+  description?: unknown;
 }
 
 export interface Track {
-  alternate_group?: unknown;
+  alternate_group?: number;
   audio?: { sample_rate: number; channel_count: number; sample_size: number };
-  bitrate?: unknown;
-  codec?: unknown;
-  created?: unknown;
-  cts_shift?: unknown;
-  duration?: unknown;
-  edits?: unknown;
-  id?: unknown;
-  kind?: unknown;
-  language?: unknown;
-  layer?: unknown;
-  matrix?: unknown;
-  modified?: unknown;
+  bitrate?: number;
+  codec?: string;
+  created?: Date;
+  cts_shift?: BOXES.cslgBox;
+  duration?: number;
+  edits?: Entry[];
+  id?: number;
+  kind?: BOXES.kindBox | { schemeURI: ''; value: '' };
+  language?: string;
+  layer?: number;
+  matrix?: Matrix;
+  modified?: Date;
   movie_duration?: number;
   movie_timescale?: number;
   name?: string;
@@ -100,7 +100,7 @@ export interface Track {
   timescale?: number;
   track_height?: number;
   track_width?: number;
-  type?: unknown;
+  type?: 'audio' | 'video' | 'subtitles' | 'metadata';
   video?: { width: number; height: number };
   volume?: number;
 }
@@ -110,12 +110,12 @@ export interface Movie {
   duration?: number;
   timescale?: number;
   isFragmented?: boolean;
-  fragment_duration?: unknown;
+  fragment_duration?: number;
   isProgressive?: boolean;
   hasIOD?: boolean;
   brands?: Array<string>;
-  created?: unknown;
-  modified?: unknown;
+  created?: Date;
+  modified?: Date;
   tracks?: Array<Track>;
   audioTracks?: Array<Track>;
   videoTracks?: Array<Track>;
@@ -137,20 +137,23 @@ export type IncompleteBox = {
   code: number;
   box?: Box;
   size?: number;
-  type?: unknown;
+  type?: string;
   hdr_size?: number;
   start?: number;
 };
 
 export interface Item {
   id?: number;
-  ref_to?: Array<{ type: unknown; id: unknown }>;
+  ref_to?: Array<{
+    type: string;
+    id: Reference;
+  }>;
   name?: string;
   protection?: unknown;
   type?: string;
   content_type?: string;
   content_encoding?: string;
-  source?: unknown;
+  source?: Box;
   extents?: Array<{
     alreadyRead?: number;
     length: number;
@@ -196,6 +199,17 @@ export type NaluArray = Array<Nalu> & {
 export interface Output {
   log: (message: string) => void;
   indent: string;
+}
+
+export interface Entry {
+  segment_duration: number;
+  media_time: number;
+  media_rate_integer: number;
+  media_rate_fraction: number;
+}
+
+export interface Reference {
+  to_item_ID: number;
 }
 
 /**********************************************************************************/

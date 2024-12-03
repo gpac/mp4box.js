@@ -33,6 +33,7 @@ import type { trunBox } from '#/boxes/trun';
 import type { tycoBox } from '#/boxes/tyco';
 import type { SampleGroupInfo } from '#/isofile';
 import type { Sample } from '@types';
+import type { EntityToGroup } from './EntityToGroup/base';
 
 /**********************************************************************************/
 /*                                                                                */
@@ -258,6 +259,7 @@ export class ipcoBox extends ContainerBox {
   type = 'ipco' as const;
 }
 export class grplBox extends ContainerBox {
+  declare boxes: Array<EntityToGroup>;
   type = 'grpl' as const;
 }
 export class j2kHBox extends ContainerBox {

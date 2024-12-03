@@ -22,10 +22,12 @@ export class VTTin4Parser {
   }
 
   getText(startTime: number, endTime: number, data: TypedArray) {
-    function pad(n: string | number | Array<unknown>, width: number, z?: string) {
-      z = z || '0';
-      n = n + '';
-      return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+    function pad(value: number, width: number) {
+      const string = value.toString();
+      if (string.length >= width) {
+        return string;
+      }
+      return new Array(width - string.length + 1).join('0') + string;
     }
     function secToTimestamp(insec: number) {
       const h = Math.floor(insec / 3600);

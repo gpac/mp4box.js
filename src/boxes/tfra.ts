@@ -1,12 +1,13 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import type { SampleEntry } from './sampleentries/base';
 
 export class tfraBox extends FullBox {
   track_ID: number;
   length_size_of_traf_num: number;
   length_size_of_trun_num: number;
   length_size_of_sample_num: number;
-  entries: Array<unknown>;
+  entries: Array<SampleEntry>;
   time: number;
   moof_offset: number;
   traf_number: number;

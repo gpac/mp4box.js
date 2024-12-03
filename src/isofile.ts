@@ -92,10 +92,8 @@ import type {
   Output,
   Sample,
   SampleEntryKind,
-  SampleGroup,
   Track,
 } from '@types';
-import type { EntityToGroup } from './boxes/EntityToGroup/base';
 import { MP4BoxBuffer } from './mp4boxbuffer';
 
 export class SampleGroupInfo {
@@ -107,8 +105,8 @@ export class SampleGroupInfo {
   is_fragment: boolean;
 
   constructor(
-    public grouping_type: unknown,
-    public grouping_type_parameter: unknown,
+    public grouping_type: string,
+    public grouping_type_parameter: number,
     public sbgp?: sbgpBox,
   ) {}
 }
@@ -170,7 +168,7 @@ export class ISOFile {
     | ((id: number, user: unknown, buffer: ArrayBuffer, nextSample: number, last: boolean) => void)
     | null = null;
   /** Callback to call when samples are ready */
-  onSamples: ((id: unknown, user: unknown, samples: Array<Sample>) => void) | null = null;
+  onSamples: ((id: number, user: unknown, samples: Array<Sample>) => void) | null = null;
   /** Callback to call when there is an error in the parsing or processing of samples */
   onError: (() => void) | null = null;
 
@@ -199,7 +197,7 @@ export class ISOFile {
   sidx: sidxBox;
   meta: metaBox;
   ftyp: ftypBox;
-  static type: unknown;
+  static type: BoxKind['type'];
   static boxes: Array<Box>;
   initial_duration: number;
 
@@ -734,18 +732,18 @@ export class ISOFile {
   }
 
   /* Find and return specific boxes using recursion and early return */
-  getBox(type: unknown) {
+  getBox(type: BoxKind['type']) {
     const result = this.getBoxes(type, true);
     return result.length ? result[0] : null;
   }
 
-  getBoxes(type: unknown, returnEarly: boolean) {
+  getBoxes(type: BoxKind['type'], returnEarly: boolean) {
     const result = [];
     ISOFile._sweep.call(this, type, result, returnEarly);
     return result;
   }
 
-  static _sweep(type: boolean, result: Array<typeof ISOFile>, returnEarly: unknown) {
+  static _sweep(type: BoxKind['type'], result: Array<typeof ISOFile>, returnEarly: boolean) {
     if (this.type && this.type == type) result.push(this);
     for (const box in this.boxes) {
       if (result.length && returnEarly) return;
@@ -811,7 +809,7 @@ export class ISOFile {
 
   /* Finds the byte offset for a given time on a given track
      also returns the time of the previous rap */
-  seekTrack(time: number, useRap: unknown, trak: trakBox) {
+  seekTrack(time: number, useRap: boolean, trak: trakBox) {
     let rap_seek_sample_num = 0;
     let seek_sample_num = 0;
     let timescale: number = null!;
@@ -870,7 +868,7 @@ export class ISOFile {
     return { offset: seek_offset, time: time / timescale };
   }
 
-  getTrackDuration(trak: Track) {
+  getTrackDuration(trak: trakBox) {
     if (!trak.samples) {
       return Infinity;
     }
@@ -880,7 +878,7 @@ export class ISOFile {
   }
 
   /* Finds the byte offset in the file corresponding to the given time or to the time of the previous RAP */
-  seek(time: number, useRap: unknown) {
+  seek(time: number, useRap: boolean) {
     const moov = this.moov;
     let seek_info = { offset: Infinity, time: Infinity };
     if (!this.moov) {
@@ -1046,7 +1044,7 @@ export class ISOFile {
       this.nextMoofNumber = 0;
       this.resetTables();
     }
-    const initSegs = [];
+    const initSegs: Array<{ id: number; user: unknown; buffer: MP4BoxBuffer }> = [];
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
       const moov = new moovBox();
       moov.mvhd = this.moov.mvhd;
@@ -1185,7 +1183,7 @@ export class ISOFile {
 
   /** @bundle isofile-sample-processing.js */
   static setSampleGroupProperties(
-    trak: unknown,
+    trak: trakBox,
     sample: Sample,
     sample_number: number,
     sample_groups_info: Array<SampleGroupInfo>,
@@ -1195,7 +1193,7 @@ export class ISOFile {
       sample.sample_groups[k] = {
         grouping_type: sample_groups_info[k].grouping_type,
         grouping_type_parameter: sample_groups_info[k].grouping_type_parameter,
-      } as SampleGroup;
+      };
       if (sample_number >= sample_groups_info[k].last_sample_in_run) {
         if (sample_groups_info[k].last_sample_in_run < 0) {
           sample_groups_info[k].last_sample_in_run = 0;
@@ -1816,13 +1814,12 @@ export class ISOFile {
     }
     if (meta.grpl) {
       for (let i = 0; i < meta.grpl.boxes.length; i++) {
-        const entityGroup = meta.grpl.boxes[i] as EntityToGroup;
-        const entity_group = {
+        const entityGroup = meta.grpl.boxes[i];
+        entity_groups[entityGroup.group_id] = {
           id: entityGroup.group_id,
           entity_ids: entityGroup.entity_ids,
           type: entityGroup.type,
         };
-        entity_groups[entity_group.id] = entity_group;
       }
     }
     if (meta.iloc) {
@@ -2057,7 +2054,7 @@ export class ISOFile {
   }
 
   /** @bundle isofile-item-processing.js */
-  hasItem(name: unknown) {
+  hasItem(name: string) {
     for (let i in this.items) {
       const item = this.items[i];
       if (item.name === name) {
@@ -2262,7 +2259,7 @@ export class ISOFile {
   }
 
   /** @bundle isofile-advanced-parsing.js */
-  updateUsedBytes(box: Box, ret: unknown) {
+  updateUsedBytes(box: Box, ret: ReturnType<typeof parseOneBox>) {
     if (this.stream.addUsedBytes) {
       if (box.type === 'mdat') {
         /* for an mdat box, only its header is considered used, other bytes will be used when sample data is requested */

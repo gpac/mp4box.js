@@ -12,14 +12,14 @@ const LOG_LEVEL_DEBUG = 1;
 let log_level = LOG_LEVEL_ERROR;
 
 export class Log {
-  static setLogLevel(level: unknown) {
+  static setLogLevel(level: { (module: string, msg?: string): void }) {
     if (level == this.debug) log_level = LOG_LEVEL_DEBUG;
     else if (level == this.info) log_level = LOG_LEVEL_INFO;
     else if (level == this.warn) log_level = LOG_LEVEL_WARNING;
     else if (level == this.error) log_level = LOG_LEVEL_ERROR;
     else log_level = LOG_LEVEL_ERROR;
   }
-  static debug(module: string, msg?: unknown) {
+  static debug(module: string, msg?: string) {
     if (console.debug === undefined) {
       console.debug = console.log;
     }
@@ -31,7 +31,7 @@ export class Log {
       );
     }
   }
-  static log(module: { msg: string }, msg?: unknown) {
+  static log(module: { msg: string }, msg?: string) {
     this.debug(module.msg);
   }
   static info(module: string, msg?: string) {
@@ -43,7 +43,7 @@ export class Log {
       );
     }
   }
-  static warn(module: string, msg?: unknown) {
+  static warn(module: string, msg?: string) {
     if (LOG_LEVEL_WARNING >= log_level) {
       console.warn(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
@@ -52,7 +52,7 @@ export class Log {
       );
     }
   }
-  static error(module: string, msg?: unknown) {
+  static error(module: string, msg?: string) {
     if (LOG_LEVEL_ERROR >= log_level) {
       console.error(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
