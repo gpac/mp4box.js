@@ -13,6 +13,7 @@
     "skipDefaultLibCheck": true,
     "isolatedModules": false,
     "verbatimModuleSyntax": true,
+    "useDefineForClassFields": false,
     "allowJs": true,
     "paths": {
       "#/*": ["./src/*"],
