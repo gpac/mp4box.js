@@ -3,9 +3,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mehdBox extends FullBox {
-  fragment_duration: number;
-
   type = 'mehd' as const;
+
+  fragment_duration: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

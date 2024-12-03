@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class padbBox extends FullBox {
-  padbits: number | Array<number>;
-
   type = 'padb' as const;
+
+  padbits: number | Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

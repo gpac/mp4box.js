@@ -3,6 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { SampleEntry } from './sampleentries/base';
 
 export class tfraBox extends FullBox {
+  type = 'tfra' as const;
+
   track_ID: number;
   length_size_of_traf_num: number;
   length_size_of_trun_num: number;
@@ -13,8 +15,6 @@ export class tfraBox extends FullBox {
   traf_number: number;
   trun_number: number;
   sample_number: number;
-
-  type = 'tfra' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

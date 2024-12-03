@@ -7,11 +7,11 @@ export interface Assocation {
 }
 
 export class ipmaBox extends Box {
+  type = 'ipma' as const;
+
   associations: Array<Assocation>;
   version: number;
   flags: number;
-
-  type = 'ipma' as const;
 
   parse(stream: MultiBufferStream) {
     const entry_count = stream.readUint32();

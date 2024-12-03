@@ -8,6 +8,8 @@ export interface Extent {
 }
 
 export class ilocBox extends FullBox {
+  type = 'iloc' as const;
+
   offset_size: number;
   length_size: number;
   base_offset_size: number;
@@ -19,8 +21,6 @@ export class ilocBox extends FullBox {
     data_reference_index: number;
     extents: Extent[];
   }>;
-
-  type = 'iloc' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

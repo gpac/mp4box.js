@@ -2,12 +2,12 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cdefBox extends Box {
+  type = 'cdef' as const;
+
   channel_count: number;
   channel_indexes: Array<number>;
   channel_types: Array<number>;
   channel_associations: Array<number>;
-
-  type = 'cdef' as const;
 
   parse(stream: MultiBufferStream) {
     this.channel_count = stream.readUint16();

@@ -2,13 +2,13 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class trexBox extends FullBox {
+  type = 'trex' as const;
+
   track_id: number;
   default_sample_description_index: number;
   default_sample_duration: number;
   default_sample_size: number;
   default_sample_flags: number;
-
-  type = 'trex' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

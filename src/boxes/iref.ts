@@ -10,10 +10,10 @@ import { Log } from '#/log';
 import type { Reference } from '@types';
 
 export class irefBox extends Box {
+  type = 'iref' as const;
+
   references: { references: Array<Reference>; from_item_ID: number; type: string }[];
   version: number;
-
-  type = 'iref' as const;
 
   parse(stream: MultiBufferStream) {
     this.references = [];

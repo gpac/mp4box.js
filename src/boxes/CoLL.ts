@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class CoLLBox extends FullBox {
+  type = 'CoLL' as const;
+
   maxCLL: number;
   maxFALL: number;
-
-  type = 'CoLL' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

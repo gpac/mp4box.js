@@ -3,6 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { NaluArray } from '@types';
 
 export class vvcCBox extends FullBox {
+  type = 'vvcC' as const;
+
   lengthSizeMinusOne: number;
   ptl_present_flag: number;
   ols_idx: number;
@@ -25,8 +27,6 @@ export class vvcCBox extends FullBox {
   max_picture_height: number;
   avg_frame_rate: number;
   nalu_arrays: Array<NaluArray>;
-
-  type = 'vvcC' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

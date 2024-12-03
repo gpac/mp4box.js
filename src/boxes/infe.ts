@@ -3,6 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class infeBox extends FullBox {
+  type = 'infe' as const;
+
   item_ID: number;
   item_protection_index: number;
   item_name: string;
@@ -11,8 +13,6 @@ export class infeBox extends FullBox {
   extension_type: string;
   item_type: string;
   item_uri_type: string;
-
-  type = 'infe' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -9,12 +9,12 @@ class ColorPoint {
 }
 
 export class mdcvBox extends Box {
+  type = 'mdcv' as const;
+
   display_primaries: Array<ColorPoint>;
   white_point: ColorPoint;
   max_display_mastering_luminance: number;
   min_display_mastering_luminance: number;
-
-  type = 'mdcv' as const;
 
   parse(stream: MultiBufferStream) {
     this.display_primaries = [];

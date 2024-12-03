@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class elngBox extends FullBox {
-  extended_language: string;
-
   type = 'elng' as const;
+
+  extended_language: string;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

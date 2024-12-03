@@ -4,10 +4,10 @@ import { Log } from '#/log';
 import type { Sample } from '@types';
 
 export class cttsBox extends FullBox {
+  type = 'ctts' as const;
+
   sample_counts: Array<number>;
   sample_offsets: Array<number>;
-
-  type = 'ctts' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

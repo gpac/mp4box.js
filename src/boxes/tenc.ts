@@ -2,6 +2,8 @@ import { FullBox, parseHex16 } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tencBox extends FullBox {
+  type = 'tenc' as const;
+
   default_crypt_byte_block: number;
   default_skip_byte_block: number;
   default_isProtected: number;
@@ -9,8 +11,6 @@ export class tencBox extends FullBox {
   default_KID: string;
   default_constant_IV_size: number;
   default_constant_IV: Uint8Array;
-
-  type = 'tenc' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

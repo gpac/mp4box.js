@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class smhdBox extends FullBox {
-  balance: number;
-
   type = 'smhd' as const;
+
+  balance: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

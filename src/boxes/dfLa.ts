@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class dfLaBox extends FullBox {
+  type = 'dfLa' as const;
+
   samplerate: number;
   numMetadataBlocks: string;
-
-  type = 'dfLa' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

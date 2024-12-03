@@ -12,11 +12,11 @@ interface IndSub {
 }
 
 export class dec3Box extends Box {
+  type = 'dec3' as const;
+
   data_rate: number;
   num_ind_sub: number;
   ind_subs: Array<IndSub>;
-
-  type = 'dec3' as const;
 
   parse(stream: MultiBufferStream) {
     let tmp_16 = stream.readUint16();

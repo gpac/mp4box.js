@@ -4,6 +4,8 @@ import { MP4BoxStream } from '#/stream';
 import type { NaluArray } from '@types';
 
 export class hvcCBox extends Box {
+  type = 'hvcC' as const;
+
   configurationVersion: number;
   general_profile_space: number;
   general_tier_flag: number;
@@ -22,8 +24,6 @@ export class hvcCBox extends Box {
   temporalIdNested: number;
   lengthSizeMinusOne: number;
   nalu_arrays: Array<NaluArray>;
-
-  type = 'hvcC' as const;
 
   parse(stream: DataStream | MP4BoxStream) {
     this.configurationVersion = stream.readUint8();

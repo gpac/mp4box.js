@@ -5,9 +5,9 @@ import type { ES_Descriptor } from '#/descriptor';
 import { DescriptorRegistry } from '#/registry';
 
 export class esdsBox extends FullBox {
-  esd: ES_Descriptor;
-
   type = 'esds' as const;
+
+  esd: ES_Descriptor;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

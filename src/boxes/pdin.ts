@@ -2,10 +2,10 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class pdinBox extends Box {
+  type = 'pdin' as const;
+
   rate: Array<number>;
   initial_delay: Array<number>;
-
-  type = 'pdin' as const;
 
   parse(stream: MultiBufferStream) {
     const count = (this.size - this.hdr_size) / 8;

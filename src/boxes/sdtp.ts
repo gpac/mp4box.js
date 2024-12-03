@@ -2,12 +2,12 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class sdtpBox extends FullBox {
+  type = 'sdtp' as const;
+
   is_leading: Array<number>;
   sample_depends_on: Array<number>;
   sample_is_depended_on: Array<number>;
   sample_has_redundancy: Array<number>;
-
-  type = 'sdtp' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

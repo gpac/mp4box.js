@@ -2,10 +2,10 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class paytBox extends Box {
+  type = 'payt' as const;
+
   payloadID: number;
   rtpmap_string: string;
-
-  type = 'payt' as const;
 
   parse(stream: MultiBufferStream) {
     this.payloadID = stream.readUint32();

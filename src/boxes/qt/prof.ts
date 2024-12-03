@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class profBox extends FullBox {
+  type = 'prof' as const;
+
   width: number;
   height: number;
-
-  type = 'prof' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

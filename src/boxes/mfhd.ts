@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mfhdBox extends FullBox {
-  sequence_number: number;
-
   type = 'mfhd' as const;
+
+  sequence_number: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

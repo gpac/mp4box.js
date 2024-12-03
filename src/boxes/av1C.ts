@@ -3,6 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class av1CBox extends Box {
+  type = 'av1C' as const;
+
   version: number;
   seq_profile: number;
   seq_level_idx_0: number;
@@ -18,8 +20,6 @@ export class av1CBox extends Box {
   initial_presentation_delay_minus_one: number;
   reserved_2: number;
   configOBUs: Uint8Array;
-
-  type = 'av1C' as const;
 
   parse(stream: MultiBufferStream) {
     let tmp = stream.readUint8();

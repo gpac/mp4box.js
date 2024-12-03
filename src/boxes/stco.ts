@@ -3,9 +3,9 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Sample } from '@types';
 
 export class stcoBox extends FullBox {
-  chunk_offsets: Array<number>;
-
   type = 'stco' as const;
+
+  chunk_offsets: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

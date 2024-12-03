@@ -2,11 +2,11 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class prftBox extends FullBox {
+  type = 'prft' as const;
+
   ref_track_id: number;
   ntp_timestamp: number;
   media_time: number;
-
-  type = 'prft' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

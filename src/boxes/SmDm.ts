@@ -2,6 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class SmDmBox extends FullBox {
+  type = 'SmDm' as const;
+
   primaryRChromaticity_x: number;
   primaryRChromaticity_y: number;
   primaryGChromaticity_x: number;
@@ -12,8 +14,6 @@ export class SmDmBox extends FullBox {
   whitePointChromaticity_y: number;
   luminanceMax: number;
   luminanceMin: number;
-
-  type = 'SmDm' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

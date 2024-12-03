@@ -3,6 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Matrix, Output } from '@types';
 
 export class mvhdBox extends FullBox {
+  type = 'mvhd' as const;
+
   creation_time: number;
   modification_time: number;
   timescale: number;
@@ -11,8 +13,6 @@ export class mvhdBox extends FullBox {
   volume: number;
   next_track_id: number;
   matrix: Matrix;
-
-  type = 'mvhd' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

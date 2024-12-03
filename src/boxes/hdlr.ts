@@ -2,12 +2,12 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class hdlrBox extends FullBox {
+  type = 'hdlr' as const;
+
   version: number;
   handler: string;
   name: string;
   flags: number;
-
-  type = 'hdlr' as const;
 
   parse(stream: MultiBufferStream) {
     if (this.version === 0) {

@@ -4,10 +4,10 @@ import { Log } from '#/log';
 import type { Sample } from '@types';
 
 export class sttsBox extends FullBox {
+  type = 'stts' as const;
+
   sample_counts: Array<number> = [];
   sample_deltas: Array<number> = [];
-
-  type = 'stts' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

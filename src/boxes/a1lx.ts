@@ -2,9 +2,9 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class a1lxBox extends Box {
-  layer_size: Array<number>;
-
   type = 'a1lx' as const;
+
+  layer_size: Array<number>;
 
   parse(stream: MultiBufferStream) {
     const large_size = stream.readUint8() & 1;

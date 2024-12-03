@@ -2,12 +2,12 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class saizBox extends FullBox {
+  type = 'saiz' as const;
+
   aux_info_type: number;
   aux_info_type_parameter: number;
   default_sample_info_size: number;
   sample_info_size: Array<number>;
-
-  type = 'saiz' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

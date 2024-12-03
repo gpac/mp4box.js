@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tfdtBox extends FullBox {
-  baseMediaDecodeTime: number;
-
   type = 'tfdt' as const;
+
+  baseMediaDecodeTime: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

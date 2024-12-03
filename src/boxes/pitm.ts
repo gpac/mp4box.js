@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class pitmBox extends FullBox {
-  item_id: number;
-
   type = 'pitm' as const;
+
+  item_id: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

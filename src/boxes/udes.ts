@@ -2,12 +2,12 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class udesBox extends FullBox {
+  type = 'udes' as const;
+
   lang: string;
   name: string;
   description: string;
   tags: string;
-
-  type = 'udes' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

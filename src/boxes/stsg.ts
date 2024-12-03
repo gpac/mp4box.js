@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stsgBox extends FullBox {
+  type = 'stsg' as const;
+
   grouping_type: number;
   group_description_index: Array<number>;
-
-  type = 'stsg' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

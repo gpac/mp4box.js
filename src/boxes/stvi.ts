@@ -4,11 +4,11 @@ import { OK } from '#/constants';
 import type { BoxKind } from '@types';
 
 export class stviBox extends FullBox {
+  type = 'stvi' as const;
+
   single_view_allowed: number;
   stereo_scheme: number;
   stereo_indication_type: string;
-
-  type = 'stvi' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

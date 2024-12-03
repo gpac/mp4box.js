@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tselBox extends FullBox {
+  type = 'tsel' as const;
+
   switch_group: number;
   attribute_list: Array<number>;
-
-  type = 'tsel' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

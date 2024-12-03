@@ -2,10 +2,10 @@ import { FullBox, parseHex16 } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class psshBox extends FullBox {
+  type = 'pssh' as const;
+
   system_id: string;
   kid: Array<string>;
-
-  type = 'pssh' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

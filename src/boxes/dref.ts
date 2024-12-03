@@ -4,9 +4,9 @@ import { OK } from '#/constants';
 import { Log } from '#/log';
 
 export class drefBox extends FullBox {
-  entries: Array<Box>;
-
   type = 'dref' as const;
+
+  entries: Array<Box>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

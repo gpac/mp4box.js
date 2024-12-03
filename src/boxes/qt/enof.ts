@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class enofBox extends FullBox {
+  type = 'enof' as const;
+
   width: number;
   height: number;
-
-  type = 'enof' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

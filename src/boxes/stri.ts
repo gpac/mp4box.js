@@ -2,12 +2,12 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class striBox extends FullBox {
+  type = 'stri' as const;
+
   switch_group: number;
   alternate_group: number;
   sub_track_id: number;
   attribute_list: Array<number>;
-
-  type = 'stri' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

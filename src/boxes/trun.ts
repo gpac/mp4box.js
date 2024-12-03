@@ -10,6 +10,8 @@ import {
 } from '#/constants';
 
 export class trunBox extends FullBox {
+  type = 'trun' as const;
+
   sample_count: number;
   data_offset: number;
   first_sample_flags: number;
@@ -18,8 +20,6 @@ export class trunBox extends FullBox {
   sample_flags: Array<number>;
   sample_composition_time_offset: Array<number>;
   data_offset_position: number;
-
-  type = 'trun' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

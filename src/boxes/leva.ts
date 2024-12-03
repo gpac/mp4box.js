@@ -12,9 +12,9 @@ interface Level {
 }
 
 export class levaBox extends FullBox {
-  levels: Array<Level>;
-
   type = 'leva' as const;
+
+  levels: Array<Level>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

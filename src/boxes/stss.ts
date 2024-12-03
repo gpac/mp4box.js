@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stssBox extends FullBox {
-  sample_numbers: Array<number>;
-
   type = 'stss' as const;
+
+  sample_numbers: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

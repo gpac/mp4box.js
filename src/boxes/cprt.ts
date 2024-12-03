@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cprtBox extends FullBox {
-  notice: string;
-
   type = 'cprt' as const;
+
+  notice: string;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

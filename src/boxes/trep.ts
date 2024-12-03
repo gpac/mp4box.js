@@ -3,9 +3,9 @@ import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 
 export class trepBox extends FullBox {
-  track_ID: number;
-
   type = 'trep' as const;
+
+  track_ID: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

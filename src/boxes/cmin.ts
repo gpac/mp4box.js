@@ -2,14 +2,14 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cminBox extends Box {
+  type = 'cmin' as const;
+
   focal_length_x: number;
   principal_point_x: number;
   principal_point_y: number;
   flags: number;
   focal_length_y: number;
   skew_factor: number;
-
-  type = 'cmin' as const;
 
   parse(stream: MultiBufferStream) {
     this.focal_length_x = stream.readInt32();

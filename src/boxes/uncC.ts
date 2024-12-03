@@ -2,6 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class uncCBox extends FullBox {
+  type = 'uncC' as const;
+
   profile: number;
   component_count: number;
   component_index: Array<number>;
@@ -21,8 +23,6 @@ export class uncCBox extends FullBox {
   tile_align_size: number;
   num_tile_cols_minus_one: number;
   num_tile_rows_minus_one: number;
-
-  type = 'uncC' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

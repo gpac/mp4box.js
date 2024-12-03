@@ -2,6 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cmexBox extends Box {
+  type = 'cmex' as const;
+
   flags: number;
   pos_x: number;
   pos_y: number;
@@ -11,8 +13,6 @@ export class cmexBox extends Box {
   quat_y: number;
   quat_z: number;
   id: number;
-
-  type = 'cmex' as const;
 
   parse(stream: MultiBufferStream) {
     if (this.flags & 0x1) {

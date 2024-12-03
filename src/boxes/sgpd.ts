@@ -5,6 +5,8 @@ import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 
 export class sgpdBox extends FullBox {
+  type = 'sgpd' as const;
+
   grouping_type:
     | 'alst'
     | 'avll'
@@ -30,8 +32,6 @@ export class sgpdBox extends FullBox {
   default_sample_description_index: number;
   entries: SampleGroupEntry[];
   used: boolean;
-
-  type = 'sgpd' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

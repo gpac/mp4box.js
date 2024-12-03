@@ -2,13 +2,13 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cslgBox extends FullBox {
+  type = 'cslg' as const;
+
   compositionToDTSShift: number;
   leastDecodeToDisplayDelta: number;
   greatestDecodeToDisplayDelta: number;
   compositionStartTime: number;
   compositionEndTime: number;
-
-  type = 'cslg' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

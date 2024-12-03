@@ -2,6 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class emsgBox extends FullBox {
+  type = 'emsg' as const;
+
   timescale: number;
   presentation_time: number;
   event_duration: number;
@@ -10,8 +12,6 @@ export class emsgBox extends FullBox {
   value: string;
   presentation_time_delta: number;
   message_data: Uint8Array;
-
-  type = 'emsg' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

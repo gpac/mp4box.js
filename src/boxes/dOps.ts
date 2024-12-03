@@ -2,6 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class dOpsBox extends Box {
+  type = 'dOps' as const;
+
   Version: number;
   OutputChannelCount: number;
   PreSkip: number;
@@ -11,8 +13,6 @@ export class dOpsBox extends Box {
   StreamCount: number;
   CoupledCount: number;
   ChannelMapping: Array<number>;
-
-  type = 'dOps' as const;
 
   parse(stream: MultiBufferStream) {
     this.Version = stream.readUint8();

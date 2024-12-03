@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class kindBox extends FullBox {
+  type = 'kind' as const;
+
   schemeURI: string;
   value: string;
-
-  type = 'kind' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

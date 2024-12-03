@@ -3,11 +3,11 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class stz2Box extends FullBox {
+  type = 'stz2' as const;
+
   sample_sizes: Array<number>;
   reserved: number;
   field_size: number;
-
-  type = 'stz2' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

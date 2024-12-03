@@ -9,6 +9,8 @@ type NaluArray = Array<{
 };
 
 export class lhvCBox extends Box {
+  type = 'lhvC' as const;
+
   configurationVersion: number;
   min_spatial_segmentation_idc: number;
   parallelismType: number;
@@ -16,8 +18,6 @@ export class lhvCBox extends Box {
   temporalIdNested: number;
   lengthSizeMinusOne: number;
   nalu_arrays: Array<NaluArray>;
-
-  type = 'lhvC' as const;
 
   parse(stream: MultiBufferStream) {
     this.configurationVersion = stream.readUint8();

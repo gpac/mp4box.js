@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mskCBox extends FullBox {
-  bits_per_pixel: number;
-
   type = 'mskC' as const;
+
+  bits_per_pixel: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

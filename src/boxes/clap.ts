@@ -2,6 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class clapBox extends Box {
+  type = 'clap' as const;
+
   cleanApertureWidthN: number;
   cleanApertureWidthD: number;
   cleanApertureHeightN: number;
@@ -10,8 +12,6 @@ export class clapBox extends Box {
   horizOffD: number;
   vertOffN: number;
   vertOffD: number;
-
-  type = 'clap' as const;
 
   parse(stream: MultiBufferStream) {
     this.cleanApertureWidthN = stream.readUint32();

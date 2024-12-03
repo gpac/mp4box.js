@@ -3,9 +3,9 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Entry } from '@types';
 
 export class elstBox extends FullBox {
-  entries: Entry[];
-
   type = 'elst' as const;
+
+  entries: Entry[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

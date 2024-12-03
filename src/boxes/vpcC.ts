@@ -2,6 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class vpcCBox extends FullBox {
+  type = 'vpcC' as const;
+
   profile: number;
   level: number;
   bitDepth: number;
@@ -14,8 +16,6 @@ export class vpcCBox extends FullBox {
   codecIntializationData: Uint8Array;
   colorSpace: number;
   transferFunction: number;
-
-  type = 'vpcC' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

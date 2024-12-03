@@ -4,6 +4,8 @@ import { DataStream } from '#/DataStream';
 import { MP4BoxStream } from '#/stream';
 
 export class avcCBox extends Box {
+  type = 'avcC' as const;
+
   configurationVersion: number;
   AVCProfileIndication: number;
   profile_compatibility: number;
@@ -14,8 +16,6 @@ export class avcCBox extends Box {
   nb_PPS_nalus: number;
   PPS: Array<{ length: number; nalu: Uint8Array }>;
   ext: Uint8Array;
-
-  type = 'avcC' as const;
 
   parse(stream: DataStream | MP4BoxStream) {
     this.configurationVersion = stream.readUint8();

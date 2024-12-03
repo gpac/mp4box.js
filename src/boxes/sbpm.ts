@@ -9,6 +9,8 @@ class Pixel {
 }
 
 export class sbpmBox extends FullBox {
+  type = 'sbpm' as const;
+
   component_count: number;
   component_index: Array<number>;
   correction_applied: boolean;
@@ -18,8 +20,6 @@ export class sbpmBox extends FullBox {
   bad_rows: Array<number>;
   bad_columns: Array<number>;
   bad_pixels: Pixel[];
-
-  type = 'sbpm' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

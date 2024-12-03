@@ -2,11 +2,11 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class ccstBox extends FullBox {
+  type = 'ccst' as const;
+
   all_ref_pics_intra: boolean;
   intra_pred_used: boolean;
   max_ref_per_pic: number;
-
-  type = 'ccst' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

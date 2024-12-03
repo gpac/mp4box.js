@@ -3,6 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Matrix } from '@types';
 
 export class tkhdBox extends FullBox {
+  type = 'tkhd' as const;
+
   creation_time: number;
   modification_time: number;
   track_id: number;
@@ -13,8 +15,6 @@ export class tkhdBox extends FullBox {
   matrix: Matrix;
   width: number;
   height: number;
-
-  type = 'tkhd' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

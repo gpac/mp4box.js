@@ -2,14 +2,14 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class colrBox extends Box {
+  type = 'colr' as const;
+
   colour_type: string;
   colour_primaries: number;
   transfer_characteristics: number;
   matrix_coefficients: number;
   full_range_flag: number;
   ICC_profile: Uint8Array;
-
-  type = 'colr' as const;
 
   parse(stream: MultiBufferStream) {
     this.colour_type = stream.readString(4);

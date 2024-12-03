@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class auxCBox extends FullBox {
+  type = 'auxC' as const;
+
   aux_type: string;
   aux_subtype: Uint8Array;
-
-  type = 'auxC' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

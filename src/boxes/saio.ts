@@ -2,11 +2,11 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class saioBox extends FullBox {
+  type = 'saio' as const;
+
   aux_info_type: number;
   aux_info_type_parameter: number;
   offset: Array<number>;
-
-  type = 'saio' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

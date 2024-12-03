@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stshBox extends FullBox {
+  type = 'stsh' as const;
+
   shadowed_sample_numbers: Array<number>;
   sync_sample_numbers: Array<number>;
-
-  type = 'stsh' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

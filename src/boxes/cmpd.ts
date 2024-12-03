@@ -2,11 +2,11 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cmpdBox extends Box {
+  type = 'cmpd' as const;
+
   component_count: number;
   component_types: Array<number>;
   component_type_urls: Array<string>;
-
-  type = 'cmpd' as const;
 
   parse(stream: MultiBufferStream) {
     this.component_count = stream.readUint32();

@@ -3,11 +3,11 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Sample } from '@types';
 
 export class stscBox extends FullBox {
+  type = 'stsc' as const;
+
   first_chunk: Array<number>;
   samples_per_chunk: Array<number>;
   sample_description_index: Array<number>;
-
-  type = 'stsc' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

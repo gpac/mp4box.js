@@ -2,9 +2,9 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tycoBox extends Box {
-  compatible_brands: Array<string>;
-
   type = 'tyco' as const;
+
+  compatible_brands: Array<string>;
 
   parse(stream: MultiBufferStream) {
     const count = (this.size - this.hdr_size) / 4;

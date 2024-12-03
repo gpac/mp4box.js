@@ -8,6 +8,8 @@ import { pitmBox } from '#/boxes/pitm';
 import type { MultiBufferStream } from '#/buffer';
 
 export class metaBox extends FullBox {
+  type = 'meta' as const;
+
   hdlr: hdlrBox;
   hdlrs: Array<hdlrBox>;
   iinf: iinfBox;
@@ -26,8 +28,6 @@ export class metaBox extends FullBox {
   irefs: Array<irefBox>;
   dinf: dinfBox;
   dinfs: Array<dinfBox>;
-
-  type = 'meta' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

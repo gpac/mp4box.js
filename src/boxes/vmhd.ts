@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class vmhdBox extends FullBox {
+  type = 'vmhd' as const;
+
   graphicsmode: number;
   opcolor: Uint16Array | [number, number, number];
-
-  type = 'vmhd' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

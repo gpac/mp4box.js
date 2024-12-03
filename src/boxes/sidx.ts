@@ -11,13 +11,13 @@ interface Reference {
 }
 
 export class sidxBox extends FullBox {
+  type = 'sidx' as const;
+
   reference_ID: number;
   timescale: number;
   earliest_presentation_time: number;
   first_offset: number;
   references: Reference[];
-
-  type = 'sidx' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

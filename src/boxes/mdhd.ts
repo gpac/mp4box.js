@@ -2,12 +2,12 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mdhdBox extends FullBox {
+  type = 'mdhd' as const;
+
   creation_time: number;
   modification_time: number;
   timescale: number;
   duration: number;
-
-  type = 'mdhd' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

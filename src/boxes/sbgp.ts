@@ -7,11 +7,11 @@ interface Entry {
 }
 
 export class sbgpBox extends FullBox {
+  type = 'sbgp' as const;
+
   grouping_type: string;
   grouping_type_parameter: number;
   entries: Array<Entry>;
-
-  type = 'sbgp' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

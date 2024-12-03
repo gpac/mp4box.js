@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mfroBox extends FullBox {
-  _size: number;
-
   type = 'mfro' as const;
+
+  _size: number;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

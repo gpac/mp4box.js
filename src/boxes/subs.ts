@@ -9,9 +9,9 @@ interface SampleInfo {
 }
 
 export class subsBox extends FullBox {
-  entries: SampleInfo[];
-
   type = 'subs' as const;
+
+  entries: SampleInfo[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

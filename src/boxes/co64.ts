@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class co64Box extends FullBox {
-  chunk_offsets: Array<number>;
-
   type = 'co64' as const;
+
+  chunk_offsets: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

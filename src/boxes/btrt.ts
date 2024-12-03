@@ -2,11 +2,11 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class btrtBox extends Box {
+  type = 'btrt' as const;
+
   bufferSizeDB: number;
   maxBitrate: number;
   avgBitrate: number;
-
-  type = 'btrt' as const;
 
   parse(stream: MultiBufferStream) {
     this.bufferSizeDB = stream.readUint32();

@@ -6,9 +6,9 @@ import { BoxRegistry } from '#/registry';
 import { SampleEntry } from './sampleentries/base';
 
 export class stsdBox extends FullBox {
-  entries: Array<SampleEntry>;
-
   type = 'stsd' as const;
+
+  entries: Array<SampleEntry>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

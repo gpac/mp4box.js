@@ -2,10 +2,10 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class imirBox extends Box {
+  type = 'imir' as const;
+
   reserved: number;
   axis: number;
-
-  type = 'imir' as const;
 
   parse(stream: MultiBufferStream) {
     const tmp = stream.readUint8();

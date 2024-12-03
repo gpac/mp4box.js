@@ -6,11 +6,11 @@ import { Log } from '#/log';
 import type { BoxKind } from '@types';
 
 export class iinfBox extends Box {
+  type = 'iinf' as const;
+
   version: number;
   entry_count: number;
   item_infos: Array<infeBox>;
-
-  type = 'iinf' as const;
 
   parse(stream: MultiBufferStream) {
     if (this.version === 0) {

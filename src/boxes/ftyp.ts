@@ -2,11 +2,11 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class ftypBox extends Box {
+  type = 'ftyp' as const;
+
   major_brand: string;
   minor_version: number;
   compatible_brands: Array<string>;
-
-  type = 'ftyp' as const;
 
   parse(stream: MultiBufferStream) {
     let toparse = this.size - this.hdr_size;

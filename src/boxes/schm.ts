@@ -2,11 +2,11 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class schmBox extends FullBox {
+  type = 'schm' as const;
+
   scheme_type: string;
   scheme_version: number;
   scheme_uri: string;
-
-  type = 'schm' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

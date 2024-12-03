@@ -2,10 +2,10 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class maxrBox extends Box {
+  type = 'maxr' as const;
+
   period: number;
   bytes: number;
-
-  type = 'maxr' as const;
 
   parse(stream: MultiBufferStream) {
     this.period = stream.readUint32();

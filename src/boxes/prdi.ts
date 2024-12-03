@@ -2,10 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class prdiBox extends FullBox {
+  type = 'prdi' as const;
+
   step_count: number;
   item_count: Array<number>;
-
-  type = 'prdi' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

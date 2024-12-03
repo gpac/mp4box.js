@@ -2,9 +2,9 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class urlBox extends FullBox {
-  location?: string;
+  type = 'url ' as const;
 
-  type = 'url' as const;
+  location?: string;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
