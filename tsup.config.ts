@@ -2,8 +2,8 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: {
-    all: 'entries/all.ts',
-    simple: 'entries/simple.ts',
+    'mp4box.all': 'entries/all.ts',
+    'mp4box.simple': 'entries/simple.ts',
   },
   format: ['cjs', 'esm'],
   splitting: false,

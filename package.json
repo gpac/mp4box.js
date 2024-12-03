@@ -10,7 +10,6 @@
     "streaming"
   ],
   "homepage": "https://github.com/gpac/mp4box.js",
-  "main": "dist/all.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/gpac/mp4box.js.git"
@@ -24,16 +23,18 @@
     "url": "http://concolato.wp.mines-telecom.fr/"
   },
   "license": "BSD-3-Clause",
+  "main": "./dist/mp4box.all.js",
+  "types": "./dist/mp4box.all.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/all.d.ts",
-      "import": "./dist/all.js",
-      "require": "./dist/all.cjs"
+      "types": "./dist/mp4box.all.d.ts",
+      "import": "./dist/mp4box.all.js",
+      "require": "./dist/mp4box.all.cjs"
     },
     "./simple": {
-      "types": "./dist/simple.d.ts",
-      "import": "./dist/simple.js",
-      "require": "./dist/simple.cjs"
+      "types": "./dist/mp4box.simple.d.ts",
+      "import": "./dist/mp4box.simple.js",
+      "require": "./dist/mp4box.simple.cjs"
     }
   },
   "scripts": {
