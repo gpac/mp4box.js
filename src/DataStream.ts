@@ -1,6 +1,29 @@
 import { MAX_SIZE } from '#/constants';
-import type { StructDefinition, StructType, TypedArray } from '@types';
+import type {
+  Charset,
+  ParsedType,
+  StructDataFromStructDefinition,
+  StructDefinition,
+  TupleType,
+  Type,
+  TypedArray,
+  ValueFromType,
+} from '@types';
 import { MP4BoxBuffer } from './mp4boxbuffer';
+
+type ReadTypeReturnValue =
+  | string
+  | number
+  | Uint8Array
+  | Uint16Array
+  | Uint32Array
+  | Int8Array
+  | Int16Array
+  | Int32Array
+  | Float32Array
+  | Float64Array
+  | null
+  | Array<ReadTypeReturnValue>;
 
 /* 
   TODO: fix endianness for 24/64-bit fields
@@ -131,10 +154,10 @@ export class DataStream {
     this._trimAlloc();
     return this._buffer;
   }
-  set buffer(value) {
+  set buffer(value: MP4BoxBuffer) {
     this._buffer = value;
-    this._dataView = new DataView(this._buffer, this._byteOffset);
-    this._byteLength = this._buffer.byteLength;
+    this._dataView = new DataView(value, this._byteOffset);
+    this._byteLength = value.byteLength;
   }
 
   /**
@@ -159,7 +182,7 @@ export class DataStream {
   get dataView() {
     return this._dataView;
   }
-  set dataView(value) {
+  set dataView(value: DataView) {
     this._byteOffset = value.byteOffset;
     this._buffer = value.buffer;
     this._dataView = new DataView(this._buffer, this._byteOffset);
@@ -186,6 +209,10 @@ export class DataStream {
    */
   isEof() {
     return this.position >= this._byteLength;
+  }
+
+  #isTupleType(type: any): type is TupleType {
+    return Array.isArray(type) && type.length === 3 && type[0] === '[]';
   }
 
   /**
@@ -233,7 +260,7 @@ export class DataStream {
    * @param endianness Endianness of the data to read.
    * @return The read Int16Array.
    */
-  readInt16Array(length: number | null, endianness?: boolean) {
+  readInt16Array(length: number | null, endianness?: boolean | null) {
     length = length == null ? this.byteLength - this.position / 2 : length;
     const arr = new Int16Array(length);
     DataStream.memcpy(
@@ -585,7 +612,7 @@ export class DataStream {
    *                           Defaults to ASCII.
    * @return The read string.
    */
-  readString(length: number, encoding?: string | null): string {
+  readString(length: number, encoding?: Charset | null): string {
     if (encoding == null || encoding == 'ASCII') {
       return fromCharCodeUint8(
         this.mapUint8Array(length == null ? this.byteLength - this.position : length),
@@ -602,7 +629,7 @@ export class DataStream {
    * @param length The length of the string to read.
    * @return The read string.
    */
-  readCString(length?: number | null) {
+  readCString(length?: number | null): string {
     let i = 0;
     const blen = this.byteLength - this.position;
     const u8 = new Uint8Array(this._buffer, this._byteOffset + this.position);
@@ -1136,10 +1163,14 @@ export class DataStream {
    * @param struct The struct data object.
    * @bundle DataStream-write.js
    */
-  writeStruct(structDefinition: StructDefinition, struct: Record<string, number>) {
+  writeStruct<const T extends StructDefinition>(
+    structDefinition: T,
+    struct: StructDataFromStructDefinition<T>,
+  ) {
     for (let i = 0; i < structDefinition.length; i++) {
-      const structType = structDefinition[i][1];
-      this.writeType(structType, struct[structDefinition[i][0]], struct);
+      const [structName, structType] = structDefinition[i];
+      const structValue = struct[structName];
+      this.writeType(structType, structValue, struct);
     }
   }
 
@@ -1151,38 +1182,38 @@ export class DataStream {
    * @param struct Struct to pass to write callback functions.
    * @bundle DataStream-write.js
    */
-  writeType(type: StructType, value: number, struct?: Record<string, number>) {
-    let tp: Array<string>;
+  writeType<const T extends Type>(type: T, value: ValueFromType<T>, struct?: Record<string, Type>) {
     if (typeof type == 'function') {
-      // @ts-expect-error FIXME: incorrect signature, expects DataStream, Struct
       return type(this, value);
     } else if (typeof type == 'object' && !(type instanceof Array)) {
-      // @ts-expect-error FIXME: incorrect signature, expects DataStream, Struct
       return type.set(this, value, struct);
     }
 
     let lengthOverride: number | null = null;
-    let charset: number | 'ASCII' = 'ASCII';
+    let charset: Charset = 'ASCII';
     let pos = this.position;
+
+    let parsedType = type as ParsedType;
+
     if (typeof type == 'string' && /:/.test(type)) {
-      tp = type.split(':');
-      type = tp[0] as StructType;
+      const tp = type.split(':');
+      parsedType = tp[0] as `cstring` | `string`;
       lengthOverride = parseInt(tp[1]);
     }
-    if (typeof type == 'string' && /,/.test(type)) {
-      tp = type.split(',');
-      type = tp[0] as StructType;
-      charset = parseInt(tp[1]);
+    if (typeof parsedType == 'string' && /,/.test(parsedType)) {
+      const tp = parsedType.split(',');
+      parsedType = tp[0] as `cstring` | `string`;
+      // NOTE: this said `charset = parseInt(tp[1])` before;
+      charset = tp[1] as Charset;
     }
 
-    switch (type) {
+    switch (parsedType) {
       case 'uint8':
         this.writeUint8(value);
         break;
       case 'int8':
         this.writeInt8(value);
         break;
-
       case 'uint16':
         this.writeUint16(value, this.endianness);
         break;
@@ -1201,7 +1232,6 @@ export class DataStream {
       case 'float64':
         this.writeFloat64(value, this.endianness);
         break;
-
       case 'uint16be':
         this.writeUint16(value, DataStream.BIG_ENDIAN);
         break;
@@ -1220,7 +1250,6 @@ export class DataStream {
       case 'float64be':
         this.writeFloat64(value, DataStream.BIG_ENDIAN);
         break;
-
       case 'uint16le':
         this.writeUint16(value, DataStream.LITTLE_ENDIAN);
         break;
@@ -1241,38 +1270,32 @@ export class DataStream {
         break;
 
       case 'cstring':
-        this.writeCString(value as unknown as string, lengthOverride);
+        this.writeCString(value, lengthOverride);
         break;
 
       case 'string':
-        // @ts-expect-error FIXME: figure out type of charset
-        this.writeString(value as unknown as string, charset, lengthOverride);
+        this.writeString(value, charset, lengthOverride);
         break;
 
       case 'u16string':
-        this.writeUCS2String(value as unknown as string, this.endianness, lengthOverride);
+        this.writeUCS2String(value, this.endianness, lengthOverride);
         break;
-
       case 'u16stringle':
-        this.writeUCS2String(value as unknown as string, DataStream.LITTLE_ENDIAN, lengthOverride);
+        this.writeUCS2String(value, DataStream.LITTLE_ENDIAN, lengthOverride);
         break;
-
       case 'u16stringbe':
-        this.writeUCS2String(value as unknown as string, DataStream.BIG_ENDIAN, lengthOverride);
+        this.writeUCS2String(value, DataStream.BIG_ENDIAN, lengthOverride);
         break;
 
       default:
-        // @ts-expect-error FIXME: fix type narrowing
-        if (type.length == 3) {
-          const ta = type[1];
-          // @ts-expect-error FIXME: value is type number
+        if (this.#isTupleType(parsedType)) {
+          const [, ta] = parsedType;
           for (let i = 0; i < value.length; i++) {
             this.writeType(ta, value[i]);
           }
           break;
         } else {
-          // NEEDS REVIEW: this said this.writeStruct before
-          this.writeType(type, value);
+          this.writeStruct(parsedType, value);
           break;
         }
     }
@@ -1307,61 +1330,85 @@ export class DataStream {
 
   /**
    * Reads a struct of data from the DataStream. The struct is defined as
-   * a flat array of [name, type]-pairs. See the example below:
+   * an array of [name, type]-pairs. See the example below:
    *
+   * ```ts
    * ds.readStruct([
    *   ['headerTag', 'uint32'], // Uint32 in DataStream endianness.
    *   ['headerTag2', 'uint32be'], // Big-endian Uint32.
    *   ['headerTag3', 'uint32le'], // Little-endian Uint32.
    *   ['array', ['[]', 'uint32', 16]], // Uint32Array of length 16.
-   *   ['array2Length', 'uint32'],
    *   ['array2', ['[]', 'uint32', 'array2Length']] // Uint32Array of length array2Length
    * ]);
+   * ```
    *
    * The possible values for the type are as follows:
    *
-   * // Number types
+   * ## Number types
    *
-   * // Unsuffixed number types use DataStream endianness.
-   * // To explicitly specify endianness, suffix the type with
-   * // 'le' for little-endian or 'be' for big-endian,
-   * // e.g. 'int32be' for big-endian int32.
+   * Unsuffixed number types use DataStream endianness.
+   * To explicitly specify endianness, suffix the type with
+   * 'le' for little-endian or 'be' for big-endian,
+   * e.g. 'int32be' for big-endian int32.
    *
-   * 'uint8' -- 8-bit unsigned int
-   * 'uint16' -- 16-bit unsigned int
-   * 'uint32' -- 32-bit unsigned int
-   * 'int8' -- 8-bit int
-   * 'int16' -- 16-bit int
-   * 'int32' -- 32-bit int
-   * 'float32' -- 32-bit float
-   * 'float64' -- 64-bit float
+   * - `uint8` -- 8-bit unsigned int
+   * - `uint16` -- 16-bit unsigned int
+   * - `uint32` -- 32-bit unsigned int
+   * - `int8` -- 8-bit int
+   * - `int16` -- 16-bit int
+   * - `int32` -- 32-bit int
+   * - `float32` -- 32-bit float
+   * - `float64` -- 64-bit float
    *
-   * // String types
-   * 'cstring' -- ASCII string terminated by a zero byte.
-   * 'string:N' -- ASCII string of length N.
-   * 'string,CHARSET:N' -- String of byteLength N encoded with given CHARSET.
-   * 'u16string:N' -- UCS-2 string of length N in DataStream endianness.
-   * 'u16stringle:N' -- UCS-2 string of length N in little-endian.
-   * 'u16stringbe:N' -- UCS-2 string of length N in big-endian.
+   * ## String types
    *
-   * // Complex types
-   * [name, type, name_2, type_2, ..., name_N, type_N] -- Struct
-   * function(dataStream, struct) {} -- Callback function to read and return data.
-   * {get: function(dataStream, struct) {},
-   *  set: function(dataStream, struct) {}}
-   * -- Getter/setter functions to read and return data, handy for using the same
-   *    struct definition for reading and writing structs.
-   * ['[]', type, length] -- Array of given type and length. The length can be either
-   *                       a number, a string that references a previously-read
-   *                       field, or a callback function(struct, dataStream, type){}.
-   *                       If length is '*', reads in as many elements as it can.
+   * - `cstring` -- ASCII string terminated by a zero byte.
+   * - `string:N` -- ASCII string of length N.
+   * - `string,CHARSET:N` -- String of byteLength N encoded with given CHARSET.
+   * - `u16string:N` -- UCS-2 string of length N in DataStream endianness.
+   * - `u16stringle:N` -- UCS-2 string of length N in little-endian.
+   * - `u16stringbe:N` -- UCS-2 string of length N in big-endian.
+   *
+   * ## Complex types
+   *
+   * ### Struct
+   * ```ts
+   * [[name, type], [name_2, type_2], ..., [name_N, type_N]]
+   * ```
+   *
+   * ### Callback function to read and return data
+   * ```ts
+   * function(dataStream, struct) {}
+   * ```
+   *
+   * ###  Getter/setter functions
+   * to read and return data, handy for using the same struct definition
+   * for reading and writing structs.
+   * ```ts
+   * {
+   *    get: function(dataStream, struct) {},
+   *    set: function(dataStream, struct) {}
+   * }
+   * ```
+   *
+   * ### Array
+   * Array of given type and length. The length can be either
+   * - a number
+   * - a string that references a previously-read field
+   * - `*`
+   * - a callback: `function(struct, dataStream, type){}`
+   *
+   * If length is `*`, reads in as many elements as it can.
+   * ```ts
+   * ['[]', type, length]
+   * ```
    *
    * @param structDefinition Struct definition object.
    * @return The read struct. Null if failed to read struct.
    * @bundle DataStream-read-struct.js
    */
-  readStruct(structDefinition: StructDefinition) {
-    const struct: Record<string, string> = {};
+  readStruct<T extends StructDefinition>(structDefinition: T) {
+    const struct = {} as StructDataFromStructDefinition<T>;
     const p = this.position;
     for (let i = 0; i < structDefinition.length; i += 1) {
       const t = structDefinition[i][1];
@@ -1386,7 +1433,7 @@ export class DataStream {
    * @return The read string.
    * @bundle DataStream-read-struct.js
    */
-  readUCS2String(length?: number, endianness?: boolean) {
+  readUCS2String(length?: number, endianness?: boolean): string {
     return String.fromCharCode.apply(null, this.readUint16Array(length, endianness));
   }
 
@@ -1401,7 +1448,7 @@ export class DataStream {
    * @return  Returns the object on successful read, null on unsuccessful.
    * @bundle DataStream-read-struct.js
    */
-  readType(type: StructType, struct: Record<string, string>): any {
+  readType<const T extends Type>(type: T, struct: Record<string, Type>): ReadTypeReturnValue {
     if (typeof type == 'function') {
       return type(this, struct);
     }
@@ -1413,45 +1460,32 @@ export class DataStream {
       return this.readStruct(type, struct);
     }
 
-    let value:
-      | null
-      | number
-      | Array<unknown>
-      | Uint8Array
-      | Uint16Array
-      | Uint32Array
-      | Int8Array
-      | Int16Array
-      | Int32Array
-      | Float32Array
-      | Float64Array = null;
+    let value: ReadTypeReturnValue = null;
 
-    let lengthOverride = null;
-    let charset: string | number = 'ASCII';
+    let lengthOverride: number | null = null;
+    let charset: Charset = 'ASCII';
     let pos = this.position;
-    let tp: Array<string>;
-    let u: unknown;
 
-    if (typeof type == 'string' && /:/.test(type)) {
-      tp = type.split(':');
-      type = tp[0] as StructType;
+    let parsedType = type as ParsedType;
+    if (typeof parsedType == 'string' && /:/.test(parsedType)) {
+      const tp = parsedType.split(':');
+      parsedType = tp[0] as ParsedType;
       lengthOverride = parseInt(tp[1]);
     }
-
-    if (typeof type == 'string' && /,/.test(type)) {
-      tp = type.split(',');
-      type = tp[0] as StructType;
-      charset = parseInt(tp[1]);
+    if (typeof parsedType == 'string' && /,/.test(parsedType)) {
+      const tp = parsedType.split(',');
+      parsedType = tp[0] as ParsedType;
+      // NOTE: this was `charset = parseInt(tp[1]);` before
+      charset = tp[1] as Charset;
     }
 
-    switch (type) {
+    switch (parsedType) {
       case 'uint8':
         value = this.readUint8();
         break;
       case 'int8':
         value = this.readInt8();
         break;
-
       case 'uint16':
         value = this.readUint16(this.endianness);
         break;
@@ -1470,7 +1504,6 @@ export class DataStream {
       case 'float64':
         value = this.readFloat64(this.endianness);
         break;
-
       case 'uint16be':
         value = this.readUint16(DataStream.BIG_ENDIAN);
         break;
@@ -1489,7 +1522,6 @@ export class DataStream {
       case 'float64be':
         value = this.readFloat64(DataStream.BIG_ENDIAN);
         break;
-
       case 'uint16le':
         value = this.readUint16(DataStream.LITTLE_ENDIAN);
         break;
@@ -1508,41 +1540,35 @@ export class DataStream {
       case 'float64le':
         value = this.readFloat64(DataStream.LITTLE_ENDIAN);
         break;
-
       case 'cstring':
         value = this.readCString(lengthOverride);
         break;
-
       case 'string':
-        // @ts-expect-error FIXME: charset expected to be string, but can also be number
         value = this.readString(lengthOverride, charset);
         break;
-
       case 'u16string':
         value = this.readUCS2String(lengthOverride, this.endianness);
         break;
-
       case 'u16stringle':
         value = this.readUCS2String(lengthOverride, DataStream.LITTLE_ENDIAN);
         break;
-
       case 'u16stringbe':
         value = this.readUCS2String(lengthOverride, DataStream.BIG_ENDIAN);
         break;
-
       default:
-        if (Array.isArray(type) && type.length == 3) {
-          let ta = type[1];
-          let len = type[2];
-          let length: null | number = 0;
-          if (typeof len == 'function') {
-            length = len(struct, this, type);
-          } else if (typeof len == 'string' && struct[len] != null) {
-            length = parseInt(struct[len]);
-          } else {
-            // NOTE: this used to be length = len
-            length = typeof len === 'number' ? len : parseInt(len);
-          }
+        if (this.#isTupleType(parsedType)) {
+          const [, ta, len] = parsedType;
+          const length =
+            typeof len === 'function'
+              ? len(struct, this, parsedType)
+              : typeof len == 'string' && struct[len] != null
+              ? // @ts-expect-error   FIXME: Struct[string] is currently of type Type
+                parseInt(struct[len])
+              : typeof len === 'number'
+              ? len
+              : len === '*'
+              ? null
+              : parseInt(len);
           if (typeof ta == 'string') {
             let tap = ta.replace(/(le|be)$/, '');
             let endianness: null | boolean = null;
@@ -1550,9 +1576,6 @@ export class DataStream {
               endianness = DataStream.LITTLE_ENDIAN;
             } else if (/be$/.test(ta)) {
               endianness = DataStream.BIG_ENDIAN;
-            }
-            if (len == '*') {
-              length = null;
             }
             switch (tap) {
               case 'uint8':
@@ -1582,10 +1605,10 @@ export class DataStream {
               case 'cstring':
               case 'utf16string':
               case 'string':
-                if (length == null) {
+                if (length === null) {
                   value = [];
                   while (!this.isEof()) {
-                    u = this.readType(ta, struct);
+                    let u = this.readType(ta, struct);
                     if (u == null) break;
                     value.push(u);
                   }
@@ -1598,28 +1621,28 @@ export class DataStream {
                 break;
             }
           } else {
-            if (len == '*') {
+            if (length === null) {
               value = [];
               while (true) {
-                const p = this.position;
+                const pos = this.position;
                 try {
-                  const o = this.readType(ta, struct);
-                  if (o == null) {
-                    this.position = p;
+                  const type = this.readType(ta, struct);
+                  if (type == null) {
+                    this.position = pos;
                     break;
                   }
-                  value.push(o);
+                  value.push(type);
                 } catch (e) {
-                  this.position = p;
+                  this.position = pos;
                   break;
                 }
               }
             } else {
               value = new Array(length);
               for (let i = 0; i < length; i++) {
-                u = this.readType(ta, struct);
-                if (u == null) return null;
-                value[i] = u;
+                const type = this.readType(ta, struct);
+                if (type == null) return null;
+                value[i] = type;
               }
             }
           }
@@ -1629,6 +1652,7 @@ export class DataStream {
     if (lengthOverride != null) {
       this.position = pos + lengthOverride;
     }
+
     return value;
   }
 

@@ -14,11 +14,16 @@ export namespace MP4Box {
 }
 
 export type ValueOf<T> = T[keyof T];
-export type InstanceOf<T> = T extends new (...args: any[]) => infer R ? R : never;
+export type InstanceOf<T> = T extends new (...args: Array<unknown>) => infer R ? R : never;
 export type KindOf<T> = InstanceOf<ValueOf<T>>;
 export type Extends<TObject, TExtends> = ValueOf<{
   [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
 }>;
+export type TupleOf<T, N extends number, R extends T[] = []> = R['length'] extends N
+  ? R
+  : TupleOf<T, N, [T, ...R]>;
+
+export type NumberTuple<T extends number> = TupleOf<number, T>;
 
 export type BoxKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof Box>>;
 export type SampleEntryKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof SampleEntry>>;
@@ -218,7 +223,43 @@ export interface Reference {
 /*                                                                                */
 /**********************************************************************************/
 
-type PrimitiveType =
+export type Charset =
+  | 'ASCII'
+  | 'UTF-8'
+  | 'UTF-16LE'
+  | 'UTF-16BE'
+  | 'ISO-8859-1'
+  | 'ISO-8859-2'
+  | 'ISO-8859-3'
+  | 'ISO-8859-4'
+  | 'ISO-8859-5'
+  | 'ISO-8859-6'
+  | 'ISO-8859-7'
+  | 'ISO-8859-8'
+  | 'ISO-8859-9'
+  | 'ISO-8859-10'
+  | 'ISO-8859-11'
+  | 'ISO-8859-13'
+  | 'ISO-8859-14'
+  | 'ISO-8859-15'
+  | 'ISO-8859-16'
+  | 'Windows-1250'
+  | 'Windows-1251'
+  | 'Windows-1252'
+  | 'Windows-1253'
+  | 'Windows-1254'
+  | 'Windows-1255'
+  | 'Windows-1256'
+  | 'Windows-1257'
+  | 'Windows-1258'
+  | 'KOI8-R'
+  | 'KOI8-U'
+  | 'Big5'
+  | 'GBK'
+  | 'GB18030'
+  | 'Shift_JIS';
+
+export type SimpleNumberType =
   | 'uint8'
   | 'uint16'
   | 'uint32'
@@ -226,32 +267,86 @@ type PrimitiveType =
   | 'int16'
   | 'int32'
   | 'float32'
-  | 'float64'
-  | `u16string${'le' | 'be' | ''}`
-  | 'cstring'
-  | 'string'
-  | `string:${number}`
-  | `cstring:${number}`
-  | `u16string${'' | 'le' | 'be'}:${number}`;
+  | 'float64';
+export type EndianNumberType =
+  | `${'uint' | 'int'}${32 | 16}${'le' | 'be'}`
+  | `float${64 | 32}${'le' | 'be'}`;
+export type NumberType = SimpleNumberType | EndianNumberType;
 
-type EndianType = `${'uint' | 'int' | 'float'}${64 | 32 | 16 | 8}${'le' | 'be'}`;
+export type SimpleStringType = 'cstring' | 'string';
+export type EncodedStringType = `${SimpleStringType},${Charset}`;
+export type LengthStringType = `${SimpleStringType}:${number}`;
+export type EncodedLengthStringType = `${EncodedStringType}:${number}`;
+export type EndianStringType = `u16string${'' | 'le' | 'be'}:${number}`;
+export type StringType =
+  | SimpleStringType
+  | EncodedStringType
+  | LengthStringType
+  | EncodedLengthStringType
+  | EndianStringType;
 
-type ComplexType =
-  | {
-      get(dataStream: unknown, struct: unknown): unknown;
-      set?(dataStream: unknown, struct: unknown): void;
-    }
-  | [name: string, type: StructDefinition];
+export type GetterSetterType<T = any> = {
+  get(dataStream: DataStream, struct: Record<string, unknown>): T;
+  set?(dataStream: DataStream, value: T, struct?: Record<string, Type>): void;
+};
 
-type ArrayType = [
+export type TupleType = [
   '[]',
-  PrimitiveType | EndianType,
-  number | string | ((struct: unknown, dataStream: unknown, type: unknown) => number),
+  Type,
+  (
+    | number
+    | '*'
+    | (string & {})
+    | ((struct: Record<string, Type>, dataStream: DataStream, type: Type) => number)
+  ),
 ];
 
-type FnType = (dataStream: DataStream, struct: Record<string, unknown>) => number;
+export type FnType = <T = any>(dataStream: DataStream, struct: T) => number;
 
-export type StructType = PrimitiveType | EndianType | ComplexType | ArrayType | FnType;
+export type Type =
+  | NumberType
+  | StringType
+  | EndianNumberType
+  | GetterSetterType
+  | TupleType
+  | FnType
+  | StructDefinition;
 
-// Recursive definition for a struct
-export type StructDefinition = Array<[name: string, type: StructType]>;
+export type ParsedType =
+  | StructDefinition
+  | TupleType
+  | `cstring`
+  | `string`
+  | `u16string${'' | 'le' | 'be'}`
+  | SimpleNumberType
+  | EndianNumberType;
+
+export type StructDefinition = Array<[name: string, type: Type]>;
+
+export type ValueFromType<TValue extends Type> = TValue extends StringType
+  ? string
+  : TValue extends NumberType
+  ? number
+  : TValue extends FnType
+  ? ReturnType<FnType>
+  : TValue extends GetterSetterType
+  ? ReturnType<TValue['get']>
+  : TValue extends ['[]', NumberType, infer TAmount]
+  ? TAmount extends number
+    ? TupleOf<number, TAmount>
+    : TAmount extends () => infer TReturnType
+    ? TReturnType extends number
+      ? TupleOf<number, TReturnType>
+      : never
+    : Array<number>
+  : TValue extends StructDefinition
+  ? StructDataFromStructDefinition<TValue>
+  : never;
+
+export type StructDataFromStructDefinition<T extends StructDefinition> = {
+  [TKey in T[number][0]]: Extract<T[number], [TKey, any]>[1] extends infer TValue
+    ? TValue extends Type
+      ? ValueFromType<TValue>
+      : never
+    : never;
+};
