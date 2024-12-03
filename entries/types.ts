@@ -287,7 +287,7 @@ export type StringType =
   | EndianStringType;
 
 export type GetterSetterType<T = any> = {
-  get(dataStream: DataStream, struct: Record<string, unknown>): T;
+  get(dataStream: DataStream, struct: Record<string, Type>): T;
   set?(dataStream: DataStream, value: T, struct?: Record<string, Type>): void;
 };
 

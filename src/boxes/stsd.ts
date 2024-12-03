@@ -27,11 +27,11 @@ export class stsdBox extends FullBox {
           box.start = ret.start;
         } else {
           Log.warn('BoxParser', 'Unknown sample entry type: ' + ret.type);
-          // @ts-expect-error FIXME: incorrect signature
-          box = new SampleEntry(ret.type, ret.size, ret.hdr_size, ret.start);
+          box = new SampleEntry(ret.size, ret.hdr_size, ret.start);
+          box.type = ret.type;
         }
 
-        // TODO: something funky
+        // TODO:    a bit funky code: it checks if the SampleEntry-class implemented their own parse-method.
         if (box.write === SampleEntry.prototype.write) {
           Log.info(
             'BoxParser',

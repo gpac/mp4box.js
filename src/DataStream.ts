@@ -23,7 +23,10 @@ type ReadTypeReturnValue =
   | Float32Array
   | Float64Array
   | null
-  | Array<ReadTypeReturnValue>;
+  | Array<ReadTypeReturnValue>
+  | {
+      [key: string]: ReadTypeReturnValue;
+    };
 
 /* 
   TODO: fix endianness for 24/64-bit fields
@@ -1268,15 +1271,12 @@ export class DataStream {
       case 'float64le':
         this.writeFloat64(value, DataStream.LITTLE_ENDIAN);
         break;
-
       case 'cstring':
         this.writeCString(value, lengthOverride);
         break;
-
       case 'string':
         this.writeString(value, charset, lengthOverride);
         break;
-
       case 'u16string':
         this.writeUCS2String(value, this.endianness, lengthOverride);
         break;
@@ -1286,7 +1286,6 @@ export class DataStream {
       case 'u16stringbe':
         this.writeUCS2String(value, DataStream.BIG_ENDIAN, lengthOverride);
         break;
-
       default:
         if (this.#isTupleType(parsedType)) {
           const [, ta] = parsedType;
@@ -1456,8 +1455,8 @@ export class DataStream {
       return type.get(this, struct);
     }
     if (type instanceof Array && type.length != 3) {
-      // @ts-expect-error FIXME: incorrect signature
-      return this.readStruct(type, struct);
+      // NOTE: this said `return this.readStruct(type, struct);` before
+      return this.readStruct(type);
     }
 
     let value: ReadTypeReturnValue = null;
