@@ -126,7 +126,6 @@ export * from '#/boxes/txtC';
 export * from '#/boxes/tyco';
 export * from '#/boxes/udes';
 export * from '#/boxes/uncC';
-export * from '#/boxes/url';
 export * from '#/boxes/urn';
 export * from '#/boxes/vmhd';
 export * from '#/boxes/vpcC';

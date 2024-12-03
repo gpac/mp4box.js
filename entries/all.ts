@@ -11,11 +11,12 @@ export * from '#/mp4boxbuffer';
 export * from '#/stream';
 export * from '#/text-mp4';
 export * from './types';
+import { urlBox } from '#/boxes/url';
 import { UUID_BOXES } from '#/boxes/uuid';
 import * as DESCRIPTORS from '#/descriptor';
 import { registerBoxes, registerDescriptors } from '#/registry';
 import * as BOXES from './all-boxes';
 
-export const BoxParser = registerBoxes({ ...BOXES, ...UUID_BOXES });
+export const BoxParser = registerBoxes({ ...BOXES, 'url Box': urlBox, ...UUID_BOXES });
 
 registerDescriptors(DESCRIPTORS);
