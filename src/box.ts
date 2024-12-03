@@ -11,17 +11,18 @@ import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
 import type { BoxKind, Extends, Output, Reference } from '@types';
 
-class BoxBase {
-  type?: string;
-  uuid?: string;
+export class Box {
   boxes?: Array<Box>;
   data: Array<number> | Uint8Array;
+  has_unparsed_data?: boolean;
   hdr_size?: number;
   language: number;
   languageString?: string;
   sizePosition?: number;
   start?: number;
   track_ids?: Uint32Array;
+  type?: string;
+  uuid?: string;
 
   constructor(public size = 0) {}
 
@@ -161,11 +162,7 @@ class BoxBase {
   }
 }
 
-export class Box extends BoxBase {
-  has_unparsed_data?: boolean;
-}
-
-export class FullBox extends BoxBase {
+export class FullBox extends Box {
   flags = 0;
   version = 0;
 
@@ -210,7 +207,7 @@ export class FullBox extends BoxBase {
   }
 }
 
-export class ContainerBox extends BoxBase {
+export class ContainerBox extends Box {
   subBoxNames?: readonly string[];
 
   /** @bundle box-write.js */
@@ -306,7 +303,7 @@ export class TrackGroupTypeBox extends FullBox {
 }
 
 /** @bundle parsing/singleitemtypereference.js */
-export class SingleItemTypeReferenceBox extends BoxBase {
+export class SingleItemTypeReferenceBox extends Box {
   from_item_ID: number;
   references: Array<Reference>;
 
@@ -326,7 +323,7 @@ export class SingleItemTypeReferenceBox extends BoxBase {
 }
 
 /** @bundle parsing/singleitemtypereferencelarge.js */
-export class SingleItemTypeReferenceBoxLarge extends BoxBase {
+export class SingleItemTypeReferenceBoxLarge extends Box {
   from_item_ID: number;
   references: Array<Reference>;
 
@@ -346,7 +343,7 @@ export class SingleItemTypeReferenceBoxLarge extends BoxBase {
 }
 
 /** @bundle parsing/TrakReference.js */
-export class TrackReferenceTypeBox extends BoxBase {
+export class TrackReferenceTypeBox extends Box {
   constructor(public type: string, size: number, public hdr_size: number, public start: number) {
     super(size);
   }
