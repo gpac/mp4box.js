@@ -58,30 +58,30 @@ export interface ExtractedTrack {
 
 export interface Sample {
   alreadyRead?: number;
-  cts?: number;
-  data?: Uint8Array;
-  degradation_priority?: number;
-  depends_on?: number;
-  description_index?: number;
-  description?: Description['entries'][number];
-  dts?: number;
-  pts?: number;
-  duration?: number;
-  has_redundancy?: number;
-  is_depended_on?: number;
-  is_leading?: number;
-  is_sync?: boolean;
-  moof_number?: number;
-  number_in_traf?: number;
-  number?: number;
-  offset?: number;
-  size?: number;
-  subsamples?: Array<SubSample>;
-  timescale?: number;
-  track_id?: number;
-  sample_groups?: Array<SampleGroup>;
   chunk_index?: number;
   chunk_run_index?: number;
+  cts: number;
+  data?: Uint8Array;
+  degradation_priority: number;
+  depends_on: number;
+  description_index: number;
+  description: Description['entries'][number];
+  dts: number;
+  duration: number;
+  has_redundancy: number;
+  is_depended_on: number;
+  is_leading: number;
+  is_sync: boolean;
+  moof_number?: number;
+  number_in_traf?: number;
+  number: number;
+  offset: number;
+  pts?: number;
+  sample_groups?: Array<SampleGroup>;
+  size: number;
+  subsamples?: Array<SubSample>;
+  timescale: number;
+  track_id: number;
 }
 
 export interface SampleGroup {

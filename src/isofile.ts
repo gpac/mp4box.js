@@ -1498,55 +1498,46 @@ export class ISOFile {
           for (let j = 0; j < traf.truns.length; j++) {
             let trun = traf.truns[j];
             for (let k = 0; k < trun.sample_count; k++) {
-              const sample: Sample = {};
-              sample.moof_number = this.lastMoofIndex;
-              sample.number_in_traf = traf.sample_number;
-              traf.sample_number++;
-              sample.number = trak.samples.length;
-              traf.first_sample_index = trak.samples.length;
-              trak.samples.push(sample);
-              sample.track_id = trak.tkhd.track_id;
-              sample.timescale = trak.mdia.mdhd.timescale;
-              sample.description_index = default_sample_description_index - 1;
-              sample.description = trak.mdia.minf.stbl.stsd.entries[sample.description_index];
-              sample.size = default_sample_size;
-              if (trun.flags & TRUN_FLAGS_SIZE) {
-                sample.size = trun.sample_size[k];
-              }
-              trak.samples_size += sample.size;
-              sample.duration = default_sample_duration;
-              if (trun.flags & TRUN_FLAGS_DURATION) {
-                sample.duration = trun.sample_duration[k];
-              }
-              trak.samples_duration += sample.duration;
-              if (trak.first_traf_merged || k > 0) {
-                sample.dts =
-                  trak.samples[trak.samples.length - 2].dts +
-                  trak.samples[trak.samples.length - 2].duration;
-              } else {
-                if (traf.tfdt) {
-                  sample.dts = traf.tfdt.baseMediaDecodeTime;
-                } else {
-                  sample.dts = 0;
-                }
-                trak.first_traf_merged = true;
-              }
-              sample.cts = sample.dts;
-              if (trun.flags & TRUN_FLAGS_CTS_OFFSET) {
-                sample.cts = sample.dts + trun.sample_composition_time_offset[k];
-              }
+              const description_index = default_sample_description_index - 1;
+
               let sample_flags = default_sample_flags;
               if (trun.flags & TRUN_FLAGS_FLAGS) {
                 sample_flags = trun.sample_flags[k];
               } else if (k === 0 && trun.flags & TRUN_FLAGS_FIRST_FLAG) {
                 sample_flags = trun.first_sample_flags;
               }
-              sample.is_sync = (sample_flags >> 16) & 0x1 ? false : true;
-              sample.is_leading = (sample_flags >> 26) & 0x3;
-              sample.depends_on = (sample_flags >> 24) & 0x3;
-              sample.is_depended_on = (sample_flags >> 22) & 0x3;
-              sample.has_redundancy = (sample_flags >> 20) & 0x3;
-              sample.degradation_priority = sample_flags & 0xffff;
+
+              let size = default_sample_size;
+              if (trun.flags & TRUN_FLAGS_SIZE) {
+                size = trun.sample_size[k];
+              }
+              trak.samples_size += size;
+
+              let duration = default_sample_duration;
+              if (trun.flags & TRUN_FLAGS_DURATION) {
+                duration = trun.sample_duration[k];
+              }
+              trak.samples_duration += duration;
+
+              let dts: number;
+              if (trak.first_traf_merged || k > 0) {
+                dts =
+                  trak.samples[trak.samples.length - 2].dts +
+                  trak.samples[trak.samples.length - 2].duration;
+              } else {
+                if (traf.tfdt) {
+                  dts = traf.tfdt.baseMediaDecodeTime;
+                } else {
+                  dts = 0;
+                }
+                trak.first_traf_merged = true;
+              }
+
+              let cts = dts;
+              if (trun.flags & TRUN_FLAGS_CTS_OFFSET) {
+                cts = dts + trun.sample_composition_time_offset[k];
+              }
+
               //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
               const bdop = traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
               const dbim = traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
@@ -1566,16 +1557,46 @@ export class ISOFile {
               } else {
                 bdo = traf.tfhd.base_data_offset;
               }
+
+              let offset: number;
               if (j === 0 && k === 0) {
                 if (dop) {
-                  sample.offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
+                  offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
                 } else {
-                  sample.offset = bdo; // the data for this run starts the base-data-offset defined by the track fragment header
+                  offset = bdo; // the data for this run starts the base-data-offset defined by the track fragment header
                 }
               } else {
-                sample.offset = last_run_position; // this run starts immediately after the data of the previous run
+                offset = last_run_position; // this run starts immediately after the data of the previous run
               }
-              last_run_position = sample.offset + sample.size;
+              last_run_position = offset + size;
+
+              const number_in_traf = traf.sample_number;
+              traf.sample_number++;
+
+              const sample: Sample = {
+                cts,
+                description_index,
+                description: trak.mdia.minf.stbl.stsd.entries[description_index],
+                dts,
+                duration,
+                moof_number: this.lastMoofIndex,
+                number_in_traf,
+                number: trak.samples.length,
+                offset,
+                size,
+                timescale: trak.mdia.mdhd.timescale,
+                track_id: trak.tkhd.track_id,
+                is_sync: (sample_flags >> 16) & 0x1 ? false : true,
+                is_leading: (sample_flags >> 26) & 0x3,
+                depends_on: (sample_flags >> 24) & 0x3,
+                is_depended_on: (sample_flags >> 22) & 0x3,
+                has_redundancy: (sample_flags >> 20) & 0x3,
+                degradation_priority: sample_flags & 0xffff,
+              };
+
+              traf.first_sample_index = trak.samples.length;
+              trak.samples.push(sample);
+
               if (
                 traf.sbgps.length > 0 ||
                 traf.sgpds.length > 0 ||
