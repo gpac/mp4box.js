@@ -40,7 +40,8 @@
   "scripts": {
     "build": "tsup",
     "circular": "dpdm -T ./entries/all.ts",
-    "types": "tsc --noEmit --project tsconfig.json"
+    "types": "tsc --noEmit --project tsconfig.json",
+    "postinstall": "pnpm build"
   },
   "devDependencies": {
     "blanket": "^1.2.3",

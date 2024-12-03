@@ -1,0 +1,111 @@
+body {
+	background: #fff;
+	margin: 0;
+	padding-left: 20px;
+	padding-right: 20px;
+	line-height: 1.4em;
+	font-family: tahoma, arial, sans-serif;
+}
+
+button {
+	cursor: pointer;
+}
+
+#popup {
+	z-index: 3;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+#image {
+	z-index: 4;
+	position: fixed;
+  	top: 50%;
+  	left: 50%;
+  	transform: translate(-50%, -50%);
+}
+
+#progressLabel {
+	text-align: center;
+	vertical-align: middle;
+}
+
+#menu {
+	height: 279px;
+}
+
+#timeline {
+	text-align: center;
+}
+
+#stopButton {
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.thumbnail {
+	margin: 20px 5px;
+}
+
+.selected-thumbnail{
+    outline: 1px solid #f6a828;
+	cursor: pointer;
+}
+
+.fixed-menu {
+	z-index: 2;
+	position: fixed;
+	top: 0;
+	left: 20px;
+	right: 20px;
+}
+
+.timestamp {
+	position: absolute;
+  	bottom: 0px;
+  	text-align: center;
+  	width: 100%;
+}
+
+#v {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  height: 100%;
+  border: 1px solid black;
+}
+
+.overlay {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+}
+
+table {
+	width: 100%;
+   margin: 0 0 10px 0;
+   background: #FFFFFF;
+   border: 1px solid #333333;
+   border-collapse: collapse;
+   font-size: 100%;
+}
+
+td, th {
+   border-bottom: 1px solid #333333;
+   padding: 2px 2px;
+   text-align: left;
+}
+
+th {
+   background: #EEEEEE;
+   text-align: center;
+}
+
+.trackinfo table tr td, trackinfo table tr th, #sampletable table tr td, #sampletable table tr th {
+	width: 1px;
+}
