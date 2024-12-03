@@ -14,7 +14,7 @@ import type { BoxKind, Extends, Output, Reference } from '@types';
 class BoxBase {
   type?: string;
   uuid?: string;
-  boxes: Array<Box> = [];
+  boxes?: Array<Box>;
   data: Array<number> | Uint8Array;
   hdr_size?: number;
   language: number;
@@ -26,6 +26,9 @@ class BoxBase {
   constructor(public size = 0) {}
 
   addBox<T extends Extends<this, Box>>(box: T): T {
+    if (!this.boxes) {
+      this.boxes = [];
+    }
     this.boxes.push(box);
     if (this[box.type + 's']) {
       this[box.type + 's'].push(box);
@@ -245,6 +248,9 @@ export class ContainerBox extends BoxBase {
       ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
         const box = ret.box as BoxKind;
+        if (!this.boxes) {
+          this.boxes = [];
+        }
         /* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
         this.boxes.push(box);
         if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
