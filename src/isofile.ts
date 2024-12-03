@@ -143,7 +143,7 @@ export interface IsoFileOptions {
   default_sample_flags?: number;
 }
 
-export class ISOFile {
+export class ISOFile<TSegmentUser = any, TSampleUser = any> {
   /** MutiBufferStream object used to parse boxes */
   stream: MultiBufferStream;
   /** Array of all boxes (in order) found in the file */
@@ -166,10 +166,16 @@ export class ISOFile {
   readySent = false;
   /** Callback to call when segments are ready */
   onSegment:
-    | ((id: number, user: unknown, buffer: ArrayBuffer, nextSample: number, last: boolean) => void)
+    | ((
+        id: number,
+        user: TSegmentUser,
+        buffer: ArrayBuffer,
+        nextSample: number,
+        last: boolean,
+      ) => void)
     | null = null;
   /** Callback to call when samples are ready */
-  onSamples: ((id: number, user: unknown, samples: Array<Sample>) => void) | null = null;
+  onSamples: ((id: number, user: TSampleUser, samples: Array<Sample>) => void) | null = null;
   /** Callback to call when there is an error in the parsing or processing of samples */
   onError: (() => void) | null = null;
 
@@ -177,9 +183,9 @@ export class ISOFile {
   /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
   sampleListBuilt = false;
   /** Array of Track objects for which fragmentation of samples is requested */
-  fragmentedTracks: Array<FragmentedTrack> = [];
+  fragmentedTracks: Array<FragmentedTrack<TSegmentUser>> = [];
   /** Array of Track objects for which extraction of samples is requested */
-  extractedTracks: Array<ExtractedTrack> = [];
+  extractedTracks: Array<ExtractedTrack<TSampleUser>> = [];
   /** Boolean indicating that fragmention is ready */
   isFragmentationInitialized = false;
   /** Boolean indicating that fragmented has started */
@@ -225,7 +231,7 @@ export class ISOFile {
 
   setSegmentOptions(
     id: number,
-    user: unknown,
+    user: TSegmentUser,
     {
       nbSamples: nb_samples = 1000,
       rapAlignement = true,
@@ -261,7 +267,7 @@ export class ISOFile {
 
   setExtractionOptions(
     id: number,
-    user?: unknown,
+    user?: TSampleUser,
     { nbSamples: nb_samples = 1000 }: { nbSamples?: number } = {},
   ) {
     let trak = this.getTrackById(id);
@@ -1050,7 +1056,7 @@ export class ISOFile {
       this.nextMoofNumber = 0;
       this.resetTables();
     }
-    const initSegs: Array<{ id: number; user: unknown; buffer: MP4BoxBuffer }> = [];
+    const initSegs: Array<{ id: number; user: TSegmentUser; buffer: MP4BoxBuffer }> = [];
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
       const moov = new moovBox();
       moov.mvhd = this.moov.mvhd;
@@ -1834,7 +1840,7 @@ export class ISOFile {
         protection:
           // NOTE:   This was `meta.iinf.item_infos[i].protection_index` before
           meta.iinf.item_infos[i].item_protection_index > 0
-            ? // NOTE:   This was `meta.iinf.item_infos[i].protection_index` before
+            ? // NOTE:   This was `meta.iinf.item_infos[i].protection_index - 1` before
               meta.ipro.protections[meta.iinf.item_infos[i].item_protection_index - 1]
             : undefined,
       };

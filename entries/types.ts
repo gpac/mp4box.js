@@ -40,17 +40,17 @@ export type NumberTuple<T extends number> = TupleOf<number, T>;
 export type BoxKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof Box>>;
 export type SampleEntryKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof SampleEntry>>;
 
-export interface FragmentedTrack {
+export interface FragmentedTrack<TUser> {
   id: number;
-  user: unknown;
+  user: TUser;
   trak: trakBox;
   segmentStream: DataStream;
   nb_samples: number;
   rapAlignement: boolean;
 }
-export interface ExtractedTrack {
+export interface ExtractedTrack<TUser> {
   id: number;
-  user: unknown;
+  user: TUser;
   trak: trakBox;
   nb_samples: number;
   samples: Array<Sample>;
