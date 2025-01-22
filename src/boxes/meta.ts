@@ -5,6 +5,7 @@ import { iinfBox } from '#/boxes/iinf';
 import { ilocBox } from '#/boxes/iloc';
 import { irefBox } from '#/boxes/iref';
 import { pitmBox } from '#/boxes/pitm';
+import { DataStream } from '#/DataStream';
 import type { MultiBufferStream } from '#/buffer';
 import { ContainerBox } from '#/containerBox';
 
@@ -34,7 +35,9 @@ export class metaBox extends FullBox {
   dinfs: Array<dinfBox>;
 
   parse(stream: MultiBufferStream) {
-    this.parseFullHeader(stream);
+    // meta is a FullBox in MPEG-4 and a ContainerBox in QTFF
+    if (!(stream.behavior & DataStream.BEHAVIOR_QTFF))
+      this.parseFullHeader(stream);
     this.boxes = [];
     ContainerBox.prototype.parse.call(this, stream);
   }
