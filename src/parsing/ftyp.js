@@ -10,5 +10,9 @@ BoxParser.createBoxCtor("ftyp", function(stream) {
 		toparse -= 4;
 		i++;
 	}
+
+	// Certain Boxes/Atoms have different behavior when parsing QTFF files
+	if (this.major_brand.indexOf("qt") == 0)
+		stream.behavior |= BoxParser.BEHAVIOR_QTFF;
 });
 

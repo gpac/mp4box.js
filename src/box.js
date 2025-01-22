@@ -7,6 +7,9 @@ var BoxParser = {
 	ERR_NOT_ENOUGH_DATA : 0,
 	OK : 1,
 
+	// Behavior set when parsing a QTFF file for when same Box/Atom is used differently
+	BEHAVIOR_QTFF: 0x01,
+
 	// Boxes to be created with default parsing
 	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "strk" ],
 	FULL_BOXES: [ "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere" ],

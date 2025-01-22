@@ -20,6 +20,9 @@ var DataStream = function(arrayBuffer, byteOffset, endianness) {
   }
   this.position = 0;
   this.endianness = endianness == null ? DataStream.LITTLE_ENDIAN : endianness;
+
+  // Behavior flags set by parsers
+  this.behavior = 0;
 };
 DataStream.prototype = {};
 
