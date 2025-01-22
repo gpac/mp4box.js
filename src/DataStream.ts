@@ -40,6 +40,9 @@ export class DataStream {
 
   endianness: boolean;
   position: number;
+  behavior: number;
+
+  static BEHAVIOR_QTFF = 0x01; // QuickTime File Format behavior
 
   /**
    * DataStream reads scalars, arrays and structs of data from an ArrayBuffer.
