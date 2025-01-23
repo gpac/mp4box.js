@@ -1,6 +1,6 @@
 Log.setLogLevel(Log.error);
 var TIMEOUT_MS = 10000;
-var mediaTestBaseUrl = './';
+var mediaTestBaseUrl = 'https://download.tsi.telecom-paristech.fr/gpac/mp4box.js/';
 
 function getFileRange(url, start, end, callback) {
 	var xhr = new XMLHttpRequest();
@@ -12,7 +12,7 @@ function getFileRange(url, start, end, callback) {
 		xhr.setRequestHeader('Range', range);
 	}
 	Log.info("XHR", "Getting resource at "+url+(range ? " range: "+range : ""));
-	xhr.onreadystatechange = function (e) { 
+	xhr.onreadystatechange = function (e) {
 		var buffer;
 		if ((xhr.status == 200 || xhr.status == 206 || xhr.status == 304 || xhr.status == 416) && xhr.readyState == this.DONE) {
 			buffer = xhr.response;
