@@ -41,9 +41,14 @@
     "karma-firefox-launcher": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-qunit": "^0.1.4",
-    "qunitjs": "^1.23.0"
+    "qunitjs": "^1.23.0",
+    "typescript": "^4.5.4",
+    "ts-node": "^10.4.0",
+    "@types/node": "^16.11.7"
   },
   "scripts": {
-    "test": "grunt test --verbose"
+    "test": "grunt test --verbose",
+    "tsc": "tsc",
+    "ts-node": "ts-node"
   }
 }

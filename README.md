@@ -335,6 +335,45 @@ Node Usage
 =======
 MP4Box.js can be used in Node.js. See for example the [info.js](test/node/info.js) example.
 
+TypeScript Support
+=======
+MP4Box.js now supports TypeScript. To use it in a TypeScript project, follow these steps:
+
+1. Install the necessary dependencies:
+```sh
+npm install --save-dev typescript ts-node @types/node
+```
+
+2. Create a `tsconfig.json` file in the root of your project with the following content:
+```json
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src", "test"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+3. Use MP4Box.js in your TypeScript files:
+```typescript
+import * as MP4Box from 'mp4box';
+
+const mp4boxfile = MP4Box.createFile();
+mp4boxfile.onError = (e: string) => {};
+mp4boxfile.onReady = (info: any) => {};
+mp4boxfile.appendBuffer(data);
+mp4boxfile.appendBuffer(data);
+mp4boxfile.appendBuffer(data);
+...
+mp4boxfile.flush();
+```
+
 Contribute
 =======
 If your favorite box is not parsed by MP4Box, you can easily contribute. Each box parsing code is stored in a separate file whose name is the 4CC of the box type. For instance, the parsing of the ```ctts``` box is located in [ctts.js](src/parsing/ctts.js).

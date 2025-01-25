@@ -101,6 +101,11 @@ module.exports = function(grunt) {
         }
       }
     },
+    ts: {
+      default: {
+        tsconfig: './tsconfig.json'
+      }
+    },
     watch: {
       files: ['<%= jshint.files %>'],
       tasks: ['default']
@@ -131,10 +136,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-karma-coveralls');
   grunt.loadNpmTasks('grunt-bump');
+  grunt.loadNpmTasks('grunt-ts');
 
   grunt.registerTask('all', [ 'concat:all', 'uglify:all']);
   grunt.registerTask('simple', [ 'concat:simple', 'uglify:simple']);
-  grunt.registerTask('default', [ 'jshint', 'all', 'simple']);
+  grunt.registerTask('default', [ 'jshint', 'ts', 'all', 'simple']);
   grunt.registerTask('test', ['default']);
 
 };
