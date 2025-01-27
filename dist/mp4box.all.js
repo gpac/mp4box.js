@@ -4973,7 +4973,7 @@ BoxParser.createFullBoxCtor("udes", function(stream) {
 // file:src/parsing/uncC.js
 BoxParser.createFullBoxCtor("uncC", function(stream) {
     var i;
-    this.profile = stream.readUint32();
+    this.profile = stream.readString(4);
     if (this.version == 1) {
         // Nothing - just the profile
     } else if (this.version == 0) {
