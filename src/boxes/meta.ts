@@ -36,8 +36,7 @@ export class metaBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     // meta is a FullBox in MPEG-4 and a ContainerBox in QTFF
-    if (!(stream.behavior & DataStream.BEHAVIOR_QTFF))
-      this.parseFullHeader(stream);
+    if (!(stream.behavior & DataStream.BEHAVIOR_QTFF)) this.parseFullHeader(stream);
     this.boxes = [];
     ContainerBox.prototype.parse.call(this, stream);
   }
