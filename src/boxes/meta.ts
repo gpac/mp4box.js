@@ -5,6 +5,8 @@ import { iinfBox } from '#/boxes/iinf';
 import { ilocBox } from '#/boxes/iloc';
 import { irefBox } from '#/boxes/iref';
 import { pitmBox } from '#/boxes/pitm';
+import { keysBox } from '#/boxes/qt/keys';
+import { ilstBox } from '#/boxes/qt/ilst';
 import { DataStream } from '#/DataStream';
 import type { MultiBufferStream } from '#/buffer';
 
