@@ -6440,7 +6440,7 @@ BoxParser.DIFF_BOXES_PROP_NAMES = [ "boxes", "entries", "references", "subsample
 					 	 "subsegments", "ranges", "seekLists", "seekPoints",
 					 	 "esd", "levels"];
 
-BoxParser.DIFF_PRIMITIVE_ARRAY_PROP_NAMES = [ "compatible_brands", "matrix", "opcolor", "sample_counts", "sample_counts", "sample_deltas",
+BoxParser.DIFF_PRIMITIVE_ARRAY_PROP_NAMES = [ "compatible_brands", "matrix", "opcolor", "sample_counts", "sample_deltas",
 "first_chunk", "samples_per_chunk", "sample_sizes", "chunk_offsets", "sample_offsets", "sample_description_index", "sample_duration" ];
 
 BoxParser.boxEqualFields = function(box_a, box_b) {
@@ -6489,7 +6489,8 @@ BoxParser.boxEqual = function(box_a, box_b) {
 		}
 	}
 	return true;
-}// file:src/text-mp4.js
+}
+// file:src/text-mp4.js
 /* 
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
