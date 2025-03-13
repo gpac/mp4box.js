@@ -17,7 +17,7 @@ function printPS(ps) {
 	return str;
 }
 
-BoxParser.createBoxCtor("avcC", function(stream) {
+BoxParser.createBoxCtor("avcC", "AVCConfigurationBox", function(stream) {
 	var i;
 	var toparse;
 	this.configurationVersion = stream.readUint8();

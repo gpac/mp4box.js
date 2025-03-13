@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("a1lx", function(stream) {
+BoxParser.createBoxCtor("a1lx", "AV1LayeredImageIndexingProperty", function(stream) {
 	var large_size = stream.readUint8() & 1;
 	var FieldLength = ((large_size & 1) + 1) * 16;
 	this.layer_size = [];

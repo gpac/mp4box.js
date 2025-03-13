@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("sidx", function(stream) {
+BoxParser.createFullBoxCtor("sidx", "CompressedSegmentIndexBox", function(stream) {
 	this.reference_ID = stream.readUint32();
 	this.timescale = stream.readUint32();
 	if (this.version === 0) {

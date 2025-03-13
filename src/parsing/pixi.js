@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("pixi", function(stream) {
+BoxParser.createFullBoxCtor("pixi", "PixelInformationProperty", function(stream) {
 	var i;
 	this.num_channels = stream.readUint8();
 	this.bits_per_channels = [];

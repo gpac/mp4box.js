@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stsz", function(stream) {
+BoxParser.createFullBoxCtor("stsz", "SampleSizeBox", function(stream) {
 	var i;
 	this.sample_sizes = [];
 	if (this.version === 0) {

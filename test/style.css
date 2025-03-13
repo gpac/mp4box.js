@@ -109,3 +109,7 @@ th {
 .trackinfo table tr td, trackinfo table tr th, #sampletable table tr td, #sampletable table tr th {
 	width: 1px;
 }
+
+.boxname {
+	color: #777;
+}

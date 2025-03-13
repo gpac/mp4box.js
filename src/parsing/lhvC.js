@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("lhvC", function(stream) {
+BoxParser.createBoxCtor("lhvC", "LHEVCConfigurationBox", function(stream) {
 	var i, j;
 	var tmp_byte;
 	this.configurationVersion = stream.readUint8();

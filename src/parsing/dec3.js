@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("dec3", function(stream) {
+BoxParser.createBoxCtor("dec3", "EC3SpecificBox", function(stream) {
 	var tmp_16 = stream.readUint16();
 	this.data_rate = tmp_16 >> 3;
 	this.num_ind_sub = tmp_16 & 0x7;

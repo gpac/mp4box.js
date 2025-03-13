@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stri", function(stream) {
+BoxParser.createFullBoxCtor("stri", "SubTrackInformationBox", function(stream) {
 	this.switch_group = stream.readUint16();
 	this.alternate_group = stream.readUint16();
 	this.sub_track_id = stream.readUint32();

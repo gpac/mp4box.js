@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("dfLa", function(stream) {
+BoxParser.createFullBoxCtor("dfLa", "FLACSpecificBox", function(stream) {
     var BLOCKTYPE_MASK = 0x7F;
     var LASTMETADATABLOCKFLAG_MASK = 0x80;
 

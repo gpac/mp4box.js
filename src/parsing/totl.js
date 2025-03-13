@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("totl",function(stream) {
+BoxParser.createBoxCtor("totl", "hintBytesSent", function(stream) {
 	this.bytessent = stream.readUint32();
 });
 

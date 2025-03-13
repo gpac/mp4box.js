@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("iinf", function(stream) {
+BoxParser.createFullBoxCtor("iinf", "ItemInfoBox", function(stream) {
 	var ret;
 	if (this.version === 0) {
 		this.entry_count = stream.readUint16();

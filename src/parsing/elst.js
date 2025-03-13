@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("elst", function(stream) {
+BoxParser.createFullBoxCtor("elst", "EditListBox", function(stream) {
 	this.entries = [];
 	var entry_count = stream.readUint32();
 	for (var i = 0; i < entry_count; i++) {

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stz2", function(stream) {
+BoxParser.createFullBoxCtor("stz2", "CompactSampleSizeBox", function(stream) {
 	var i;
 	var sample_size;
 	var sample_count;

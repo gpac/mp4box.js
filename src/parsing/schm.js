@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("schm", function(stream) {
+BoxParser.createFullBoxCtor("schm", "SchemeTypeBox", function(stream) {
 	this.scheme_type = stream.readString(4);
 	this.scheme_version = stream.readUint32();
 	if (this.flags & 0x000001) {

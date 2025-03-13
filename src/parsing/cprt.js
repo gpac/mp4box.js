@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("cprt", function (stream) {
+BoxParser.createFullBoxCtor("cprt", "CopyrightBox", function (stream) {
 	this.parseLanguage(stream);
 	this.notice = stream.readCString();
 });

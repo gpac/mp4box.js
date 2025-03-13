@@ -1,2 +1,2 @@
-BoxParser.createFullBoxCtor("sthd");
+BoxParser.createFullBoxCtor("sthd", "SubtitleMediaHeaderBox");
 

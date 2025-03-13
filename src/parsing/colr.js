@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("colr", function(stream) {
+BoxParser.createBoxCtor("colr", "ColourInformationBox", function(stream) {
 	this.colour_type = stream.readString(4);
 	if (this.colour_type === 'nclx') {
 		this.colour_primaries = stream.readUint16();

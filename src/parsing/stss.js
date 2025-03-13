@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stss", function(stream) {
+BoxParser.createFullBoxCtor("stss", "SyncSampleBox", function(stream) {
 	var i;
 	var entry_count;
 	entry_count = stream.readUint32();

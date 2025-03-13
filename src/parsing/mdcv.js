@@ -7,7 +7,7 @@ ColorPoint.prototype.toString = function() {
     return "("+this.x+","+this.y+")";
 }
 
-BoxParser.createBoxCtor("mdcv", function(stream) {
+BoxParser.createBoxCtor("mdcv", "MasteringDisplayColourVolumeBox", function(stream) {
     this.display_primaries = [];
     this.display_primaries[0] = new ColorPoint(stream.readUint16(),stream.readUint16());
     this.display_primaries[1] = new ColorPoint(stream.readUint16(),stream.readUint16());

@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("cmpd", function(stream) {
+BoxParser.createBoxCtor("cmpd", "ComponentDefinitionBox", function(stream) {
 	this.component_count = stream.readUint32();
 	this.component_types = [];
 	this.component_type_urls = [];

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("ipma", function(stream) {
+BoxParser.createFullBoxCtor("ipma", "ItemPropertyAssociationBox", function(stream) {
 	var i, j;
 	entry_count = stream.readUint32();
 	this.associations = [];
