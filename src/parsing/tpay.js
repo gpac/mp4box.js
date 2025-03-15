@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("tpay", function(stream) {
+BoxParser.createBoxCtor("tpay", "hintBytesSent", function(stream) {
 	this.bytessent = stream.readUint32();
 });
 

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("SmDm", function(stream) {
+BoxParser.createFullBoxCtor("SmDm", "SMPTE2086MasteringDisplayMetadataBox", function(stream) {
 	this.primaryRChromaticity_x = stream.readUint16();
     this.primaryRChromaticity_y = stream.readUint16();
     this.primaryGChromaticity_x = stream.readUint16();

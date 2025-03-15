@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("iref", function(stream) {
+BoxParser.createFullBoxCtor("iref", "ItemReferenceBox", function(stream) {
 	var ret;
 	var entryCount;
 	var box;

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("tfhd", function(stream) {
+BoxParser.createFullBoxCtor("tfhd", "TrackFragmentHeaderBox", function(stream) {
 	var readBytes = 0;
 	this.track_id = stream.readUint32();
 	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET)) {

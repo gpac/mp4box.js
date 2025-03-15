@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("trun", function(stream) {
+BoxParser.createFullBoxCtor("trun", "TrackRunBox", function(stream) {
 	var readBytes = 0;
 	this.sample_count = stream.readUint32();
 	readBytes+= 4;

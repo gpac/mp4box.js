@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("ctts", function(stream) {
+BoxParser.createFullBoxCtor("ctts", "CompositionOffsetBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();

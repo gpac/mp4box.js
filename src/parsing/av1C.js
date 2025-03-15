@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("av1C", function(stream) {
+BoxParser.createBoxCtor("av1C", "AV1CodecConfigurationBox", function(stream) {
 	var i;
 	var toparse;
 	var tmp = stream.readUint8();

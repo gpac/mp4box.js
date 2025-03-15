@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("sdtp", function(stream) {
+BoxParser.createFullBoxCtor("sdtp", "SampleDependencyTypeBox", function(stream) {
 	var tmp_byte;
 	var count = (this.size - this.hdr_size);
 	this.is_leading = [];

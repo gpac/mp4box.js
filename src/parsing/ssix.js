@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("ssix", function(stream) {
+BoxParser.createFullBoxCtor("ssix", "CompressedSubsegmentIndexBox", function(stream) {
 	this.subsegments = [];
 	var subsegment_count = stream.readUint32();
 	for (var i = 0; i < subsegment_count; i++) {

@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("dOps", function(stream) {
+BoxParser.createBoxCtor("dOps", "OpusSpecificBox", function(stream) {
 	this.Version = stream.readUint8();
 	this.OutputChannelCount = stream.readUint8();
 	this.PreSkip = stream.readUint16();

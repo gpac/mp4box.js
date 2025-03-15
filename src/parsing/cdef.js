@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("cdef", function(stream) {
+BoxParser.createBoxCtor("cdef", "ComponentDefinitionBox", function(stream) {
     var i;
     this.channel_count = stream.readUint16();
     this.channel_indexes = [];

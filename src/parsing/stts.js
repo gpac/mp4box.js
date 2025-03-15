@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stts", function(stream) {
+BoxParser.createFullBoxCtor("stts", "TimeToSampleBox", function(stream) {
 	var entry_count;
 	var i;
 	var delta;

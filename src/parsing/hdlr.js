@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("hdlr", function(stream) {
+BoxParser.createFullBoxCtor("hdlr", "HandlerBox", function(stream) {
 	if (this.version === 0) {
 		stream.readUint32();
 		this.handler = stream.readString(4);

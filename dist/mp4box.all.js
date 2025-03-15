@@ -2166,38 +2166,53 @@ var BoxParser = {
 	OK : 1,
 
 	// Boxes to be created with default parsing
-	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "strk" ],
-	FULL_BOXES: [ "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere" ],
+	BASIC_BOXES: [
+		{type: "mdat", name: "MediaDataBox"},
+		{type: "idat", name: "ItemDataBox"},
+		{type: "free", name: "FreeSpaceBox"},
+		{type: "skip", name: "FreeSpaceBox"},
+		{type: "meco", name: "AdditionalMetadataContainerBox"},
+		{type: "strk", name: "SubTrackBox"}
+	],
+	FULL_BOXES: [
+		{type: "hmhd", name: "HintMediaHeaderBox"},
+		{type: "nmhd", name: "NullMediaHeaderBox"},
+		{type: "iods", name: "ObjectDescriptorBox"},
+		{type: "xml ", name: "XMLBox"},
+		{type: "bxml", name: "BinaryXMLBox"},
+		{type: "ipro", name: "ItemProtectionBox"},
+		{type: "mere", name: "MetaboxRelationBox"}
+	],
 	CONTAINER_BOXES: [
-		[ "moov", [ "trak", "pssh" ] ],
-		[ "trak" ],
-		[ "edts" ],
-		[ "mdia" ],
-		[ "minf" ],
-		[ "dinf" ],
-		[ "stbl", [ "sgpd", "sbgp" ] ],
-		[ "mvex", [ "trex" ] ],
-		[ "moof", [ "traf" ] ],
-		[ "traf", [ "trun", "sgpd", "sbgp" ] ],
-		[ "vttc" ],
-		[ "tref" ],
-		[ "iref" ],
-		[ "mfra", [ "tfra" ] ],
-		[ "meco" ],
-		[ "hnti" ],
-		[ "hinf" ],
-		[ "strk" ],
-		[ "strd" ],
-		[ "sinf" ],
-		[ "rinf" ],
-		[ "schi" ],
-		[ "trgr" ],
-		[ "udta", ["kind"] ],
-		[ "iprp", ["ipma"] ],
-		[ "ipco" ],
-		[ "grpl" ],
-		[ "j2kH" ],
-		[ "etyp", [ "tyco"] ]
+		[{type: "moov", name: "CompressedMovieBox"}, ["trak", "pssh"]],
+		[{type: "trak", name: "TrackBox"}],
+		[{type: "edts", name: "EditBox"}],
+		[{type: "mdia", name: "MediaBox"}],
+		[{type: "minf", name: "MediaInformationBox"}],
+		[{type: "dinf", name: "DataInformationBox"}],
+		[{type: "stbl", name: "SampleTableBox"}, ["sgpd", "sbgp"]],
+		[{type: "mvex", name: "MovieExtendsBox"}, ["tref"]],
+		[{type: "moof", name: "CompressedMovieFragmentBox"}, ["traf"]],
+		[{type: "traf", name: "TrackFragmentBox"}, ["trun", "sgpd", "sbgp"]],
+		[{type: "vttc", name: "VTTCueBox"}],
+		[{type: "tref", name: "TrackReferenceBox"}],
+		[{type: "iref", name: "ItemReferenceBox"}],
+		[{type: "mfra", name: "MovieFragmentRandomAccessBox"}, ["tfra"]],
+		[{type: "meco", name: "AdditionalMetadataContainerBox"}],
+		[{type: "hnti", name: "trackhintinformation"}],
+		[{type: "hinf", name: "hintstatisticsbox"}],
+		[{type: "strk", name: "SubTrackBox"}],
+		[{type: "strd", name: "SubTrackDefinitionBox"}],
+		[{type: "sinf", name: "ProtectionSchemeInfoBox"}],
+		[{type: "rinf", name: "RestrictedSchemeInfoBox"}],
+		[{type: "schi", name: "SchemeInformationBox"}],
+		[{type: "trgr", name: "TrackGroupBox"}],
+		[{type: "udta", name: "UserDataBox"}, ["kind"]],
+		[{type: "iprp", name: "ItemPropertiesBox"}, ["ipma"]],
+		[{type: "ipco", name: "ItemPropertyContainerBox"}],
+		[{type: "grpl", name: "GroupsListBox"}],
+		[{type: "j2kH", name: "J2KHeaderInfoBox"}],
+		[{type: "etyp", name: "ExtendedTypeBox"}, ["tyco"]]
 	],
 	// Boxes effectively created
 	boxCodes : [],
@@ -2215,28 +2230,29 @@ var BoxParser = {
 		BoxParser.TrackGroupTypeBox.prototype = new BoxParser.FullBox();
 
 		/* creating constructors for simple boxes */
-		BoxParser.BASIC_BOXES.forEach(function(type) {
-			BoxParser.createBoxCtor(type)
+		BoxParser.BASIC_BOXES.forEach(function(box) {
+			BoxParser.createBoxCtor(box.type, box.name)
 		});
-		BoxParser.FULL_BOXES.forEach(function(type) {
-			BoxParser.createFullBoxCtor(type);
+		BoxParser.FULL_BOXES.forEach(function(box) {
+			BoxParser.createFullBoxCtor(box.type, box.name);
 		});
-		BoxParser.CONTAINER_BOXES.forEach(function(types) {
-			BoxParser.createContainerBoxCtor(types[0], null, types[1]);
+		BoxParser.CONTAINER_BOXES.forEach(function(boxes) {
+			BoxParser.createContainerBoxCtor(boxes[0].type, boxes[0].name, null, boxes[1]);
 		});
 	},
-	Box: function(_type, _size, _uuid) {
+	Box: function(_type, _size, _name, _uuid) {
 		this.type = _type;
+		this.box_name = _name;
 		this.size = _size;
 		this.uuid = _uuid;
 	},
-	FullBox: function(type, size, uuid) {
-		BoxParser.Box.call(this, type, size, uuid);
+	FullBox: function(type, size, name, uuid) {
+		BoxParser.Box.call(this, type, size, name, uuid);
 		this.flags = 0;
 		this.version = 0;
 	},
-	ContainerBox: function(type, size, uuid) {
-		BoxParser.Box.call(this, type, size, uuid);
+	ContainerBox: function(type, size, name, uuid) {
+		BoxParser.Box.call(this, type, size, name, uuid);
 		this.boxes = [];
 	},
 	SampleEntry: function(type, size, hdr_size, start) {
@@ -2250,18 +2266,18 @@ var BoxParser = {
 	TrackGroupTypeBox: function(type, size) {
 		BoxParser.FullBox.call(this, type, size);
 	},
-	createBoxCtor: function(type, parseMethod){
+	createBoxCtor: function(type, name, parseMethod){
 		BoxParser.boxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.Box.call(this, type, size);
+			BoxParser.Box.call(this, type, size, name);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.Box();
 		if (parseMethod) BoxParser[type+"Box"].prototype.parse = parseMethod;
 	},
-	createFullBoxCtor: function(type, parseMethod) {
+	createFullBoxCtor: function(type, name, parseMethod) {
 		//BoxParser.fullBoxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.FullBox.call(this, type, size);
+			BoxParser.FullBox.call(this, type, size, name);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.FullBox();
 		BoxParser[type+"Box"].prototype.parse = function(stream) {
@@ -2280,10 +2296,10 @@ var BoxParser = {
 			}
 		}
 	},
-	createContainerBoxCtor: function(type, parseMethod, subBoxNames) {
+	createContainerBoxCtor: function(type, name, parseMethod, subBoxNames) {
 		//BoxParser.containerBoxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.ContainerBox.call(this, type, size);
+			BoxParser.ContainerBox.call(this, type, size, name);
 			BoxParser.addSubBoxArrays.call(this, subBoxNames);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.ContainerBox();
@@ -2333,9 +2349,9 @@ var BoxParser = {
 				BoxParser.FullBox.call(this, "uuid", size, uuid);
 			} else {
 				if (isContainerBox) {
-					BoxParser.ContainerBox.call(this, "uuid", size, uuid);
+					BoxParser.ContainerBox.call(this, "uuid", size, /*name=*/undefined, uuid);
 				} else {
-					BoxParser.Box.call(this, "uuid", size, uuid);
+					BoxParser.Box.call(this, "uuid", size, /*name=*/undefined, uuid);
 				}
 			}
 		}
@@ -2720,7 +2736,7 @@ BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_SYSTEM, 	"e
 BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_TEXT, 		"enct");
 BoxParser.createEncryptedSampleEntryCtor(BoxParser.SAMPLE_ENTRY_TYPE_METADATA, 	"encm");
 // file:src/parsing/a1lx.js
-BoxParser.createBoxCtor("a1lx", function(stream) {
+BoxParser.createBoxCtor("a1lx", "AV1LayeredImageIndexingProperty", function(stream) {
 	var large_size = stream.readUint8() & 1;
 	var FieldLength = ((large_size & 1) + 1) * 16;
 	this.layer_size = [];
@@ -2732,15 +2748,15 @@ BoxParser.createBoxCtor("a1lx", function(stream) {
 		}
 	}
 });// file:src/parsing/a1op.js
-BoxParser.createBoxCtor("a1op", function(stream) {
+BoxParser.createBoxCtor("a1op", "OperatingPointSelectorProperty", function(stream) {
 	this.op_index = stream.readUint8();
 });// file:src/parsing/auxC.js
-BoxParser.createFullBoxCtor("auxC", function(stream) {
+BoxParser.createFullBoxCtor("auxC", "AuxiliaryTypeProperty", function(stream) {
 	this.aux_type = stream.readCString();
 	var aux_subtype_length = this.size - this.hdr_size - (this.aux_type.length + 1);
 	this.aux_subtype = stream.readUint8Array(aux_subtype_length);
 });// file:src/parsing/av1C.js
-BoxParser.createBoxCtor("av1C", function(stream) {
+BoxParser.createBoxCtor("av1C", "AV1CodecConfigurationBox", function(stream) {
 	var i;
 	var toparse;
 	var tmp = stream.readUint8();
@@ -2805,7 +2821,7 @@ function printPS(ps) {
 	return str;
 }
 
-BoxParser.createBoxCtor("avcC", function(stream) {
+BoxParser.createBoxCtor("avcC", "AVCConfigurationBox", function(stream) {
 	var i;
 	var toparse;
 	this.configurationVersion = stream.readUint8();
@@ -2843,14 +2859,14 @@ BoxParser.createBoxCtor("avcC", function(stream) {
 });
 
 // file:src/parsing/btrt.js
-BoxParser.createBoxCtor("btrt", function(stream) {
+BoxParser.createBoxCtor("btrt", "BitRateBox", function(stream) {
 	this.bufferSizeDB = stream.readUint32();
 	this.maxBitrate = stream.readUint32();
 	this.avgBitrate = stream.readUint32();
 });
 
 // file:src/parsing/ccst.js
-BoxParser.createFullBoxCtor("ccst", function(stream) {
+BoxParser.createFullBoxCtor("ccst", "CodingConstraintsBox", function(stream) {
 	var flags = stream.readUint8();
 	this.all_ref_pics_intra = ((flags & 0x80) == 0x80);
 	this.intra_pred_used = ((flags & 0x40) == 0x40);
@@ -2859,7 +2875,7 @@ BoxParser.createFullBoxCtor("ccst", function(stream) {
 });
 
 // file:src/parsing/cdef.js
-BoxParser.createBoxCtor("cdef", function(stream) {
+BoxParser.createBoxCtor("cdef", "ComponentDefinitionBox", function(stream) {
     var i;
     this.channel_count = stream.readUint16();
     this.channel_indexes = [];
@@ -2873,7 +2889,7 @@ BoxParser.createBoxCtor("cdef", function(stream) {
 });
 
 // file:src/parsing/clap.js
-BoxParser.createBoxCtor("clap", function(stream) {
+BoxParser.createBoxCtor("clap", "CleanApertureBox", function(stream) {
 	this.cleanApertureWidthN = stream.readUint32();
 	this.cleanApertureWidthD = stream.readUint32();
 	this.cleanApertureHeightN = stream.readUint32();
@@ -2883,13 +2899,13 @@ BoxParser.createBoxCtor("clap", function(stream) {
 	this.vertOffN = stream.readUint32();
 	this.vertOffD = stream.readUint32();
 });// file:src/parsing/clli.js
-BoxParser.createBoxCtor("clli", function(stream) {
+BoxParser.createBoxCtor("clli", "ContentLightLevelBox", function(stream) {
 	this.max_content_light_level = stream.readUint16();
     this.max_pic_average_light_level = stream.readUint16();
 });
 
 // file:src/parsing/cmex.js
-BoxParser.createFullBoxCtor("cmex", function(stream) {
+BoxParser.createFullBoxCtor("cmex", "CameraExtrinsicMatrixProperty", function(stream) {
 	if (this.flags & 0x1) {
 		this.pos_x = stream.readInt32();
 	}
@@ -2919,7 +2935,7 @@ BoxParser.createFullBoxCtor("cmex", function(stream) {
 	}
 });
 // file:src/parsing/cmin.js
-BoxParser.createFullBoxCtor("cmin", function(stream) {
+BoxParser.createFullBoxCtor("cmin", "CameraIntrinsicMatrixProperty", function(stream) {
 	this.focal_length_x = stream.readInt32();
 	this.principal_point_x = stream.readInt32();
 	this.principal_point_y = stream.readInt32();
@@ -2928,7 +2944,7 @@ BoxParser.createFullBoxCtor("cmin", function(stream) {
 		this.skew_factor = stream.readInt32();
 	}
 });// file:src/parsing/cmpd.js
-BoxParser.createBoxCtor("cmpd", function(stream) {
+BoxParser.createBoxCtor("cmpd", "ComponentDefinitionBox", function(stream) {
 	this.component_count = stream.readUint32();
 	this.component_types = [];
 	this.component_type_urls = [];
@@ -2940,7 +2956,7 @@ BoxParser.createBoxCtor("cmpd", function(stream) {
 		}
 	}
 });// file:src/parsing/co64.js
-BoxParser.createFullBoxCtor("co64", function(stream) {
+BoxParser.createFullBoxCtor("co64", "ChunkLargeOffsetBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();
@@ -2953,13 +2969,13 @@ BoxParser.createFullBoxCtor("co64", function(stream) {
 });
 
 // file:src/parsing/CoLL.js
-BoxParser.createFullBoxCtor("CoLL", function(stream) {
+BoxParser.createFullBoxCtor("CoLL", "ContentLightLevelBox", function(stream) {
 	this.maxCLL = stream.readUint16();
     this.maxFALL = stream.readUint16();
 });
 
 // file:src/parsing/colr.js
-BoxParser.createBoxCtor("colr", function(stream) {
+BoxParser.createBoxCtor("colr", "ColourInformationBox", function(stream) {
 	this.colour_type = stream.readString(4);
 	if (this.colour_type === 'nclx') {
 		this.colour_primaries = stream.readUint16();
@@ -2973,13 +2989,13 @@ BoxParser.createBoxCtor("colr", function(stream) {
 		this.ICC_profile = stream.readUint8Array(this.size - 4);
 	}
 });// file:src/parsing/cprt.js
-BoxParser.createFullBoxCtor("cprt", function (stream) {
+BoxParser.createFullBoxCtor("cprt", "CopyrightBox", function (stream) {
 	this.parseLanguage(stream);
 	this.notice = stream.readCString();
 });
 
 // file:src/parsing/cslg.js
-BoxParser.createFullBoxCtor("cslg", function(stream) {
+BoxParser.createFullBoxCtor("cslg", "CompositionToDecodeBox", function(stream) {
 	var entry_count;
 	if (this.version === 0) {
 		this.compositionToDTSShift = stream.readInt32(); /* signed */
@@ -2991,7 +3007,7 @@ BoxParser.createFullBoxCtor("cslg", function(stream) {
 });
 
 // file:src/parsing/ctts.js
-BoxParser.createFullBoxCtor("ctts", function(stream) {
+BoxParser.createFullBoxCtor("ctts", "CompositionOffsetBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();
@@ -3018,7 +3034,7 @@ BoxParser.createFullBoxCtor("ctts", function(stream) {
 });
 
 // file:src/parsing/dac3.js
-BoxParser.createBoxCtor("dac3", function(stream) {
+BoxParser.createBoxCtor("dac3", "AC3SpecificBox", function(stream) {
 	var tmp_byte1 = stream.readUint8();
 	var tmp_byte2 = stream.readUint8();
 	var tmp_byte3 = stream.readUint8();
@@ -3031,7 +3047,7 @@ BoxParser.createBoxCtor("dac3", function(stream) {
 });
 
 // file:src/parsing/dec3.js
-BoxParser.createBoxCtor("dec3", function(stream) {
+BoxParser.createBoxCtor("dec3", "EC3SpecificBox", function(stream) {
 	var tmp_16 = stream.readUint16();
 	this.data_rate = tmp_16 >> 3;
 	this.num_ind_sub = tmp_16 & 0x7;
@@ -3055,7 +3071,7 @@ BoxParser.createBoxCtor("dec3", function(stream) {
 });
 
 // file:src/parsing/dfLa.js
-BoxParser.createFullBoxCtor("dfLa", function(stream) {
+BoxParser.createFullBoxCtor("dfLa", "FLACSpecificBox", function(stream) {
     var BLOCKTYPE_MASK = 0x7F;
     var LASTMETADATABLOCKFLAG_MASK = 0x80;
 
@@ -3107,22 +3123,22 @@ BoxParser.createFullBoxCtor("dfLa", function(stream) {
         boxesFound.length + " (" + boxesFound.join(", ") + ")";
 });
 // file:src/parsing/dimm.js
-BoxParser.createBoxCtor("dimm", function(stream) {
+BoxParser.createBoxCtor("dimm", "hintimmediateBytesSent", function(stream) {
 	this.bytessent = stream.readUint64();
 });
 
 // file:src/parsing/dmax.js
-BoxParser.createBoxCtor("dmax", function(stream) {
+BoxParser.createBoxCtor("dmax", "hintlongestpacket", function(stream) {
 	this.time = stream.readUint32();
 });
 
 // file:src/parsing/dmed.js
-BoxParser.createBoxCtor("dmed", function(stream) {
+BoxParser.createBoxCtor("dmed", "hintmediaBytesSent", function(stream) {
 	this.bytessent = stream.readUint64();
 });
 
 // file:src/parsing/dOps.js
-BoxParser.createBoxCtor("dOps", function(stream) {
+BoxParser.createBoxCtor("dOps", "OpusSpecificBox", function(stream) {
 	this.Version = stream.readUint8();
 	this.OutputChannelCount = stream.readUint8();
 	this.PreSkip = stream.readUint16();
@@ -3140,7 +3156,7 @@ BoxParser.createBoxCtor("dOps", function(stream) {
 });
 
 // file:src/parsing/dref.js
-BoxParser.createFullBoxCtor("dref", function(stream) {
+BoxParser.createFullBoxCtor("dref", "DataReferenceBox", function(stream) {
 	var ret;
 	var box;
 	this.entries = [];
@@ -3157,17 +3173,17 @@ BoxParser.createFullBoxCtor("dref", function(stream) {
 });
 
 // file:src/parsing/drep.js
-BoxParser.createBoxCtor("drep", function(stream) {
+BoxParser.createBoxCtor("drep", "hintrepeatedBytesSent", function(stream) {
 	this.bytessent = stream.readUint64();
 });
 
 // file:src/parsing/elng.js
-BoxParser.createFullBoxCtor("elng", function(stream) {
+BoxParser.createFullBoxCtor("elng", "ExtendedLanguageBox", function(stream) {
 	this.extended_language = stream.readString(this.size-this.hdr_size);
 });
 
 // file:src/parsing/elst.js
-BoxParser.createFullBoxCtor("elst", function(stream) {
+BoxParser.createFullBoxCtor("elst", "EditListBox", function(stream) {
 	this.entries = [];
 	var entry_count = stream.readUint32();
 	for (var i = 0; i < entry_count; i++) {
@@ -3186,7 +3202,7 @@ BoxParser.createFullBoxCtor("elst", function(stream) {
 });
 
 // file:src/parsing/emsg.js
-BoxParser.createFullBoxCtor("emsg", function(stream) {
+BoxParser.createFullBoxCtor("emsg", "EventMessageBox", function(stream) {
 	if (this.version == 1) {
 		this.timescale 					= stream.readUint32();
 		this.presentation_time 			= stream.readUint64();
@@ -3303,7 +3319,7 @@ BoxParser.createEntityToGroupCtor("pymd", function(stream) {
 });
 
 // file:src/parsing/esds.js
-BoxParser.createFullBoxCtor("esds", function(stream) {
+BoxParser.createFullBoxCtor("esds", "ElementaryStreamDescriptorBox", function(stream) {
 	var esd_data = stream.readUint8Array(this.size-this.hdr_size);
 	if (typeof MPEG4DescriptorParser !== "undefined") {
 		var esd_parser = new MPEG4DescriptorParser();
@@ -3312,18 +3328,18 @@ BoxParser.createFullBoxCtor("esds", function(stream) {
 });
 
 // file:src/parsing/fiel.js
-BoxParser.createBoxCtor("fiel", function(stream) {
+BoxParser.createBoxCtor("fiel", "FieldHandlingBox", function(stream) {
 	this.fieldCount = stream.readUint8();
 	this.fieldOrdering = stream.readUint8();
 });
 
 // file:src/parsing/frma.js
-BoxParser.createBoxCtor("frma", function(stream) {
+BoxParser.createBoxCtor("frma", "OriginalFormatBox", function(stream) {
 	this.data_format = stream.readString(4);
 });
 
 // file:src/parsing/ftyp.js
-BoxParser.createBoxCtor("ftyp", function(stream) {
+BoxParser.createBoxCtor("ftyp", "FileTypeBox", function(stream) {
 	var toparse = this.size - this.hdr_size;
 	this.major_brand = stream.readString(4);
 	this.minor_version = stream.readUint32();
@@ -3338,7 +3354,7 @@ BoxParser.createBoxCtor("ftyp", function(stream) {
 });
 
 // file:src/parsing/hdlr.js
-BoxParser.createFullBoxCtor("hdlr", function(stream) {
+BoxParser.createFullBoxCtor("hdlr", "HandlerBox", function(stream) {
 	if (this.version === 0) {
 		stream.readUint32();
 		this.handler = stream.readString(4);
@@ -3351,7 +3367,7 @@ BoxParser.createFullBoxCtor("hdlr", function(stream) {
 });
 
 // file:src/parsing/hvcC.js
-BoxParser.createBoxCtor("hvcC", function(stream) {
+BoxParser.createBoxCtor("hvcC", "HEVCConfigurationBox", function(stream) {
 	var i, j;
 	var nb_nalus;
 	var length;
@@ -3418,7 +3434,7 @@ BoxParser.createBoxCtor("hvcC", function(stream) {
 });
 
 // file:src/parsing/iinf.js
-BoxParser.createFullBoxCtor("iinf", function(stream) {
+BoxParser.createFullBoxCtor("iinf", "ItemInfoBox", function(stream) {
 	var ret;
 	if (this.version === 0) {
 		this.entry_count = stream.readUint16();
@@ -3440,7 +3456,7 @@ BoxParser.createFullBoxCtor("iinf", function(stream) {
 });
 
 // file:src/parsing/iloc.js
-BoxParser.createFullBoxCtor("iloc", function(stream) {
+BoxParser.createFullBoxCtor("iloc", "ItemLocationBox", function(stream) {
 	var byte;
 	byte = stream.readUint8();
 	this.offset_size = (byte >> 4) & 0xF;
@@ -3542,12 +3558,12 @@ BoxParser.createFullBoxCtor("iloc", function(stream) {
 });
 
 // file:src/parsing/imir.js
-BoxParser.createBoxCtor("imir", function(stream) {
+BoxParser.createBoxCtor("imir", "ImageMirror", function(stream) {
 	var tmp = stream.readUint8();
 	this.reserved = tmp >> 7;
 	this.axis = tmp & 1;
 });// file:src/parsing/infe.js
-BoxParser.createFullBoxCtor("infe", function(stream) {
+BoxParser.createFullBoxCtor("infe", "ItemInfoEntry", function(stream) {
 	if (this.version === 0 || this.version === 1) {
 		this.item_ID = stream.readUint16();
 		this.item_protection_index = stream.readUint16();
@@ -3579,7 +3595,7 @@ BoxParser.createFullBoxCtor("infe", function(stream) {
 	}
 });
 // file:src/parsing/ipma.js
-BoxParser.createFullBoxCtor("ipma", function(stream) {
+BoxParser.createFullBoxCtor("ipma", "ItemPropertyAssociationBox", function(stream) {
 	var i, j;
 	entry_count = stream.readUint32();
 	this.associations = [];
@@ -3608,7 +3624,7 @@ BoxParser.createFullBoxCtor("ipma", function(stream) {
 });
 
 // file:src/parsing/iref.js
-BoxParser.createFullBoxCtor("iref", function(stream) {
+BoxParser.createFullBoxCtor("iref", "ItemReferenceBox", function(stream) {
 	var ret;
 	var entryCount;
 	var box;
@@ -3634,21 +3650,21 @@ BoxParser.createFullBoxCtor("iref", function(stream) {
 	}
 });
 // file:src/parsing/irot.js
-BoxParser.createBoxCtor("irot", function(stream) {
+BoxParser.createBoxCtor("irot", "ImageRotation", function(stream) {
 	this.angle = stream.readUint8() & 0x3;
 });
 
 // file:src/parsing/ispe.js
-BoxParser.createFullBoxCtor("ispe", function(stream) {
+BoxParser.createFullBoxCtor("ispe", "ImageSpatialExtentsProperty", function(stream) {
 	this.image_width = stream.readUint32();
 	this.image_height = stream.readUint32();
 });// file:src/parsing/kind.js
-BoxParser.createFullBoxCtor("kind", function(stream) {
+BoxParser.createFullBoxCtor("kind", "KindBox", function(stream) {
 	this.schemeURI = stream.readCString();
 	this.value = stream.readCString();
 });
 // file:src/parsing/leva.js
-BoxParser.createFullBoxCtor("leva", function(stream) {
+BoxParser.createFullBoxCtor("leva", "LevelAssignmentBox", function(stream) {
 	var count = stream.readUint8();
 	this.levels = [];
 	for (var i = 0; i < count; i++) {
@@ -3680,7 +3696,7 @@ BoxParser.createFullBoxCtor("leva", function(stream) {
 });
 
 // file:src/parsing/lhvC.js
-BoxParser.createBoxCtor("lhvC", function(stream) {
+BoxParser.createBoxCtor("lhvC", "LHEVCConfigurationBox", function(stream) {
 	var i, j;
 	var tmp_byte;
 	this.configurationVersion = stream.readUint8();
@@ -3733,10 +3749,10 @@ BoxParser.createBoxCtor("lhvC", function(stream) {
 });
 
 // file:src/parsing/lsel.js
-BoxParser.createBoxCtor("lsel", function(stream) {
+BoxParser.createBoxCtor("lsel", "LayerSelectorProperty", function(stream) {
 	this.layer_id = stream.readUint16();
 });// file:src/parsing/maxr.js
-BoxParser.createBoxCtor("maxr", function(stream) {
+BoxParser.createBoxCtor("maxr", "hintmaxrate", function(stream) {
 	this.period = stream.readUint32();
 	this.bytes = stream.readUint32();
 });
@@ -3751,7 +3767,7 @@ ColorPoint.prototype.toString = function() {
     return "("+this.x+","+this.y+")";
 }
 
-BoxParser.createBoxCtor("mdcv", function(stream) {
+BoxParser.createBoxCtor("mdcv", "MasteringDisplayColourVolumeBox", function(stream) {
     this.display_primaries = [];
     this.display_primaries[0] = new ColorPoint(stream.readUint16(),stream.readUint16());
     this.display_primaries[1] = new ColorPoint(stream.readUint16(),stream.readUint16());
@@ -3762,7 +3778,7 @@ BoxParser.createBoxCtor("mdcv", function(stream) {
 });
 
 // file:src/parsing/mdhd.js
-BoxParser.createFullBoxCtor("mdhd", function(stream) {
+BoxParser.createFullBoxCtor("mdhd", "MediaHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -3779,7 +3795,7 @@ BoxParser.createFullBoxCtor("mdhd", function(stream) {
 });
 
 // file:src/parsing/mehd.js
-BoxParser.createFullBoxCtor("mehd", function(stream) {
+BoxParser.createFullBoxCtor("mehd", "MovieExtendsHeaderBox", function(stream) {
 	if (this.flags & 0x1) {
 		Log.warn("BoxParser", "mehd box incorrectly uses flags set to 1, converting version to 1");
 		this.version = 1;
@@ -3792,27 +3808,27 @@ BoxParser.createFullBoxCtor("mehd", function(stream) {
 });
 
 // file:src/parsing/meta.js
-BoxParser.createFullBoxCtor("meta", function(stream) {
+BoxParser.createFullBoxCtor("meta", "MetaBox", function(stream) {
 	this.boxes = [];
 	BoxParser.ContainerBox.prototype.parse.call(this, stream);
 });
 // file:src/parsing/mfhd.js
-BoxParser.createFullBoxCtor("mfhd", function(stream) {
+BoxParser.createFullBoxCtor("mfhd", "MovieFragmentHeaderBox", function(stream) {
 	this.sequence_number = stream.readUint32();
 });
 
 // file:src/parsing/mfro.js
-BoxParser.createFullBoxCtor("mfro", function(stream) {
+BoxParser.createFullBoxCtor("mfro", "MovieFragmentRandomAccessOffsetBox", function(stream) {
 	this._size = stream.readUint32();
 });
 
 // file:src/parsing/mskC.js
-BoxParser.createFullBoxCtor("mskC", function(stream) {
+BoxParser.createFullBoxCtor("mskC", "MaskConfigurationProperty", function(stream) {
     this.bits_per_pixel = stream.readUint8();
 });
 
 // file:src/parsing/mvhd.js
-BoxParser.createFullBoxCtor("mvhd", function(stream) {
+BoxParser.createFullBoxCtor("mvhd", "MovieHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -3833,17 +3849,17 @@ BoxParser.createFullBoxCtor("mvhd", function(stream) {
 	this.next_track_id = stream.readUint32();
 });
 // file:src/parsing/npck.js
-BoxParser.createBoxCtor("npck", function(stream) {
+BoxParser.createBoxCtor("npck", "hintPacketsSent", function(stream) {
 	this.packetssent = stream.readUint32();
 });
 
 // file:src/parsing/nump.js
-BoxParser.createBoxCtor("nump", function(stream) {
+BoxParser.createBoxCtor("nump", "hintPacketsSent", function(stream) {
 	this.packetssent = stream.readUint64();
 });
 
 // file:src/parsing/padb.js
-BoxParser.createFullBoxCtor("padb", function(stream) {
+BoxParser.createFullBoxCtor("padb", "PaddingBitsBox", function(stream) {
 	var sample_count = stream.readUint32();
 	this.padbits = [];
 	for (var i = 0; i < Math.floor((sample_count+1)/2); i++) {
@@ -3852,23 +3868,23 @@ BoxParser.createFullBoxCtor("padb", function(stream) {
 });
 
 // file:src/parsing/pasp.js
-BoxParser.createBoxCtor("pasp", function(stream) {
+BoxParser.createBoxCtor("pasp", "PixelAspectRatioBox", function(stream) {
 	this.hSpacing = stream.readUint32();
 	this.vSpacing = stream.readUint32();
 });// file:src/parsing/payl.js
-BoxParser.createBoxCtor("payl", function(stream) {
+BoxParser.createBoxCtor("payl", "CuePayloadBox", function(stream) {
 	this.text = stream.readString(this.size - this.hdr_size);
 });
 
 // file:src/parsing/payt.js
-BoxParser.createBoxCtor("payt", function(stream) {
+BoxParser.createBoxCtor("payt", "hintpayloadID", function(stream) {
 	this.payloadID = stream.readUint32();
 	var count = stream.readUint8();
 	this.rtpmap_string = stream.readString(count);
 });
 
 // file:src/parsing/pdin.js
-BoxParser.createFullBoxCtor("pdin", function(stream) {
+BoxParser.createFullBoxCtor("pdin", "ProgressiveDownloadInfoBox", function(stream) {
 	var count = (this.size - this.hdr_size)/8;
 	this.rate = [];
 	this.initial_delay = [];
@@ -3879,7 +3895,7 @@ BoxParser.createFullBoxCtor("pdin", function(stream) {
 });
 
 // file:src/parsing/pitm.js
-BoxParser.createFullBoxCtor("pitm", function(stream) {
+BoxParser.createFullBoxCtor("pitm", "PrimaryItemBox", function(stream) {
 	if (this.version === 0) {
 		this.item_id = stream.readUint16();
 	} else {
@@ -3888,7 +3904,7 @@ BoxParser.createFullBoxCtor("pitm", function(stream) {
 });
 
 // file:src/parsing/pixi.js
-BoxParser.createFullBoxCtor("pixi", function(stream) {
+BoxParser.createFullBoxCtor("pixi", "PixelInformationProperty", function(stream) {
 	var i;
 	this.num_channels = stream.readUint8();
 	this.bits_per_channels = [];
@@ -3898,12 +3914,12 @@ BoxParser.createFullBoxCtor("pixi", function(stream) {
 });
 
 // file:src/parsing/pmax.js
-BoxParser.createBoxCtor("pmax", function(stream) {
+BoxParser.createBoxCtor("pmax", "hintlargestpacket", function(stream) {
 	this.bytes = stream.readUint32();
 });
 
 // file:src/parsing/prdi.js
-BoxParser.createFullBoxCtor("prdi", function(stream) {
+BoxParser.createFullBoxCtor("prdi", "ProgressiveDerivedImageItemInformationProperty", function(stream) {
 	this.step_count = stream.readUint16();
 	this.item_count = [];
 	if (this.flags & 0x2) {
@@ -3912,7 +3928,7 @@ BoxParser.createFullBoxCtor("prdi", function(stream) {
 		}
 	}
 });// file:src/parsing/prft.js
-BoxParser.createFullBoxCtor("prft", function(stream) {
+BoxParser.createFullBoxCtor("prft", "ProducerReferenceTimeBox", function(stream) {
 	this.ref_track_id = stream.readUint32();
 	this.ntp_timestamp = stream.readUint64();
 	if (this.version === 0) {
@@ -3923,7 +3939,7 @@ BoxParser.createFullBoxCtor("prft", function(stream) {
 });
 
 // file:src/parsing/pssh.js
-BoxParser.createFullBoxCtor("pssh", function(stream) {
+BoxParser.createFullBoxCtor("pssh", "ProtectionSystemSpecificHeaderBox", function(stream) {
 	this.system_id = BoxParser.parseHex16(stream);
 	if (this.version > 0) {
 		var count = stream.readUint32();
@@ -3939,26 +3955,26 @@ BoxParser.createFullBoxCtor("pssh", function(stream) {
 });
 
 // file:src/parsing/qt/clef.js
-BoxParser.createFullBoxCtor("clef", function(stream) {
+BoxParser.createFullBoxCtor("clef", "TrackCleanApertureDimensionsBox", function(stream) {
 	this.width = stream.readUint32();
 	this.height = stream.readUint32();
 });// file:src/parsing/qt/enof.js
-BoxParser.createFullBoxCtor("enof", function(stream) {
+BoxParser.createFullBoxCtor("enof", "TrackEncodedPixelsDimensionsBox", function(stream) {
 	this.width = stream.readUint32();
 	this.height = stream.readUint32();
 });// file:src/parsing/qt/prof.js
-BoxParser.createFullBoxCtor("prof", function(stream) {
+BoxParser.createFullBoxCtor("prof", "TrackProductionApertureDimensionsBox", function(stream) {
 	this.width = stream.readUint32();
 	this.height = stream.readUint32();
 });// file:src/parsing/qt/tapt.js
-BoxParser.createContainerBoxCtor("tapt", null, [ "clef", "prof", "enof"]);// file:src/parsing/rtp.js
-BoxParser.createBoxCtor("rtp ", function(stream) {
+BoxParser.createContainerBoxCtor("tapt", "TrackApertureModeDimensionsBox", null, [ "clef", "prof", "enof"]);// file:src/parsing/rtp.js
+BoxParser.createBoxCtor("rtp ", "rtpmoviehintinformation", function(stream) {
 	this.descriptionformat = stream.readString(4);
 	this.sdptext = stream.readString(this.size - this.hdr_size - 4);
 });
 
 // file:src/parsing/saio.js
-BoxParser.createFullBoxCtor("saio", function(stream) {
+BoxParser.createFullBoxCtor("saio", "SampleAuxiliaryInformationOffsetsBox", function(stream) {
 	if (this.flags & 0x1) {
 		this.aux_info_type = stream.readString(4);
 		this.aux_info_type_parameter = stream.readUint32();
@@ -3974,7 +3990,7 @@ BoxParser.createFullBoxCtor("saio", function(stream) {
 	}
 });
 // file:src/parsing/saiz.js
-BoxParser.createFullBoxCtor("saiz", function(stream) {
+BoxParser.createFullBoxCtor("saiz", "SampleAuxiliaryInformationSizesBox", function(stream) {
 	if (this.flags & 0x1) {
 		this.aux_info_type = stream.readString(4);
 		this.aux_info_type_parameter = stream.readUint32();
@@ -4216,7 +4232,7 @@ BoxParser.createSampleGroupCtor("vipr", function(stream) {
 });
 
 // file:src/parsing/sbgp.js
-BoxParser.createFullBoxCtor("sbgp", function(stream) {
+BoxParser.createFullBoxCtor("sbgp", "SampleToGroupBox", function(stream) {
 	this.grouping_type = stream.readString(4);
 	if (this.version === 1) {
 		this.grouping_type_parameter = stream.readUint32();
@@ -4243,7 +4259,7 @@ Pixel.prototype.toString = function pixelToString() {
 	return "[row: " + this.bad_pixel_row + ", column: " + this.bad_pixel_column + "]";
 }
 
-BoxParser.createFullBoxCtor("sbpm", function(stream) {
+BoxParser.createFullBoxCtor("sbpm", "SensorBadPixelsMapBox", function(stream) {
 	var i;
 	this.component_count = stream.readUint16();
     this.component_index = [];
@@ -4272,7 +4288,7 @@ BoxParser.createFullBoxCtor("sbpm", function(stream) {
 });
 
 // file:src/parsing/schm.js
-BoxParser.createFullBoxCtor("schm", function(stream) {
+BoxParser.createFullBoxCtor("schm", "SchemeTypeBox", function(stream) {
 	this.scheme_type = stream.readString(4);
 	this.scheme_version = stream.readUint32();
 	if (this.flags & 0x000001) {
@@ -4281,12 +4297,12 @@ BoxParser.createFullBoxCtor("schm", function(stream) {
 });
 
 // file:src/parsing/sdp.js
-BoxParser.createBoxCtor("sdp ", function(stream) {
+BoxParser.createBoxCtor("sdp ", "rtptracksdphintinformation", function(stream) {
 	this.sdptext = stream.readString(this.size - this.hdr_size);
 });
 
 // file:src/parsing/sdtp.js
-BoxParser.createFullBoxCtor("sdtp", function(stream) {
+BoxParser.createFullBoxCtor("sdtp", "SampleDependencyTypeBox", function(stream) {
 	var tmp_byte;
 	var count = (this.size - this.hdr_size);
 	this.is_leading = [];
@@ -4304,7 +4320,7 @@ BoxParser.createFullBoxCtor("sdtp", function(stream) {
 
 // file:src/parsing/senc.js
 // Cannot be fully parsed because Per_Sample_IV_Size needs to be known
-BoxParser.createFullBoxCtor("senc" /*, function(stream) {
+BoxParser.createFullBoxCtor("senc", "SampleEncryptionBox" /*, function(stream) {
 	this.parseFullHeader(stream);
 	var sample_count = stream.readUint32();
 	this.samples = [];
@@ -4327,7 +4343,7 @@ BoxParser.createFullBoxCtor("senc" /*, function(stream) {
 	}
 }*/);
 // file:src/parsing/sgpd.js
-BoxParser.createFullBoxCtor("sgpd", function(stream) {
+BoxParser.createFullBoxCtor("sgpd", "SampleGroupDescriptionBox", function(stream) {
 	this.grouping_type = stream.readString(4);
 	Log.debug("BoxParser", "Found Sample Groups of type "+this.grouping_type);
 	if (this.version === 1) {
@@ -4369,7 +4385,7 @@ BoxParser.createFullBoxCtor("sgpd", function(stream) {
 });
 
 // file:src/parsing/sidx.js
-BoxParser.createFullBoxCtor("sidx", function(stream) {
+BoxParser.createFullBoxCtor("sidx", "CompressedSegmentIndexBox", function(stream) {
 	this.reference_ID = stream.readUint32();
 	this.timescale = stream.readUint32();
 	if (this.version === 0) {
@@ -4431,7 +4447,7 @@ BoxParser.SingleItemTypeReferenceBoxLarge.prototype.parse = function(stream) {
 }
 
 // file:src/parsing/SmDm.js
-BoxParser.createFullBoxCtor("SmDm", function(stream) {
+BoxParser.createFullBoxCtor("SmDm", "SMPTE2086MasteringDisplayMetadataBox", function(stream) {
 	this.primaryRChromaticity_x = stream.readUint16();
     this.primaryRChromaticity_y = stream.readUint16();
     this.primaryGChromaticity_x = stream.readUint16();
@@ -4445,13 +4461,13 @@ BoxParser.createFullBoxCtor("SmDm", function(stream) {
 });
 
 // file:src/parsing/smhd.js
-BoxParser.createFullBoxCtor("smhd", function(stream) {
+BoxParser.createFullBoxCtor("smhd", "SoundMediaHeaderBox", function(stream) {
 	this.balance = stream.readUint16();
 	stream.readUint16();
 });
 
 // file:src/parsing/ssix.js
-BoxParser.createFullBoxCtor("ssix", function(stream) {
+BoxParser.createFullBoxCtor("ssix", "CompressedSubsegmentIndexBox", function(stream) {
 	this.subsegments = [];
 	var subsegment_count = stream.readUint32();
 	for (var i = 0; i < subsegment_count; i++) {
@@ -4469,7 +4485,7 @@ BoxParser.createFullBoxCtor("ssix", function(stream) {
 });
 
 // file:src/parsing/stco.js
-BoxParser.createFullBoxCtor("stco", function(stream) {
+BoxParser.createFullBoxCtor("stco", "ChunkOffsetBox", function(stream) {
 	var entry_count;
 	entry_count = stream.readUint32();
 	this.chunk_offsets = [];
@@ -4481,7 +4497,7 @@ BoxParser.createFullBoxCtor("stco", function(stream) {
 });
 
 // file:src/parsing/stdp.js
-BoxParser.createFullBoxCtor("stdp", function(stream) {
+BoxParser.createFullBoxCtor("stdp", "DegradationPriorityBox", function(stream) {
 	var count = (this.size - this.hdr_size)/2;
 	this.priority = [];
 	for (var i = 0; i < count; i++) {
@@ -4490,10 +4506,10 @@ BoxParser.createFullBoxCtor("stdp", function(stream) {
 });
 
 // file:src/parsing/sthd.js
-BoxParser.createFullBoxCtor("sthd");
+BoxParser.createFullBoxCtor("sthd", "SubtitleMediaHeaderBox");
 
 // file:src/parsing/stri.js
-BoxParser.createFullBoxCtor("stri", function(stream) {
+BoxParser.createFullBoxCtor("stri", "SubTrackInformationBox", function(stream) {
 	this.switch_group = stream.readUint16();
 	this.alternate_group = stream.readUint16();
 	this.sub_track_id = stream.readUint32();
@@ -4505,7 +4521,7 @@ BoxParser.createFullBoxCtor("stri", function(stream) {
 });
 
 // file:src/parsing/stsc.js
-BoxParser.createFullBoxCtor("stsc", function(stream) {
+BoxParser.createFullBoxCtor("stsc", "SampleToChunkBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();
@@ -4522,7 +4538,7 @@ BoxParser.createFullBoxCtor("stsc", function(stream) {
 });
 
 // file:src/parsing/stsd.js
-BoxParser.createFullBoxCtor("stsd", function(stream) {
+BoxParser.createFullBoxCtor("stsd", "SampleDescriptionBox", function(stream) {
 	var i;
 	var ret;
 	var entryCount;
@@ -4553,7 +4569,7 @@ BoxParser.createFullBoxCtor("stsd", function(stream) {
 });
 
 // file:src/parsing/stsg.js
-BoxParser.createFullBoxCtor("stsg", function(stream) {
+BoxParser.createFullBoxCtor("stsg", "SubTrackSampleGroupBox", function(stream) {
 	this.grouping_type = stream.readUint32();
 	var count = stream.readUint16();
 	this.group_description_index = [];
@@ -4563,7 +4579,7 @@ BoxParser.createFullBoxCtor("stsg", function(stream) {
 });
 
 // file:src/parsing/stsh.js
-BoxParser.createFullBoxCtor("stsh", function(stream) {
+BoxParser.createFullBoxCtor("stsh", "ShadowSyncSampleBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();
@@ -4578,7 +4594,7 @@ BoxParser.createFullBoxCtor("stsh", function(stream) {
 });
 
 // file:src/parsing/stss.js
-BoxParser.createFullBoxCtor("stss", function(stream) {
+BoxParser.createFullBoxCtor("stss", "SyncSampleBox", function(stream) {
 	var i;
 	var entry_count;
 	entry_count = stream.readUint32();
@@ -4591,7 +4607,7 @@ BoxParser.createFullBoxCtor("stss", function(stream) {
 });
 
 // file:src/parsing/stsz.js
-BoxParser.createFullBoxCtor("stsz", function(stream) {
+BoxParser.createFullBoxCtor("stsz", "SampleSizeBox", function(stream) {
 	var i;
 	this.sample_sizes = [];
 	if (this.version === 0) {
@@ -4608,7 +4624,7 @@ BoxParser.createFullBoxCtor("stsz", function(stream) {
 });
 
 // file:src/parsing/stts.js
-BoxParser.createFullBoxCtor("stts", function(stream) {
+BoxParser.createFullBoxCtor("stts", "TimeToSampleBox", function(stream) {
 	var entry_count;
 	var i;
 	var delta;
@@ -4629,7 +4645,7 @@ BoxParser.createFullBoxCtor("stts", function(stream) {
 });
 
 // file:src/parsing/stvi.js
-BoxParser.createFullBoxCtor("stvi", function(stream) {
+BoxParser.createFullBoxCtor("stvi", "StereoVideoBox", function(stream) {
 	var tmp32 = stream.readUint32();
 	this.single_view_allowed = tmp32 & 0x3;
 	this.stereo_scheme = stream.readUint32();
@@ -4651,12 +4667,12 @@ BoxParser.createFullBoxCtor("stvi", function(stream) {
 });
 
 // file:src/parsing/styp.js
-BoxParser.createBoxCtor("styp", function(stream) {
+BoxParser.createBoxCtor("styp", "SegmentTypeBox", function(stream) {
 	BoxParser.ftypBox.prototype.parse.call(this, stream);
 });
 
 // file:src/parsing/stz2.js
-BoxParser.createFullBoxCtor("stz2", function(stream) {
+BoxParser.createFullBoxCtor("stz2", "CompactSampleSizeBox", function(stream) {
 	var i;
 	var sample_size;
 	var sample_count;
@@ -4686,7 +4702,7 @@ BoxParser.createFullBoxCtor("stz2", function(stream) {
 });
 
 // file:src/parsing/subs.js
-BoxParser.createFullBoxCtor("subs", function(stream) {
+BoxParser.createFullBoxCtor("subs", "SubSampleInformationBox", function(stream) {
 	var i,j;
 	var entry_count;
 	var subsample_count;
@@ -4716,7 +4732,7 @@ BoxParser.createFullBoxCtor("subs", function(stream) {
 });
 
 // file:src/parsing/tenc.js
-BoxParser.createFullBoxCtor("tenc", function(stream) {
+BoxParser.createFullBoxCtor("tenc", "TrackEncryptionBox", function(stream) {
 	stream.readUint8(); // reserved
 	if (this.version === 0) {
 		stream.readUint8();
@@ -4733,7 +4749,7 @@ BoxParser.createFullBoxCtor("tenc", function(stream) {
 		this.default_constant_IV = stream.readUint8Array(this.default_constant_IV_size);
 	}
 });// file:src/parsing/tfdt.js
-BoxParser.createFullBoxCtor("tfdt", function(stream) {
+BoxParser.createFullBoxCtor("tfdt", "TrackFragmentBaseMediaDecodeTimeBox", function(stream) {
 	if (this.version == 1) {
 		this.baseMediaDecodeTime = stream.readUint64();
 	} else {
@@ -4742,7 +4758,7 @@ BoxParser.createFullBoxCtor("tfdt", function(stream) {
 });
 
 // file:src/parsing/tfhd.js
-BoxParser.createFullBoxCtor("tfhd", function(stream) {
+BoxParser.createFullBoxCtor("tfhd", "TrackFragmentHeaderBox", function(stream) {
 	var readBytes = 0;
 	this.track_id = stream.readUint32();
 	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET)) {
@@ -4778,7 +4794,7 @@ BoxParser.createFullBoxCtor("tfhd", function(stream) {
 });
 
 // file:src/parsing/tfra.js
-BoxParser.createFullBoxCtor("tfra", function(stream) {
+BoxParser.createFullBoxCtor("tfra", "TrackFragmentRandomAccessBox", function(stream) {
 	this.track_ID = stream.readUint32();
 	stream.readUint24();
 	var tmp_byte = stream.readUint8();
@@ -4802,7 +4818,7 @@ BoxParser.createFullBoxCtor("tfra", function(stream) {
 });
 
 // file:src/parsing/tkhd.js
-BoxParser.createFullBoxCtor("tkhd", function(stream) {
+BoxParser.createFullBoxCtor("tkhd", "TrackHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -4827,27 +4843,27 @@ BoxParser.createFullBoxCtor("tkhd", function(stream) {
 });
 
 // file:src/parsing/tmax.js
-BoxParser.createBoxCtor("tmax", function(stream) {
+BoxParser.createBoxCtor("tmax", "hintmaxrelativetime", function(stream) {
 	this.time = stream.readUint32();
 });
 
 // file:src/parsing/tmin.js
-BoxParser.createBoxCtor("tmin", function(stream) {
+BoxParser.createBoxCtor("tmin", "hintminrelativetime", function(stream) {
 	this.time = stream.readUint32();
 });
 
 // file:src/parsing/totl.js
-BoxParser.createBoxCtor("totl",function(stream) {
+BoxParser.createBoxCtor("totl", "hintBytesSent", function(stream) {
 	this.bytessent = stream.readUint32();
 });
 
 // file:src/parsing/tpay.js
-BoxParser.createBoxCtor("tpay", function(stream) {
+BoxParser.createBoxCtor("tpay", "hintBytesSent", function(stream) {
 	this.bytessent = stream.readUint32();
 });
 
 // file:src/parsing/tpyl.js
-BoxParser.createBoxCtor("tpyl", function(stream) {
+BoxParser.createBoxCtor("tpyl", "hintBytesSent", function(stream) {
 	this.bytessent = stream.readUint64();
 });
 
@@ -4890,7 +4906,7 @@ BoxParser.trefBox.prototype.parse = function(stream) {
 }
 
 // file:src/parsing/trep.js
-BoxParser.createFullBoxCtor("trep", function(stream) {
+BoxParser.createFullBoxCtor("trep", "TrackExtensionPropertiesBox", function(stream) {
 	this.track_ID = stream.readUint32();
 	this.boxes = [];
 	while (stream.getPosition() < this.start+this.size) {
@@ -4905,7 +4921,7 @@ BoxParser.createFullBoxCtor("trep", function(stream) {
 });
 
 // file:src/parsing/trex.js
-BoxParser.createFullBoxCtor("trex", function(stream) {
+BoxParser.createFullBoxCtor("trex", "TrackExtendsBox", function(stream) {
 	this.track_id = stream.readUint32();
 	this.default_sample_description_index = stream.readUint32();
 	this.default_sample_duration = stream.readUint32();
@@ -4914,12 +4930,12 @@ BoxParser.createFullBoxCtor("trex", function(stream) {
 });
 
 // file:src/parsing/trpy.js
-BoxParser.createBoxCtor("trpy", function(stream) {
+BoxParser.createBoxCtor("trpy", "hintBytesSent", function(stream) {
 	this.bytessent = stream.readUint64();
 });
 
 // file:src/parsing/trun.js
-BoxParser.createFullBoxCtor("trun", function(stream) {
+BoxParser.createFullBoxCtor("trun", "TrackRunBox", function(stream) {
 	var readBytes = 0;
 	this.sample_count = stream.readUint32();
 	readBytes+= 4;
@@ -4962,7 +4978,7 @@ BoxParser.createFullBoxCtor("trun", function(stream) {
 });
 
 // file:src/parsing/tsel.js
-BoxParser.createFullBoxCtor("tsel", function(stream) {
+BoxParser.createFullBoxCtor("tsel", "TrackSelectionBox", function(stream) {
 	this.switch_group = stream.readUint32();
 	var count = (this.size - this.hdr_size - 4)/4;
 	this.attribute_list = [];
@@ -4972,12 +4988,12 @@ BoxParser.createFullBoxCtor("tsel", function(stream) {
 });
 
 // file:src/parsing/txtC.js
-BoxParser.createFullBoxCtor("txtC", function(stream) {
+BoxParser.createFullBoxCtor("txtC", "TextConfigBox", function(stream) {
 	this.config = stream.readCString();
 });
 
 // file:src/parsing/tyco.js
-BoxParser.createBoxCtor("tyco", function(stream) {
+BoxParser.createBoxCtor("tyco", "TypeCombinationBox", function(stream) {
 	var count = (this.size - this.hdr_size) / 4;
 	this.compatible_brands = [];
 	for (var i = 0; i < count; i++) {
@@ -4986,7 +5002,7 @@ BoxParser.createBoxCtor("tyco", function(stream) {
 });
 
 // file:src/parsing/udes.js
-BoxParser.createFullBoxCtor("udes", function(stream) {
+BoxParser.createFullBoxCtor("udes", "UserDescriptionProperty", function(stream) {
 	this.lang = stream.readCString();
 	this.name = stream.readCString();
 	this.description = stream.readCString();
@@ -4994,7 +5010,7 @@ BoxParser.createFullBoxCtor("udes", function(stream) {
 });
 
 // file:src/parsing/uncC.js
-BoxParser.createFullBoxCtor("uncC", function(stream) {
+BoxParser.createFullBoxCtor("uncC", "UncompressedFrameConfigBox", function(stream) {
     var i;
     this.profile = stream.readString(4);
     if (this.version == 1) {
@@ -5029,14 +5045,14 @@ BoxParser.createFullBoxCtor("uncC", function(stream) {
 });
 
 // file:src/parsing/url.js
-BoxParser.createFullBoxCtor("url ", function(stream) {
+BoxParser.createFullBoxCtor("url ", "DataEntryUrlBox", function(stream) {
 	if (this.flags !== 0x000001) {
 		this.location = stream.readCString();
 	}
 });
 
 // file:src/parsing/urn.js
-BoxParser.createFullBoxCtor("urn ", function(stream) {
+BoxParser.createFullBoxCtor("urn ", "DataEntryUrnBox", function(stream) {
 	this.name = stream.readCString();
 	if (this.size - this.hdr_size - this.name.length - 1 > 0) {
 		this.location = stream.readCString();
@@ -5123,13 +5139,13 @@ BoxParser.createUUIDBox("6d1d9b0542d544e680e2141daff757b2", true, false, functio
        this.duration = stream.readUint32();
     }
 });// file:src/parsing/vmhd.js
-BoxParser.createFullBoxCtor("vmhd", function(stream) {
+BoxParser.createFullBoxCtor("vmhd", "VideoMediaHeaderBox", function(stream) {
 	this.graphicsmode = stream.readUint16();
 	this.opcolor = stream.readUint16Array(3);
 });
 
 // file:src/parsing/vpcC.js
-BoxParser.createFullBoxCtor("vpcC", function (stream) {
+BoxParser.createFullBoxCtor("vpcC", "VPCodecConfigurationRecord", function (stream) {
 	var tmp;
 	if (this.version === 1) {
 		this.profile = stream.readUint8();
@@ -5157,12 +5173,12 @@ BoxParser.createFullBoxCtor("vpcC", function (stream) {
 		this.codecIntializationData = stream.readUint8Array(this.codecIntializationDataSize);
 	}
 });// file:src/parsing/vttC.js
-BoxParser.createBoxCtor("vttC", function(stream) {
+BoxParser.createBoxCtor("vttC", "WebVTTConfigurationBox", function(stream) {
 	this.text = stream.readString(this.size - this.hdr_size);
 });
 
 // file:src/parsing/vvcC.js
-BoxParser.createFullBoxCtor("vvcC", function (stream) {
+BoxParser.createFullBoxCtor("vvcC", "VvcConfigurationBox", function (stream) {
   var i, j;
 
   // helper object to simplify extracting individual bits
@@ -5294,7 +5310,7 @@ BoxParser.createFullBoxCtor("vvcC", function (stream) {
   }
 });
 // file:src/parsing/vvnC.js
-BoxParser.createFullBoxCtor("vvnC", function (stream) {
+BoxParser.createFullBoxCtor("vvnC", "VvcNALUConfigBox", function (stream) {
   // VvcNALUConfigBox
   var tmp = strm.readUint8();
   this.lengthSizeMinusOne = (tmp & 0x3);

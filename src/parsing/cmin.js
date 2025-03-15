@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("cmin", function(stream) {
+BoxParser.createFullBoxCtor("cmin", "CameraIntrinsicMatrixProperty", function(stream) {
 	this.focal_length_x = stream.readInt32();
 	this.principal_point_x = stream.readInt32();
 	this.principal_point_y = stream.readInt32();

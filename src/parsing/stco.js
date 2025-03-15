@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stco", function(stream) {
+BoxParser.createFullBoxCtor("stco", "ChunkOffsetBox", function(stream) {
 	var entry_count;
 	entry_count = stream.readUint32();
 	this.chunk_offsets = [];

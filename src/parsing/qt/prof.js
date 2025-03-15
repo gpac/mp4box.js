@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("prof", function(stream) {
+BoxParser.createFullBoxCtor("prof", "TrackProductionApertureDimensionsBox", function(stream) {
 	this.width = stream.readUint32();
 	this.height = stream.readUint32();
 });

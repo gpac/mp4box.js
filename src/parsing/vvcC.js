@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("vvcC", function (stream) {
+BoxParser.createFullBoxCtor("vvcC", "VvcConfigurationBox", function (stream) {
   var i, j;
 
   // helper object to simplify extracting individual bits

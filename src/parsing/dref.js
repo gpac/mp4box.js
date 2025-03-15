@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("dref", function(stream) {
+BoxParser.createFullBoxCtor("dref", "DataReferenceBox", function(stream) {
 	var ret;
 	var box;
 	this.entries = [];

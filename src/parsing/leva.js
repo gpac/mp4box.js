@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("leva", function(stream) {
+BoxParser.createFullBoxCtor("leva", "LevelAssignmentBox", function(stream) {
 	var count = stream.readUint8();
 	this.levels = [];
 	for (var i = 0; i < count; i++) {

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("tsel", function(stream) {
+BoxParser.createFullBoxCtor("tsel", "TrackSelectionBox", function(stream) {
 	this.switch_group = stream.readUint32();
 	var count = (this.size - this.hdr_size - 4)/4;
 	this.attribute_list = [];

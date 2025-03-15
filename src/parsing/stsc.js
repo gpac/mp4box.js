@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stsc", function(stream) {
+BoxParser.createFullBoxCtor("stsc", "SampleToChunkBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();

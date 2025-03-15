@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("dimm", function(stream) {
+BoxParser.createBoxCtor("dimm", "hintimmediateBytesSent", function(stream) {
 	this.bytessent = stream.readUint64();
 });
 

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("cmex", function(stream) {
+BoxParser.createFullBoxCtor("cmex", "CameraExtrinsicMatrixProperty", function(stream) {
 	if (this.flags & 0x1) {
 		this.pos_x = stream.readInt32();
 	}

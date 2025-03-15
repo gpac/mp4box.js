@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("emsg", function(stream) {
+BoxParser.createFullBoxCtor("emsg", "EventMessageBox", function(stream) {
 	if (this.version == 1) {
 		this.timescale 					= stream.readUint32();
 		this.presentation_time 			= stream.readUint64();

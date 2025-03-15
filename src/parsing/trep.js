@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("trep", function(stream) {
+BoxParser.createFullBoxCtor("trep", "TrackExtensionPropertiesBox", function(stream) {
 	this.track_ID = stream.readUint32();
 	this.boxes = [];
 	while (stream.getPosition() < this.start+this.size) {

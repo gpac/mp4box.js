@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("pdin", function(stream) {
+BoxParser.createFullBoxCtor("pdin", "ProgressiveDownloadInfoBox", function(stream) {
 	var count = (this.size - this.hdr_size)/8;
 	this.rate = [];
 	this.initial_delay = [];

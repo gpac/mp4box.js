@@ -7,7 +7,7 @@ Pixel.prototype.toString = function pixelToString() {
 	return "[row: " + this.bad_pixel_row + ", column: " + this.bad_pixel_column + "]";
 }
 
-BoxParser.createFullBoxCtor("sbpm", function(stream) {
+BoxParser.createFullBoxCtor("sbpm", "SensorBadPixelsMapBox", function(stream) {
 	var i;
 	this.component_count = stream.readUint16();
     this.component_index = [];

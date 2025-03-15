@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("vpcC", function (stream) {
+BoxParser.createFullBoxCtor("vpcC", "VPCodecConfigurationRecord", function (stream) {
 	var tmp;
 	if (this.version === 1) {
 		this.profile = stream.readUint8();

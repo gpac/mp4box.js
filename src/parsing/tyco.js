@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("tyco", function(stream) {
+BoxParser.createBoxCtor("tyco", "TypeCombinationBox", function(stream) {
 	var count = (this.size - this.hdr_size) / 4;
 	this.compatible_brands = [];
 	for (var i = 0; i < count; i++) {

@@ -1,1 +1,1 @@
-BoxParser.createContainerBoxCtor("tapt", null, [ "clef", "prof", "enof"]);
+BoxParser.createContainerBoxCtor("tapt", "TrackApertureModeDimensionsBox", null, [ "clef", "prof", "enof"]);

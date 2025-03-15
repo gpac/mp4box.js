@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("esds", function(stream) {
+BoxParser.createFullBoxCtor("esds", "ElementaryStreamDescriptorBox", function(stream) {
 	var esd_data = stream.readUint8Array(this.size-this.hdr_size);
 	if (typeof MPEG4DescriptorParser !== "undefined") {
 		var esd_parser = new MPEG4DescriptorParser();

@@ -8,38 +8,53 @@ var BoxParser = {
 	OK : 1,
 
 	// Boxes to be created with default parsing
-	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "strk" ],
-	FULL_BOXES: [ "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere" ],
+	BASIC_BOXES: [
+		{type: "mdat", name: "MediaDataBox"},
+		{type: "idat", name: "ItemDataBox"},
+		{type: "free", name: "FreeSpaceBox"},
+		{type: "skip", name: "FreeSpaceBox"},
+		{type: "meco", name: "AdditionalMetadataContainerBox"},
+		{type: "strk", name: "SubTrackBox"}
+	],
+	FULL_BOXES: [
+		{type: "hmhd", name: "HintMediaHeaderBox"},
+		{type: "nmhd", name: "NullMediaHeaderBox"},
+		{type: "iods", name: "ObjectDescriptorBox"},
+		{type: "xml ", name: "XMLBox"},
+		{type: "bxml", name: "BinaryXMLBox"},
+		{type: "ipro", name: "ItemProtectionBox"},
+		{type: "mere", name: "MetaboxRelationBox"}
+	],
 	CONTAINER_BOXES: [
-		[ "moov", [ "trak", "pssh" ] ],
-		[ "trak" ],
-		[ "edts" ],
-		[ "mdia" ],
-		[ "minf" ],
-		[ "dinf" ],
-		[ "stbl", [ "sgpd", "sbgp" ] ],
-		[ "mvex", [ "trex" ] ],
-		[ "moof", [ "traf" ] ],
-		[ "traf", [ "trun", "sgpd", "sbgp" ] ],
-		[ "vttc" ],
-		[ "tref" ],
-		[ "iref" ],
-		[ "mfra", [ "tfra" ] ],
-		[ "meco" ],
-		[ "hnti" ],
-		[ "hinf" ],
-		[ "strk" ],
-		[ "strd" ],
-		[ "sinf" ],
-		[ "rinf" ],
-		[ "schi" ],
-		[ "trgr" ],
-		[ "udta", ["kind"] ],
-		[ "iprp", ["ipma"] ],
-		[ "ipco" ],
-		[ "grpl" ],
-		[ "j2kH" ],
-		[ "etyp", [ "tyco"] ]
+		[{type: "moov", name: "CompressedMovieBox"}, ["trak", "pssh"]],
+		[{type: "trak", name: "TrackBox"}],
+		[{type: "edts", name: "EditBox"}],
+		[{type: "mdia", name: "MediaBox"}],
+		[{type: "minf", name: "MediaInformationBox"}],
+		[{type: "dinf", name: "DataInformationBox"}],
+		[{type: "stbl", name: "SampleTableBox"}, ["sgpd", "sbgp"]],
+		[{type: "mvex", name: "MovieExtendsBox"}, ["tref"]],
+		[{type: "moof", name: "CompressedMovieFragmentBox"}, ["traf"]],
+		[{type: "traf", name: "TrackFragmentBox"}, ["trun", "sgpd", "sbgp"]],
+		[{type: "vttc", name: "VTTCueBox"}],
+		[{type: "tref", name: "TrackReferenceBox"}],
+		[{type: "iref", name: "ItemReferenceBox"}],
+		[{type: "mfra", name: "MovieFragmentRandomAccessBox"}, ["tfra"]],
+		[{type: "meco", name: "AdditionalMetadataContainerBox"}],
+		[{type: "hnti", name: "trackhintinformation"}],
+		[{type: "hinf", name: "hintstatisticsbox"}],
+		[{type: "strk", name: "SubTrackBox"}],
+		[{type: "strd", name: "SubTrackDefinitionBox"}],
+		[{type: "sinf", name: "ProtectionSchemeInfoBox"}],
+		[{type: "rinf", name: "RestrictedSchemeInfoBox"}],
+		[{type: "schi", name: "SchemeInformationBox"}],
+		[{type: "trgr", name: "TrackGroupBox"}],
+		[{type: "udta", name: "UserDataBox"}, ["kind"]],
+		[{type: "iprp", name: "ItemPropertiesBox"}, ["ipma"]],
+		[{type: "ipco", name: "ItemPropertyContainerBox"}],
+		[{type: "grpl", name: "GroupsListBox"}],
+		[{type: "j2kH", name: "J2KHeaderInfoBox"}],
+		[{type: "etyp", name: "ExtendedTypeBox"}, ["tyco"]]
 	],
 	// Boxes effectively created
 	boxCodes : [],
@@ -57,28 +72,29 @@ var BoxParser = {
 		BoxParser.TrackGroupTypeBox.prototype = new BoxParser.FullBox();
 
 		/* creating constructors for simple boxes */
-		BoxParser.BASIC_BOXES.forEach(function(type) {
-			BoxParser.createBoxCtor(type)
+		BoxParser.BASIC_BOXES.forEach(function(box) {
+			BoxParser.createBoxCtor(box.type, box.name)
 		});
-		BoxParser.FULL_BOXES.forEach(function(type) {
-			BoxParser.createFullBoxCtor(type);
+		BoxParser.FULL_BOXES.forEach(function(box) {
+			BoxParser.createFullBoxCtor(box.type, box.name);
 		});
-		BoxParser.CONTAINER_BOXES.forEach(function(types) {
-			BoxParser.createContainerBoxCtor(types[0], null, types[1]);
+		BoxParser.CONTAINER_BOXES.forEach(function(boxes) {
+			BoxParser.createContainerBoxCtor(boxes[0].type, boxes[0].name, null, boxes[1]);
 		});
 	},
-	Box: function(_type, _size, _uuid) {
+	Box: function(_type, _size, _name, _uuid) {
 		this.type = _type;
+		this.box_name = _name;
 		this.size = _size;
 		this.uuid = _uuid;
 	},
-	FullBox: function(type, size, uuid) {
-		BoxParser.Box.call(this, type, size, uuid);
+	FullBox: function(type, size, name, uuid) {
+		BoxParser.Box.call(this, type, size, name, uuid);
 		this.flags = 0;
 		this.version = 0;
 	},
-	ContainerBox: function(type, size, uuid) {
-		BoxParser.Box.call(this, type, size, uuid);
+	ContainerBox: function(type, size, name, uuid) {
+		BoxParser.Box.call(this, type, size, name, uuid);
 		this.boxes = [];
 	},
 	SampleEntry: function(type, size, hdr_size, start) {
@@ -92,18 +108,18 @@ var BoxParser = {
 	TrackGroupTypeBox: function(type, size) {
 		BoxParser.FullBox.call(this, type, size);
 	},
-	createBoxCtor: function(type, parseMethod){
+	createBoxCtor: function(type, name, parseMethod){
 		BoxParser.boxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.Box.call(this, type, size);
+			BoxParser.Box.call(this, type, size, name);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.Box();
 		if (parseMethod) BoxParser[type+"Box"].prototype.parse = parseMethod;
 	},
-	createFullBoxCtor: function(type, parseMethod) {
+	createFullBoxCtor: function(type, name, parseMethod) {
 		//BoxParser.fullBoxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.FullBox.call(this, type, size);
+			BoxParser.FullBox.call(this, type, size, name);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.FullBox();
 		BoxParser[type+"Box"].prototype.parse = function(stream) {
@@ -122,10 +138,10 @@ var BoxParser = {
 			}
 		}
 	},
-	createContainerBoxCtor: function(type, parseMethod, subBoxNames) {
+	createContainerBoxCtor: function(type, name, parseMethod, subBoxNames) {
 		//BoxParser.containerBoxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.ContainerBox.call(this, type, size);
+			BoxParser.ContainerBox.call(this, type, size, name);
 			BoxParser.addSubBoxArrays.call(this, subBoxNames);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.ContainerBox();
@@ -175,9 +191,9 @@ var BoxParser = {
 				BoxParser.FullBox.call(this, "uuid", size, uuid);
 			} else {
 				if (isContainerBox) {
-					BoxParser.ContainerBox.call(this, "uuid", size, uuid);
+					BoxParser.ContainerBox.call(this, "uuid", size, /*name=*/undefined, uuid);
 				} else {
-					BoxParser.Box.call(this, "uuid", size, uuid);
+					BoxParser.Box.call(this, "uuid", size, /*name=*/undefined, uuid);
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("sgpd", function(stream) {
+BoxParser.createFullBoxCtor("sgpd", "SampleGroupDescriptionBox", function(stream) {
 	this.grouping_type = stream.readString(4);
 	Log.debug("BoxParser", "Found Sample Groups of type "+this.grouping_type);
 	if (this.version === 1) {

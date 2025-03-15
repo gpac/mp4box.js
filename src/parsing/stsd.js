@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stsd", function(stream) {
+BoxParser.createFullBoxCtor("stsd", "SampleDescriptionBox", function(stream) {
 	var i;
 	var ret;
 	var entryCount;

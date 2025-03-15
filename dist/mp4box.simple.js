@@ -206,38 +206,53 @@ var BoxParser = {
 	OK : 1,
 
 	// Boxes to be created with default parsing
-	BASIC_BOXES: [ "mdat", "idat", "free", "skip", "meco", "strk" ],
-	FULL_BOXES: [ "hmhd", "nmhd", "iods", "xml ", "bxml", "ipro", "mere" ],
+	BASIC_BOXES: [
+		{type: "mdat", name: "MediaDataBox"},
+		{type: "idat", name: "ItemDataBox"},
+		{type: "free", name: "FreeSpaceBox"},
+		{type: "skip", name: "FreeSpaceBox"},
+		{type: "meco", name: "AdditionalMetadataContainerBox"},
+		{type: "strk", name: "SubTrackBox"}
+	],
+	FULL_BOXES: [
+		{type: "hmhd", name: "HintMediaHeaderBox"},
+		{type: "nmhd", name: "NullMediaHeaderBox"},
+		{type: "iods", name: "ObjectDescriptorBox"},
+		{type: "xml ", name: "XMLBox"},
+		{type: "bxml", name: "BinaryXMLBox"},
+		{type: "ipro", name: "ItemProtectionBox"},
+		{type: "mere", name: "MetaboxRelationBox"}
+	],
 	CONTAINER_BOXES: [
-		[ "moov", [ "trak", "pssh" ] ],
-		[ "trak" ],
-		[ "edts" ],
-		[ "mdia" ],
-		[ "minf" ],
-		[ "dinf" ],
-		[ "stbl", [ "sgpd", "sbgp" ] ],
-		[ "mvex", [ "trex" ] ],
-		[ "moof", [ "traf" ] ],
-		[ "traf", [ "trun", "sgpd", "sbgp" ] ],
-		[ "vttc" ],
-		[ "tref" ],
-		[ "iref" ],
-		[ "mfra", [ "tfra" ] ],
-		[ "meco" ],
-		[ "hnti" ],
-		[ "hinf" ],
-		[ "strk" ],
-		[ "strd" ],
-		[ "sinf" ],
-		[ "rinf" ],
-		[ "schi" ],
-		[ "trgr" ],
-		[ "udta", ["kind"] ],
-		[ "iprp", ["ipma"] ],
-		[ "ipco" ],
-		[ "grpl" ],
-		[ "j2kH" ],
-		[ "etyp", [ "tyco"] ]
+		[{type: "moov", name: "CompressedMovieBox"}, ["trak", "pssh"]],
+		[{type: "trak", name: "TrackBox"}],
+		[{type: "edts", name: "EditBox"}],
+		[{type: "mdia", name: "MediaBox"}],
+		[{type: "minf", name: "MediaInformationBox"}],
+		[{type: "dinf", name: "DataInformationBox"}],
+		[{type: "stbl", name: "SampleTableBox"}, ["sgpd", "sbgp"]],
+		[{type: "mvex", name: "MovieExtendsBox"}, ["tref"]],
+		[{type: "moof", name: "CompressedMovieFragmentBox"}, ["traf"]],
+		[{type: "traf", name: "TrackFragmentBox"}, ["trun", "sgpd", "sbgp"]],
+		[{type: "vttc", name: "VTTCueBox"}],
+		[{type: "tref", name: "TrackReferenceBox"}],
+		[{type: "iref", name: "ItemReferenceBox"}],
+		[{type: "mfra", name: "MovieFragmentRandomAccessBox"}, ["tfra"]],
+		[{type: "meco", name: "AdditionalMetadataContainerBox"}],
+		[{type: "hnti", name: "trackhintinformation"}],
+		[{type: "hinf", name: "hintstatisticsbox"}],
+		[{type: "strk", name: "SubTrackBox"}],
+		[{type: "strd", name: "SubTrackDefinitionBox"}],
+		[{type: "sinf", name: "ProtectionSchemeInfoBox"}],
+		[{type: "rinf", name: "RestrictedSchemeInfoBox"}],
+		[{type: "schi", name: "SchemeInformationBox"}],
+		[{type: "trgr", name: "TrackGroupBox"}],
+		[{type: "udta", name: "UserDataBox"}, ["kind"]],
+		[{type: "iprp", name: "ItemPropertiesBox"}, ["ipma"]],
+		[{type: "ipco", name: "ItemPropertyContainerBox"}],
+		[{type: "grpl", name: "GroupsListBox"}],
+		[{type: "j2kH", name: "J2KHeaderInfoBox"}],
+		[{type: "etyp", name: "ExtendedTypeBox"}, ["tyco"]]
 	],
 	// Boxes effectively created
 	boxCodes : [],
@@ -255,28 +270,29 @@ var BoxParser = {
 		BoxParser.TrackGroupTypeBox.prototype = new BoxParser.FullBox();
 
 		/* creating constructors for simple boxes */
-		BoxParser.BASIC_BOXES.forEach(function(type) {
-			BoxParser.createBoxCtor(type)
+		BoxParser.BASIC_BOXES.forEach(function(box) {
+			BoxParser.createBoxCtor(box.type, box.name)
 		});
-		BoxParser.FULL_BOXES.forEach(function(type) {
-			BoxParser.createFullBoxCtor(type);
+		BoxParser.FULL_BOXES.forEach(function(box) {
+			BoxParser.createFullBoxCtor(box.type, box.name);
 		});
-		BoxParser.CONTAINER_BOXES.forEach(function(types) {
-			BoxParser.createContainerBoxCtor(types[0], null, types[1]);
+		BoxParser.CONTAINER_BOXES.forEach(function(boxes) {
+			BoxParser.createContainerBoxCtor(boxes[0].type, boxes[0].name, null, boxes[1]);
 		});
 	},
-	Box: function(_type, _size, _uuid) {
+	Box: function(_type, _size, _name, _uuid) {
 		this.type = _type;
+		this.box_name = _name;
 		this.size = _size;
 		this.uuid = _uuid;
 	},
-	FullBox: function(type, size, uuid) {
-		BoxParser.Box.call(this, type, size, uuid);
+	FullBox: function(type, size, name, uuid) {
+		BoxParser.Box.call(this, type, size, name, uuid);
 		this.flags = 0;
 		this.version = 0;
 	},
-	ContainerBox: function(type, size, uuid) {
-		BoxParser.Box.call(this, type, size, uuid);
+	ContainerBox: function(type, size, name, uuid) {
+		BoxParser.Box.call(this, type, size, name, uuid);
 		this.boxes = [];
 	},
 	SampleEntry: function(type, size, hdr_size, start) {
@@ -290,18 +306,18 @@ var BoxParser = {
 	TrackGroupTypeBox: function(type, size) {
 		BoxParser.FullBox.call(this, type, size);
 	},
-	createBoxCtor: function(type, parseMethod){
+	createBoxCtor: function(type, name, parseMethod){
 		BoxParser.boxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.Box.call(this, type, size);
+			BoxParser.Box.call(this, type, size, name);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.Box();
 		if (parseMethod) BoxParser[type+"Box"].prototype.parse = parseMethod;
 	},
-	createFullBoxCtor: function(type, parseMethod) {
+	createFullBoxCtor: function(type, name, parseMethod) {
 		//BoxParser.fullBoxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.FullBox.call(this, type, size);
+			BoxParser.FullBox.call(this, type, size, name);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.FullBox();
 		BoxParser[type+"Box"].prototype.parse = function(stream) {
@@ -320,10 +336,10 @@ var BoxParser = {
 			}
 		}
 	},
-	createContainerBoxCtor: function(type, parseMethod, subBoxNames) {
+	createContainerBoxCtor: function(type, name, parseMethod, subBoxNames) {
 		//BoxParser.containerBoxCodes.push(type);
 		BoxParser[type+"Box"] = function(size) {
-			BoxParser.ContainerBox.call(this, type, size);
+			BoxParser.ContainerBox.call(this, type, size, name);
 			BoxParser.addSubBoxArrays.call(this, subBoxNames);
 		}
 		BoxParser[type+"Box"].prototype = new BoxParser.ContainerBox();
@@ -373,9 +389,9 @@ var BoxParser = {
 				BoxParser.FullBox.call(this, "uuid", size, uuid);
 			} else {
 				if (isContainerBox) {
-					BoxParser.ContainerBox.call(this, "uuid", size, uuid);
+					BoxParser.ContainerBox.call(this, "uuid", size, /*name=*/undefined, uuid);
 				} else {
-					BoxParser.Box.call(this, "uuid", size, uuid);
+					BoxParser.Box.call(this, "uuid", size, /*name=*/undefined, uuid);
 				}
 			}
 		}
@@ -644,7 +660,7 @@ BoxParser.Box.prototype.parseLanguage = function(stream) {
 }
 
 // file:src/parsing/emsg.js
-BoxParser.createFullBoxCtor("emsg", function(stream) {
+BoxParser.createFullBoxCtor("emsg", "EventMessageBox", function(stream) {
 	if (this.version == 1) {
 		this.timescale 					= stream.readUint32();
 		this.presentation_time 			= stream.readUint64();
@@ -668,12 +684,12 @@ BoxParser.createFullBoxCtor("emsg", function(stream) {
 });
 
 // file:src/parsing/styp.js
-BoxParser.createBoxCtor("styp", function(stream) {
+BoxParser.createBoxCtor("styp", "SegmentTypeBox", function(stream) {
 	BoxParser.ftypBox.prototype.parse.call(this, stream);
 });
 
 // file:src/parsing/ftyp.js
-BoxParser.createBoxCtor("ftyp", function(stream) {
+BoxParser.createBoxCtor("ftyp", "FileTypeBox", function(stream) {
 	var toparse = this.size - this.hdr_size;
 	this.major_brand = stream.readString(4);
 	this.minor_version = stream.readUint32();
@@ -688,7 +704,7 @@ BoxParser.createBoxCtor("ftyp", function(stream) {
 });
 
 // file:src/parsing/mdhd.js
-BoxParser.createFullBoxCtor("mdhd", function(stream) {
+BoxParser.createFullBoxCtor("mdhd", "MediaHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -705,12 +721,12 @@ BoxParser.createFullBoxCtor("mdhd", function(stream) {
 });
 
 // file:src/parsing/mfhd.js
-BoxParser.createFullBoxCtor("mfhd", function(stream) {
+BoxParser.createFullBoxCtor("mfhd", "MovieFragmentHeaderBox", function(stream) {
 	this.sequence_number = stream.readUint32();
 });
 
 // file:src/parsing/mvhd.js
-BoxParser.createFullBoxCtor("mvhd", function(stream) {
+BoxParser.createFullBoxCtor("mvhd", "MovieHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -731,7 +747,7 @@ BoxParser.createFullBoxCtor("mvhd", function(stream) {
 	this.next_track_id = stream.readUint32();
 });
 // file:src/parsing/sidx.js
-BoxParser.createFullBoxCtor("sidx", function(stream) {
+BoxParser.createFullBoxCtor("sidx", "CompressedSegmentIndexBox", function(stream) {
 	this.reference_ID = stream.readUint32();
 	this.timescale = stream.readUint32();
 	if (this.version === 0) {
@@ -759,7 +775,7 @@ BoxParser.createFullBoxCtor("sidx", function(stream) {
 });
 
 // file:src/parsing/ssix.js
-BoxParser.createFullBoxCtor("ssix", function(stream) {
+BoxParser.createFullBoxCtor("ssix", "CompressedSubsegmentIndexBox", function(stream) {
 	this.subsegments = [];
 	var subsegment_count = stream.readUint32();
 	for (var i = 0; i < subsegment_count; i++) {
@@ -777,7 +793,7 @@ BoxParser.createFullBoxCtor("ssix", function(stream) {
 });
 
 // file:src/parsing/tkhd.js
-BoxParser.createFullBoxCtor("tkhd", function(stream) {
+BoxParser.createFullBoxCtor("tkhd", "TrackHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();
@@ -802,7 +818,7 @@ BoxParser.createFullBoxCtor("tkhd", function(stream) {
 });
 
 // file:src/parsing/tfhd.js
-BoxParser.createFullBoxCtor("tfhd", function(stream) {
+BoxParser.createFullBoxCtor("tfhd", "TrackFragmentHeaderBox", function(stream) {
 	var readBytes = 0;
 	this.track_id = stream.readUint32();
 	if (this.size - this.hdr_size > readBytes && (this.flags & BoxParser.TFHD_FLAG_BASE_DATA_OFFSET)) {
@@ -838,7 +854,7 @@ BoxParser.createFullBoxCtor("tfhd", function(stream) {
 });
 
 // file:src/parsing/tfdt.js
-BoxParser.createFullBoxCtor("tfdt", function(stream) {
+BoxParser.createFullBoxCtor("tfdt", "TrackFragmentBaseMediaDecodeTimeBox", function(stream) {
 	if (this.version == 1) {
 		this.baseMediaDecodeTime = stream.readUint64();
 	} else {
@@ -847,7 +863,7 @@ BoxParser.createFullBoxCtor("tfdt", function(stream) {
 });
 
 // file:src/parsing/trun.js
-BoxParser.createFullBoxCtor("trun", function(stream) {
+BoxParser.createFullBoxCtor("trun", "TrackRunBox", function(stream) {
 	var readBytes = 0;
 	this.sample_count = stream.readUint32();
 	readBytes+= 4;

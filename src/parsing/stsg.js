@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stsg", function(stream) {
+BoxParser.createFullBoxCtor("stsg", "SubTrackSampleGroupBox", function(stream) {
 	this.grouping_type = stream.readUint32();
 	var count = stream.readUint16();
 	this.group_description_index = [];

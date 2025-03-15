@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("infe", function(stream) {
+BoxParser.createFullBoxCtor("infe", "ItemInfoEntry", function(stream) {
 	if (this.version === 0 || this.version === 1) {
 		this.item_ID = stream.readUint16();
 		this.item_protection_index = stream.readUint16();

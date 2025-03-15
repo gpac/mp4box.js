@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("tfra", function(stream) {
+BoxParser.createFullBoxCtor("tfra", "TrackFragmentRandomAccessBox", function(stream) {
 	this.track_ID = stream.readUint32();
 	stream.readUint24();
 	var tmp_byte = stream.readUint8();

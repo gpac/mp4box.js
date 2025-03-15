@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("styp", function(stream) {
+BoxParser.createBoxCtor("styp", "SegmentTypeBox", function(stream) {
 	BoxParser.ftypBox.prototype.parse.call(this, stream);
 });
 

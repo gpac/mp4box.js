@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("trex", function(stream) {
+BoxParser.createFullBoxCtor("trex", "TrackExtendsBox", function(stream) {
 	this.track_id = stream.readUint32();
 	this.default_sample_description_index = stream.readUint32();
 	this.default_sample_duration = stream.readUint32();

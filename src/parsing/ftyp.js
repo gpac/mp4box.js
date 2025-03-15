@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("ftyp", function(stream) {
+BoxParser.createBoxCtor("ftyp", "FileTypeBox", function(stream) {
 	var toparse = this.size - this.hdr_size;
 	this.major_brand = stream.readString(4);
 	this.minor_version = stream.readUint32();

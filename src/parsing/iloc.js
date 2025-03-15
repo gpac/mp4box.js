@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("iloc", function(stream) {
+BoxParser.createFullBoxCtor("iloc", "ItemLocationBox", function(stream) {
 	var byte;
 	byte = stream.readUint8();
 	this.offset_size = (byte >> 4) & 0xF;
