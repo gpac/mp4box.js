@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("cslg", function(stream) {
+BoxParser.createFullBoxCtor("cslg", "CompositionToDecodeBox", function(stream) {
 	var entry_count;
 	if (this.version === 0) {
 		this.compositionToDTSShift = stream.readInt32(); /* signed */

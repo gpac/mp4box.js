@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("ccst", function(stream) {
+BoxParser.createFullBoxCtor("ccst", "CodingConstraintsBox", function(stream) {
 	var flags = stream.readUint8();
 	this.all_ref_pics_intra = ((flags & 0x80) == 0x80);
 	this.intra_pred_used = ((flags & 0x40) == 0x40);

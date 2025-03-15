@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("hvcC", function(stream) {
+BoxParser.createBoxCtor("hvcC", "HEVCConfigurationBox", function(stream) {
 	var i, j;
 	var nb_nalus;
 	var length;

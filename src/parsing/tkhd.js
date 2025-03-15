@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("tkhd", function(stream) {
+BoxParser.createFullBoxCtor("tkhd", "TrackHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();

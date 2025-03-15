@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("uncC", function(stream) {
+BoxParser.createFullBoxCtor("uncC", "UncompressedFrameConfigBox", function(stream) {
     var i;
     this.profile = stream.readString(4);
     if (this.version == 1) {

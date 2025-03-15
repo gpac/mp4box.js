@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("prdi", function(stream) {
+BoxParser.createFullBoxCtor("prdi", "ProgressiveDerivedImageItemInformationProperty", function(stream) {
 	this.step_count = stream.readUint16();
 	this.item_count = [];
 	if (this.flags & 0x2) {

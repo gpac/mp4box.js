@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("prft", function(stream) {
+BoxParser.createFullBoxCtor("prft", "ProducerReferenceTimeBox", function(stream) {
 	this.ref_track_id = stream.readUint32();
 	this.ntp_timestamp = stream.readUint64();
 	if (this.version === 0) {

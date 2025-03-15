@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("pssh", function(stream) {
+BoxParser.createFullBoxCtor("pssh", "ProtectionSystemSpecificHeaderBox", function(stream) {
 	this.system_id = BoxParser.parseHex16(stream);
 	if (this.version > 0) {
 		var count = stream.readUint32();

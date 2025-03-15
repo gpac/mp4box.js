@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("tenc", function(stream) {
+BoxParser.createFullBoxCtor("tenc", "TrackEncryptionBox", function(stream) {
 	stream.readUint8(); // reserved
 	if (this.version === 0) {
 		stream.readUint8();

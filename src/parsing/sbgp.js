@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("sbgp", function(stream) {
+BoxParser.createFullBoxCtor("sbgp", "SampleToGroupBox", function(stream) {
 	this.grouping_type = stream.readString(4);
 	if (this.version === 1) {
 		this.grouping_type_parameter = stream.readUint32();

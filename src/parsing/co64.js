@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("co64", function(stream) {
+BoxParser.createFullBoxCtor("co64", "ChunkLargeOffsetBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();

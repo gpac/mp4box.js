@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stsh", function(stream) {
+BoxParser.createFullBoxCtor("stsh", "ShadowSyncSampleBox", function(stream) {
 	var entry_count;
 	var i;
 	entry_count = stream.readUint32();

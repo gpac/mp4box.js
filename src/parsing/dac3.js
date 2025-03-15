@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("dac3", function(stream) {
+BoxParser.createBoxCtor("dac3", "AC3SpecificBox", function(stream) {
 	var tmp_byte1 = stream.readUint8();
 	var tmp_byte2 = stream.readUint8();
 	var tmp_byte3 = stream.readUint8();

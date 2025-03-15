@@ -1,4 +1,4 @@
-BoxParser.createBoxCtor("clap", function(stream) {
+BoxParser.createBoxCtor("clap", "CleanApertureBox", function(stream) {
 	this.cleanApertureWidthN = stream.readUint32();
 	this.cleanApertureWidthD = stream.readUint32();
 	this.cleanApertureHeightN = stream.readUint32();

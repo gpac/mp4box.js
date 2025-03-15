@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("mdhd", function(stream) {
+BoxParser.createFullBoxCtor("mdhd", "MediaHeaderBox", function(stream) {
 	if (this.version == 1) {
 		this.creation_time = stream.readUint64();
 		this.modification_time = stream.readUint64();

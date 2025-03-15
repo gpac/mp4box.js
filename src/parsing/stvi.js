@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("stvi", function(stream) {
+BoxParser.createFullBoxCtor("stvi", "StereoVideoBox", function(stream) {
 	var tmp32 = stream.readUint32();
 	this.single_view_allowed = tmp32 & 0x3;
 	this.stereo_scheme = stream.readUint32();

@@ -1,5 +1,5 @@
 // Cannot be fully parsed because Per_Sample_IV_Size needs to be known
-BoxParser.createFullBoxCtor("senc" /*, function(stream) {
+BoxParser.createFullBoxCtor("senc", "SampleEncryptionBox" /*, function(stream) {
 	this.parseFullHeader(stream);
 	var sample_count = stream.readUint32();
 	this.samples = [];

@@ -1,4 +1,4 @@
-BoxParser.createFullBoxCtor("subs", function(stream) {
+BoxParser.createFullBoxCtor("subs", "SubSampleInformationBox", function(stream) {
 	var i,j;
 	var entry_count;
 	var subsample_count;
