@@ -2342,16 +2342,16 @@ var BoxParser = {
 		BoxParser[type+"TrackGroupTypeBox"].prototype = new BoxParser.TrackGroupTypeBox();
 		if (parseMethod) BoxParser[type+"TrackGroupTypeBox"].prototype.parse = parseMethod;
 	},
-	createUUIDBox: function(uuid, isFullBox, isContainerBox, parseMethod) {
+	createUUIDBox: function(uuid, name, isFullBox, isContainerBox, parseMethod) {
 		BoxParser.UUIDs.push(uuid);
 		BoxParser.UUIDBoxes[uuid] = function(size) {
 			if (isFullBox) {
-				BoxParser.FullBox.call(this, "uuid", size, uuid);
+				BoxParser.FullBox.call(this, "uuid", size, name, uuid);
 			} else {
 				if (isContainerBox) {
-					BoxParser.ContainerBox.call(this, "uuid", size, /*name=*/undefined, uuid);
+					BoxParser.ContainerBox.call(this, "uuid", size, name, uuid);
 				} else {
-					BoxParser.Box.call(this, "uuid", size, /*name=*/undefined, uuid);
+					BoxParser.Box.call(this, "uuid", size, name, uuid);
 				}
 			}
 		}
@@ -5060,7 +5060,7 @@ BoxParser.createFullBoxCtor("urn ", "DataEntryUrnBox", function(stream) {
 });
 
 // file:src/parsing/uuid/piff/piffLsm.js
-BoxParser.createUUIDBox("a5d40b30e81411ddba2f0800200c9a66", true, false, function(stream) {
+BoxParser.createUUIDBox("a5d40b30e81411ddba2f0800200c9a66", "LiveServerManifestBox", true, false, function(stream) {
     this.LiveServerManifest = stream.readString(this.size - this.hdr_size)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -5068,7 +5068,7 @@ BoxParser.createUUIDBox("a5d40b30e81411ddba2f0800200c9a66", true, false, functio
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 });// file:src/parsing/uuid/piff/piffPssh.js
-BoxParser.createUUIDBox("d08a4f1810f34a82b6c832d8aba183d3", true, false, function(stream) {
+BoxParser.createUUIDBox("d08a4f1810f34a82b6c832d8aba183d3", "PiffProtectionSystemSpecificHeaderBox", true, false, function(stream) {
 	this.system_id = BoxParser.parseHex16(stream);
 	var datasize = stream.readUint32();
 	if (datasize > 0) {
@@ -5077,7 +5077,7 @@ BoxParser.createUUIDBox("d08a4f1810f34a82b6c832d8aba183d3", true, false, functio
 });
 
 // file:src/parsing/uuid/piff/piffSenc.js
-BoxParser.createUUIDBox("a2394f525a9b4f14a2446c427c648df4", true, false /*, function(stream) {
+BoxParser.createUUIDBox("a2394f525a9b4f14a2446c427c648df4", "PiffSampleEncryptionBox", true, false /*, function(stream) {
 	if (this.flags & 0x1) {
 		this.AlgorithmID = stream.readUint24();
 		this.IV_size = stream.readUint8();
@@ -5102,12 +5102,12 @@ BoxParser.createUUIDBox("a2394f525a9b4f14a2446c427c648df4", true, false /*, func
 	}
 }*/);
 // file:src/parsing/uuid/piff/piffTenc.js
-BoxParser.createUUIDBox("8974dbce7be74c5184f97148f9882554", true, false, function(stream) {
+BoxParser.createUUIDBox("8974dbce7be74c5184f97148f9882554", "PiffTrackEncryptionBox", true, false, function(stream) {
 	this.default_AlgorithmID = stream.readUint24();
 	this.default_IV_size = stream.readUint8();
 	this.default_KID = BoxParser.parseHex16(stream);
 });// file:src/parsing/uuid/piff/piffTfrf.js
-BoxParser.createUUIDBox("d4807ef2ca3946958e5426cb9e46a79f", true, false, function(stream) {
+BoxParser.createUUIDBox("d4807ef2ca3946958e5426cb9e46a79f", "TfrfBox", true, false, function(stream) {
     this.fragment_count = stream.readUint8();
     this.entries = [];
 
@@ -5130,7 +5130,7 @@ BoxParser.createUUIDBox("d4807ef2ca3946958e5426cb9e46a79f", true, false, functio
         this.entries.push(entry);
     }
 });// file:src/parsing/uuid/piff/piffTfxd.js
-BoxParser.createUUIDBox("6d1d9b0542d544e680e2141daff757b2", true, false, function(stream) {
+BoxParser.createUUIDBox("6d1d9b0542d544e680e2141daff757b2", "TfxdBox", true, false, function(stream) {
     if (this.version === 1) {
        this.absolute_time = stream.readUint64();
        this.duration = stream.readUint64();

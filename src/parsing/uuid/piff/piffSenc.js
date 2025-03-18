@@ -1,4 +1,4 @@
-BoxParser.createUUIDBox("a2394f525a9b4f14a2446c427c648df4", true, false /*, function(stream) {
+BoxParser.createUUIDBox("a2394f525a9b4f14a2446c427c648df4", "PiffSampleEncryptionBox", true, false /*, function(stream) {
 	if (this.flags & 0x1) {
 		this.AlgorithmID = stream.readUint24();
 		this.IV_size = stream.readUint8();
