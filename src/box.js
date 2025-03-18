@@ -184,16 +184,16 @@ var BoxParser = {
 		BoxParser[type+"TrackGroupTypeBox"].prototype = new BoxParser.TrackGroupTypeBox();
 		if (parseMethod) BoxParser[type+"TrackGroupTypeBox"].prototype.parse = parseMethod;
 	},
-	createUUIDBox: function(uuid, isFullBox, isContainerBox, parseMethod) {
+	createUUIDBox: function(uuid, name, isFullBox, isContainerBox, parseMethod) {
 		BoxParser.UUIDs.push(uuid);
 		BoxParser.UUIDBoxes[uuid] = function(size) {
 			if (isFullBox) {
-				BoxParser.FullBox.call(this, "uuid", size, uuid);
+				BoxParser.FullBox.call(this, "uuid", size, name, uuid);
 			} else {
 				if (isContainerBox) {
-					BoxParser.ContainerBox.call(this, "uuid", size, /*name=*/undefined, uuid);
+					BoxParser.ContainerBox.call(this, "uuid", size, name, uuid);
 				} else {
-					BoxParser.Box.call(this, "uuid", size, /*name=*/undefined, uuid);
+					BoxParser.Box.call(this, "uuid", size, name, uuid);
 				}
 			}
 		}
