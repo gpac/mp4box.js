@@ -33,7 +33,7 @@ var BoxParser = {
 		[{type: "minf", name: "MediaInformationBox"}],
 		[{type: "dinf", name: "DataInformationBox"}],
 		[{type: "stbl", name: "SampleTableBox"}, ["sgpd", "sbgp"]],
-		[{type: "mvex", name: "MovieExtendsBox"}, ["tref"]],
+		[{type: "mvex", name: "MovieExtendsBox"}, ["trex"]],
 		[{type: "moof", name: "CompressedMovieFragmentBox"}, ["traf"]],
 		[{type: "traf", name: "TrackFragmentBox"}, ["trun", "sgpd", "sbgp"]],
 		[{type: "vttc", name: "VTTCueBox"}],
