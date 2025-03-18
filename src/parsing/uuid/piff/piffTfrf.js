@@ -1,4 +1,4 @@
-BoxParser.createUUIDBox("d4807ef2ca3946958e5426cb9e46a79f", true, false, function(stream) {
+BoxParser.createUUIDBox("d4807ef2ca3946958e5426cb9e46a79f", "TfrfBox", true, false, function(stream) {
     this.fragment_count = stream.readUint8();
     this.entries = [];
 
