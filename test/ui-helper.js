@@ -244,6 +244,7 @@ function createFancyTree(parent, fileobj) {
 		el += box.type + '&nbsp;';
 		if (box.box_name)
 			el += "<span class='boxname'>(" + box.box_name + ")</span>";
+		el += "</span>";
 		return el;
 	};
 	boxtreediv.fancytree(fancytree_options);
