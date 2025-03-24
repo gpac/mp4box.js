@@ -241,7 +241,16 @@ function createFancyTree(parent, fileobj) {
 	fancytree_options.renderTitle = function(event, data) {
 		var box = data.node.data.box;
 		var el = "<span class='fancytree-title'>";
-		el += box.type + '&nbsp;';
+		var title = box.type;
+		if (!title) {
+			// Find index in parent.
+			var siblings = data.node.parent.children;
+			for (var idx = 0; idx < siblings.length; idx++) {
+				if (siblings[idx] == data.node) break;
+			}
+			title = idx;
+		}
+		el += title + '&nbsp;';
 		if (box.box_name)
 			el += "<span class='boxname'>(" + box.box_name + ")</span>";
 		el += "</span>";
