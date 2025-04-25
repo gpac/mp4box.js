@@ -453,12 +453,27 @@ function buildEntityGroupTable(entity_groups) {
 	$("#entitygroupview").html(html);
 }
 
-
 window.onload = function () {
 
 	createLoadBar($('#menubar'), "File", "file", file, finalizeAnalyzerUI);
 
 	createFancyTree($('#boxtree'), file);
+
+	$("#expandall").on("click", function() {
+		// Same as fancytree.expandAll() which is unavailable in lib/fancytree.
+		file.fancytree.visit(function (node) {
+			if (node.hasChildren() !== false && !node.isExpanded()) {
+				node.setExpanded(true, []);
+			}
+		});
+	});
+	$("#collapseall").on("click", function() {
+		file.fancytree.visit(function (node) {
+			if (node.hasChildren() !== false && node.isExpanded()) {
+				node.setExpanded(false, []);
+			}
+		});
+	});
 
 	$("#resulttabs").tabs();
 	$("#boxview").tabs();
