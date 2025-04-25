@@ -26,7 +26,8 @@ var BoxParser = {
 		{type: "mere", name: "MetaboxRelationBox"}
 	],
 	CONTAINER_BOXES: [
-		[{type: "moov", name: "CompressedMovieBox"}, ["trak", "pssh"]],
+		[{type: "moov", name: "MovieBox"}, ["trak", "pssh"]],
+		[{type: "!mov", name: "CompressedMovieBox"}],
 		[{type: "trak", name: "TrackBox"}],
 		[{type: "edts", name: "EditBox"}],
 		[{type: "mdia", name: "MediaBox"}],
@@ -34,7 +35,8 @@ var BoxParser = {
 		[{type: "dinf", name: "DataInformationBox"}],
 		[{type: "stbl", name: "SampleTableBox"}, ["sgpd", "sbgp"]],
 		[{type: "mvex", name: "MovieExtendsBox"}, ["trex"]],
-		[{type: "moof", name: "CompressedMovieFragmentBox"}, ["traf"]],
+		[{type: "moof", name: "MovieFragmentBox"}, ["traf"]],
+		[{type: "!mof", name: "CompressedMovieFragmentBox"}],
 		[{type: "traf", name: "TrackFragmentBox"}, ["trun", "sgpd", "sbgp"]],
 		[{type: "vttc", name: "VTTCueBox"}],
 		[{type: "tref", name: "TrackReferenceBox"}],
