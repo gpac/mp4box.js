@@ -3229,9 +3229,9 @@ BoxParser.createFullBoxCtor("emsg", "EventMessageBox", function(stream) {
 
 // file:src/parsing/EntityToGroup.js
 // ISO/IEC 14496-12:2022 Section 8.18.3 Entity to group box
-BoxParser.createEntityToGroupCtor = function(type, parseMethod) {
+BoxParser.createEntityToGroupCtor = function(type, name, parseMethod) {
     BoxParser[type+"Box"] = function(size) {
-        BoxParser.FullBox.call(this, type, size);
+        BoxParser.FullBox.call(this, type, size, name);
     }
     BoxParser[type+"Box"].prototype = new BoxParser.FullBox();
     BoxParser[type+"Box"].prototype.parse = function(stream) {
@@ -3251,55 +3251,55 @@ BoxParser.createEntityToGroupCtor = function(type, parseMethod) {
 };
 
 // Auto exposure bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.2.1)
-BoxParser.createEntityToGroupCtor("aebr");
+BoxParser.createEntityToGroupCtor("aebr", "Auto exposure bracketing");
 
-// Flash exposure bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.5.1)
-BoxParser.createEntityToGroupCtor("afbr");
+// Flash exposure information (ISO/IEC 23008-12:2022 Section 6.8.6.5.1)
+BoxParser.createEntityToGroupCtor("afbr", "Flash exposure information");
 
 // Album collection (ISO/IEC 23008-12:2022 Section 6.8.7.1)
-BoxParser.createEntityToGroupCtor("albc");
+BoxParser.createEntityToGroupCtor("albc", "Album collection");
 
 // Alternative entity (ISO/IEC 14496-12:2022 Section 8.18.3.1)
-BoxParser.createEntityToGroupCtor("altr");
+BoxParser.createEntityToGroupCtor("altr", "Alternative entity");
 
-// Burst image entity group (ISO/IEC 23008-12:2022 Section 6.8.2.2)
-BoxParser.createEntityToGroupCtor("brst");
+// Burst image (ISO/IEC 23008-12:2022 Section 6.8.2.2)
+BoxParser.createEntityToGroupCtor("brst", "Burst image");
 
 // Depth of field bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.6.1)
-BoxParser.createEntityToGroupCtor("dobr");
+BoxParser.createEntityToGroupCtor("dobr", "Depth of field bracketing");
 
 // Equivalent entity (ISO/IEC 23008-12:2022 Section 6.8.1.1)
-BoxParser.createEntityToGroupCtor("eqiv");
+BoxParser.createEntityToGroupCtor("eqiv", "Equivalent entity");
 
 // Favourites collection (ISO/IEC 23008-12:2022 Section 6.8.7.2)
-BoxParser.createEntityToGroupCtor("favc");
+BoxParser.createEntityToGroupCtor("favc", "Favorites collection");
 
 // Focus bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.4.1)
-BoxParser.createEntityToGroupCtor("fobr");
+BoxParser.createEntityToGroupCtor("fobr", "Focus bracketing");
 
-// Audio to image entity group (ISO/IEC 23008-12:2022 Section 6.8.4)
-BoxParser.createEntityToGroupCtor("iaug");
+// Audio to image (ISO/IEC 23008-12:2022 Section 6.8.4)
+BoxParser.createEntityToGroupCtor("iaug", "Image item with an audio track");
 
 // Panorama (ISO/IEC 23008-12:2022 Section 6.8.8.1)
-BoxParser.createEntityToGroupCtor("pano");
+BoxParser.createEntityToGroupCtor("pano", "Panorama");
 
 // Slideshow (ISO/IEC 23008-12:2022 Section 6.8.9.1)
-BoxParser.createEntityToGroupCtor("slid");
+BoxParser.createEntityToGroupCtor("slid", "Slideshow");
 
 // Stereo pair (ISO/IEC 23008-12:2022 Section 6.8.5)
-BoxParser.createEntityToGroupCtor("ster");
+BoxParser.createEntityToGroupCtor("ster", "Stereo");
 
-// Time-synchronised capture entity group (ISO/IEC 23008-12:2022 Section 6.8.3)
-BoxParser.createEntityToGroupCtor("tsyn");
+// Time-synchronised capture (ISO/IEC 23008-12:2022 Section 6.8.3)
+BoxParser.createEntityToGroupCtor("tsyn", "Time-synchronized capture");
 
 // White balance bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.3.1)
-BoxParser.createEntityToGroupCtor("wbbr");
+BoxParser.createEntityToGroupCtor("wbbr", "White balance bracketing");
 
-// Alternative entity (ISO/IEC 23008-12:2022 AMD1 Section 6.8.10)
-BoxParser.createEntityToGroupCtor("prgr");
+// Progressive rendering (ISO/IEC 23008-12:2022 AMD1 Section 6.8.10)
+BoxParser.createEntityToGroupCtor("prgr", "Progressive rendering");
 
-// Image Pyramid entity group (ISO/IEC 23008-12:20xx Section 6.8.11)
-BoxParser.createEntityToGroupCtor("pymd", function(stream) {
+// Image Pyramid (ISO/IEC 23008-12:20xx Section 6.8.11)
+BoxParser.createEntityToGroupCtor("pymd", "Image pyramid", function(stream) {
     this.group_id = stream.readUint32();
     this.num_entities_in_group = stream.readUint32();
     this.entity_ids = [];
@@ -3626,6 +3626,26 @@ BoxParser.createFullBoxCtor("ipma", "ItemPropertyAssociationBox", function(strea
 });
 
 // file:src/parsing/iref.js
+var REFERENCE_TYPE_NAMES = {
+	"auxl": "Auxiliary image item",
+	"base": "Pre-derived image item base",
+	"cdsc": "Item describes referenced item",
+	"dimg": "Derived image item",
+	"dpnd": "Item coding dependency",
+	"eroi": "Region",
+	"evir": "EVC slice",
+	"exbl": "Scalable image item",
+	"fdl": "File delivery",
+	"font": "Font item",
+	"iloc": "Item data location",
+	"mask": "Region mask",
+	"mint": "Data integrity",
+	"pred": "Predictively coded item",
+	"prem": "Pre-multiplied item",
+	"tbas": "HEVC tile track base item",
+	"thmb": "Thumbnail image item"
+};
+
 BoxParser.createFullBoxCtor("iref", "ItemReferenceBox", function(stream) {
 	var ret;
 	var entryCount;
@@ -3635,10 +3655,11 @@ BoxParser.createFullBoxCtor("iref", "ItemReferenceBox", function(stream) {
 	while (stream.getPosition() < this.start+this.size) {
 		ret = BoxParser.parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
 		if (ret.code === BoxParser.OK) {
+			var name = REFERENCE_TYPE_NAMES[ret.type];
 			if (this.version === 0) {
-				box = new BoxParser.SingleItemTypeReferenceBox(ret.type, ret.size, ret.hdr_size, ret.start);
+				box = new BoxParser.SingleItemTypeReferenceBox(ret.type, ret.size, name, ret.hdr_size, ret.start);
 			} else {
-				box = new BoxParser.SingleItemTypeReferenceBoxLarge(ret.type, ret.size, ret.hdr_size, ret.start);
+				box = new BoxParser.SingleItemTypeReferenceBoxLarge(ret.type, ret.size, name, ret.hdr_size, ret.start);
 			}
 			if (box.write === BoxParser.Box.prototype.write && box.type !== "mdat") {
 				Log.warn("BoxParser", box.type+" box writing not yet implemented, keeping unparsed data in memory for later write");
@@ -4415,8 +4436,8 @@ BoxParser.createFullBoxCtor("sidx", "CompressedSegmentIndexBox", function(stream
 });
 
 // file:src/parsing/singleitemtypereference.js
-BoxParser.SingleItemTypeReferenceBox = function(type, size, hdr_size, start) {
-	BoxParser.Box.call(this, type, size);
+BoxParser.SingleItemTypeReferenceBox = function(type, size, name, hdr_size, start) {
+	BoxParser.Box.call(this, type, size, name);
 	this.hdr_size = hdr_size;
 	this.start = start;
 }
@@ -4432,8 +4453,8 @@ BoxParser.SingleItemTypeReferenceBox.prototype.parse = function(stream) {
 }
 
 // file:src/parsing/singleitemtypereferencelarge.js
-BoxParser.SingleItemTypeReferenceBoxLarge = function(type, size, hdr_size, start) {
-	BoxParser.Box.call(this, type, size);
+BoxParser.SingleItemTypeReferenceBoxLarge = function(type, size, name, hdr_size, start) {
+	BoxParser.Box.call(this, type, size, name);
 	this.hdr_size = hdr_size;
 	this.start = start;
 }

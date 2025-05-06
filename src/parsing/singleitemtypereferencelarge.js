@@ -1,5 +1,5 @@
-BoxParser.SingleItemTypeReferenceBoxLarge = function(type, size, hdr_size, start) {
-	BoxParser.Box.call(this, type, size);
+BoxParser.SingleItemTypeReferenceBoxLarge = function(type, size, name, hdr_size, start) {
+	BoxParser.Box.call(this, type, size, name);
 	this.hdr_size = hdr_size;
 	this.start = start;
 }
