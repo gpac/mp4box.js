@@ -1,0 +1,55 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  publish:
+    name: release
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: lts/*
+
+      - run: npm clean-install
+      - run: npm install --global corepack@latest
+      - run: corepack npm audit signatures
+      - run: npm run build
+
+      - name: Create publish directory
+        run: |
+          mkdir -p ${{ runner.temp }}/public
+          mv ${{ github.workspace }}/dist ${{ runner.temp }}/public
+          mv ${{ github.workspace }}/test ${{ runner.temp }}/public
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/public
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

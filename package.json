@@ -22,6 +22,9 @@
     "email": "cyril.concolato@telecom-paristech.fr",
     "url": "http://concolato.wp.mines-telecom.fr/"
   },
+  "engines": {
+    "node": ">=20.8.1"
+  },
   "license": "BSD-3-Clause",
   "devDependencies": {
     "blanket": "^1.2.3",
@@ -44,6 +47,8 @@
     "qunitjs": "^1.23.0"
   },
   "scripts": {
-    "test": "grunt test --verbose"
-  }
+    "test": "grunt test --verbose",
+    "build": "grunt"
+  },
+  "packageManager": "npm@11.4.1"
 }
