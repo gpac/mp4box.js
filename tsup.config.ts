@@ -5,6 +5,7 @@ export default defineConfig({
     'mp4box.all': 'entries/all.ts',
     'mp4box.simple': 'entries/simple.ts',
   },
+  target: 'es2022',
   format: ['cjs', 'esm'],
   splitting: false,
   sourcemap: true,
