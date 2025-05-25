@@ -5,7 +5,6 @@
 *.bpg
 *.xml
 node_modules
-dev/node_modules
 dist/
 test/lib_*/
 test/coverage/
