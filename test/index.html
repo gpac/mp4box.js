@@ -9,11 +9,6 @@
 		<script src="lib/jquery-ui/jquery-ui.min.js"></script>		
 
 		<link rel="stylesheet" href="style.css" />
-        <script src="../dist/mp4box.all.js"></script>
-		<script src="downloader.js"></script>
-		<script src="sample-urls.js"></script>
-		<script src="movieInfoDisplay.js"></script>
-		<script src="index.js"></script>
     </head>
 	<body>
 		<div>
@@ -171,5 +166,15 @@
 			  </div>
 			</div>
 		</div>
+		<script src="../dist/mp4box.all.global.js"></script>
+		<script>
+		for (const key in MP4Box)
+			if (MP4Box.hasOwnProperty(key))
+			window[key] = MP4Box[key];
+		</script>
+		<script src="downloader.js"></script>
+		<script src="sample-urls.js"></script>
+		<script src="movieInfoDisplay.js"></script>
+		<script src="index.js"></script>
 	</body>
 </html>

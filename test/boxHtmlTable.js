@@ -1,4 +1,3 @@
-import { Box } from '#/box';
 
 function generateBoxTable(box, excluded_fields, additional_props, no_header) {
   var prop;
@@ -39,7 +38,7 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
       continue;
     } else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
       continue;
-    } else if (box[prop] instanceof Box) {
+    } else if (box[prop] instanceof BoxParser.Box) {
       continue;
     } else if (typeof box[prop] === 'undefined') {
       continue;

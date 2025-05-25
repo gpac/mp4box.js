@@ -16,12 +16,6 @@
 
   		<script type="text/javascript" src="lib/d3/d3.js"></script>
 
-		<script src="../dist/mp4box.all.js"></script>
-		<script src="sample-urls.js"></script>
-		<script src="mse-avif-viewer.js"></script>
-		<script src="ui-helper.js"></script>
-		<script src="downloader.js"></script>
-
 		<link rel="stylesheet" href="style.css" />
     </head>
 	<body>
@@ -41,5 +35,15 @@
 		<div id="results" style="clear: both;">
 			<video id="v">
 		</div>
+		<script src="../dist/mp4box.all.global.js"></script>
+		<script>
+		for (const key in MP4Box)
+			if (MP4Box.hasOwnProperty(key))
+			window[key] = MP4Box[key];
+		</script>
+		<script src="sample-urls.js"></script>
+		<script src="mse-avif-viewer.js"></script>
+		<script src="ui-helper.js"></script>
+		<script src="downloader.js"></script>
 	</body>
 </html>

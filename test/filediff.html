@@ -17,14 +17,6 @@ layout: page
   		<link href="lib/fancytree/ui.fancytree.min.css" rel="stylesheet" type="text/css">
   		<script src="lib/fancytree/jquery.fancytree-all.min.js" type="text/javascript"></script>
 
-		<script src="../dist/mp4box.all.js"></script>
-		<script src="sample-urls.js"></script>
-		<script src="downloader.js"></script>
-		<script src="boxHtmlTable.js"></script>
-		<script src="boxfancytree.js"></script>
-		<script src="ui-helper.js"></script>
-		<script src="filediff.js"></script>
-
 		<style type="text/css">
 
 		/* JQuery UI Styles */
@@ -57,5 +49,17 @@ layout: page
 		<p>Client-side tool: files are processed locally in your browser and not uploaded to any server</p>
 		<div id="menubar" style="clear: both;"></div>
 		<div id="resulttabs" style="clear: both;"></div>
+		<script src="../dist/mp4box.all.global.js"></script>
+		<script>
+			for (const key in MP4Box)
+				if (MP4Box.hasOwnProperty(key))
+					window[key] = MP4Box[key];
+		</script>
+		<script src="sample-urls.js"></script>
+		<script src="downloader.js"></script>
+		<script src="boxHtmlTable.js"></script>
+		<script src="boxfancytree.js"></script>
+		<script src="ui-helper.js"></script>
+		<script src="filediff.js"></script>
 	</body>
 </html>

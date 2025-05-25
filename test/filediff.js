@@ -1,5 +1,3 @@
-import { boxEqualFields } from '#/box-diff';
-
 var file_a = {};
 file_a.mp4boxfile = null;
 file_a.objectToLoad = null;
@@ -51,7 +49,7 @@ function getFancyTreeDiffedDataFromBoxes(boxes, expected_boxes) {
     array.push(fancytree_node);
     fancytree_node.title = box.type || i;
     fancytree_node.data = { box: box };
-    if (!expected_box || !boxEqualFields(box, expected_box)) {
+    if (!expected_box || !BoxParser.boxEqualFields(box, expected_box)) {
       fancytree_node.extraClasses = 'fields_diff';
       array.diff = true;
     }
