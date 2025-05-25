@@ -109,10 +109,13 @@ export class bxmlBox extends FullBox {
   box_name = 'BinaryXMLBox';
 }
 export class iproBox extends FullBox {
-  protections: Array<unknown>;
-
   type = 'ipro' as const;
   box_name = 'ItemProtectionBox';
+
+  sinfs: Array<sinfBox> = [];
+  get protections() {
+    return this.sinfs;
+  }
 }
 
 /**********************************************************************************/

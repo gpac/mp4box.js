@@ -174,7 +174,7 @@ export interface Item {
   name?: string;
   primary?: boolean;
   properties?: { boxes: Array<Box> };
-  protection?: unknown;
+  protection?: BOXES.sinfBox;
   ref_to?: Array<{
     type: string;
     id: Reference;

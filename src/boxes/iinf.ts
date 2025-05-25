@@ -1,11 +1,11 @@
-import { Box, parseOneBox } from '#/box';
+import { FullBox, parseOneBox } from '#/box';
 import { infeBox } from '#/boxes/infe';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
 import type { BoxKind } from '@types';
 
-export class iinfBox extends Box {
+export class iinfBox extends FullBox {
   type = 'iinf' as const;
   box_name = 'ItemInfoBox'
 
@@ -14,6 +14,7 @@ export class iinfBox extends Box {
   item_infos: Array<infeBox>;
 
   parse(stream: MultiBufferStream) {
+    this.parseFullHeader(stream);
     if (this.version === 0) {
       this.entry_count = stream.readUint16();
     } else {

@@ -1,5 +1,6 @@
 import {
   Box,
+  FullBox,
   SingleItemTypeReferenceBox,
   SingleItemTypeReferenceBoxLarge,
   parseOneBox,
@@ -29,7 +30,7 @@ const REFERENCE_TYPE_NAMES = {
   thmb: 'Thumbnail image item',
 };
 
-export class irefBox extends Box {
+export class irefBox extends FullBox {
   type = 'iref' as const;
   box_name = 'ItemReferenceBox';
 
@@ -37,6 +38,7 @@ export class irefBox extends Box {
   version: number;
 
   parse(stream: MultiBufferStream) {
+    this.parseFullHeader(stream);
     this.references = [];
 
     while (stream.getPosition() < this.start + this.size) {

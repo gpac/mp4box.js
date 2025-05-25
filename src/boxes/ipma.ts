@@ -1,4 +1,4 @@
-import { Box } from '#/box';
+import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export interface Assocation {
@@ -6,7 +6,7 @@ export interface Assocation {
   props: Array<{ property_index: number; essential: boolean }>;
 }
 
-export class ipmaBox extends Box {
+export class ipmaBox extends FullBox {
   type = 'ipma' as const;
   box_name = 'ItemPropertyAssociationBox'
 
@@ -15,6 +15,7 @@ export class ipmaBox extends Box {
   flags: number;
 
   parse(stream: MultiBufferStream) {
+    this.parseFullHeader(stream);
     const entry_count = stream.readUint32();
     this.associations = [];
     for (let i = 0; i < entry_count; i++) {

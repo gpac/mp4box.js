@@ -1,7 +1,7 @@
-import { Box } from '#/box';
+import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-export class ispeBox extends Box {
+export class ispeBox extends FullBox {
   type = 'ispe' as const;
   box_name = 'ImageSpatialExtentsProperty'
 
@@ -9,6 +9,7 @@ export class ispeBox extends Box {
   image_height: number;
 
   parse(stream: MultiBufferStream) {
+    this.parseFullHeader(stream);
     this.image_width = stream.readUint32();
     this.image_height = stream.readUint32();
   }
