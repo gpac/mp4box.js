@@ -43,7 +43,8 @@
   "scripts": {
     "build": "tsup",
     "circular": "dpdm -T ./entries/all.ts",
-    "types": "tsc --noEmit --project tsconfig.json"
+    "types": "tsc --noEmit --project tsconfig.json",
+    "test": "npm run build && npm run types && npm run circular"
   },
   "devDependencies": {
     "blanket": "^1.2.3",
