@@ -4,7 +4,7 @@ import type { Sample } from '@types';
 
 export class stcoBox extends FullBox {
   type = 'stco' as const;
-  box_name = 'ChunkOffsetBox'
+  box_name = 'ChunkOffsetBox';
 
   chunk_offsets: Array<number>;
 

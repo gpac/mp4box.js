@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class uncCBox extends FullBox {
   type = 'uncC' as const;
-  box_name = 'UncompressedFrameConfigBox'
+  box_name = 'UncompressedFrameConfigBox';
 
   profile: string;
   component_count: number;

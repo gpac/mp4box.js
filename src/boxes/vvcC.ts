@@ -4,7 +4,7 @@ import type { NaluArray } from '@types';
 
 export class vvcCBox extends FullBox {
   type = 'vvcC' as const;
-  box_name = 'VvcConfigurationBox'
+  box_name = 'VvcConfigurationBox';
 
   lengthSizeMinusOne: number;
   ptl_present_flag: number;

@@ -7,7 +7,7 @@ import type { BoxKind } from '@types';
 
 export class iinfBox extends FullBox {
   type = 'iinf' as const;
-  box_name = 'ItemInfoBox'
+  box_name = 'ItemInfoBox';
 
   version: number;
   entry_count: number;

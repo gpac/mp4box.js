@@ -4,7 +4,7 @@ import type { Sample } from '@types';
 
 export class stscBox extends FullBox {
   type = 'stsc' as const;
-  box_name = 'SampleToChunkBox'
+  box_name = 'SampleToChunkBox';
 
   first_chunk: Array<number>;
   samples_per_chunk: Array<number>;

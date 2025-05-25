@@ -2561,7 +2561,8 @@ export class ISOFile<TSegmentUser = any, TSampleUser = any> {
   /** @bundle isofile-advanced-creation.js */
   createSingleSampleMoof(sample: Sample) {
     let sample_flags = 0;
-    if (sample.is_sync) sample_flags = 1 << 25; // sample_depends_on_none (I picture)
+    if (sample.is_sync)
+      sample_flags = 1 << 25; // sample_depends_on_none (I picture)
     else sample_flags = 1 << 16; // non-sync
 
     const moof = new moofBox();

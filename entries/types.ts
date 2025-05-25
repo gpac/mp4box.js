@@ -342,22 +342,22 @@ export type StructDefinition = Array<[name: string, type: Type]>;
 export type ValueFromType<TValue extends Type> = TValue extends StringType
   ? string
   : TValue extends NumberType
-  ? number
-  : TValue extends FnType
-  ? ReturnType<FnType>
-  : TValue extends GetterSetterType
-  ? ReturnType<TValue['get']>
-  : TValue extends ['[]', NumberType, infer TAmount]
-  ? TAmount extends number
-    ? TupleOf<number, TAmount>
-    : TAmount extends () => infer TReturnType
-    ? TReturnType extends number
-      ? TupleOf<number, TReturnType>
-      : never
-    : Array<number>
-  : TValue extends StructDefinition
-  ? StructDataFromStructDefinition<TValue>
-  : never;
+    ? number
+    : TValue extends FnType
+      ? ReturnType<FnType>
+      : TValue extends GetterSetterType
+        ? ReturnType<TValue['get']>
+        : TValue extends ['[]', NumberType, infer TAmount]
+          ? TAmount extends number
+            ? TupleOf<number, TAmount>
+            : TAmount extends () => infer TReturnType
+              ? TReturnType extends number
+                ? TupleOf<number, TReturnType>
+                : never
+              : Array<number>
+          : TValue extends StructDefinition
+            ? StructDataFromStructDefinition<TValue>
+            : never;
 
 export type StructDataFromStructDefinition<T extends StructDefinition> = {
   [TKey in T[number][0]]: Extract<T[number], [TKey, any]>[1] extends infer TValue

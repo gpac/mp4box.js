@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class dmedBox extends Box {
   type = 'dmed' as const;
-  box_name = 'hintmediaBytesSent'
+  box_name = 'hintmediaBytesSent';
 
   bytessent: number;
 

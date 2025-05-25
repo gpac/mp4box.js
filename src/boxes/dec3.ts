@@ -13,7 +13,7 @@ interface IndSub {
 
 export class dec3Box extends Box {
   type = 'dec3' as const;
-  box_name = 'EC3SpecificBox'
+  box_name = 'EC3SpecificBox';
 
   data_rate: number;
   num_ind_sub: number;

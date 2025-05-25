@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class sdtpBox extends FullBox {
   type = 'sdtp' as const;
-  box_name = 'SampleDependencyTypeBox'
+  box_name = 'SampleDependencyTypeBox';
 
   is_leading: Array<number>;
   sample_depends_on: Array<number>;

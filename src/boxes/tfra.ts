@@ -4,7 +4,7 @@ import type { SampleEntry } from './sampleentries/base';
 
 export class tfraBox extends FullBox {
   type = 'tfra' as const;
-  box_name = 'TrackFragmentRandomAccessBox'
+  box_name = 'TrackFragmentRandomAccessBox';
 
   track_ID: number;
   length_size_of_traf_num: number;

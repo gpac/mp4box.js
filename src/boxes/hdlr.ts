@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class hdlrBox extends FullBox {
   type = 'hdlr' as const;
-  box_name = 'HandlerBox'
+  box_name = 'HandlerBox';
 
   version: number;
   handler: string;

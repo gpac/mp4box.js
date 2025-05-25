@@ -4,7 +4,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class mehdBox extends FullBox {
   type = 'mehd' as const;
-  box_name = 'MovieExtendsHeaderBox'
+  box_name = 'MovieExtendsHeaderBox';
 
   fragment_duration: number;
 

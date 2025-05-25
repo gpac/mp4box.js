@@ -6,7 +6,7 @@ import { BoxRegistry } from '#/registry';
 
 export class sgpdBox extends FullBox {
   type = 'sgpd' as const;
-  box_name = 'SampleGroupDescriptionBox'
+  box_name = 'SampleGroupDescriptionBox';
 
   grouping_type:
     | 'alst'

@@ -1,4 +1,4 @@
-import type { Nalu } from "@types";
+import type { Nalu } from '@types';
 
 export class ParameterSetArray extends Array<Nalu> {
   toString() {

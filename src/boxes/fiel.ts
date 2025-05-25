@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class fielBox extends Box {
   type = 'fiel' as const;
-  box_name = 'FieldHandlingBox'
+  box_name = 'FieldHandlingBox';
 
   fieldCount: number;
   fieldOrdering: number;

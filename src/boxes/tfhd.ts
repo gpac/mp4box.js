@@ -10,7 +10,7 @@ import {
 
 export class tfhdBox extends FullBox {
   type = 'tfhd' as const;
-  box_name = 'TrackFragmentHeaderBox'
+  box_name = 'TrackFragmentHeaderBox';
 
   track_id: number;
   base_data_offset: number;

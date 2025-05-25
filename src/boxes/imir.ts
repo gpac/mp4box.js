@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class imirBox extends Box {
   type = 'imir' as const;
-  box_name = 'ImageMirror'
+  box_name = 'ImageMirror';
 
   reserved: number;
   axis: number;

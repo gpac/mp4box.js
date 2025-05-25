@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class saizBox extends FullBox {
   type = 'saiz' as const;
-  box_name = 'SampleAuxiliaryInformationSizesBox'
+  box_name = 'SampleAuxiliaryInformationSizesBox';
 
   aux_info_type: string;
   aux_info_type_parameter: number;

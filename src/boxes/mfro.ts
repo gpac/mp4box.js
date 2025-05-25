@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class mfroBox extends FullBox {
   type = 'mfro' as const;
-  box_name = 'MovieFragmentRandomAccessOffsetBox'
+  box_name = 'MovieFragmentRandomAccessOffsetBox';
 
   _size: number;
 

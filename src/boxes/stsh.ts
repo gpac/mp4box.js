@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class stshBox extends FullBox {
   type = 'stsh' as const;
-  box_name = 'ShadowSyncSampleBox'
+  box_name = 'ShadowSyncSampleBox';
 
   shadowed_sample_numbers: Array<number>;
   sync_sample_numbers: Array<number>;

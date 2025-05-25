@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class urlBox extends FullBox {
   type = 'url ' as const;
-  box_name = 'DataEntryUrlBox'
+  box_name = 'DataEntryUrlBox';
 
   location?: string;
 

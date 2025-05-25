@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class dmax extends Box {
   type = 'dmax' as const;
-  box_name = 'hintlongestpacket'
+  box_name = 'hintlongestpacket';
 
   time: number;
 

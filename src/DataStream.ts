@@ -1561,13 +1561,13 @@ export class DataStream {
             typeof len === 'function'
               ? len(struct, this, parsedType)
               : typeof len == 'string' && struct[len] != null
-              ? // @ts-expect-error   FIXME: Struct[string] is currently of type Type
-                parseInt(struct[len])
-              : typeof len === 'number'
-              ? len
-              : len === '*'
-              ? null
-              : parseInt(len);
+                ? // @ts-expect-error   FIXME: Struct[string] is currently of type Type
+                  parseInt(struct[len])
+                : typeof len === 'number'
+                  ? len
+                  : len === '*'
+                    ? null
+                    : parseInt(len);
           if (typeof ta == 'string') {
             let tap = ta.replace(/(le|be)$/, '');
             let endianness: null | boolean = null;

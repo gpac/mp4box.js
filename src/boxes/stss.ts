@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class stssBox extends FullBox {
   type = 'stss' as const;
-  box_name = 'SyncSampleBox'
+  box_name = 'SyncSampleBox';
 
   sample_numbers: Array<number>;
 

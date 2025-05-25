@@ -12,7 +12,7 @@ interface Reference {
 
 export class sidxBox extends FullBox {
   type = 'sidx' as const;
-  box_name = 'CompressedSegmentIndexBox'
+  box_name = 'CompressedSegmentIndexBox';
 
   reference_ID: number;
   timescale: number;

@@ -13,7 +13,7 @@ interface Level {
 
 export class levaBox extends FullBox {
   type = 'leva' as const;
-  box_name = 'LevelAssignmentBox'
+  box_name = 'LevelAssignmentBox';
 
   levels: Array<Level>;
 

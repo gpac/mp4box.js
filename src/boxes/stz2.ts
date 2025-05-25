@@ -4,7 +4,7 @@ import { Log } from '#/log';
 
 export class stz2Box extends FullBox {
   type = 'stz2' as const;
-  box_name = 'CompactSampleSizeBox'
+  box_name = 'CompactSampleSizeBox';
 
   sample_sizes: Array<number>;
   reserved: number;

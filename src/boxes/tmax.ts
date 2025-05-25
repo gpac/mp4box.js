@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class tmaxBox extends Box {
   type = 'tmax' as const;
-  box_name = 'hintmaxrelativetime'
+  box_name = 'hintmaxrelativetime';
 
   time: number;
 

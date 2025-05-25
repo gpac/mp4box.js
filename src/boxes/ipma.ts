@@ -8,7 +8,7 @@ export interface Assocation {
 
 export class ipmaBox extends FullBox {
   type = 'ipma' as const;
-  box_name = 'ItemPropertyAssociationBox'
+  box_name = 'ItemPropertyAssociationBox';
 
   associations: Array<Assocation>;
   version: number;

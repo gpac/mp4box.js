@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class cmpdBox extends Box {
   type = 'cmpd' as const;
-  box_name = 'ComponentDefinitionBox'
+  box_name = 'ComponentDefinitionBox';
 
   component_count: number;
   component_types: Array<number>;

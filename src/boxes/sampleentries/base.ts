@@ -7,7 +7,11 @@ import type { hvcCBox } from '../hvcC';
 export class SampleEntry extends ContainerBox {
   data_reference_index?: number;
 
-  constructor(size?: number, public hdr_size?: number, public start?: number) {
+  constructor(
+    size?: number,
+    public hdr_size?: number,
+    public start?: number,
+  ) {
     super(size);
   }
 

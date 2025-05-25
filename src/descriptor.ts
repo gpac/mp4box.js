@@ -16,7 +16,10 @@ export class Descriptor {
   descs = [];
   data: Uint8Array;
 
-  constructor(public tag: number, public size: number) {}
+  constructor(
+    public tag: number,
+    public size: number,
+  ) {}
 
   parse(stream: DataStream) {
     this.data = stream.readUint8Array(this.size);

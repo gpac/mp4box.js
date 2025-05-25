@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class vmhdBox extends FullBox {
   type = 'vmhd' as const;
-  box_name = 'VideoMediaHeaderBox'
+  box_name = 'VideoMediaHeaderBox';
 
   graphicsmode: number;
   opcolor: Uint16Array | [number, number, number];

@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class irotBox extends Box {
   type = 'irot' as const;
-  box_name = 'ImageRotation'
+  box_name = 'ImageRotation';
 
   angle: number;
 

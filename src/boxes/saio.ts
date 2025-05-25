@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class saioBox extends FullBox {
   type = 'saio' as const;
-  box_name = 'SampleAuxiliaryInformationOffsetsBox'
+  box_name = 'SampleAuxiliaryInformationOffsetsBox';
 
   aux_info_type: string;
   aux_info_type_parameter: number;

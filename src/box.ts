@@ -292,7 +292,10 @@ export class SampleGroupEntry {
 export class TrackGroupTypeBox extends FullBox {
   track_group_id: number;
 
-  constructor(public type: string, size: number) {
+  constructor(
+    public type: string,
+    size: number,
+  ) {
     super(size);
   }
 
@@ -308,7 +311,13 @@ export class SingleItemTypeReferenceBox extends Box {
   from_item_ID: number;
   references: Array<Reference>;
 
-  constructor(public type: string, size: number, public box_name: string, public hdr_size: number, public start: number) {
+  constructor(
+    public type: string,
+    size: number,
+    public box_name: string,
+    public hdr_size: number,
+    public start: number,
+  ) {
     super(size);
   }
   parse(stream: MultiBufferStream): void {
@@ -328,7 +337,13 @@ export class SingleItemTypeReferenceBoxLarge extends Box {
   from_item_ID: number;
   references: Array<Reference>;
 
-  constructor(public type: string, size: number, public box_name: string, public hdr_size: number, public start: number) {
+  constructor(
+    public type: string,
+    size: number,
+    public box_name: string,
+    public hdr_size: number,
+    public start: number,
+  ) {
     super(size);
   }
   parse(stream: MultiBufferStream): void {
@@ -345,7 +360,12 @@ export class SingleItemTypeReferenceBoxLarge extends Box {
 
 /** @bundle parsing/TrakReference.js */
 export class TrackReferenceTypeBox extends Box {
-  constructor(public type: string, size: number, public hdr_size: number, public start: number) {
+  constructor(
+    public type: string,
+    size: number,
+    public hdr_size: number,
+    public start: number,
+  ) {
     super(size);
   }
 

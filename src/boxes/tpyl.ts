@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class tpylBox extends Box {
   type = 'tpyl' as const;
-  box_name = 'hintBytesSent'
+  box_name = 'hintBytesSent';
 
   bytessent: number;
 

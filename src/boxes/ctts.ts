@@ -5,7 +5,7 @@ import type { Sample } from '@types';
 
 export class cttsBox extends FullBox {
   type = 'ctts' as const;
-  box_name = 'CompositionOffsetBox'
+  box_name = 'CompositionOffsetBox';
 
   sample_counts: Array<number>;
   sample_offsets: Array<number>;

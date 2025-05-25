@@ -5,7 +5,7 @@ import type { Sample } from '@types';
 
 export class sttsBox extends FullBox {
   type = 'stts' as const;
-  box_name = 'TimeToSampleBox'
+  box_name = 'TimeToSampleBox';
 
   sample_counts: Array<number> = [];
   sample_deltas: Array<number> = [];

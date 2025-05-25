@@ -6,7 +6,7 @@ import { DescriptorRegistry } from '#/registry';
 
 export class esdsBox extends FullBox {
   type = 'esds' as const;
-  box_name = 'ElementaryStreamDescriptorBox'
+  box_name = 'ElementaryStreamDescriptorBox';
 
   esd: ES_Descriptor;
 

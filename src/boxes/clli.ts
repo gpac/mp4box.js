@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class clliBox extends Box {
   type = 'clli' as const;
-box_name = 'ContentLightLevelBox'
+  box_name = 'ContentLightLevelBox';
 
   max_content_light_level: number;
   max_pic_average_light_level: number;

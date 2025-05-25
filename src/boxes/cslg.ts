@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class cslgBox extends FullBox {
   type = 'cslg' as const;
-  box_name = 'CompositionToDecodeBox'
+  box_name = 'CompositionToDecodeBox';
 
   compositionToDTSShift: number;
   leastDecodeToDisplayDelta: number;

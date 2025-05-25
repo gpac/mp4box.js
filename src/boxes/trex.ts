@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class trexBox extends FullBox {
   type = 'trex' as const;
-  box_name = 'TrackExtendsBox'
+  box_name = 'TrackExtendsBox';
 
   track_id: number;
   default_sample_description_index: number;

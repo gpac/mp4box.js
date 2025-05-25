@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class totlBox extends Box {
   type = 'totl' as const;
-  box_name = 'hintBytesSent'
+  box_name = 'hintBytesSent';
 
   bytessent: number;
 

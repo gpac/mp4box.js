@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class vvnCBox extends FullBox {
   type = 'vvnC' as const;
-  box_name = 'VvcNALUConfigBox'
+  box_name = 'VvcNALUConfigBox';
 
   lengthSizeMinusOne: number;
 

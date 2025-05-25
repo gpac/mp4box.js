@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class cdefBox extends Box {
   type = 'cdef' as const;
-  box_name = 'ComponentDefinitionBox'
+  box_name = 'ComponentDefinitionBox';
 
   channel_count: number;
   channel_indexes: Array<number>;

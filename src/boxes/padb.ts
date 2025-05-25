@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class padbBox extends FullBox {
   type = 'padb' as const;
-  box_name = 'PaddingBitsBox'
+  box_name = 'PaddingBitsBox';
 
   padbits: number | Array<number>;
 

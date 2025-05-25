@@ -11,7 +11,7 @@ import {
 
 export class trunBox extends FullBox {
   type = 'trun' as const;
-  box_name = 'TrackRunBox'
+  box_name = 'TrackRunBox';
 
   sample_count: number;
   data_offset: number;

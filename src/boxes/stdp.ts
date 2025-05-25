@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class stdpBox extends FullBox {
   type = 'stpd' as const;
-  box_name = 'DegradationPriorityBox'
+  box_name = 'DegradationPriorityBox';
 
   priority: Array<number>;
 

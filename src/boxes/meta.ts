@@ -9,7 +9,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class metaBox extends FullBox {
   type = 'meta' as const;
-  box_name = 'MetaBox'
+  box_name = 'MetaBox';
 
   hdlr: hdlrBox;
   hdlrs: Array<hdlrBox>;

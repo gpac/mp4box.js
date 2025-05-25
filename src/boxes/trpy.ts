@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class trpyBox extends Box {
   type = 'trpy' as const;
-  box_name = 'hintBytesSent'
+  box_name = 'hintBytesSent';
 
   bytessent: number;
 

@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class schmBox extends FullBox {
   type = 'schm' as const;
-  box_name = 'SchemeTypeBox'
+  box_name = 'SchemeTypeBox';
 
   scheme_type: string;
   scheme_version: number;
