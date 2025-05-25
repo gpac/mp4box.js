@@ -38,7 +38,7 @@ function generateBoxTable(box, excluded_fields, additional_props, no_header) {
       continue;
     } else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
       continue;
-    } else if (box[prop] instanceof BoxParser.Box) {
+    } else if (box[prop] instanceof Box) {
       continue;
     } else if (typeof box[prop] === 'undefined') {
       continue;
