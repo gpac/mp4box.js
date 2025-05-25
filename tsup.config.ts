@@ -9,6 +9,7 @@ export default [
     globalName: 'MP4Box',
     splitting: false,
     sourcemap: true,
+    minify: true,
     clean: true,
     dts: false,
   }),
@@ -22,6 +23,7 @@ export default [
     format: ['cjs', 'esm'],
     splitting: false,
     sourcemap: true,
+    minify: true,
     clean: false, // Already cleaned above
     dts: true, // Generate DTS here
   }),
