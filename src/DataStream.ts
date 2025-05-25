@@ -28,10 +28,8 @@ type ReadTypeReturnValue =
       [key: string]: ReadTypeReturnValue;
     };
 
-/* 
-  TODO: fix endianness for 24/64-bit fields
-  TODO: check range/support for 64-bits numbers in JavaScript
-*/
+// TODO: fix endianness for 24/64-bit fields
+// TODO: check range/support for 64-bits numbers in JavaScript
 
 export class DataStream {
   static DataStream: {};
