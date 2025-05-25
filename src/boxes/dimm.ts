@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class dimmBox extends Box {
   type = 'dimm' as const;
+  box_name = 'hintimmediateBytesSent'
 
   bytessent: number;
 

@@ -1,15 +1,10 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-
-class ColorPoint {
-  constructor(public x: number, public y: number) {}
-  toString() {
-    return '(' + this.x + ',' + this.y + ')';
-  }
-}
+import { ColorPoint } from './displays/colorPoint';
 
 export class mdcvBox extends Box {
   type = 'mdcv' as const;
+  box_name = 'MasteringDisplayColourVolumeBox';
 
   display_primaries: Array<ColorPoint>;
   white_point: ColorPoint;

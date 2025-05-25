@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class enofBox extends FullBox {
   type = 'enof' as const;
+  box_name = 'TrackEncodedPixelsDimensionsBox';
 
   width: number;
   height: number;

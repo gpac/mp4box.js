@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class ccstBox extends FullBox {
   type = 'ccst' as const;
+  box_name = 'CodingConstraintsBox';
 
   all_ref_pics_intra: boolean;
   intra_pred_used: boolean;

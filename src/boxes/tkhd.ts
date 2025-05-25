@@ -4,6 +4,7 @@ import type { Matrix } from '@types';
 
 export class tkhdBox extends FullBox {
   type = 'tkhd' as const;
+  box_name = 'TrackHeaderBox'
 
   creation_time: number;
   modification_time: number;

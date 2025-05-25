@@ -8,6 +8,7 @@ interface Entry {
 
 export class sbgpBox extends FullBox {
   type = 'sbgp' as const;
+  box_name = 'SampleToGroupBox'
 
   grouping_type: string;
   grouping_type_parameter: number;

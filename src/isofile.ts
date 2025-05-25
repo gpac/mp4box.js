@@ -1836,6 +1836,7 @@ export class ISOFile<TSegmentUser = any, TSampleUser = any> {
         ref_to: [],
         content_type: meta.iinf.item_infos[i].content_type,
         content_encoding: meta.iinf.item_infos[i].content_encoding,
+        item_uri_type: meta.iinf.item_infos[i].item_uri_type,
         type: meta.iinf.item_infos[i].item_type ? meta.iinf.item_infos[i].item_type : 'mime',
         protection:
           // NOTE:   This was `meta.iinf.item_infos[i].protection_index` before
@@ -1867,7 +1868,6 @@ export class ISOFile<TSegmentUser = any, TSampleUser = any> {
           case 0: // offset into the file referenced by the data reference index
             break;
           case 1: // offset into the idat box of this meta box
-            Log.warn('Item storage with construction_method : not supported');
             break;
           case 2: // offset into another item
             Log.warn('Item storage with construction_method : not supported');
@@ -1881,6 +1881,9 @@ export class ISOFile<TSegmentUser = any, TSampleUser = any> {
             length: itemloc.extents[j].extent_length,
             alreadyRead: 0,
           };
+          if (itemloc.construction_method == 1) {
+            item.extents[j].offset += meta.idat.start + meta.idat.hdr_size;
+          }
           item.size += item.extents[j].length;
         }
       }
@@ -2358,7 +2361,7 @@ export class ISOFile<TSegmentUser = any, TSampleUser = any> {
     tkhd.layer = options.layer || 0;
     tkhd.alternate_group = 0;
     tkhd.volume = 1;
-    tkhd.matrix = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    tkhd.matrix = [1 << 16, 0, 0, 0, 1 << 16, 0, 0, 0, 0x40000000];
     tkhd.width = options.width << 16;
     tkhd.height = options.height << 16;
 

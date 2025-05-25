@@ -22,6 +22,7 @@ export class Box {
   start?: number;
   track_ids?: Uint32Array;
   type?: string;
+  box_name?: string;
   uuid?: string;
 
   constructor(public size = 0) {}
@@ -307,7 +308,7 @@ export class SingleItemTypeReferenceBox extends Box {
   from_item_ID: number;
   references: Array<Reference>;
 
-  constructor(public type: string, size: number, public hdr_size: number, public start: number) {
+  constructor(public type: string, size: number, public box_name: string, public hdr_size: number, public start: number) {
     super(size);
   }
   parse(stream: MultiBufferStream): void {
@@ -327,7 +328,7 @@ export class SingleItemTypeReferenceBoxLarge extends Box {
   from_item_ID: number;
   references: Array<Reference>;
 
-  constructor(public type: string, size: number, public hdr_size: number, public start: number) {
+  constructor(public type: string, size: number, public box_name: string, public hdr_size: number, public start: number) {
     super(size);
   }
   parse(stream: MultiBufferStream): void {

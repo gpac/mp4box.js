@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class cprtBox extends FullBox {
   type = 'cprt' as const;
+  box_name = 'CopyrightBox'
 
   notice: string;
 

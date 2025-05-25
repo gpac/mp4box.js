@@ -7,6 +7,7 @@ import type { BoxKind } from '@types';
 
 export class iinfBox extends Box {
   type = 'iinf' as const;
+  box_name = 'ItemInfoBox'
 
   version: number;
   entry_count: number;

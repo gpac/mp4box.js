@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class mskCBox extends FullBox {
   type = 'mskC' as const;
+  box_name = 'MaskConfigurationProperty'
 
   bits_per_pixel: number;
 

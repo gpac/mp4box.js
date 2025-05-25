@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class pixiBox extends FullBox {
   type = 'pixi' as const;
+  box_name = 'PixelInformationProperty'
 
   num_channels: number;
   bits_per_channels: Array<number>;

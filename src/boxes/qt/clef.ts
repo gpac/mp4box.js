@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class clefBox extends FullBox {
   type = 'clef' as const;
+  box_name = 'TrackCleanApertureDimensionsBox';
 
   width: number;
   height: number;

@@ -4,6 +4,7 @@ import type { Entry } from '@types';
 
 export class elstBox extends FullBox {
   type = 'elst' as const;
+  box_name = 'EditListBox'
 
   entries: Entry[];
 

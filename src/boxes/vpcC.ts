@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class vpcCBox extends FullBox {
   type = 'vpcC' as const;
+  box_name = 'VPCodecConfigurationRecord'
 
   profile: number;
   level: number;

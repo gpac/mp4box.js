@@ -85,7 +85,7 @@
 		}
 
 		.axis path,
-		.axis line, {
+		.axis line {
 		  fill: none;
 		  stroke: #000;
 		  shape-rendering: crispEdges;
@@ -112,6 +112,18 @@
 		    vertical-align: middle;
 		}
 
+		.inner-table {
+			width: unset;
+			margin: 0;
+		}
+
+		#expandall, #collapseall {
+			margin: 0 0 0 2px;
+			padding: 0 2px;
+			font-size: 8px;
+			writing-mode: vertical-rl;
+			vertical-align: middle;
+		}
 		</style>
 		<link rel="stylesheet" href="style.css" />
     </head>
@@ -151,7 +163,10 @@
 					<table>
 						<thead>
 							<tr>
-								<th>Box Tree View</th>
+								<th>Box Tree View
+									<button id="expandall" title="Expand all">&#9650;&#9660;</button>
+									<button id="collapseall" title="Collapse all">&#9660;&#9650;</button>
+								</th>
 								<th>Box Property View</th>
 							</tr>
 						</thead>

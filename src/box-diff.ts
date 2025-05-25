@@ -22,7 +22,6 @@ export const DIFF_PRIMITIVE_ARRAY_PROP_NAMES = [
   'matrix',
   'opcolor',
   'sample_counts',
-  'sample_counts',
   'sample_deltas',
   'first_chunk',
   'samples_per_chunk',

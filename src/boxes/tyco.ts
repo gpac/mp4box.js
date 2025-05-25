@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class tycoBox extends Box {
   type = 'tyco' as const;
+  box_name = 'TypeCombinationBox'
 
   compatible_brands: Array<string>;
 

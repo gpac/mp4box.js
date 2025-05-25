@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class co64Box extends FullBox {
   type = 'co64' as const;
+  box_name = 'ChunkLargeOffsetBox'
 
   chunk_offsets: Array<number>;
 

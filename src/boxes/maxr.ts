@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class maxrBox extends Box {
   type = 'maxr' as const;
+  box_name = 'hintmaxrate'
 
   period: number;
   bytes: number;

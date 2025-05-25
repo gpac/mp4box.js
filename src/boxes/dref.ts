@@ -5,6 +5,7 @@ import { Log } from '#/log';
 
 export class drefBox extends FullBox {
   type = 'dref' as const;
+  box_name = 'DataReferenceBox'
 
   entries: Array<Box>;
 

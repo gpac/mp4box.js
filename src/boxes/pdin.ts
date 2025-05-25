@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class pdinBox extends Box {
   type = 'pdin' as const;
+  box_name = 'ProgressiveDownloadInfoBox'
 
   rate: Array<number>;
   initial_delay: Array<number>;

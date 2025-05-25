@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class psshBox extends FullBox {
   type = 'pssh' as const;
+  box_name = 'ProtectionSystemSpecificHeaderBox'
 
   system_id: string;
   kid: Array<string>;

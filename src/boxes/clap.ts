@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class clapBox extends Box {
   type = 'clap' as const;
+  box_name = 'CleanApertureBox'
 
   cleanApertureWidthN: number;
   cleanApertureWidthD: number;

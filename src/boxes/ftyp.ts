@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class ftypBox extends Box {
   type = 'ftyp' as const;
+  box_name = 'FileTypeBox'
 
   major_brand: string;
   minor_version: number;

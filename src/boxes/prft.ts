@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class prftBox extends FullBox {
   type = 'prft' as const;
+  box_name = 'ProducerReferenceTimeBox'
 
   ref_track_id: number;
   ntp_timestamp: number;

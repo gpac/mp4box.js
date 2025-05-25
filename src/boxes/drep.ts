@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class drepBox extends Box {
   type = 'drep' as const;
+  box_name = 'hintrepeatedBytesSent'
 
   bytessent: number;
 

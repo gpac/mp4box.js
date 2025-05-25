@@ -4,6 +4,7 @@ import { Log } from '#/log';
 
 export class av1CBox extends Box {
   type = 'av1C' as const;
+  box_name = 'AV1CodecConfigurationBox';
 
   version: number;
   seq_profile: number;
@@ -23,7 +24,6 @@ export class av1CBox extends Box {
 
   parse(stream: MultiBufferStream) {
     let tmp = stream.readUint8();
-    // NOTE:  This used to be if ((tmp >> 7) & 0x1 !== 1)
     if (((tmp >> 7) & 0x1) !== 1) {
       Log.error('av1C marker problem');
       return;

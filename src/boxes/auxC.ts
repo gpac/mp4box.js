@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class auxCBox extends FullBox {
   type = 'auxC' as const;
+  box_name = 'AuxiliaryTypeProperty';
 
   aux_type: string;
   aux_subtype: Uint8Array;

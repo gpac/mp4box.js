@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class profBox extends FullBox {
   type = 'prof' as const;
+  box_name = 'TrackProductionApertureDimensionsBox';
 
   width: number;
   height: number;

@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class dac3Box extends Box {
   type = 'dac3' as const;
+  box_name = 'AC3SpecificBox'
 
   fscod: number;
   bsid: number;

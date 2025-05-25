@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class udesBox extends FullBox {
   type = 'udes' as const;
+  box_name = 'UserDescriptionProperty'
 
   lang: string;
   name: string;

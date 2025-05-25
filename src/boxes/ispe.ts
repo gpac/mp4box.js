@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class ispeBox extends Box {
   type = 'ispe' as const;
+  box_name = 'ImageSpatialExtentsProperty'
 
   image_width: number;
   image_height: number;

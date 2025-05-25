@@ -5,6 +5,7 @@ import { profBox } from '#/boxes/qt/prof';
 
 export class taptBox extends ContainerBox {
   type = 'tapt' as const;
+  box_name = 'TrackApertureModeDimensionsBox';
 
   clef: Array<clefBox> = [];
   prof: Array<profBox> = [];

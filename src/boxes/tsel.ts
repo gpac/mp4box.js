@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class tselBox extends FullBox {
   type = 'tsel' as const;
+  box_name = 'TrackSelectionBox'
 
   switch_group: number;
   attribute_list: Array<number>;

@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class npckBox extends Box {
   type = 'npck' as const;
+  box_name = 'hintPacketsSent'
 
   packetssent: number;
 

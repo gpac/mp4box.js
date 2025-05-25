@@ -163,6 +163,7 @@ export interface Item {
   alreadyRead?: number;
   content_encoding?: string;
   content_type?: string;
+  item_uri_type: string;
   data?: Uint8Array;
   extents?: Array<{
     alreadyRead?: number;

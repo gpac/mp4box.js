@@ -7,6 +7,7 @@ import { SampleEntry } from './sampleentries/base';
 
 export class stsdBox extends FullBox {
   type = 'stsd' as const;
+  box_name = 'SampleDescriptionBox'
 
   entries: Array<SampleEntry>;
 

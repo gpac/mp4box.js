@@ -1,6 +1,6 @@
 {
   "name": "mp4box",
-  "version": "0.5.2",
+  "version": "0.5.4",
   "description": "JavaScript version of GPAC's MP4Box tool",
   "type": "module",
   "keywords": [
@@ -21,6 +21,9 @@
     "name": "Cyril Concolato",
     "email": "cyril.concolato@telecom-paristech.fr",
     "url": "http://concolato.wp.mines-telecom.fr/"
+  },
+  "engines": {
+    "node": ">=20.8.1"
   },
   "license": "BSD-3-Clause",
   "main": "./dist/mp4box.all.js",

@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class dfLaBox extends FullBox {
   type = 'dfLa' as const;
+  box_name = 'FLACSpecificBox'
 
   samplerate: number;
   numMetadataBlocks: string;

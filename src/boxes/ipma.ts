@@ -8,6 +8,7 @@ export interface Assocation {
 
 export class ipmaBox extends Box {
   type = 'ipma' as const;
+  box_name = 'ItemPropertyAssociationBox'
 
   associations: Array<Assocation>;
   version: number;

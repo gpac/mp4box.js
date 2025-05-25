@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class tfdtBox extends FullBox {
   type = 'tfdt' as const;
+  box_name = 'TrackFragmentBaseMediaDecodeTimeBox'
 
   baseMediaDecodeTime: number;
 

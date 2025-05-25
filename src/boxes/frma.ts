@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class frmaBox extends Box {
   type = 'frma' as const;
+  box_name = 'OriginalFormatBox'
 
   data_format: string;
 

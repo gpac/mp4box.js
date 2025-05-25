@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class btrtBox extends Box {
   type = 'btrt' as const;
+  box_name = 'BitRateBox';
 
   bufferSizeDB: number;
   maxBitrate: number;

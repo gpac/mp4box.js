@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class txtcBox extends FullBox {
   type = 'txtc' as const;
+  box_name = 'TextConfigBox'
 
   config: string;
 

@@ -4,6 +4,7 @@ import { OK } from '#/constants';
 
 export class trepBox extends FullBox {
   type = 'trep' as const;
+  box_name = 'TrackExtensionPropertiesBox'
 
   track_ID: number;
 

@@ -1,10 +1,11 @@
-import { FullBox, parseHex16 } from '#/box';
+import { Box, FullBox, parseHex16 } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export const UUID_BOXES = {
   // piff
   a5d40b30e81411ddba2f0800200c9a66: class piffLsmBox extends FullBox {
     type = 'uuid' as const;
+    box_name = 'LiveServerManifestBox';
     uuid = 'a5d40b30e81411ddba2f0800200c9a66' as const;
 
     LiveServerManifest: string;
@@ -22,6 +23,7 @@ export const UUID_BOXES = {
   },
   d08a4f1810f34a82b6c832d8aba183d3: class piffPsshBox extends FullBox {
     type = 'uuid' as const;
+    box_name = 'PiffProtectionSystemSpecificHeaderBox';
     uuid = 'd08a4f1810f34a82b6c832d8aba183d3' as const;
 
     system_id: string;
@@ -37,10 +39,12 @@ export const UUID_BOXES = {
   },
   a2394f525a9b4f14a2446c427c648df4: class piffSencBox extends FullBox {
     type = 'uuid' as const;
+    box_name = 'PiffSampleEncryptionBox';
     uuid = 'a2394f525a9b4f14a2446c427c648df4' as const;
   },
   '8974dbce7be74c5184f97148f9882554': class piffTencBox extends FullBox {
     type = 'uuid' as const;
+    box_name = 'PiffTrackEncryptionBox';
     uuid = '8974dbce7be74c5184f97148f9882554' as const;
 
     default_AlgorithmID: number;
@@ -56,6 +60,7 @@ export const UUID_BOXES = {
   },
   d4807ef2ca3946958e5426cb9e46a79f: class piffTfrfBox extends FullBox {
     type = 'uuid' as const;
+    box_name = 'TfrfBox';
     uuid = 'd4807ef2ca3946958e5426cb9e46a79f' as const;
 
     fragment_count: number;
@@ -87,6 +92,7 @@ export const UUID_BOXES = {
   },
   '6d1d9b0542d544e680e2141daff757b2': class piffTfxdBox extends FullBox {
     type = 'uuid' as const;
+    box_name = 'TfxdBox';
     uuid = '6d1d9b0542d544e680e2141daff757b2' as const;
 
     absolute_time: number;
@@ -101,6 +107,18 @@ export const UUID_BOXES = {
         this.absolute_time = stream.readUint32();
         this.duration = stream.readUint32();
       }
+    }
+  },
+  // GIMI
+  '261ef3741d975bbaacbd9d2c8ea73522': class ItemContentIDPropertyBox extends Box {
+    type = 'uuid' as const;
+    box_name = 'ItemContentIDProperty';
+    uuid = '261ef3741d975bbaacbd9d2c8ea73522' as const;
+
+    content_id: string;
+
+    parse(stream: MultiBufferStream): void {
+      this.content_id = stream.readCString();
     }
   },
 };

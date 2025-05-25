@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class dOpsBox extends Box {
   type = 'dOps' as const;
+  box_name = 'OpusSpecificBox'
 
   Version: number;
   OutputChannelCount: number;

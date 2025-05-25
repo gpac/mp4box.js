@@ -2,9 +2,11 @@ import { Box } from '#/box';
 import { DataStream } from '#/DataStream';
 import { MP4BoxStream } from '#/stream';
 import type { NaluArray } from '@types';
+import type { NALUArrays } from './displays/naluArrays';
 
 export class hvcCBox extends Box {
   type = 'hvcC' as const;
+  box_name = 'HEVCConfigurationBox';
 
   configurationVersion: number;
   general_profile_space: number;
@@ -23,7 +25,7 @@ export class hvcCBox extends Box {
   numTemporalLayers: number;
   temporalIdNested: number;
   lengthSizeMinusOne: number;
-  nalu_arrays: Array<NaluArray>;
+  nalu_arrays: NALUArrays;
 
   parse(stream: DataStream | MP4BoxStream) {
     this.configurationVersion = stream.readUint8();

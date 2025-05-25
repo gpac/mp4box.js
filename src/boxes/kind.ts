@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class kindBox extends FullBox {
   type = 'kind' as const;
+  box_name = 'KindBox'
 
   schemeURI: string;
   value: string;

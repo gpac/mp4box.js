@@ -1,15 +1,10 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-
-class Pixel {
-  constructor(public bad_pixel_row: number, public bad_pixel_column: number) {}
-  toString() {
-    return '[row: ' + this.bad_pixel_row + ', column: ' + this.bad_pixel_column + ']';
-  }
-}
+import { Pixel } from './displays/pixel';
 
 export class sbpmBox extends FullBox {
   type = 'sbpm' as const;
+  box_name = 'SensorBadPixelsMapBox';
 
   component_count: number;
   component_index: Array<number>;

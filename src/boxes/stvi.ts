@@ -5,6 +5,7 @@ import type { BoxKind } from '@types';
 
 export class stviBox extends FullBox {
   type = 'stvi' as const;
+  box_name = 'StereoVideoBox'
 
   single_view_allowed: number;
   stereo_scheme: number;

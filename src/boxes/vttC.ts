@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class vttCBox extends Box {
   type = 'vttC' as const;
+  box_name = 'WebVTTConfigurationBox'
 
   text: string;
 

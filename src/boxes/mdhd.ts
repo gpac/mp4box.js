@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class mdhdBox extends FullBox {
   type = 'mdhd' as const;
+  box_name = 'MediaHeaderBox'
 
   creation_time: number;
   modification_time: number;

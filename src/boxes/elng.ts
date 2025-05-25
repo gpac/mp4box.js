@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class elngBox extends FullBox {
   type = 'elng' as const;
+  box_name = 'ExtendedLanguageBox'
 
   extended_language: string;
 

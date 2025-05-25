@@ -3,8 +3,9 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class uncCBox extends FullBox {
   type = 'uncC' as const;
+  box_name = 'UncompressedFrameConfigBox'
 
-  profile: number;
+  profile: string;
   component_count: number;
   component_index: Array<number>;
   component_bit_depth_minus_one: Array<number>;
@@ -26,7 +27,7 @@ export class uncCBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    this.profile = stream.readUint32();
+    this.profile = stream.readString(4);
     if (this.version == 1) {
       // Nothing - just the profile
     } else if (this.version == 0) {

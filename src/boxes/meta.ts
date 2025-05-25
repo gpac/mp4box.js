@@ -1,5 +1,5 @@
 import { ContainerBox, FullBox } from '#/box';
-import { dinfBox, grplBox, iproBox, iprpBox } from '#/boxes/defaults';
+import { dinfBox, grplBox, idatBox, iproBox, iprpBox } from '#/boxes/defaults';
 import { hdlrBox } from '#/boxes/hdlr';
 import { iinfBox } from '#/boxes/iinf';
 import { ilocBox } from '#/boxes/iloc';
@@ -9,11 +9,14 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class metaBox extends FullBox {
   type = 'meta' as const;
+  box_name = 'MetaBox'
 
   hdlr: hdlrBox;
   hdlrs: Array<hdlrBox>;
   iinf: iinfBox;
   iinfs: Array<iinfBox>;
+  idat: idatBox;
+  idats: Array<idatBox>;
   ipro: iproBox;
   ipros: Array<iproBox>;
   grpl: grplBox;

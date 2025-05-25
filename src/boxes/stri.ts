@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class striBox extends FullBox {
   type = 'stri' as const;
+  box_name = 'SubTrackInformationBox'
 
   switch_group: number;
   alternate_group: number;

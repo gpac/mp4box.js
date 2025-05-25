@@ -4,6 +4,7 @@ import { Log } from '#/log';
 
 export class infeBox extends FullBox {
   type = 'infe' as const;
+  box_name = 'ItemInfoEntry'
 
   item_ID: number;
   item_protection_index: number;

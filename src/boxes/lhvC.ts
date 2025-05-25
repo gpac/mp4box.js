@@ -1,15 +1,11 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-
-type NaluArray = Array<{
-  data: Uint8Array;
-}> & {
-  completeness: number;
-  nalu_type: number;
-};
+import type { NaluArray } from '@types';
+import type { NALUArrays } from './displays/naluArrays';
 
 export class lhvCBox extends Box {
   type = 'lhvC' as const;
+  box_name = 'LHEVCConfigurationBox';
 
   configurationVersion: number;
   min_spatial_segmentation_idc: number;
@@ -17,7 +13,7 @@ export class lhvCBox extends Box {
   numTemporalLayers: number;
   temporalIdNested: number;
   lengthSizeMinusOne: number;
-  nalu_arrays: Array<NaluArray>;
+  nalu_arrays: NALUArrays;
 
   parse(stream: MultiBufferStream) {
     this.configurationVersion = stream.readUint8();

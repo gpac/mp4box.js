@@ -11,6 +11,7 @@ interface SubSegment {
 
 export class ssixBox extends FullBox {
   type = 'ssix' as const;
+  box_name = 'CompressedSubsegmentIndexBox'
 
   subsegments: SubSegment[];
 

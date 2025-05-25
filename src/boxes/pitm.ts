@@ -3,6 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 
 export class pitmBox extends FullBox {
   type = 'pitm' as const;
+  box_name = 'PrimaryItemBox'
 
   item_id: number;
 

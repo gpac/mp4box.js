@@ -39,11 +39,11 @@ export class Descriptor {
     let byteRead = stream.readUint8();
     hdrSize++;
     while (byteRead & 0x80) {
-      size = (byteRead & 0x7f) << 7;
+      size = (size << 7) + (byteRead & 0x7f);
       byteRead = stream.readUint8();
       hdrSize++;
     }
-    size += byteRead & 0x7f;
+    size = (size << 7) + (byteRead & 0x7f);
     Log.debug(
       'Descriptor',
       'Found ' +
