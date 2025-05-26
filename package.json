@@ -2,6 +2,7 @@
   "name": "mp4box",
   "version": "0.5.4",
   "description": "JavaScript version of GPAC's MP4Box tool",
+  "type": "module",
   "keywords": [
     "mp4",
     "HTML 5 media",
@@ -9,7 +10,6 @@
     "streaming"
   ],
   "homepage": "https://github.com/gpac/mp4box.js",
-  "main": "dist/mp4box.all.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/gpac/mp4box.js.git"
@@ -26,29 +26,40 @@
     "node": ">=20.8.1"
   },
   "license": "BSD-3-Clause",
-  "devDependencies": {
-    "blanket": "^1.2.3",
-    "grunt": "^1.0.4",
-    "grunt-bump": "^0.8.0",
-    "grunt-cli": "^1.2.0",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-jshint": "^3.2.0",
-    "grunt-contrib-qunit": "^3.1.0",
-    "grunt-contrib-uglify": "^4.0.1",
-    "grunt-contrib-watch": "^1.1.0",
-    "grunt-karma": "^3.0.2",
-    "grunt-karma-coveralls": "^2.5.4",
-    "karma": "^6.3.16",
-    "karma-chrome-launcher": "^2.2.0",
-    "karma-coverage": "^1.1.2",
-    "karma-firefox-launcher": "^1.1.0",
-    "karma-phantomjs-launcher": "^1.0.4",
-    "karma-qunit": "^0.1.4",
-    "qunitjs": "^1.23.0"
+  "main": "./dist/mp4box.all.js",
+  "types": "./dist/mp4box.all.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/mp4box.all.d.ts",
+        "require": "./dist/mp4box.all.d.cts"
+      },
+      "import": "./dist/mp4box.all.js",
+      "require": "./dist/mp4box.all.cjs"
+    },
+    "./simple": {
+      "types": {
+        "import": "./dist/mp4box.simple.d.ts",
+        "require": "./dist/mp4box.simple.d.cts"
+      },
+      "import": "./dist/mp4box.simple.js",
+      "require": "./dist/mp4box.simple.cjs"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "grunt test --verbose",
-    "build": "grunt"
+    "build": "tsup",
+    "circular": "dpdm -T ./entries/all.ts",
+    "types": "tsc --noEmit --project tsconfig.json",
+    "test": "npm run build && npm run types && npm run circular"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "dpdm": "^3.14.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3"
   },
   "packageManager": "npm@11.4.1"
 }

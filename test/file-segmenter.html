@@ -10,7 +10,12 @@ Number of samples per segment or per extraction: <input id="nbSamples" type="ran
 <div>Memory usage:
   <p id='memory_usage'></p>
 </div>
-<script src="../dist/mp4box.all.min.js"></script>
+<script src="../dist/mp4box.all.global.js"></script>
+<script>
+  for (const key in MP4Box)
+    if (MP4Box.hasOwnProperty(key))
+      window[key] = MP4Box[key];
+</script>
 <script>
   var mp4 = null;
   function updateMemory() {

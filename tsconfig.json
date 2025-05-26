@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "strict": false,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "isolatedModules": false,
+    "verbatimModuleSyntax": true,
+    "useDefineForClassFields": false,
+    "allowJs": true,
+    "paths": {
+      "#/*": ["./src/*"],
+      "@types": ["./entries/types"]
+    }
+  },
+  "include": ["./src/**/*", "./entries/**/*"]
+}
