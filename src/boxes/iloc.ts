@@ -44,7 +44,7 @@ export class ilocBox extends FullBox {
     } else if (this.version === 2) {
       item_count = stream.readUint32();
     } else {
-      throw 'version of iloc box not supported';
+      throw new Error('version of iloc box not supported');
     }
     for (let i = 0; i < item_count; i++) {
       let item_ID = 0;
@@ -56,7 +56,7 @@ export class ilocBox extends FullBox {
       } else if (this.version === 2) {
         item_ID = stream.readUint32();
       } else {
-        throw 'version of iloc box not supported';
+        throw new Error('version of iloc box not supported');
       }
       if (this.version === 1 || this.version === 2) {
         construction_method = stream.readUint16() & 0xf;
@@ -76,7 +76,7 @@ export class ilocBox extends FullBox {
           base_offset = stream.readUint64();
           break;
         default:
-          throw 'Error reading base offset size';
+          throw new Error('Error reading base offset size');
       }
 
       const extents: Array<Extent> = [];
@@ -99,7 +99,7 @@ export class ilocBox extends FullBox {
               extent_index = stream.readUint64();
               break;
             default:
-              throw 'Error reading extent index';
+              throw new Error('Error reading extent index');
           }
         }
 
@@ -114,7 +114,7 @@ export class ilocBox extends FullBox {
             extent_offset = stream.readUint64();
             break;
           default:
-            throw 'Error reading extent index';
+            throw new Error('Error reading extent index');
         }
 
         switch (this.length_size) {
@@ -128,7 +128,7 @@ export class ilocBox extends FullBox {
             extent_length = stream.readUint64();
             break;
           default:
-            throw 'Error reading extent index';
+            throw new Error('Error reading extent index');
         }
 
         extents.push({ extent_index, extent_length, extent_offset });

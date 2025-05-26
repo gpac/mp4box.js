@@ -15,6 +15,7 @@ export default defineConfig([
       'linebreak-style': ['error', 'unix'],
       'one-var': ['error', 'never'],
       semi: ['error', 'always'],
+      'no-throw-literal': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },

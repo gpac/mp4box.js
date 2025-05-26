@@ -679,7 +679,7 @@ export class DataStream {
       a.click();
       window.URL.revokeObjectURL(url);
     } else {
-      throw "DataStream.save: Can't create object URL.";
+      throw new Error("DataStream.save: Can't create object URL.");
     }
   }
 

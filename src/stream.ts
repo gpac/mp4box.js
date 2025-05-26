@@ -8,7 +8,7 @@ export class MP4BoxStream {
       this.buffer = arrayBuffer;
       this.dataview = new DataView(arrayBuffer);
     } else {
-      throw 'Needs an array buffer';
+      throw new Error('Needs an array buffer');
     }
   }
 
@@ -62,7 +62,7 @@ export class MP4BoxStream {
           break;
         case 3:
           if (signed) {
-            throw 'No method for reading signed 24 bits values';
+            throw new Error('No method for reading signed 24 bits values');
           } else {
             res = this.dataview.getUint8(this.position) << 16;
             res |= this.dataview.getUint8(this.position + 1) << 8;
@@ -78,19 +78,19 @@ export class MP4BoxStream {
           break;
         case 8:
           if (signed) {
-            throw 'No method for reading signed 64 bits values';
+            throw new Error('No method for reading signed 64 bits values');
           } else {
             res = this.dataview.getUint32(this.position) << 32;
             res |= this.dataview.getUint32(this.position + 4);
           }
           break;
         default:
-          throw 'readInt method not implemented for size: ' + size;
+          throw new Error(`readInt method not implemented for size: ${size}`);
       }
       this.position += size;
       return res;
     } else {
-      throw 'Not enough bytes in buffer';
+      throw new Error('Not enough bytes in buffer');
     }
   }
 
@@ -122,7 +122,7 @@ export class MP4BoxStream {
       }
       return s;
     } else {
-      throw 'Not enough bytes in buffer';
+      throw new Error('Not enough bytes in buffer');
     }
   }
 

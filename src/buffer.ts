@@ -412,7 +412,7 @@ export class MultiBufferStream extends DataStream {
    */
   getPosition() {
     if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
-      throw 'Error accessing position in the MultiBufferStream';
+      throw new Error('Error accessing position in the MultiBufferStream');
     }
     return this.buffers[this.bufferIndex].fileStart + this.position;
   }
@@ -427,7 +427,7 @@ export class MultiBufferStream extends DataStream {
 
   getEndPosition() {
     if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
-      throw 'Error accessing position in the MultiBufferStream';
+      throw new Error('Error accessing position in the MultiBufferStream');
     }
     return this.buffers[this.bufferIndex].fileStart + this.byteLength;
   }

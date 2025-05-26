@@ -376,10 +376,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
   checkBuffer(ab?: MP4BoxBuffer) {
     if (ab === null || ab === undefined) {
-      throw 'Buffer must be defined and non empty';
+      throw new Error('Buffer must be defined and non empty');
     }
     if (ab.fileStart === undefined) {
-      throw 'Buffer must have a fileStart property';
+      throw new Error('Buffer must have a fileStart property');
     }
     if (ab.byteLength === 0) {
       Log.warn('ISOFile', 'Ignoring empty buffer (fileStart: ' + ab.fileStart + ')');
@@ -893,7 +893,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const moov = this.moov;
     let seek_info = { offset: Infinity, time: Infinity };
     if (!this.moov) {
-      throw 'Cannot seek: moov not received!';
+      throw new Error('Cannot seek: moov not received!');
     } else {
       for (let i = 0; i < moov.traks.length; i++) {
         const trak = moov.traks[i];
