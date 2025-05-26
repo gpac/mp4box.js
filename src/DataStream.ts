@@ -59,7 +59,9 @@ export class DataStream {
       this.buffer = arrayBuffer;
     } else if (arrayBuffer instanceof DataView) {
       this.dataView = arrayBuffer;
-      if (byteOffset) this._byteOffset += byteOffset;
+      if (byteOffset) {
+        this._byteOffset += byteOffset;
+      }
     } else {
       this.buffer = new MP4BoxBuffer(arrayBuffer || 0);
     }
@@ -636,7 +638,9 @@ export class DataStream {
     if (length !== null) {
       len = Math.min(length, blen);
     }
-    for (; i < len && u8[i] !== 0; i++); // find first zero byte
+    for (; i < len && u8[i] !== 0; i++) {
+      // find first zero byte
+    }
     const s = fromCharCodeUint8(this.mapUint8Array(i));
     if (length !== null) {
       this.position += len - i;
@@ -1624,7 +1628,9 @@ export class DataStream {
                   value = [];
                   while (!this.isEof()) {
                     const u = this.readType(ta, struct);
-                    if (u === null) break;
+                    if (u === null) {
+                      break;
+                    }
                     value.push(u);
                   }
                 } else {
@@ -1656,7 +1662,9 @@ export class DataStream {
               value = new Array(length);
               for (let i = 0; i < length; i++) {
                 const type = this.readType(ta, struct);
-                if (type === null) return null;
+                if (type === null) {
+                  return null;
+                }
                 value[i] = type;
               }
             }

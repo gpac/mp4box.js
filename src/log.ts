@@ -13,11 +13,17 @@ let log_level = LOG_LEVEL_ERROR;
 
 export class Log {
   static setLogLevel(level: { (module: string, msg?: string): void }) {
-    if (level === this.debug) log_level = LOG_LEVEL_DEBUG;
-    else if (level === this.info) log_level = LOG_LEVEL_INFO;
-    else if (level === this.warn) log_level = LOG_LEVEL_WARNING;
-    else if (level === this.error) log_level = LOG_LEVEL_ERROR;
-    else log_level = LOG_LEVEL_ERROR;
+    if (level === this.debug) {
+      log_level = LOG_LEVEL_DEBUG;
+    } else if (level === this.info) {
+      log_level = LOG_LEVEL_INFO;
+    } else if (level === this.warn) {
+      log_level = LOG_LEVEL_WARNING;
+    } else if (level === this.error) {
+      log_level = LOG_LEVEL_ERROR;
+    } else {
+      log_level = LOG_LEVEL_ERROR;
+    }
   }
   static debug(module: string, msg?: string) {
     if (console.debug === undefined) {
@@ -110,7 +116,9 @@ export class Log {
     if (length > 0) {
       let str = '';
       for (let i = 0; i < length; i++) {
-        if (i > 0) str += ',';
+        if (i > 0) {
+          str += ',';
+        }
         str +=
           '[' +
           Log.getDurationString(ranges.start(i)) +

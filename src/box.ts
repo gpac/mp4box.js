@@ -555,7 +555,9 @@ export function parseOneBox(
         diff +
         ' more bytes than the indicated box data size, seeking backwards',
     );
-    if (box.size !== 0) stream.seek(box.start + box.size);
+    if (box.size !== 0) {
+      stream.seek(box.start + box.size);
+    }
   }
   return { code: OK, box, size: box.size };
 }

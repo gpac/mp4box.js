@@ -416,7 +416,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     /* Check if the moovStart callback needs to be called */
     if (this.moovStartFound && !this.moovStartSent) {
       this.moovStartSent = true;
-      if (this.onMoovStart) this.onMoovStart();
+      if (this.onMoovStart) {
+        this.onMoovStart();
+      }
     }
 
     if (this.moov) {
@@ -617,7 +619,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       movie.mime += 'application/mp4; codecs="';
     }
     for (let i = 0; i < movie.tracks.length; i++) {
-      if (i !== 0) movie.mime += ',';
+      if (i !== 0) {
+        movie.mime += ',';
+      }
       movie.mime += movie.tracks[i].codec;
     }
     movie.mime += '"; profiles="';
@@ -639,7 +643,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   processSamples(last?: boolean) {
-    if (!this.sampleProcessingStarted) return;
+    if (!this.sampleProcessingStarted) {
+      return;
+    }
 
     /* For each track marked for fragmentation,
        check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded)
@@ -755,9 +761,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   static _sweep(type: BoxKind['type'], result: Array<typeof ISOFile>, returnEarly: boolean) {
-    if (this.type && this.type === type) result.push(this);
+    if (this.type && this.type === type) {
+      result.push(this);
+    }
     for (const box in this.boxes) {
-      if (result.length && returnEarly) return;
+      if (result.length && returnEarly) {
+        return;
+      }
       ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
     }
   }
@@ -781,7 +791,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   releaseUsedSamples(id: number, sampleNum: number) {
     let size = 0;
     const trak = this.getTrackById(id);
-    if (!trak.lastValidSample) trak.lastValidSample = 0;
+    if (!trak.lastValidSample) {
+      trak.lastValidSample = 0;
+    }
     for (let i = trak.lastValidSample; i < sampleNum; i++) {
       size += this.releaseSample(trak, i);
     }
@@ -1119,7 +1131,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       }
       const stss = trak.mdia.minf.stbl.stss;
       const k = trak.mdia.minf.stbl.boxes.indexOf(stss);
-      if (k !== -1) trak.mdia.minf.stbl.boxes[k] = null;
+      if (k !== -1) {
+        trak.mdia.minf.stbl.boxes[k] = null;
+      }
     }
   }
 
@@ -1710,7 +1724,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         } else {
           /* the sample does not end in this buffer */
 
-          if (lengthAfterStart === 0) return null;
+          if (lengthAfterStart === 0) {
+            return null;
+          }
 
           Log.debug(
             'ISOFile',
@@ -1795,10 +1811,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * @bundle isofile-sample-processing.js
    */
   getTrexById(id: number) {
-    if (!this.moov || !this.moov.mvex) return null;
+    if (!this.moov || !this.moov.mvex) {
+      return null;
+    }
     for (let i = 0; i < this.moov.mvex.trexs.length; i++) {
       const trex = this.moov.mvex.trexs[i];
-      if (trex.track_id === id) return trex;
+      if (trex.track_id === id) {
+        return trex;
+      }
     }
     return null;
   }
@@ -1814,7 +1834,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
     for (let j = 0; j < this.moov.traks.length; j++) {
       const trak = this.moov.traks[j];
-      if (trak.tkhd.track_id === id) return trak;
+      if (trak.tkhd.track_id === id) {
+        return trak;
+      }
     }
     return null;
   }
@@ -1824,9 +1846,15 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const items = this.items;
     const entity_groups = this.entity_groups;
     const meta = this.meta;
-    if (meta === null || meta === undefined) return;
-    if (meta.hdlr === undefined) return;
-    if (meta.iinf === undefined) return;
+    if (meta === null || meta === undefined) {
+      return;
+    }
+    if (meta.hdlr === undefined) {
+      return;
+    }
+    if (meta.iinf === undefined) {
+      return;
+    }
     for (let i = 0; i < meta.iinf.item_infos.length; i++) {
       const id = meta.iinf.item_infos[i].item_ID;
       items[id] = {
@@ -2125,7 +2153,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     } else {
       item = this.getPrimaryItem();
     }
-    if (item === null) return null;
+    if (item === null) {
+      return null;
+    }
 
     const file = new ISOFile();
     file.discardMdatData = false;
@@ -2384,7 +2414,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     const sampleEntry = BoxRegistry[`${options.type}SampleEntry`];
 
-    if (!sampleEntry) return;
+    if (!sampleEntry) {
+      return;
+    }
 
     const sample_description_entry = new sampleEntry();
     sample_description_entry.data_reference_index = 1;
@@ -2510,7 +2542,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     } = {},
   ) {
     const trak = this.getTrackById(track_id);
-    if (trak === null) return;
+    if (trak === null) {
+      return;
+    }
 
     const descriptionIndex = sample_description_index ? sample_description_index - 1 : 0;
 
@@ -2559,8 +2593,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** @bundle isofile-advanced-creation.js */
   createSingleSampleMoof(sample: Sample) {
     let sample_flags = 0;
-    if (sample.is_sync) sample_flags = 1 << 25; // sample_depends_on_none (I picture)
-    else sample_flags = 1 << 16; // non-sync
+    if (sample.is_sync) {
+      sample_flags = 1 << 25;
+    } // sample_depends_on_none (I picture)
+    else {
+      sample_flags = 1 << 16;
+    } // non-sync
 
     const moof = new moofBox();
 

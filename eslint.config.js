@@ -24,6 +24,7 @@ export default defineConfig([
       '@typescript-eslint/consistent-type-imports': 'error',
       'no-nested-ternary': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      curly: ['error', 'all'],
     },
   },
 ]);

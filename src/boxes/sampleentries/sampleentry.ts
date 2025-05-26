@@ -124,7 +124,9 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       let reversed = 0;
       for (let i = 0; i < 32; i++) {
         reversed |= val & 1;
-        if (i === 31) break;
+        if (i === 31) {
+          break;
+        }
         reversed <<= 1;
         val >>= 1;
       }
