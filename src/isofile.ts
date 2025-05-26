@@ -27,7 +27,7 @@ import { hdlrBox } from '#/boxes/hdlr';
 import { hvcCBox } from '#/boxes/hvcC';
 import { mdhdBox } from '#/boxes/mdhd';
 import { mehdBox } from '#/boxes/mehd';
-import { metaBox } from '#/boxes/meta';
+import type { metaBox } from '#/boxes/meta';
 import { mfhdBox } from '#/boxes/mfhd';
 import { mvhdBox } from '#/boxes/mvhd';
 import { stppSampleEntry } from '#/boxes/sampleentries';
@@ -39,10 +39,10 @@ import {
   SystemSampleEntry,
   VisualSampleEntry,
 } from '#/boxes/sampleentries/base';
-import { sbgpBox } from '#/boxes/sbgp';
-import { sdtpBox } from '#/boxes/sdtp';
-import { sgpdBox } from '#/boxes/sgpd';
-import { sidxBox } from '#/boxes/sidx';
+import type { sbgpBox } from '#/boxes/sbgp';
+import type { sdtpBox } from '#/boxes/sdtp';
+import type { sgpdBox } from '#/boxes/sgpd';
+import type { sidxBox } from '#/boxes/sidx';
 import { smhdBox } from '#/boxes/smhd';
 import { stcoBox } from '#/boxes/stco';
 import { sthdBox } from '#/boxes/sthd';
@@ -95,7 +95,7 @@ import type {
   SubSample,
   Track,
 } from '@types';
-import { MP4BoxBuffer } from './mp4boxbuffer';
+import type { MP4BoxBuffer } from './mp4boxbuffer';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;

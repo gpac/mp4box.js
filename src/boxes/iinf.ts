@@ -1,5 +1,5 @@
 import { FullBox, parseOneBox } from '#/box';
-import { infeBox } from '#/boxes/infe';
+import type { infeBox } from '#/boxes/infe';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';

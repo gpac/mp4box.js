@@ -1,7 +1,7 @@
 import { ContainerBox } from '#/box';
-import { clefBox } from '#/boxes/qt/clef';
-import { enofBox } from '#/boxes/qt/enof';
-import { profBox } from '#/boxes/qt/prof';
+import type { clefBox } from '#/boxes/qt/clef';
+import type { enofBox } from '#/boxes/qt/enof';
+import type { profBox } from '#/boxes/qt/prof';
 
 export class taptBox extends ContainerBox {
   type = 'tapt' as const;

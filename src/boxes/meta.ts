@@ -1,10 +1,10 @@
 import { ContainerBox, FullBox } from '#/box';
-import { dinfBox, grplBox, idatBox, iproBox, iprpBox } from '#/boxes/defaults';
-import { hdlrBox } from '#/boxes/hdlr';
-import { iinfBox } from '#/boxes/iinf';
-import { ilocBox } from '#/boxes/iloc';
-import { irefBox } from '#/boxes/iref';
-import { pitmBox } from '#/boxes/pitm';
+import type { dinfBox, grplBox, idatBox, iproBox, iprpBox } from '#/boxes/defaults';
+import type { hdlrBox } from '#/boxes/hdlr';
+import type { iinfBox } from '#/boxes/iinf';
+import type { ilocBox } from '#/boxes/iloc';
+import type { irefBox } from '#/boxes/iref';
+import type { pitmBox } from '#/boxes/pitm';
 import type { MultiBufferStream } from '#/buffer';
 
 export class metaBox extends FullBox {

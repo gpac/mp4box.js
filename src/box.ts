@@ -5,10 +5,10 @@
 
 import { MultiBufferStream } from '#/buffer';
 import { ERR_NOT_ENOUGH_DATA, MAX_SIZE, OK } from '#/constants';
-import { DataStream } from '#/DataStream';
+import type { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
-import { MP4BoxStream } from '#/stream';
+import type { MP4BoxStream } from '#/stream';
 import type { BoxKind, Extends, Output, Reference } from '@types';
 
 export class Box {

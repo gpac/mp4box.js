@@ -1,6 +1,6 @@
 import { Box } from '#/box';
-import { DataStream } from '#/DataStream';
-import { MP4BoxStream } from '#/stream';
+import type { DataStream } from '#/DataStream';
+import type { MP4BoxStream } from '#/stream';
 import type { NaluArray } from '@types';
 import type { NALUArrays } from './displays/naluArrays';
 

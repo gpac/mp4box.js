@@ -1,10 +1,10 @@
-import { av1CBox } from '#/boxes/av1C';
-import { avcCBox } from '#/boxes/avcC';
-import { sinfBox } from '#/boxes/defaults';
-import { esdsBox } from '#/boxes/esds';
-import { hvcCBox } from '#/boxes/hvcC';
-import { vpcCBox } from '#/boxes/vpcC';
-import { vvcCBox } from '#/boxes/vvcC';
+import type { av1CBox } from '#/boxes/av1C';
+import type { avcCBox } from '#/boxes/avcC';
+import type { sinfBox } from '#/boxes/defaults';
+import type { esdsBox } from '#/boxes/esds';
+import type { hvcCBox } from '#/boxes/hvcC';
+import type { vpcCBox } from '#/boxes/vpcC';
+import type { vvcCBox } from '#/boxes/vvcC';
 import {
   AudioSampleEntry,
   MetadataSampleEntry,
