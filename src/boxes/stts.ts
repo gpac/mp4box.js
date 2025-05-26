@@ -32,7 +32,7 @@ export class sttsBox extends FullBox {
   }
 
   /** @bundle writing/stts.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 + 8 * this.sample_counts.length;
@@ -42,7 +42,7 @@ export class sttsBox extends FullBox {
       stream.writeUint32(this.sample_counts[i]);
       stream.writeUint32(this.sample_deltas[i]);
     }
-  }
+  };
 
   /** @bundle box-unpack.js */
   unpack(samples: Array<Sample>) {

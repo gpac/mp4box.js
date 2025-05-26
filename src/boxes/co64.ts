@@ -19,7 +19,7 @@ export class co64Box extends FullBox {
   }
 
   /** @bundle writing/co64.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 + 8 * this.chunk_offsets.length;
@@ -28,5 +28,5 @@ export class co64Box extends FullBox {
     for (let i = 0; i < this.chunk_offsets.length; i++) {
       stream.writeUint64(this.chunk_offsets[i]);
     }
-  }
+  };
 }

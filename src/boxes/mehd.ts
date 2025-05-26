@@ -22,11 +22,11 @@ export class mehdBox extends FullBox {
   }
 
   /** @bundle writing/mehd.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4;
     this.writeHeader(stream);
     stream.writeUint32(this.fragment_duration);
-  }
+  };
 }

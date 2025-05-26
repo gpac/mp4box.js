@@ -13,11 +13,11 @@ export class mfhdBox extends FullBox {
   }
 
   /** @bundle writing/mfhd.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4;
     this.writeHeader(stream);
     stream.writeUint32(this.sequence_number);
-  }
+  };
 }

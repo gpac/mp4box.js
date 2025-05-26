@@ -25,7 +25,7 @@ export class stscBox extends FullBox {
     }
   }
 
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 + 12 * this.first_chunk.length;
@@ -36,7 +36,7 @@ export class stscBox extends FullBox {
       stream.writeUint32(this.samples_per_chunk[i]);
       stream.writeUint32(this.sample_description_index[i]);
     }
-  }
+  };
 
   unpack(samples: Array<Sample>) {
     let l = 0;

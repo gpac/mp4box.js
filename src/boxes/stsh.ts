@@ -21,7 +21,7 @@ export class stshBox extends FullBox {
     }
   }
 
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 + 8 * this.shadowed_sample_numbers.length;
@@ -31,5 +31,5 @@ export class stshBox extends FullBox {
       stream.writeUint32(this.shadowed_sample_numbers[i]);
       stream.writeUint32(this.sync_sample_numbers[i]);
     }
-  }
+  };
 }

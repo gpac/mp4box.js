@@ -42,7 +42,7 @@ export class emsgBox extends FullBox {
   }
 
   /** @bundle writing/emsg.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size =
@@ -55,5 +55,5 @@ export class emsgBox extends FullBox {
     stream.writeUint32(this.event_duration);
     stream.writeUint32(this.id);
     stream.writeUint8Array(this.message_data);
-  }
+  };
 }

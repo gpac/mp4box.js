@@ -26,7 +26,7 @@ export class stszBox extends FullBox {
   }
 
   /** @bundle writing/stsz.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     let constant = true;
     this.version = 0;
     this.flags = 0;
@@ -57,7 +57,7 @@ export class stszBox extends FullBox {
     if (!constant) {
       stream.writeUint32Array(this.sample_sizes);
     }
-  }
+  };
 
   /** @bundle box-unpack.js */
   unpack(samples) {

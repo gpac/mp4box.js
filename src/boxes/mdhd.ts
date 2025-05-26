@@ -28,7 +28,7 @@ export class mdhdBox extends FullBox {
   }
 
   /** @bundle writing/mdhd.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.size = 4 * 4 + 2 * 2;
     this.flags = 0;
     this.version = 0;
@@ -39,5 +39,5 @@ export class mdhdBox extends FullBox {
     stream.writeUint32(this.duration);
     stream.writeUint16(this.language);
     stream.writeUint16(0);
-  }
+  };
 }

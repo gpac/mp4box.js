@@ -20,7 +20,7 @@ export class trexBox extends FullBox {
     this.default_sample_flags = stream.readUint32();
   }
 
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 * 5;
@@ -30,5 +30,5 @@ export class trexBox extends FullBox {
     stream.writeUint32(this.default_sample_duration);
     stream.writeUint32(this.default_sample_size);
     stream.writeUint32(this.default_sample_flags);
-  }
+  };
 }

@@ -53,7 +53,8 @@ export class avcCBox extends Box {
   }
 
   /** @bundle writing/avcC.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
+    console.log(this);
     this.size = 7;
     for (let i = 0; i < this.SPS.length; i++) {
       this.size += 2 + this.SPS[i].length;
@@ -83,5 +84,5 @@ export class avcCBox extends Box {
     if (this.ext) {
       stream.writeUint8Array(this.ext);
     }
-  }
+  };
 }

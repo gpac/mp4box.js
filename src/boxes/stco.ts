@@ -20,14 +20,14 @@ export class stcoBox extends FullBox {
   }
 
   /** @bundle writings/stco.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 + 4 * this.chunk_offsets.length;
     this.writeHeader(stream);
     stream.writeUint32(this.chunk_offsets.length);
     stream.writeUint32Array(this.chunk_offsets);
-  }
+  };
 
   /** @bundle box-unpack.js */
   unpack(samples: Array<Sample>) {

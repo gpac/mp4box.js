@@ -17,7 +17,7 @@ export class stppSampleEntry extends SubtitleSampleEntry {
   }
 
   /** @bundle writing/sampleentry.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.writeHeader(stream);
     this.size +=
       this.namespace.length +
@@ -30,5 +30,5 @@ export class stppSampleEntry extends SubtitleSampleEntry {
     stream.writeCString(this.schema_location);
     stream.writeCString(this.auxiliary_mime_types);
     this.writeFooter(stream);
-  }
+  };
 }

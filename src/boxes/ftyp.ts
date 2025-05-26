@@ -24,7 +24,7 @@ export class ftypBox extends Box {
   }
 
   /** @bundle writing/ftyp.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.size = 8 + 4 * this.compatible_brands.length;
     this.writeHeader(stream);
     stream.writeString(this.major_brand, null, 4);
@@ -32,5 +32,5 @@ export class ftypBox extends Box {
     for (let i = 0; i < this.compatible_brands.length; i++) {
       stream.writeString(this.compatible_brands[i], null, 4);
     }
-  }
+  };
 }

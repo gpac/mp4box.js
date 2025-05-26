@@ -127,13 +127,13 @@ export class SampleEntry extends ContainerBox {
   }
 
   /** @bundle writing/sampleentry.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.writeHeader(stream);
     stream.writeUint8Array(this.data);
     this.size += this.data.length;
     Log.debug('BoxWriter', 'Adjusting box ' + this.type + ' with new size ' + this.size);
     stream.adjustUint32(this.sizePosition, this.size);
-  }
+  };
 }
 
 // Base SampleEntry types with default parsing
@@ -205,7 +205,7 @@ export class VisualSampleEntry extends SampleEntry {
   }
 
   /** @bundle writing/sampleentries/sampleentry.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.writeHeader(stream);
     this.size += 2 * 7 + 6 * 4 + 32;
     stream.writeUint16(0);
@@ -224,7 +224,7 @@ export class VisualSampleEntry extends SampleEntry {
     stream.writeUint16(this.depth);
     stream.writeInt16(-1);
     this.writeFooter(stream);
-  }
+  };
 }
 
 export class AudioSampleEntry extends SampleEntry {
@@ -264,7 +264,7 @@ export class AudioSampleEntry extends SampleEntry {
   }
 
   /** @bundle writing/sampleentry.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.writeHeader(stream);
     this.size += 2 * 4 + 3 * 4;
     stream.writeUint32(0);
@@ -275,5 +275,5 @@ export class AudioSampleEntry extends SampleEntry {
     stream.writeUint16(0);
     stream.writeUint32(this.samplerate << 16);
     this.writeFooter(stream);
-  }
+  };
 }

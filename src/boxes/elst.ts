@@ -24,7 +24,7 @@ export class elstBox extends FullBox {
   }
 
   /** @bundle writing/elst.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 + 12 * this.entries.length;
@@ -37,5 +37,5 @@ export class elstBox extends FullBox {
       stream.writeInt16(entry.media_rate_integer);
       stream.writeInt16(entry.media_rate_fraction);
     }
-  }
+  };
 }

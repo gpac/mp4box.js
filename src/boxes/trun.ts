@@ -66,7 +66,7 @@ export class trunBox extends FullBox {
   }
 
   /** @bundle writing/trun.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.size = 4;
     if (this.flags & TRUN_FLAGS_DATA_OFFSET) {
@@ -114,5 +114,5 @@ export class trunBox extends FullBox {
         }
       }
     }
-  }
+  };
 }

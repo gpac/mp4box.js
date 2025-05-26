@@ -56,7 +56,7 @@ export class sidxBox extends FullBox {
   }
 
   /** @bundle writing/sidx.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4 * 4 + 2 + 2 + 12 * this.references.length;
@@ -73,5 +73,5 @@ export class sidxBox extends FullBox {
       stream.writeUint32(ref.subsegment_duration);
       stream.writeUint32((ref.starts_with_SAP << 31) | (ref.SAP_type << 28) | ref.SAP_delta_time);
     }
-  }
+  };
 }

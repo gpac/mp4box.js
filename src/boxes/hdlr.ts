@@ -23,7 +23,7 @@ export class hdlrBox extends FullBox {
   }
 
   /** @bundle writing/hldr.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.size = 5 * 4 + this.name.length + 1;
     this.version = 0;
     this.flags = 0;
@@ -34,5 +34,5 @@ export class hdlrBox extends FullBox {
     stream.writeUint32(0);
     stream.writeUint32(0);
     stream.writeCString(this.name);
-  }
+  };
 }

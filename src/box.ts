@@ -212,7 +212,7 @@ export class ContainerBox extends Box {
   subBoxNames?: ReadonlyArray<string>;
 
   /** @bundle box-write.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.size = 0;
     this.writeHeader(stream);
     for (let i = 0; i < this.boxes.length; i++) {
@@ -224,7 +224,7 @@ export class ContainerBox extends Box {
     /* adjusting the size, now that all sub-boxes are known */
     Log.debug('BoxWriter', 'Adjusting box ' + this.type + ' with new size ' + this.size);
     stream.adjustUint32(this.sizePosition, this.size);
-  }
+  };
 
   /** @bundle box-print.js */
   print(output: Output) {
@@ -278,9 +278,9 @@ export class SampleGroupEntry {
   constructor(public grouping_type: string) {}
 
   /** @bundle writing/samplegroups/samplegroup.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     stream.writeUint8Array(this.data);
-  }
+  };
 
   /** @bundle parsing/samplegroups/samplegroup.js */
   parse(stream: MultiBufferStream) {

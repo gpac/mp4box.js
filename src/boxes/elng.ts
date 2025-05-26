@@ -13,11 +13,11 @@ export class elngBox extends FullBox {
   }
 
   /** @bundle writing/elng.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = this.extended_language.length;
     this.writeHeader(stream);
     stream.writeString(this.extended_language);
-  }
+  };
 }

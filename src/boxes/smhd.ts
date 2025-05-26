@@ -14,12 +14,12 @@ export class smhdBox extends FullBox {
   }
 
   /** @bundle writing/smhd.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 1;
     this.size = 4;
     this.writeHeader(stream);
     stream.writeUint16(this.balance);
     stream.writeUint16(0);
-  }
+  };
 }

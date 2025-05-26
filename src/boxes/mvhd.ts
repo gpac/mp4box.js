@@ -38,7 +38,7 @@ export class mvhdBox extends FullBox {
   }
 
   /** @bundle writing/mvhd.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 23 * 4 + 2 * 2;
@@ -60,7 +60,7 @@ export class mvhdBox extends FullBox {
     stream.writeUint32(0);
     stream.writeUint32(0);
     stream.writeUint32(this.next_track_id);
-  }
+  };
 
   /** @bundle box-print.js */
   print(output: Output) {

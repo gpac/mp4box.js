@@ -82,7 +82,7 @@ export class sgpdBox extends FullBox {
   }
 
   /** @bundle writing/sgpd.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     // leave version as read
     // this.version;
     this.flags = 0;
@@ -114,5 +114,5 @@ export class sgpdBox extends FullBox {
       }
       entry.write(stream);
     }
-  }
+  };
 }

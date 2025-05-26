@@ -33,7 +33,7 @@ export class sbgpBox extends FullBox {
   }
 
   /** @bundle writing/sbgp.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 1;
     this.flags = 0;
     this.size = 12 + 8 * this.entries.length;
@@ -46,5 +46,5 @@ export class sbgpBox extends FullBox {
       stream.writeInt32(entry.sample_count);
       stream.writeInt32(entry.group_description_index);
     }
-  }
+  };
 }

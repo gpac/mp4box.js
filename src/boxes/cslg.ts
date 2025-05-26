@@ -31,7 +31,7 @@ export class cslgBox extends FullBox {
   }
 
   /** @bundle writing/cslg.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     if (
       this.compositionToDTSShift > INT32_MAX ||
@@ -60,5 +60,5 @@ export class cslgBox extends FullBox {
       stream.writeInt64(this.compositionStartTime);
       stream.writeInt64(this.compositionEndTime);
     }
-  }
+  };
 }

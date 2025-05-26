@@ -15,7 +15,7 @@ export class urlBox extends FullBox {
   }
 
   /** @bundle writing/url.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     if (this.location) {
       this.flags = 0;
@@ -28,5 +28,5 @@ export class urlBox extends FullBox {
     if (this.location) {
       stream.writeCString(this.location);
     }
-  }
+  };
 }

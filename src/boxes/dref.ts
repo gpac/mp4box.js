@@ -25,7 +25,7 @@ export class drefBox extends FullBox {
   }
 
   /** @bundle writing/dref.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = 4; //
@@ -38,5 +38,5 @@ export class drefBox extends FullBox {
     /* adjusting the size, now that all sub-boxes are known */
     Log.debug('BoxWriter', 'Adjusting box ' + this.type + ' with new size ' + this.size);
     stream.adjustUint32(this.sizePosition, this.size);
-  }
+  };
 }

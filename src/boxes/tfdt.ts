@@ -17,7 +17,7 @@ export class tfdtBox extends FullBox {
   }
 
   /** @bundle writing/tdft.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     const UINT32_MAX = Math.pow(2, 32) - 1;
     // use version 1 if baseMediaDecodeTime does not fit 32 bits
     this.version = this.baseMediaDecodeTime > UINT32_MAX ? 1 : 0;
@@ -32,5 +32,5 @@ export class tfdtBox extends FullBox {
     } else {
       stream.writeUint32(this.baseMediaDecodeTime);
     }
-  }
+  };
 }

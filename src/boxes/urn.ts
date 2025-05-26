@@ -17,7 +17,7 @@ export class urnBox extends FullBox {
   }
 
   /** @bundle writing/urn.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = this.name.length + 1 + (this.location ? this.location.length + 1 : 0);
@@ -26,5 +26,5 @@ export class urnBox extends FullBox {
     if (this.location) {
       stream.writeCString(this.location);
     }
-  }
+  };
 }

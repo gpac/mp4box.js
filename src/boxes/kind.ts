@@ -15,12 +15,12 @@ export class kindBox extends FullBox {
   }
 
   /** @bundle writing/kind.js */
-  write(stream: MultiBufferStream) {
+  write = (stream: MultiBufferStream) => {
     this.version = 0;
     this.flags = 0;
     this.size = this.schemeURI.length + 1 + (this.value.length + 1);
     this.writeHeader(stream);
     stream.writeCString(this.schemeURI);
     stream.writeCString(this.value);
-  }
+  };
 }
