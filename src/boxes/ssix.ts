@@ -1,13 +1,13 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-interface Range {
+type Range = {
   level: number;
   range_size: number;
-}
-interface SubSegment {
+};
+type SubSegment = {
   ranges: Array<Range>;
-}
+};
 
 export class ssixBox extends FullBox {
   type = 'ssix' as const;

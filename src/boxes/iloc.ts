@@ -1,11 +1,11 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-export interface Extent {
+export type Extent = {
   extent_index: number;
   extent_offset: number;
   extent_length: number;
-}
+};
 
 export class ilocBox extends FullBox {
   type = 'iloc' as const;

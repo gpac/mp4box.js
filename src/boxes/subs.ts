@@ -2,11 +2,11 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import type { SubSample } from '@types';
 
-interface SampleInfo {
+type SampleInfo = {
   size: number;
   sample_delta: number;
   subsamples: SubSample[];
-}
+};
 
 export class subsBox extends FullBox {
   type = 'subs' as const;

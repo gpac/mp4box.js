@@ -1,10 +1,10 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-interface Entry {
+type Entry = {
   sample_count: number;
   group_description_index: number;
-}
+};
 
 export class sbgpBox extends FullBox {
   type = 'sbgp' as const;

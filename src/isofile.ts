@@ -112,7 +112,7 @@ export class SampleGroupInfo {
   ) {}
 }
 
-export interface IsoFileOptions {
+export type IsoFileOptions = {
   brands?: Array<string>;
   description_boxes?: Array<BoxKind>;
   duration?: number;
@@ -141,7 +141,7 @@ export interface IsoFileOptions {
   default_sample_duration?: number;
   default_sample_size?: number;
   default_sample_flags?: number;
-}
+};
 
 export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** MutiBufferStream object used to parse boxes */

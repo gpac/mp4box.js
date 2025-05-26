@@ -23,6 +23,7 @@ export default defineConfig([
       'no-unused-vars': 'off',
       '@typescript-eslint/consistent-type-imports': 'error',
       'no-nested-ternary': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
     },
   },
 ]);

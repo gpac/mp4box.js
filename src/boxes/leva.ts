@@ -2,14 +2,14 @@ import { Log } from '#//log';
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-interface Level {
+type Level = {
   padding_flag: number;
   track_ID: number;
   assignment_type: number;
   grouping_type: string;
   grouping_type_parameter: number;
   sub_track_id: number;
-}
+};
 
 export class levaBox extends FullBox {
   type = 'leva' as const;

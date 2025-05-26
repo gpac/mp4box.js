@@ -1,7 +1,7 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-interface IndSub {
+type IndSub = {
   fscod: number;
   bsid: number;
   bsmod: number;
@@ -9,7 +9,7 @@ interface IndSub {
   lfeon: number;
   num_dep_sub: number;
   chan_loc?: number;
-}
+};
 
 export class dec3Box extends Box {
   type = 'dec3' as const;
