@@ -12,7 +12,6 @@ export default defineConfig([
   {
     rules: {
       eqeqeq: ['error', 'always'],
-      'linebreak-style': ['error', 'unix'],
       'one-var': ['error', 'never'],
       semi: ['error', 'always'],
       'no-throw-literal': 'error',
@@ -23,8 +22,8 @@ export default defineConfig([
       'no-unused-vars': 'off',
       '@typescript-eslint/consistent-type-imports': 'error',
       'no-nested-ternary': 'error',
-      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-      curly: ['error', 'all'],
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      curly: ['error', 'multi-line'],
       'no-implicit-coercion': ['error', {}],
     },
   },

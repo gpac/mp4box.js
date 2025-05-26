@@ -55,7 +55,7 @@
     "circular": "dpdm -T ./entries/all.ts",
     "types": "tsc --noEmit --project tsconfig.json",
     "test": "npm run lint && npm run build && npm run types && npm run circular",
-    "lint": "eslint src --ext .ts,.js"
+    "lint": "eslint"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
