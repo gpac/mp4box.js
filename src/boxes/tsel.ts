@@ -6,7 +6,7 @@ export class tselBox extends FullBox {
   box_name = 'TrackSelectionBox';
 
   switch_group: number;
-  attribute_list: Array<number>;
+  attribute_list: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

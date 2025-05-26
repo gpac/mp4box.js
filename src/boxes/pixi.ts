@@ -6,7 +6,7 @@ export class pixiBox extends FullBox {
   box_name = 'PixelInformationProperty';
 
   num_channels: number;
-  bits_per_channels: Array<number>;
+  bits_per_channels: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

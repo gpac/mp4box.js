@@ -6,9 +6,9 @@ export class cdefBox extends Box {
   box_name = 'ComponentDefinitionBox';
 
   channel_count: number;
-  channel_indexes: Array<number>;
-  channel_types: Array<number>;
-  channel_associations: Array<number>;
+  channel_indexes: number[];
+  channel_types: number[];
+  channel_associations: number[];
 
   parse(stream: MultiBufferStream) {
     this.channel_count = stream.readUint16();

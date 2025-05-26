@@ -23,7 +23,7 @@ type ReadTypeReturnValue =
   | Float32Array
   | Float64Array
   | null
-  | Array<ReadTypeReturnValue>
+  | ReadTypeReturnValue[]
   | {
       [key: string]: ReadTypeReturnValue;
     };
@@ -1824,7 +1824,7 @@ export class DataStream {
 }
 
 function fromCharCodeUint8(uint8arr: Uint8Array) {
-  const arr: Array<number> = [];
+  const arr: number[] = [];
   for (let i = 0; i < uint8arr.length; i++) {
     arr[i] = uint8arr[i];
   }

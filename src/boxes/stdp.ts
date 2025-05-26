@@ -5,7 +5,7 @@ export class stdpBox extends FullBox {
   type = 'stpd' as const;
   box_name = 'DegradationPriorityBox';
 
-  priority: Array<number>;
+  priority: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

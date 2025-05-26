@@ -7,7 +7,7 @@ export class saioBox extends FullBox {
 
   aux_info_type: string;
   aux_info_type_parameter: number;
-  offset: Array<number>;
+  offset: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

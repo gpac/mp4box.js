@@ -6,7 +6,7 @@ export class stcoBox extends FullBox {
   type = 'stco' as const;
   box_name = 'ChunkOffsetBox';
 
-  chunk_offsets: Array<number>;
+  chunk_offsets: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -23,16 +23,16 @@ export class stcoBox extends FullBox {
   write(stream: MultiBufferStream) {
     this.version = 0;
     this.flags = 0;
-    this.size = 4 + 4 * this.chunk_offsets!.length;
+    this.size = 4 + 4 * this.chunk_offsets.length;
     this.writeHeader(stream);
-    stream.writeUint32(this.chunk_offsets!.length);
-    stream.writeUint32Array(this.chunk_offsets!);
+    stream.writeUint32(this.chunk_offsets.length);
+    stream.writeUint32Array(this.chunk_offsets);
   }
 
   /** @bundle box-unpack.js */
-  unpack(samples: Array<Sample>) {
-    for (let i = 0; i < this.chunk_offsets!.length; i++) {
-      samples[i].offset = this.chunk_offsets![i];
+  unpack(samples: Sample[]) {
+    for (let i = 0; i < this.chunk_offsets.length; i++) {
+      samples[i].offset = this.chunk_offsets[i];
     }
   }
 }

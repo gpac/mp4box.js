@@ -190,8 +190,6 @@ const descTagToName = {
 };
 
 export class MPEG4DescriptorParser {
-  constructor() {}
-
   getDescriptorName(tag: number) {
     return descTagToName[tag];
   }

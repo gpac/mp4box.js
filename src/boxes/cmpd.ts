@@ -6,8 +6,8 @@ export class cmpdBox extends Box {
   box_name = 'ComponentDefinitionBox';
 
   component_count: number;
-  component_types: Array<number>;
-  component_type_urls: Array<string>;
+  component_types: number[];
+  component_type_urls: string[];
 
   parse(stream: MultiBufferStream) {
     this.component_count = stream.readUint32();

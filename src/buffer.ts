@@ -27,7 +27,7 @@ function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
  * It inherits also from DataStream for all read/write/alloc operations
  */
 export class MultiBufferStream extends DataStream {
-  buffers: Array<MP4BoxBuffer>;
+  buffers: MP4BoxBuffer[];
   bufferIndex: number;
 
   constructor(buffer?: MP4BoxBuffer) {
@@ -94,7 +94,7 @@ export class MultiBufferStream extends DataStream {
     let i = 0;
     /* TODO: improve insertion if many buffers */
     for (; i < this.buffers.length; i++) {
-      const b = this.buffers[i]!;
+      const b = this.buffers[i];
       if (ab.fileStart <= b.fileStart) {
         /* the insertion position is found */
         if (ab.fileStart === b.fileStart) {

@@ -6,7 +6,7 @@ export class psshBox extends FullBox {
   box_name = 'ProtectionSystemSpecificHeaderBox';
 
   system_id: string;
-  kid: Array<string>;
+  kid: string[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

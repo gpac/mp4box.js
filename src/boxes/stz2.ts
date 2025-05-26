@@ -6,7 +6,7 @@ export class stz2Box extends FullBox {
   type = 'stz2' as const;
   box_name = 'CompactSampleSizeBox';
 
-  sample_sizes: Array<number>;
+  sample_sizes: number[];
   reserved: number;
   field_size: number;
 

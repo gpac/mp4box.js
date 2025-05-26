@@ -5,10 +5,10 @@ export class sdtpBox extends FullBox {
   type = 'sdtp' as const;
   box_name = 'SampleDependencyTypeBox';
 
-  is_leading: Array<number>;
-  sample_depends_on: Array<number>;
-  sample_is_depended_on: Array<number>;
-  sample_has_redundancy: Array<number>;
+  is_leading: number[];
+  sample_depends_on: number[];
+  sample_is_depended_on: number[];
+  sample_has_redundancy: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

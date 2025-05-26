@@ -21,13 +21,13 @@ export class vvcCBox extends FullBox {
   ptl_multilayer_enabled_flag: number;
   general_constraint_info: Uint8Array;
   ptl_sublayer_present_mask: number;
-  sublayer_level_idc: Array<number>;
+  sublayer_level_idc: number[];
   ptl_num_sub_profiles: number;
-  general_sub_profile_idc: Array<number>;
+  general_sub_profile_idc: number[];
   max_picture_width: number;
   max_picture_height: number;
   avg_frame_rate: number;
-  nalu_arrays: Array<NaluArray>;
+  nalu_arrays: NaluArray[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

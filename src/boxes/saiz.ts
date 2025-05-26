@@ -9,7 +9,7 @@ export class saizBox extends FullBox {
   aux_info_type_parameter: number;
   default_sample_info_size: number;
   sample_count: number;
-  sample_info_size: Array<number>;
+  sample_info_size: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

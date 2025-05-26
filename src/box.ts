@@ -12,8 +12,8 @@ import type { MP4BoxStream } from '#/stream';
 import type { BoxKind, Extends, Output, Reference } from '@types';
 
 export class Box {
-  boxes?: Array<Box>;
-  data: Array<number> | Uint8Array;
+  boxes?: Box[];
+  data: number[] | Uint8Array;
   has_unparsed_data?: boolean;
   hdr_size?: number;
   language: number;
@@ -306,7 +306,7 @@ export class TrackGroupTypeBox extends FullBox {
 /** @bundle parsing/singleitemtypereference.js */
 export class SingleItemTypeReferenceBox extends Box {
   from_item_ID: number;
-  references: Array<Reference>;
+  references: Reference[];
 
   constructor(
     public type: string,
@@ -332,7 +332,7 @@ export class SingleItemTypeReferenceBox extends Box {
 /** @bundle parsing/singleitemtypereferencelarge.js */
 export class SingleItemTypeReferenceBoxLarge extends Box {
   from_item_ID: number;
-  references: Array<Reference>;
+  references: Reference[];
 
   constructor(
     public type: string,

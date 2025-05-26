@@ -7,8 +7,8 @@ export class cttsBox extends FullBox {
   type = 'ctts' as const;
   box_name = 'CompositionOffsetBox';
 
-  sample_counts: Array<number>;
-  sample_offsets: Array<number>;
+  sample_counts: number[];
+  sample_offsets: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -53,7 +53,7 @@ export class cttsBox extends FullBox {
   }
 
   /** @bundle box-unpack.js */
-  unpack(samples: Array<Sample>) {
+  unpack(samples: Sample[]) {
     let k = 0;
     for (let i = 0; i < this.sample_counts.length; i++) {
       for (let j = 0; j < this.sample_counts[i]; j++) {

@@ -9,7 +9,7 @@ export class stsdBox extends FullBox {
   type = 'stsd' as const;
   box_name = 'SampleDescriptionBox';
 
-  entries: Array<SampleEntry>;
+  entries: SampleEntry[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -1,30 +1,23 @@
-import js from '@eslint/js';
-import globals from 'globals';
+import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import json from '@eslint/json';
-import { defineConfig } from 'eslint/config';
 
-export default defineConfig([
-  { files: ['**/*.{js,mjs,cjs,ts,mts,cts}'], plugins: { js }, extends: ['js/recommended'] },
-  { files: ['**/*.{js,mjs,cjs,ts,mts,cts}'], languageOptions: { globals: globals.browser } },
-  tseslint.configs.recommended,
-  { files: ['**/*.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] },
+export default tseslint.config(
+  { ignores: ['dist', '**/*.js'] },
+  eslint.configs.recommended,
+
+  tseslint.configs.strict,
+  tseslint.configs.stylistic,
   {
     rules: {
-      eqeqeq: ['error', 'always'],
-      'one-var': ['error', 'never'],
-      semi: ['error', 'always'],
-      'no-throw-literal': 'error',
+      // Override no-unused-vars to allow unused variables that start with an underscore
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      // Disable the base rule 'no-unused-vars' to avoid conflicts with TypeScript's rule
       'no-unused-vars': 'off',
-      '@typescript-eslint/consistent-type-imports': 'error',
-      'no-nested-ternary': 'error',
-      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      curly: ['error', 'multi-line'],
-      'no-implicit-coercion': ['error', {}],
+      // Disable @typescript-eslint/prefer-for-of we have too much for now
+      '@typescript-eslint/prefer-for-of': 'off',
     },
   },
-]);
+);

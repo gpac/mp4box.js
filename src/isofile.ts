@@ -112,9 +112,9 @@ export class SampleGroupInfo {
   ) {}
 }
 
-export type IsoFileOptions = {
-  brands?: Array<string>;
-  description_boxes?: Array<BoxKind>;
+export interface IsoFileOptions {
+  brands?: string[];
+  description_boxes?: BoxKind[];
   duration?: number;
   height?: number;
   id?: number;
@@ -141,17 +141,17 @@ export type IsoFileOptions = {
   default_sample_duration?: number;
   default_sample_size?: number;
   default_sample_flags?: number;
-};
+}
 
 export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** MutiBufferStream object used to parse boxes */
   stream: MultiBufferStream;
   /** Array of all boxes (in order) found in the file */
-  boxes: Array<Box> = [];
+  boxes: Box[] = [];
   /** Array of all mdats */
-  mdats: Array<mdatBox> = [];
+  mdats: mdatBox[] = [];
   /** Array of all moofs */
-  moofs: Array<moofBox> = [];
+  moofs: moofBox[] = [];
   /** Boolean indicating if the file is compatible with progressive parsing (moov first) */
   isProgressive = false;
   /** Boolean used to fire moov start event only once */
@@ -175,7 +175,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       ) => void)
     | null = null;
   /** Callback to call when samples are ready */
-  onSamples: ((id: number, user: TSampleUser, samples: Array<Sample>) => void) | null = null;
+  onSamples: ((id: number, user: TSampleUser, samples: Sample[]) => void) | null = null;
   /** Callback to call when there is an error in the parsing or processing of samples */
   onError: (() => void) | null = null;
 
@@ -183,9 +183,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
   sampleListBuilt = false;
   /** Array of Track objects for which fragmentation of samples is requested */
-  fragmentedTracks: Array<FragmentedTrack<TSegmentUser>> = [];
+  fragmentedTracks: FragmentedTrack<TSegmentUser>[] = [];
   /** Array of Track objects for which extraction of samples is requested */
-  extractedTracks: Array<ExtractedTrack<TSampleUser>> = [];
+  extractedTracks: ExtractedTrack<TSampleUser>[] = [];
   /** Boolean indicating that fragmention is ready */
   isFragmentationInitialized = false;
   /** Boolean indicating that fragmented has started */
@@ -200,10 +200,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   sidxSent = false;
 
   /** @bundle isofile-item-processing.js */
-  items: Array<Item> = [];
+  items: Item[] = [];
 
   /** @bundle isofile-item-processing.js */
-  entity_groups: Array<EntityGroup> = [];
+  entity_groups: EntityGroup[] = [];
 
   /**
    * size of the buffers allocated for samples
@@ -212,18 +212,18 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   itemsDataSize = 0;
 
   moov: moovBox;
-  moovs: Array<moovBox>;
+  moovs: moovBox[];
   sidx: sidxBox;
-  sidxs: Array<sidxBox>;
+  sidxs: sidxBox[];
   meta: metaBox;
-  metas: Array<metaBox>;
+  metas: metaBox[];
   ftyp: ftypBox;
-  ftyps: Array<ftypBox>;
+  ftyps: ftypBox[];
   nextSeekPosition: number;
   initial_duration: number;
 
   static type: BoxKind['type'];
-  static boxes: Array<Box>;
+  static boxes: Box[];
 
   constructor(stream?: MultiBufferStream) {
     this.stream = stream || new MultiBufferStream();
@@ -518,13 +518,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       brands: [this.ftyp.major_brand].concat(this.ftyp.compatible_brands),
       created: new Date(_1904 + this.moov.mvhd.creation_time * 1000),
       modified: new Date(_1904 + this.moov.mvhd.modification_time * 1000),
-      tracks: [] as Array<Track>,
-      audioTracks: [] as Array<Track>,
-      videoTracks: [] as Array<Track>,
-      subtitleTracks: [] as Array<Track>,
-      metadataTracks: [] as Array<Track>,
-      hintTracks: [] as Array<Track>,
-      otherTracks: [] as Array<Track>,
+      tracks: [] as Track[],
+      audioTracks: [] as Track[],
+      videoTracks: [] as Track[],
+      subtitleTracks: [] as Track[],
+      metadataTracks: [] as Track[],
+      hintTracks: [] as Track[],
+      otherTracks: [] as Track[],
       mime: '',
     };
 
@@ -760,7 +760,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     return result;
   }
 
-  static _sweep(type: BoxKind['type'], result: Array<typeof ISOFile>, returnEarly: boolean) {
+  static _sweep(type: BoxKind['type'], result: (typeof ISOFile)[], returnEarly: boolean) {
     if (this.type && this.type === type) {
       result.push(this);
     }
@@ -835,7 +835,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   seekTrack(time: number, useRap: boolean, trak: trakBox) {
     let rap_seek_sample_num = 0;
     let seek_sample_num = 0;
-    let timescale: number = null!;
+    let timescale: number;
 
     if (trak.samples.length === 0) {
       Log.info(
@@ -945,7 +945,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
   }
 
-  equal(b: { boxes: Array<Box> }) {
+  equal(b: { boxes: Box[] }) {
     let box_index = 0;
     while (box_index < this.boxes.length && box_index < b.boxes.length) {
       const a_box = this.boxes[box_index];
@@ -1067,7 +1067,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       this.nextMoofNumber = 0;
       this.resetTables();
     }
-    const initSegs: Array<{ id: number; user: TSegmentUser; buffer: MP4BoxBuffer }> = [];
+    const initSegs: { id: number; user: TSegmentUser; buffer: MP4BoxBuffer }[] = [];
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
       const moov = new moovBox();
       moov.mvhd = this.moov.mvhd;
@@ -1141,9 +1141,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   static initSampleGroups(
     trak: trakBox,
     traf: trafBox | null,
-    sbgps: Array<sbgpBox>,
-    trak_sgpds: Array<sgpdBox>,
-    traf_sgpds?: Array<sgpdBox>,
+    sbgps: sbgpBox[],
+    trak_sgpds: sgpdBox[],
+    traf_sgpds?: sgpdBox[],
   ) {
     if (traf) {
       traf.sample_groups_info = [];
@@ -1211,7 +1211,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     trak: trakBox,
     sample: Sample,
     sample_number: number,
-    sample_groups_info: Array<SampleGroupInfo>,
+    sample_groups_info: SampleGroupInfo[],
   ) {
     sample.sample_groups = [];
     for (const k in sample_groups_info) {

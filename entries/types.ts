@@ -7,9 +7,13 @@ import type { SampleEntry } from './all';
 import type * as BOXES from './all-boxes';
 
 type AllBoxes = Partial<typeof BOXES> & Partial<typeof UUID_BOXES>;
+
+// Unsure of the implications of changing this namespace export
+// Prefer to keep it as is for compatibility
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MP4Box {
-  export interface BoxRegistry extends AllBoxes {}
-  export interface DescriptorRegistry extends Partial<typeof DESCRIPTORS> {}
+  export type BoxRegistry = AllBoxes;
+  export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
 }
 
 export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
@@ -26,7 +30,7 @@ export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
   | BigUint64Array<T>;
 
 export type ValueOf<T> = T[keyof T];
-export type InstanceOf<T> = T extends new (...args: Array<any>) => infer R ? R : never;
+export type InstanceOf<T> = T extends new (...args: unknown[]) => infer R ? R : never;
 export type KindOf<T> = InstanceOf<ValueOf<T>>;
 export type Extends<TObject, TExtends> = {
   [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
@@ -53,7 +57,7 @@ export interface ExtractedTrack<TUser> {
   user: TUser;
   trak: trakBox;
   nb_samples: number;
-  samples: Array<Sample>;
+  samples: Sample[];
 }
 
 export interface Sample {
@@ -77,9 +81,9 @@ export interface Sample {
   number: number;
   offset: number;
   pts?: number;
-  sample_groups?: Array<SampleGroup>;
+  sample_groups?: SampleGroup[];
   size: number;
-  subsamples?: Array<SubSample>;
+  subsamples?: SubSample[];
   timescale: number;
   track_id: number;
 }
@@ -110,9 +114,9 @@ export interface Track {
   movie_timescale: number;
   name: string;
   nb_samples: number;
-  references: Array<{ track_ids: ArrayLike<number>; type: string }>;
+  references: { track_ids: ArrayLike<number>; type: string }[];
   samples_duration: number;
-  samples?: Array<Sample>;
+  samples?: Sample[];
   size: number;
   timescale: number;
   track_height: number;
@@ -124,40 +128,40 @@ export interface Track {
 
 export interface Movie {
   hasMoov: boolean;
-  audioTracks: Array<Track>;
-  brands: Array<string>;
+  audioTracks: Track[];
+  brands: string[];
   created: Date;
   duration: number;
   fragment_duration: number | undefined;
   hasIOD: boolean;
-  hintTracks: Array<Track>;
+  hintTracks: Track[];
   isFragmented: boolean;
   isProgressive: boolean;
-  metadataTracks: Array<Track>;
+  metadataTracks: Track[];
   mime: string;
   modified: Date;
-  otherTracks: Array<Track>;
-  subtitleTracks: Array<Track>;
+  otherTracks: Track[];
+  subtitleTracks: Track[];
   timescale: number;
-  tracks: Array<Track>;
-  videoTracks: Array<Track>;
+  tracks: Track[];
+  videoTracks: Track[];
 }
 
 export interface Description {
   default_group_description_index: number;
-  entries: Array<SampleGroupEntry | SampleEntry>;
+  entries: (SampleGroupEntry | SampleEntry)[];
   used: boolean;
   version: number;
 }
 
-export type IncompleteBox = {
+export interface IncompleteBox {
   box?: Box;
   code: number;
   hdr_size?: number;
   size?: number;
   start?: number;
   type?: string;
-};
+}
 
 export interface Item {
   alreadyRead?: number;
@@ -165,20 +169,20 @@ export interface Item {
   content_type?: string;
   item_uri_type: string;
   data?: Uint8Array;
-  extents?: Array<{
+  extents?: {
     alreadyRead?: number;
     length: number;
     offset: number;
-  }>;
+  }[];
   id?: number;
   name?: string;
   primary?: boolean;
-  properties?: { boxes: Array<Box> };
+  properties?: { boxes: Box[] };
   protection?: BOXES.sinfBox;
-  ref_to?: Array<{
+  ref_to?: {
     type: string;
     id: Reference;
-  }>;
+  }[];
   sent?: boolean;
   size?: number;
   source?: Box;
@@ -187,10 +191,10 @@ export interface Item {
 
 export interface EntityGroup {
   id: number;
-  entity_ids: Array<number>;
+  entity_ids: number[];
   type: string;
   properties?: {
-    boxes: Array<Box>;
+    boxes: Box[];
   };
 }
 
@@ -211,7 +215,7 @@ export interface Nalu {
   length?: number;
 }
 
-export type NaluArray = Array<Nalu> & {
+export type NaluArray = Nalu[] & {
   completeness: number;
   nalu_type: number;
   length: number;
@@ -301,10 +305,12 @@ export type StringType =
   | EncodedLengthStringType
   | EndianStringType;
 
-export type GetterSetterType<T = any> = {
+// Unsure why changing `any` to `unknown` causes issues in some places.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface GetterSetterType<T = any> {
   get(dataStream: DataStream, struct: Record<string, Type>): T;
   set?(dataStream: DataStream, value: T, struct?: Record<string, Type>): void;
-};
+}
 
 export type TupleType = [
   '[]',
@@ -317,7 +323,7 @@ export type TupleType = [
   ),
 ];
 
-export type FnType = <T = any>(dataStream: DataStream, struct: T) => number;
+export type FnType = <T = unknown>(dataStream: DataStream, struct: T) => number;
 
 export type Type =
   | NumberType
@@ -337,30 +343,30 @@ export type ParsedType =
   | SimpleNumberType
   | EndianNumberType;
 
-export type StructDefinition = Array<[name: string, type: Type]>;
+export type StructDefinition = [name: string, type: Type][];
 
 export type ValueFromType<TValue extends Type> = TValue extends StringType
   ? string
   : TValue extends NumberType
-    ? number
-    : TValue extends FnType
-      ? ReturnType<FnType>
-      : TValue extends GetterSetterType
-        ? ReturnType<TValue['get']>
-        : TValue extends ['[]', NumberType, infer TAmount]
-          ? TAmount extends number
-            ? TupleOf<number, TAmount>
-            : TAmount extends () => infer TReturnType
-              ? TReturnType extends number
-                ? TupleOf<number, TReturnType>
-                : never
-              : Array<number>
-          : TValue extends StructDefinition
-            ? StructDataFromStructDefinition<TValue>
-            : never;
+  ? number
+  : TValue extends FnType
+  ? ReturnType<FnType>
+  : TValue extends GetterSetterType
+  ? ReturnType<TValue['get']>
+  : TValue extends ['[]', NumberType, infer TAmount]
+  ? TAmount extends number
+    ? TupleOf<number, TAmount>
+    : TAmount extends () => infer TReturnType
+    ? TReturnType extends number
+      ? TupleOf<number, TReturnType>
+      : never
+    : number[]
+  : TValue extends StructDefinition
+  ? StructDataFromStructDefinition<TValue>
+  : never;
 
 export type StructDataFromStructDefinition<T extends StructDefinition> = {
-  [TKey in T[number][0]]: Extract<T[number], [TKey, any]>[1] extends infer TValue
+  [TKey in T[number][0]]: Extract<T[number], [TKey, unknown]>[1] extends infer TValue
     ? TValue extends Type
       ? ValueFromType<TValue>
       : never

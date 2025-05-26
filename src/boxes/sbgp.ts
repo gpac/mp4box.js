@@ -1,10 +1,10 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-type Entry = {
+interface Entry {
   sample_count: number;
   group_description_index: number;
-};
+}
 
 export class sbgpBox extends FullBox {
   type = 'sbgp' as const;
@@ -12,7 +12,7 @@ export class sbgpBox extends FullBox {
 
   grouping_type: string;
   grouping_type_parameter: number;
-  entries: Array<Entry>;
+  entries: Entry[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

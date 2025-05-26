@@ -1,16 +1,16 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-export type Assocation = {
+export interface Assocation {
   id: number;
-  props: Array<{ property_index: number; essential: boolean }>;
-};
+  props: { property_index: number; essential: boolean }[];
+}
 
 export class ipmaBox extends FullBox {
   type = 'ipma' as const;
   box_name = 'ItemPropertyAssociationBox';
 
-  associations: Array<Assocation>;
+  associations: Assocation[];
   version: number;
   flags: number;
 

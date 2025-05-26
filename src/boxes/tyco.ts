@@ -5,7 +5,7 @@ export class tycoBox extends Box {
   type = 'tyco' as const;
   box_name = 'TypeCombinationBox';
 
-  compatible_brands: Array<string>;
+  compatible_brands: string[];
 
   parse(stream: MultiBufferStream) {
     const count = (this.size - this.hdr_size) / 4;

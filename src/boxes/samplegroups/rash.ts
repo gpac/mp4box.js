@@ -4,8 +4,8 @@ import { Log } from '#/log';
 
 export class rashSampleGroupEntry extends SampleGroupEntry {
   operation_point_count: number;
-  target_rate_share: number | Array<number>;
-  available_bitrate: Array<number>;
+  target_rate_share: number | number[];
+  available_bitrate: number[];
   maximum_bitrate: number;
   minimum_bitrate: number;
   discard_priority: number;

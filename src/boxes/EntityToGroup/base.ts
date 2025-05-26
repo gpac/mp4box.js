@@ -5,7 +5,7 @@ import type { MultiBufferStream } from '#/buffer';
 export class EntityToGroup extends FullBox {
   group_id: number;
   num_entities_in_group: number;
-  entity_ids: Array<number>;
+  entity_ids: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

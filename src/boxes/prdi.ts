@@ -6,7 +6,7 @@ export class prdiBox extends FullBox {
   box_name = 'ProgressiveDerivedImageItemInformationProperty';
 
   step_count: number;
-  item_count: Array<number>;
+  item_count: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

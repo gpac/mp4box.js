@@ -10,11 +10,11 @@ export class avssSampleGroupEntry extends SampleGroupEntry {
   accurateStatisticsFlag: number;
   avgBitRate: number;
   avgFrameRate: number;
-  dependency: Array<{
+  dependency: {
     subSeqDirectionFlag: number;
     layerNumber: number;
     subSequenceIdentifier: number;
-  }>;
+  }[];
 
   parse(stream: MultiBufferStream) {
     this.subSequenceIdentifier = stream.readUint16();

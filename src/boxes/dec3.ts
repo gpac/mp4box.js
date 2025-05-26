@@ -1,7 +1,7 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-type IndSub = {
+interface IndSub {
   fscod: number;
   bsid: number;
   bsmod: number;
@@ -9,7 +9,7 @@ type IndSub = {
   lfeon: number;
   num_dep_sub: number;
   chan_loc?: number;
-};
+}
 
 export class dec3Box extends Box {
   type = 'dec3' as const;
@@ -17,7 +17,7 @@ export class dec3Box extends Box {
 
   data_rate: number;
   num_ind_sub: number;
-  ind_subs: Array<IndSub>;
+  ind_subs: IndSub[];
 
   parse(stream: MultiBufferStream) {
     const tmp_16 = stream.readUint16();

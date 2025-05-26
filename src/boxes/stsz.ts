@@ -5,7 +5,7 @@ export class stszBox extends FullBox {
   type = 'stsz' as const;
   box_name = 'SampleSizeBox';
 
-  sample_sizes: Array<number>;
+  sample_sizes: number[];
   sample_size: number;
   sample_count: number;
 

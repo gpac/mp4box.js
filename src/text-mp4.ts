@@ -39,8 +39,7 @@ export class VTTin4Parser {
     }
     const cues = this.parseSample(data);
     let string = '';
-    for (let i = 0; i < cues.length; i++) {
-      const cueIn4 = cues[i];
+    for (const cueIn4 of cues) {
       string += secToTimestamp(startTime) + ' --> ' + secToTimestamp(endTime) + '\r\n';
       // @ts-expect-error FIXME: which box should get a payl-property?
       string += cueIn4.payl.text;
@@ -52,7 +51,7 @@ export class VTTin4Parser {
 export class XMLSubtitlein4Parser {
   parseSample(sample: Sample) {
     const res = {
-      resources: [] as Array<Uint8Array>,
+      resources: [] as Uint8Array[],
       documentString: '',
       document: undefined as undefined | Document,
     };

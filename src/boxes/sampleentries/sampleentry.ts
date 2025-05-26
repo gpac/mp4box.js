@@ -26,7 +26,7 @@ function decimalToHex(d: number | string, padding?: number | null) {
 
 class avcCSampleEntryBase extends VisualSampleEntry {
   declare avcC: avcCBox;
-  declare avcCs: Array<avcCBox>;
+  declare avcCs: avcCBox[];
 
   /** @bundle box-codecs.js */
   getCodec() {
@@ -60,7 +60,7 @@ export class avc4SampleEntry extends avcCSampleEntryBase {
 
 export class av01SampleEntry extends VisualSampleEntry {
   av1C: av1CBox;
-  av1Cs: Array<av1CBox>;
+  av1Cs: av1CBox[];
 
   type = 'av01' as const;
 
@@ -97,7 +97,7 @@ export class dav1SampleEntry extends VisualSampleEntry {
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
   declare hvcC: hvcCBox;
-  declare hvcCs: Array<hvcCBox>;
+  declare hvcCs: hvcCBox[];
 
   /** @bundle box-codecs.js */
   getCodec(): string {
@@ -179,7 +179,7 @@ export class dvheSampleEntry extends VisualSampleEntry {
 /** @babel box-codecs.js */
 class vvcCSampleEntryBase extends VisualSampleEntry {
   vvcC: vvcCBox;
-  vvcCs: Array<vvcCBox>;
+  vvcCs: vvcCBox[];
   getCodec() {
     let baseCodec = super.getCodec();
     if (this.vvcC) {
@@ -257,7 +257,7 @@ export class vvcNSampleEntry extends VisualSampleEntry {
 
 class vpcCSampleEntryBase extends VisualSampleEntry {
   vpcC: vpcCBox;
-  vpcCs: Array<vpcCBox>;
+  vpcCs: vpcCBox[];
   getCodec() {
     const baseCodec = super.getCodec();
     let level: number | string = this.vpcC.level;
@@ -302,7 +302,7 @@ export class uncvSampleEntry extends VisualSampleEntry {
 
 export class mp4aSampleEntry extends AudioSampleEntry {
   esds: esdsBox;
-  esdss: Array<esdsBox>;
+  esdss: esdsBox[];
 
   type = 'mp4a' as const;
 
@@ -364,28 +364,28 @@ export class encaSampleEntry extends AudioSampleEntry {
 }
 
 export class encuSampleEntry extends SubtitleSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  sinfs: sinfBox[] = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'encu' as const;
 }
 
 export class encsSampleEntry extends SystemSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  sinfs: sinfBox[] = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'encs' as const;
 }
 
 export class enctSampleEntry extends TextSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  sinfs: sinfBox[] = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'enct' as const;
 }
 
 export class encmSampleEntry extends MetadataSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  sinfs: sinfBox[] = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'encm' as const;

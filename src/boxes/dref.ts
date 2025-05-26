@@ -8,7 +8,7 @@ export class drefBox extends FullBox {
   type = 'dref' as const;
   box_name = 'DataReferenceBox';
 
-  entries: Array<Box>;
+  entries: Box[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -5,8 +5,8 @@ export class stshBox extends FullBox {
   type = 'stsh' as const;
   box_name = 'ShadowSyncSampleBox';
 
-  shadowed_sample_numbers: Array<number>;
-  sync_sample_numbers: Array<number>;
+  shadowed_sample_numbers: number[];
+  sync_sample_numbers: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

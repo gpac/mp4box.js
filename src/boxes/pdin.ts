@@ -5,8 +5,8 @@ export class pdinBox extends Box {
   type = 'pdin' as const;
   box_name = 'ProgressiveDownloadInfoBox';
 
-  rate: Array<number>;
-  initial_delay: Array<number>;
+  rate: number[];
+  initial_delay: number[];
 
   parse(stream: MultiBufferStream) {
     const count = (this.size - this.hdr_size) / 8;

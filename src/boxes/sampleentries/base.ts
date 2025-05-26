@@ -156,9 +156,9 @@ export class TextSampleEntry extends SampleEntry {}
 //Base SampleEntry types for Audio and Video with specific parsing
 export class VisualSampleEntry extends SampleEntry {
   avcC?: avcCBox;
-  avcCs?: Array<avcCBox>;
+  avcCs?: avcCBox[];
   hvcC?: hvcCBox;
-  hvcCs?: Array<hvcCBox>;
+  hvcCs?: hvcCBox[];
 
   width: number;
   height: number;

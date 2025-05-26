@@ -11,7 +11,7 @@ export class iinfBox extends FullBox {
 
   version: number;
   entry_count: number;
-  item_infos: Array<infeBox>;
+  item_infos: infeBox[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

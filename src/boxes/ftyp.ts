@@ -7,7 +7,7 @@ export class ftypBox extends Box {
 
   major_brand: string;
   minor_version: number;
-  compatible_brands: Array<string>;
+  compatible_brands: string[];
 
   parse(stream: MultiBufferStream) {
     let toparse = this.size - this.hdr_size;

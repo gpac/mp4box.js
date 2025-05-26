@@ -7,8 +7,8 @@ export class sttsBox extends FullBox {
   type = 'stts' as const;
   box_name = 'TimeToSampleBox';
 
-  sample_counts: Array<number> = [];
-  sample_deltas: Array<number> = [];
+  sample_counts: number[] = [];
+  sample_deltas: number[] = [];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -45,7 +45,7 @@ export class sttsBox extends FullBox {
   }
 
   /** @bundle box-unpack.js */
-  unpack(samples: Array<Sample>) {
+  unpack(samples: Sample[]) {
     let k = 0;
     for (let i = 0; i < this.sample_counts.length; i++) {
       for (let j = 0; j < this.sample_counts[i]; j++) {

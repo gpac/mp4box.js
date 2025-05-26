@@ -1,14 +1,14 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-type Reference = {
+interface Reference {
   reference_type: number;
   referenced_size: number;
   subsegment_duration: number;
   starts_with_SAP: number;
   SAP_type: number;
   SAP_delta_time: number;
-};
+}
 
 export class sidxBox extends FullBox {
   type = 'sidx' as const;

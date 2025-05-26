@@ -1,11 +1,11 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-export type Extent = {
+export interface Extent {
   extent_index: number;
   extent_offset: number;
   extent_length: number;
-};
+}
 
 export class ilocBox extends FullBox {
   type = 'iloc' as const;
@@ -15,13 +15,13 @@ export class ilocBox extends FullBox {
   length_size: number;
   base_offset_size: number;
   index_size: number;
-  items: Array<{
+  items: {
     base_offset: number;
     construction_method: number;
     item_ID: number;
     data_reference_index: number;
     extents: Extent[];
-  }>;
+  }[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -79,7 +79,7 @@ export class ilocBox extends FullBox {
           throw new Error('Error reading base offset size');
       }
 
-      const extents: Array<Extent> = [];
+      const extents: Extent[] = [];
       const extent_count = stream.readUint16();
 
       for (let j = 0; j < extent_count; j++) {

@@ -6,9 +6,9 @@ export class stscBox extends FullBox {
   type = 'stsc' as const;
   box_name = 'SampleToChunkBox';
 
-  first_chunk: Array<number>;
-  samples_per_chunk: Array<number>;
-  sample_description_index: Array<number>;
+  first_chunk: number[];
+  samples_per_chunk: number[];
+  sample_description_index: number[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -38,7 +38,7 @@ export class stscBox extends FullBox {
     }
   }
 
-  unpack(samples: Array<Sample>) {
+  unpack(samples: Sample[]) {
     let l = 0;
     let m = 0;
     for (let i = 0; i < this.first_chunk.length; i++) {

@@ -12,25 +12,25 @@ export class metaBox extends FullBox {
   box_name = 'MetaBox';
 
   hdlr: hdlrBox;
-  hdlrs: Array<hdlrBox>;
+  hdlrs: hdlrBox[];
   iinf: iinfBox;
-  iinfs: Array<iinfBox>;
+  iinfs: iinfBox[];
   idat: idatBox;
-  idats: Array<idatBox>;
+  idats: idatBox[];
   ipro: iproBox;
-  ipros: Array<iproBox>;
+  ipros: iproBox[];
   grpl: grplBox;
-  grpls: Array<grplBox>;
+  grpls: grplBox[];
   iloc: ilocBox;
-  ilocs: Array<ilocBox>;
+  ilocs: ilocBox[];
   iprp: iprpBox;
-  iprps: Array<iprpBox>;
+  iprps: iprpBox[];
   pitm: pitmBox;
-  pitms: Array<pitmBox>;
+  pitms: pitmBox[];
   iref: irefBox;
-  irefs: Array<irefBox>;
+  irefs: irefBox[];
   dinf: dinfBox;
-  dinfs: Array<dinfBox>;
+  dinfs: dinfBox[];
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
