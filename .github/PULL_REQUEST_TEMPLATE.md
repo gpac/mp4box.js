@@ -1,15 +1,11 @@
-# Pull Request Template
+### Description
 
-## Checklist
+<!-- Please describe your changes in detail. Include motivation and context. -->
 
-- [ ] I have read and followed the [CONTRIBUTING.md](../CONTRIBUTING.md) guidelines.
+<!------------------------------------------------------------------------------
+If you are contributing a new box or fixing an issue, please provide references
+to the relevant specifications, documentation, or issues. This helps maintainers
+get familiar with the context of your changes.
 
-## Description
-
-<!-- Please describe your changes in detail. Include motivation and context. List any related issues. -->
-
-## References
-
-<!-- If you are contributing a new box or fixing an issue, please provide references to the relevant specifications, documentation, or issues. -->
-
-<!-- Thank you for your contribution! -->
+Thank you for your contribution!
+-------------------------------------------------------------------------------->
