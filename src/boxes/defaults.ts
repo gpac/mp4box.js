@@ -348,7 +348,7 @@ export class ipcoBox extends ContainerBox {
 export class grplBox extends ContainerBox {
   type = 'grpl' as const;
   box_name = 'GroupsListBox';
-  declare boxes: Array<EntityToGroup>;
+  boxes: Array<EntityToGroup> = [];
 }
 export class j2kHBox extends ContainerBox {
   type = 'j2kH' as const;

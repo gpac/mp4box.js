@@ -25,8 +25,8 @@ function decimalToHex(d: number | string, padding?: number | null) {
 }
 
 class avcCSampleEntryBase extends VisualSampleEntry {
-  declare avcC: avcCBox;
-  declare avcCs: Array<avcCBox>;
+  avcC: avcCBox | undefined;
+  avcCs: Array<avcCBox> = [];
 
   /** @bundle box-codecs.js */
   getCodec() {
@@ -96,8 +96,8 @@ export class dav1SampleEntry extends VisualSampleEntry {
 }
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
-  declare hvcC: hvcCBox;
-  declare hvcCs: Array<hvcCBox>;
+  hvcC: hvcCBox;
+  hvcCs: Array<hvcCBox> = [];
 
   /** @bundle box-codecs.js */
   getCodec(): string {
