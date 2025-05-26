@@ -50,14 +50,18 @@
     "dist"
   ],
   "scripts": {
+    "install": "husky",
     "build": "tsup",
     "circular": "dpdm -T ./entries/all.ts",
     "types": "tsc --noEmit --project tsconfig.json",
     "test": "npm run build && npm run types && npm run circular"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@types/node": "^22.15.21",
     "dpdm": "^3.14.0",
+    "husky": "^9.1.7",
     "tsup": "^8.3.5",
     "typescript": "^5.6.3"
   },
