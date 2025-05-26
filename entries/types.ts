@@ -8,13 +8,8 @@ import type * as BOXES from './all-boxes';
 
 type AllBoxes = Partial<typeof BOXES> & Partial<typeof UUID_BOXES>;
 
-// Unsure of the implications of changing this namespace export
-// Prefer to keep it as is for compatibility
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace MP4Box {
-  export type BoxRegistry = AllBoxes;
-  export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
-}
+export type BoxRegistry = AllBoxes;
+export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
 
 export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
   | Int8Array<T>
@@ -41,8 +36,8 @@ export type TupleOf<T, N extends number, R extends T[] = []> = R['length'] exten
   : TupleOf<T, N, [T, ...R]>;
 export type NumberTuple<T extends number> = TupleOf<number, T>;
 
-export type BoxKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof Box>>;
-export type SampleEntryKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof SampleEntry>>;
+export type BoxKind = InstanceOf<Extends<BoxRegistry, typeof Box>>;
+export type SampleEntryKind = InstanceOf<Extends<BoxRegistry, typeof SampleEntry>>;
 
 export interface FragmentedTrack<TUser> {
   id: number;
@@ -305,7 +300,6 @@ export type StringType =
   | EncodedLengthStringType
   | EndianStringType;
 
-// Unsure why changing `any` to `unknown` causes issues in some places.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface GetterSetterType<T = any> {
   get(dataStream: DataStream, struct: Record<string, Type>): T;
