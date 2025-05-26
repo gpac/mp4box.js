@@ -31,7 +31,6 @@ export class MultiBufferStream extends DataStream {
   bufferIndex: number;
 
   constructor(buffer?: MP4BoxBuffer) {
-    // @ts-ignore FIXME expects byteLength
     super(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
     // List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non-overlapping
     this.buffers = [];
@@ -282,7 +281,7 @@ export class MultiBufferStream extends DataStream {
    *                                should be marked as used for garbage collection
    * @return {Number}               the index of the buffer holding the seeked file position, -1 if not found.
    */
-  findPosition(fromStart: boolean, filePosition: number, markAsUsed: boolean) {
+  findPosition(fromStart: boolean, filePosition: number, markAsUsed: boolean): number {
     let index = -1;
     let i = fromStart === true ? 0 : this.bufferIndex;
 
@@ -324,8 +323,8 @@ export class MultiBufferStream extends DataStream {
    * @param  {Number} inputindex Index of the buffer to start from
    * @return {Number}            The largest file position found in the buffers
    */
-  findEndContiguousBuf(inputindex?: number) {
-    let index = inputindex !== undefined ? inputindex : this.bufferIndex;
+  findEndContiguousBuf(inputindex?: number): number {
+    const index = inputindex !== undefined ? inputindex : this.bufferIndex;
     let currentBuf = this.buffers[index];
     /* find the end of the contiguous range of data */
     if (this.buffers.length > index + 1) {
@@ -348,7 +347,7 @@ export class MultiBufferStream extends DataStream {
    * @return {Number}     the largest position in the current buffer or in the buffer and the next contiguous
    *                      buffer that holds the given position
    */
-  getEndFilePositionAfter(pos: number) {
+  getEndFilePositionAfter(pos: number): number {
     const index = this.findPosition(true, pos, false);
     if (index !== -1) {
       return this.findEndContiguousBuf(index);

@@ -54,16 +54,22 @@
     "build": "tsup",
     "circular": "dpdm -T ./entries/all.ts",
     "types": "tsc --noEmit --project tsconfig.json",
-    "test": "npm run build && npm run types && npm run circular"
+    "test": "npm run lint && npm run build && npm run types && npm run circular",
+    "lint": "eslint src --ext .ts,.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@eslint/js": "^9.27.0",
+    "@eslint/json": "^0.12.0",
     "@types/node": "^22.15.21",
     "dpdm": "^3.14.0",
+    "eslint": "^9.27.0",
+    "globals": "^16.2.0",
     "husky": "^9.1.7",
     "tsup": "^8.3.5",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.32.1"
   },
   "packageManager": "npm@11.4.1"
 }

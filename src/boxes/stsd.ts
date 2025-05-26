@@ -18,7 +18,7 @@ export class stsdBox extends FullBox {
     const entryCount = stream.readUint32();
 
     for (let i = 1; i <= entryCount; i++) {
-      let ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
+      const ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
 
       if (ret.code === OK) {
         let box: SampleEntry;

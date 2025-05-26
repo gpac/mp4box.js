@@ -7,7 +7,7 @@ export class ParameterSetArray extends Array<Nalu> {
     str += '<tbody>';
 
     for (let i = 0; i < this.length; i++) {
-      let nalu = this[i];
+      const nalu = this[i];
       str += '<tr>';
       str += '<td>' + nalu.length + '</td>';
       str += '<td>';

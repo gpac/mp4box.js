@@ -16,10 +16,7 @@ export class Descriptor {
   descs = [];
   data: Uint8Array;
 
-  constructor(
-    public tag: number,
-    public size: number,
-  ) {}
+  constructor(public tag: number, public size: number) {}
 
   parse(stream: DataStream) {
     this.data = stream.readUint8Array(this.size);
@@ -35,16 +32,12 @@ export class Descriptor {
   }
 
   parseOneDescriptor(stream: DataStream): DescriptorKinds {
-    let hdrSize = 0;
     let size = 0;
     const tag = stream.readUint8();
-    hdrSize++;
     let byteRead = stream.readUint8();
-    hdrSize++;
     while (byteRead & 0x80) {
       size = (size << 7) + (byteRead & 0x7f);
       byteRead = stream.readUint8();
-      hdrSize++;
     }
     size = (size << 7) + (byteRead & 0x7f);
     Log.debug(
@@ -66,10 +59,10 @@ export class Descriptor {
   }
 
   parseRemainingDescriptors(stream: DataStream) {
-    let start = stream.position;
+    const start = stream.position;
     while (stream.position < start + this.size) {
       console.log('this.parseOneDescriptor', this, this.parseOneDescriptor);
-      let desc = this.parseOneDescriptor?.(stream);
+      const desc = this.parseOneDescriptor?.(stream);
       this.descs.push(desc);
     }
   }

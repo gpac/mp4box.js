@@ -13,9 +13,9 @@ export class trepBox extends FullBox {
     this.track_ID = stream.readUint32();
     this.boxes = [];
     while (stream.getPosition() < this.start + this.size) {
-      let ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+      const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
-        let box = ret.box;
+        const box = ret.box;
         this.boxes.push(box);
       } else {
         return;

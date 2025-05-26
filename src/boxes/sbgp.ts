@@ -42,7 +42,7 @@ export class sbgpBox extends FullBox {
     stream.writeUint32(this.grouping_type_parameter);
     stream.writeUint32(this.entries.length);
     for (let i = 0; i < this.entries.length; i++) {
-      let entry = this.entries[i];
+      const entry = this.entries[i];
       stream.writeInt32(entry.sample_count);
       stream.writeInt32(entry.group_description_index);
     }

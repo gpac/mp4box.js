@@ -12,7 +12,7 @@ export class cttsBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    let entry_count = stream.readUint32();
+    const entry_count = stream.readUint32();
     this.sample_counts = [];
     this.sample_offsets = [];
     if (this.version === 0) {

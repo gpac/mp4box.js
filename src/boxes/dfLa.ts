@@ -25,8 +25,8 @@ export class dfLaBox extends FullBox {
       'RESERVED',
     ];
 
-    // for (i=0; ; i++) { // to end of box
-    do {
+    let i: number;
+    for (i = 0; i < 1_000_000; i++) {
       const flagAndType = stream.readUint8();
 
       const type = Math.min(flagAndType & BLOCKTYPE_MASK, knownBlockTypes.length - 1);
@@ -49,10 +49,15 @@ export class dfLaBox extends FullBox {
 
       boxesFound.push(knownBlockTypes[type]);
 
-      if (!!(flagAndType & LASTMETADATABLOCKFLAG_MASK)) {
+      if (flagAndType & LASTMETADATABLOCKFLAG_MASK) {
         break;
       }
-    } while (true);
+    }
+
+    // Defensive
+    if (i >= 1_000_000) {
+      throw new Error('dfLaBox: Too many metadata blocks found, parsing stopped');
+    }
 
     this.numMetadataBlocks = boxesFound.length + ' (' + boxesFound.join(', ') + ')';
   }

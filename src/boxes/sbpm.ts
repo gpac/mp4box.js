@@ -38,8 +38,8 @@ export class sbpmBox extends FullBox {
       this.bad_columns.push(stream.readUint32());
     }
     for (let i = 0; i < this.num_bad_pixels; i++) {
-      let row = stream.readUint32();
-      let col = stream.readUint32();
+      const row = stream.readUint32();
+      const col = stream.readUint32();
       this.bad_pixels.push(new Pixel(row, col));
     }
   }

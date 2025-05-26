@@ -14,9 +14,9 @@ export class drefBox extends FullBox {
     this.entries = [];
     const entry_count = stream.readUint32();
     for (let i = 0; i < entry_count; i++) {
-      let ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
+      const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
-        let box = ret.box;
+        const box = ret.box;
         this.entries.push(box);
       } else {
         return;

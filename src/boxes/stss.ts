@@ -9,7 +9,7 @@ export class stssBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    let entry_count = stream.readUint32();
+    const entry_count = stream.readUint32();
     if (this.version === 0) {
       this.sample_numbers = [];
       for (let i = 0; i < entry_count; i++) {

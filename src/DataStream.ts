@@ -32,7 +32,7 @@ type ReadTypeReturnValue =
 // TODO: check range/support for 64-bits numbers in JavaScript
 
 export class DataStream {
-  static DataStream: {};
+  static DataStream: Record<never, never>; // for backward compatibility
 
   _buffer?: MP4BoxBuffer;
   _byteOffset?: number;
@@ -210,7 +210,7 @@ export class DataStream {
     return this.position >= this._byteLength;
   }
 
-  #isTupleType(type: any): type is TupleType {
+  #isTupleType(type: unknown): type is TupleType {
     return Array.isArray(type) && type.length === 3 && type[0] === '[]';
   }
 
@@ -1207,7 +1207,7 @@ export class DataStream {
 
     let lengthOverride: number | null = null;
     let charset: Charset = 'ASCII';
-    let pos = this.position;
+    const pos = this.position;
 
     let parsedType = type as ParsedType;
 
@@ -1476,7 +1476,7 @@ export class DataStream {
 
     let lengthOverride: number | null = null;
     let charset: Charset = 'ASCII';
-    let pos = this.position;
+    const pos = this.position;
 
     let parsedType = type as ParsedType;
     if (typeof parsedType == 'string' && /:/.test(parsedType)) {
@@ -1570,19 +1570,22 @@ export class DataStream {
       default:
         if (this.#isTupleType(parsedType)) {
           const [, ta, len] = parsedType;
-          const length =
-            typeof len === 'function'
-              ? len(struct, this, parsedType)
-              : typeof len == 'string' && struct[len] != null
-                ? // @ts-expect-error   FIXME: Struct[string] is currently of type Type
-                  parseInt(struct[len])
-                : typeof len === 'number'
-                  ? len
-                  : len === '*'
-                    ? null
-                    : parseInt(len);
+          let length: number | null = null;
+          if (typeof len == 'function') {
+            length = len(struct, this, parsedType);
+          } else if (typeof len == 'string' && struct[len] != null) {
+            // @ts-expect-error FIXME: Struct[string] is currently of type Type
+            length = parseInt(struct[len]);
+          } else if (typeof len === 'number') {
+            length = len;
+          } else if (len === '*') {
+            length = null;
+          } else {
+            length = parseInt(len);
+          }
+
           if (typeof ta == 'string') {
-            let tap = ta.replace(/(le|be)$/, '');
+            const tap = ta.replace(/(le|be)$/, '');
             let endianness: null | boolean = null;
             if (/le$/.test(ta)) {
               endianness = DataStream.LITTLE_ENDIAN;
@@ -1620,7 +1623,7 @@ export class DataStream {
                 if (length === null) {
                   value = [];
                   while (!this.isEof()) {
-                    let u = this.readType(ta, struct);
+                    const u = this.readType(ta, struct);
                     if (u == null) break;
                     value.push(u);
                   }
@@ -1644,7 +1647,7 @@ export class DataStream {
                     break;
                   }
                   value.push(type);
-                } catch (e) {
+                } catch {
                   this.position = pos;
                   break;
                 }
@@ -1720,7 +1723,7 @@ export class DataStream {
    * @return Int8Array to the DataStream backing buffer.
    * @bundle DataStream-map.js
    */
-  mapInt8Array(length: number, endianness?: boolean) {
+  mapInt8Array(length: number, _endianness?: boolean) {
     this._realloc(length * 1);
     const arr = new Int8Array(this._buffer, this.byteOffset + this.position, length);
     this.position += length * 1;

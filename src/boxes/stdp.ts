@@ -9,7 +9,7 @@ export class stdpBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    let count = (this.size - this.hdr_size) / 2;
+    const count = (this.size - this.hdr_size) / 2;
     this.priority = [];
     for (let i = 0; i < count; i++) {
       this.priority[i] = stream.readUint16();

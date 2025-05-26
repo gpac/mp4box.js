@@ -31,7 +31,7 @@ export class Log {
       );
     }
   }
-  static log(module: { msg: string }, msg?: string) {
+  static log(module: { msg: string }, _msg?: string) {
     this.debug(module.msg);
   }
   static info(module: string, msg?: string) {
@@ -103,8 +103,8 @@ export class Log {
   /* Helper function to stringify HTML5 TimeRanges objects */
   static printRanges(ranges: {
     length: number;
-    start: (index: number) => any;
-    end: (index: number) => any;
+    start: (index: number) => number;
+    end: (index: number) => number;
   }) {
     const length = ranges.length;
     if (length > 0) {

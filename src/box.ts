@@ -231,7 +231,7 @@ export class ContainerBox extends Box {
     this.printHeader(output);
     for (let i = 0; i < this.boxes.length; i++) {
       if (this.boxes[i]) {
-        let prev_indent = output.indent;
+        const prev_indent = output.indent;
         output.indent += ' ';
         this.boxes[i].print(output);
         output.indent = prev_indent;
@@ -254,7 +254,7 @@ export class ContainerBox extends Box {
         if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
           this[this.subBoxNames[this.subBoxNames.indexOf(box.type)] + 's'].push(box);
         } else {
-          let box_type = box.type !== 'uuid' ? box.type : box.uuid;
+          const box_type = box.type !== 'uuid' ? box.type : box.uuid;
           if (this[box_type]) {
             Log.warn(
               'ContainerBox',
@@ -292,10 +292,7 @@ export class SampleGroupEntry {
 export class TrackGroupTypeBox extends FullBox {
   track_group_id: number;
 
-  constructor(
-    public type: string,
-    size: number,
-  ) {
+  constructor(public type: string, size: number) {
     super(size);
   }
 
@@ -360,12 +357,7 @@ export class SingleItemTypeReferenceBoxLarge extends Box {
 
 /** @bundle parsing/TrakReference.js */
 export class TrackReferenceTypeBox extends Box {
-  constructor(
-    public type: string,
-    size: number,
-    public hdr_size: number,
-    public start: number,
-  ) {
+  constructor(public type: string, size: number, public hdr_size: number, public start: number) {
     super(size);
   }
 
@@ -394,7 +386,7 @@ export function parseUUID(stream: MultiBufferStream | MP4BoxStream) {
 export function parseHex16(stream: MultiBufferStream | MP4BoxStream) {
   let hex16 = '';
   for (let i = 0; i < 16; i++) {
-    let hex = stream.readUint8().toString(16);
+    const hex = stream.readUint8().toString(16);
     hex16 += hex.length === 1 ? '0' + hex : hex;
   }
   return hex16;
@@ -406,9 +398,8 @@ export function parseOneBox(
   parentSize?: number,
 ) {
   let box: Box;
-  let start = stream.getPosition();
+  const start = stream.getPosition();
   let hdr_size = 0;
-  let diff: string | number;
   let uuid: string;
   if (stream.getEndPosition() - start < 8) {
     Log.debug('BoxParser', 'Not enough data in stream to parse the type and size of the box');
@@ -544,7 +535,7 @@ export function parseOneBox(
   }
   // @ts-expect-error FIXME: figure out stream-types
   box.parse(stream);
-  diff = stream.getPosition() - (box.start + box.size);
+  const diff = stream.getPosition() - (box.start + box.size);
   if (diff < 0) {
     Log.warn(
       'BoxParser',
