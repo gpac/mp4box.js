@@ -36,7 +36,7 @@ export class DataStream {
 
   _buffer?: MP4BoxBuffer;
   _byteOffset?: number;
-  _dataView?: DataView<ArrayBuffer>;
+  _dataView?: DataView<MP4BoxBuffer>;
 
   endianness: boolean;
   position: number;
@@ -50,14 +50,12 @@ export class DataStream {
    * @param endianness DataStream.BIG_ENDIAN or DataStream.LITTLE_ENDIAN (the default).
    */
   constructor(
-    arrayBuffer?: ArrayBuffer | DataView<ArrayBuffer> | number,
+    arrayBuffer?: DataView<MP4BoxBuffer> | number,
     byteOffset?: number,
     endianness?: boolean | null,
   ) {
     this._byteOffset = byteOffset || 0;
-    if (arrayBuffer instanceof ArrayBuffer) {
-      this.buffer = arrayBuffer;
-    } else if (arrayBuffer instanceof DataView) {
+    if (arrayBuffer instanceof DataView) {
       this.dataView = arrayBuffer;
       if (byteOffset) this._byteOffset += byteOffset;
     } else {
@@ -181,7 +179,7 @@ export class DataStream {
   get dataView() {
     return this._dataView;
   }
-  set dataView(value: DataView<ArrayBuffer>) {
+  set dataView(value: DataView<MP4BoxBuffer>) {
     this._byteOffset = value.byteOffset;
     this._buffer = value.buffer;
     this._dataView = new DataView(this._buffer, this._byteOffset);
@@ -346,7 +344,7 @@ export class DataStream {
    * @param e Endianness of the data to read.
    * @return The read Uint8Array.
    */
-  readUint8Array(length: number | null) {
+  readUint8Array(length: number | null): Uint8Array {
     length = length === null ? this.byteLength - this.position : length;
     const arr = new Uint8Array(length);
     DataStream.memcpy(
