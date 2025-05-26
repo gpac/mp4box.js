@@ -2,7 +2,10 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 class PaddingBit {
-  constructor(public pad1: number, public pad2: number) {}
+  constructor(
+    public pad1: number,
+    public pad2: number,
+  ) {}
 }
 
 export class padbBox extends FullBox {
