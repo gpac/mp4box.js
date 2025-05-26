@@ -1,4 +1,4 @@
 export class MP4BoxBuffer extends ArrayBuffer {
-  fileStart?: number;
+  fileStart: number;
   usedBytes?: number;
 }
