@@ -945,6 +945,23 @@ export class DataStream {
   }
 
   /**
+   * Writes a 64-bit int to the DataStream with the desired endianness.
+   *
+   * @param value Number to write.
+   * @param endianness Endianness of the number.
+   * @bundle DataStream-write.js
+   */
+  writeInt64(value: number, endianness?: boolean | null) {
+    this._realloc(8);
+    this._dataView.setBigInt64(
+      this.position,
+      BigInt(value),
+      endianness == null ? this.endianness : endianness,
+    );
+    this.position += 8;
+  }
+
+  /**
    * Writes a 32-bit int to the DataStream with the desired endianness.
    *
    * @param value Number to write.
