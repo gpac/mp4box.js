@@ -50,7 +50,7 @@
     "dist"
   ],
   "scripts": {
-    "install": "husky",
+    "install": "husky || true",
     "build": "tsup",
     "circular": "dpdm -T ./entries/all.ts",
     "types": "tsc --noEmit --project tsconfig.json",
