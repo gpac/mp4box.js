@@ -72,7 +72,7 @@ export class Log {
     let neg: boolean;
     /* Helper function to print a number on a fixed number of digits */
     function pad(number: string | number, length: number) {
-      const str = '' + number;
+      const str = String(number);
       const a = str.split('.');
       while (a[0].length < length) {
         a[0] = '0' + a[0];

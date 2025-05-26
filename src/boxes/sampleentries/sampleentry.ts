@@ -106,7 +106,6 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       baseCodec += '.';
       switch (this.hvcC.general_profile_space) {
         case 0:
-          baseCodec += '';
           break;
         case 1:
           baseCodec += 'A';

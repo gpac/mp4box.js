@@ -226,9 +226,9 @@ export class DataStream {
    * @return Uint8Array to the DataStream backing buffer.
    */
   mapUint8Array(length: number) {
-    this._realloc(length * 1);
+    this._realloc(length);
     const arr = new Uint8Array(this._buffer, this.byteOffset + this.position, length);
-    this.position += length * 1;
+    this.position += length;
     return arr;
   }
 
@@ -789,7 +789,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeInt8Array(array: ArrayLike<number>) {
-    this._realloc(array.length * 1);
+    this._realloc(array.length);
     if (
       array instanceof Int8Array &&
       this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
@@ -872,7 +872,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeUint8Array(array: ArrayLike<number>) {
-    this._realloc(array.length * 1);
+    this._realloc(array.length);
     if (
       array instanceof Uint8Array &&
       this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
@@ -1732,9 +1732,9 @@ export class DataStream {
    * @bundle DataStream-map.js
    */
   mapInt8Array(length: number, _endianness?: boolean) {
-    this._realloc(length * 1);
+    this._realloc(length);
     const arr = new Int8Array(this._buffer, this.byteOffset + this.position, length);
-    this.position += length * 1;
+    this.position += length;
     return arr;
   }
 

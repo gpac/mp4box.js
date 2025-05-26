@@ -1,4 +1,4 @@
-import type { Box} from '#/box';
+import type { Box } from '#/box';
 import { parseOneBox } from '#/box';
 import { OK } from '#/constants';
 import { MP4BoxStream } from '#/stream';
@@ -35,7 +35,7 @@ export class VTTin4Parser {
       const m = Math.floor((insec - h * 3600) / 60);
       const s = Math.floor(insec - h * 3600 - m * 60);
       const ms = Math.floor((insec - h * 3600 - m * 60 - s) * 1000);
-      return '' + pad(h, 2) + ':' + pad(m, 2) + ':' + pad(s, 2) + '.' + pad(ms, 3);
+      return `${pad(h, 2)}:${pad(m, 2)}:${pad(s, 2)}.${pad(ms, 3)}`;
     }
     const cues = this.parseSample(data);
     let string = '';

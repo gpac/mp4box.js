@@ -216,14 +216,7 @@ export class MultiBufferStream extends DataStream {
     } else {
       log(
         'MultiBufferStream',
-        '' +
-          this.buffers.length +
-          ' stored buffer(s) (' +
-          used +
-          '/' +
-          total +
-          ' bytes), continuous ranges: ' +
-          bufferedString,
+        `${this.buffers.length} stored buffer(s) (${used}/${total} bytes), continuous ranges: ${bufferedString}`,
       );
     }
   }
