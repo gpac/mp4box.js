@@ -1,5 +1,6 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import eslintPlugin from 'eslint-plugin-prettier/recommended';
 
 export default tseslint.config(
   { ignores: ['dist', '**/*.js'] },
@@ -20,4 +21,5 @@ export default tseslint.config(
       '@typescript-eslint/prefer-for-of': 'off',
     },
   },
+  eslintPlugin,
 );

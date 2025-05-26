@@ -1,4 +1,4 @@
-import type { Box} from '#/box';
+import type { Box } from '#/box';
 import { FullBox, parseOneBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';

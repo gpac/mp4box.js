@@ -33,11 +33,13 @@ export class cslgBox extends FullBox {
   /** @bundle writing/cslg.js */
   write(stream: MultiBufferStream) {
     this.version = 0;
-    if ((this.compositionToDTSShift > INT32_MAX) ||
-      (this.leastDecodeToDisplayDelta > INT32_MAX) ||
-      (this.greatestDecodeToDisplayDelta > INT32_MAX) ||
-      (this.compositionStartTime > INT32_MAX) ||
-      (this.compositionEndTime > INT32_MAX)) {
+    if (
+      this.compositionToDTSShift > INT32_MAX ||
+      this.leastDecodeToDisplayDelta > INT32_MAX ||
+      this.greatestDecodeToDisplayDelta > INT32_MAX ||
+      this.compositionStartTime > INT32_MAX ||
+      this.compositionEndTime > INT32_MAX
+    ) {
       this.version = 1;
     }
     this.flags = 0;

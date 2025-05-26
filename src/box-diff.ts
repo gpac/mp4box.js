@@ -50,10 +50,8 @@ export function boxEqualFields(box_a: Box, box_b: Box) {
     } else if (typeof box_a[prop] === 'function' || typeof box_b[prop] === 'function') {
       continue;
     } else if (
-      ('subBoxNames' in box_a &&
-        (box_a.subBoxNames as string[]).indexOf(prop.slice(0, 4)) > -1) ||
-      ('subBoxNames' in box_b &&
-        (box_b.subBoxNames as string[]).indexOf(prop.slice(0, 4)) > -1)
+      ('subBoxNames' in box_a && (box_a.subBoxNames as string[]).indexOf(prop.slice(0, 4)) > -1) ||
+      ('subBoxNames' in box_b && (box_b.subBoxNames as string[]).indexOf(prop.slice(0, 4)) > -1)
     ) {
       continue;
     } else {
