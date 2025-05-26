@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { DataStream } from '#/DataStream';
 import { MP4BoxStream } from '#/stream';
-import type { ParameterSetArray } from './displays/pixel';
+import type { ParameterSetArray } from './displays/parameterSetArray';
 
 export class avcCBox extends Box {
   type = 'avcC' as const;

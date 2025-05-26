@@ -12,18 +12,18 @@ export namespace MP4Box {
   export interface DescriptorRegistry extends Partial<typeof DESCRIPTORS> {}
 }
 
-export type TypedArray =
-  | Int8Array
-  | Uint8Array
-  | Uint8ClampedArray
-  | Int16Array
-  | Uint16Array
-  | Int32Array
-  | Uint32Array
-  | Float32Array
-  | Float64Array
-  | BigInt64Array
-  | BigUint64Array;
+export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
+  | Int8Array<T>
+  | Uint8Array<T>
+  | Uint8ClampedArray<T>
+  | Int16Array<T>
+  | Uint16Array<T>
+  | Int32Array<T>
+  | Uint32Array<T>
+  | Float32Array<T>
+  | Float64Array<T>
+  | BigInt64Array<T>
+  | BigUint64Array<T>;
 
 export type ValueOf<T> = T[keyof T];
 export type InstanceOf<T> = T extends new (...args: Array<any>) => infer R ? R : never;
@@ -61,7 +61,7 @@ export interface Sample {
   chunk_index?: number;
   chunk_run_index?: number;
   cts: number;
-  data?: Uint8Array;
+  data?: Uint8Array<ArrayBuffer>;
   degradation_priority: number;
   depends_on: number;
   description_index: number;

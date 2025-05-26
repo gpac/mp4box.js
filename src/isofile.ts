@@ -2482,7 +2482,7 @@ export class ISOFile<TSegmentUser = any, TSampleUser = any> {
   /** @bundle isofile-advanced-creation.js */
   addSample(
     track_id: number,
-    data: Uint8Array,
+    data: Uint8Array<ArrayBuffer>,
     {
       sample_description_index,
       duration = 1,

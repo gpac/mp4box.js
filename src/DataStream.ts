@@ -36,7 +36,7 @@ export class DataStream {
 
   _buffer?: MP4BoxBuffer;
   _byteOffset?: number;
-  _dataView?: DataView;
+  _dataView?: DataView<ArrayBuffer>;
 
   endianness: boolean;
   position: number;
@@ -50,18 +50,16 @@ export class DataStream {
    * @param endianness DataStream.BIG_ENDIAN or DataStream.LITTLE_ENDIAN (the default).
    */
   constructor(
-    arrayBuffer?: ArrayBuffer | DataView | number,
+    arrayBuffer?: ArrayBuffer | DataView<ArrayBuffer> | number,
     byteOffset?: number,
     endianness?: boolean | null,
   ) {
     this._byteOffset = byteOffset || 0;
     if (arrayBuffer instanceof ArrayBuffer) {
       this.buffer = arrayBuffer;
-    } else if (typeof arrayBuffer == 'object') {
+    } else if (arrayBuffer instanceof DataView) {
       this.dataView = arrayBuffer;
-      if (byteOffset) {
-        this._byteOffset += byteOffset;
-      }
+      if (byteOffset) this._byteOffset += byteOffset;
     } else {
       this.buffer = new MP4BoxBuffer(arrayBuffer || 0);
     }
@@ -183,7 +181,7 @@ export class DataStream {
   get dataView() {
     return this._dataView;
   }
-  set dataView(value: DataView) {
+  set dataView(value: DataView<ArrayBuffer>) {
     this._byteOffset = value.byteOffset;
     this._buffer = value.buffer;
     this._dataView = new DataView(this._buffer, this._byteOffset);
@@ -538,7 +536,7 @@ export class DataStream {
   static memcpy(
     dst: ArrayBufferLike,
     dstOffset?: number,
-    src?: ArrayBuffer,
+    src?: ArrayBufferLike,
     srcOffset?: number,
     byteLength?: number,
   ) {
