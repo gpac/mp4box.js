@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PUBLISH_MODE: true
+
 jobs:
   release:
     permissions:
@@ -41,4 +44,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          PUBLISH_MODE: true
