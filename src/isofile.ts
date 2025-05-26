@@ -157,11 +157,11 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** Boolean used to fire moov start event only once */
   moovStartFound = false;
   /** Callback called when the moov parsing starts */
-  onMoovStart = null;
+  onMoovStart: (() => void) | null = null;
   /** Boolean keeping track of the call to onMoovStart, to avoid double calls */
   moovStartSent = false;
   /** Callback called when the moov is entirely parsed */
-  onReady = null;
+  onReady: ((info: Movie) => void) | null = null;
   /** Boolean keeping track of the call to onReady, to avoid double calls */
   readySent = false;
   /** Callback to call when segments are ready */
@@ -195,7 +195,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** Boolean indicating if the initial list of items has been produced */
   itemListBuilt = false;
   /** Callback called when the sidx box is entirely parsed */
-  onSidx = null;
+  onSidx: ((sidx: sidxBox) => void) | null = null;
   /** Boolean keeping track of the call to onSidx, to avoid double calls */
   sidxSent = false;
 
