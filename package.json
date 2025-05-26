@@ -30,16 +30,25 @@
   "types": "./dist/mp4box.all.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/mp4box.all.d.ts",
+      "types": {
+        "import": "./dist/mp4box.all.d.ts",
+        "require": "./dist/mp4box.all.d.cts"
+      },
       "import": "./dist/mp4box.all.js",
       "require": "./dist/mp4box.all.cjs"
     },
     "./simple": {
-      "types": "./dist/mp4box.simple.d.ts",
+      "types": {
+        "import": "./dist/mp4box.simple.d.ts",
+        "require": "./dist/mp4box.simple.d.cts"
+      },
       "import": "./dist/mp4box.simple.js",
       "require": "./dist/mp4box.simple.cjs"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "circular": "dpdm -T ./entries/all.ts",
@@ -47,9 +56,8 @@
     "test": "npm run build && npm run types && npm run circular"
   },
   "devDependencies": {
-    "blanket": "^1.2.3",
+    "@types/node": "^22.15.21",
     "dpdm": "^3.14.0",
-    "qunitjs": "^1.23.0",
     "tsup": "^8.3.5",
     "typescript": "^5.6.3"
   },
