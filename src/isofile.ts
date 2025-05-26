@@ -256,7 +256,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     let index = -1;
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
       const fragTrack = this.fragmentedTracks[i];
-      if (fragTrack.id == id) {
+      if (fragTrack.id === id) {
         index = i;
       }
     }
@@ -287,7 +287,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     let index = -1;
     for (let i = 0; i < this.extractedTracks.length; i++) {
       const extractTrack = this.extractedTracks[i];
-      if (extractTrack.id == id) {
+      if (extractTrack.id === id) {
         index = i;
       }
     }
@@ -502,7 +502,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     const _1904 = new Date('1904-01-01T00:00:00Z').getTime();
-    const isFragmented = this.moov.mvex != null;
+    const isFragmented = this.moov.mvex !== null;
 
     const movie: Movie = {
       hasMoov: true,
@@ -512,7 +512,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       fragment_duration:
         isFragmented && this.moov.mvex.mehd ? this.moov.mvex.mehd.fragment_duration : undefined,
       isProgressive: this.isProgressive,
-      hasIOD: this.moov.iods != null,
+      hasIOD: this.moov.iods !== null,
       brands: [this.ftyp.major_brand].concat(this.ftyp.compatible_brands),
       created: new Date(_1904 + this.moov.mvhd.creation_time * 1000),
       modified: new Date(_1904 + this.moov.mvhd.modification_time * 1000),
@@ -755,7 +755,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   static _sweep(type: BoxKind['type'], result: Array<typeof ISOFile>, returnEarly: boolean) {
-    if (this.type && this.type == type) result.push(this);
+    if (this.type && this.type === type) result.push(this);
     for (const box in this.boxes) {
       if (result.length && returnEarly) return;
       ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
@@ -960,7 +960,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   createFragment(track_id: number, sampleNumber: number, _stream: DataStream) {
     const trak = this.getTrackById(track_id);
     const sample = this.getSample(trak, sampleNumber);
-    if (sample == null) {
+    if (sample === null) {
       this.setNextSeekPositionFromSample(trak.samples[sampleNumber]);
       return null;
     }
@@ -1119,7 +1119,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       }
       const stss = trak.mdia.minf.stbl.stss;
       const k = trak.mdia.minf.stbl.boxes.indexOf(stss);
-      if (k != -1) trak.mdia.minf.stbl.boxes[k] = null;
+      if (k !== -1) trak.mdia.minf.stbl.boxes[k] = null;
     }
   }
 
@@ -1410,7 +1410,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         sample.cts = sample.dts;
       }
       if (stss) {
-        if (j == stss.sample_numbers[last_stss_index] - 1) {
+        if (j === stss.sample_numbers[last_stss_index] - 1) {
           // sample numbers are 1-based
           sample.is_sync = true;
           last_stss_index++;
@@ -1419,7 +1419,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           sample.degradation_priority = 0;
         }
         if (subs) {
-          if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index == j + 1) {
+          if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index === j + 1) {
             sample.subsamples = subs.entries[subs_entry_index].subsamples;
             last_subs_sample_index += subs.entries[subs_entry_index].sample_delta;
             subs_entry_index++;
@@ -1435,7 +1435,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         sample.degradation_priority = 0;
       }
       if (subs) {
-        if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index == j) {
+        if (subs.entries[subs_entry_index].sample_delta + last_subs_sample_index === j) {
           sample.subsamples = subs.entries[subs_entry_index].subsamples;
           last_subs_sample_index += subs.entries[subs_entry_index].sample_delta;
         }
@@ -1469,7 +1469,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     while (this.lastMoofIndex < this.moofs.length) {
       const box = this.moofs[this.lastMoofIndex];
       this.lastMoofIndex++;
-      if (box.type == 'moof') {
+      if (box.type === 'moof') {
         const moof = box;
         for (let i = 0; i < moof.trafs.length; i++) {
           const traf = moof.trafs[i];
@@ -1662,7 +1662,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           this.samplesDataSize +
           ')',
       );
-    } else if (sample.alreadyRead == sample.size) {
+    } else if (sample.alreadyRead === sample.size) {
       /* Already fetched entirely */
       return sample;
     }
@@ -1798,7 +1798,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (!this.moov || !this.moov.mvex) return null;
     for (let i = 0; i < this.moov.mvex.trexs.length; i++) {
       const trex = this.moov.mvex.trexs[i];
-      if (trex.track_id == id) return trex;
+      if (trex.track_id === id) return trex;
     }
     return null;
   }
@@ -1814,7 +1814,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
     for (let j = 0; j < this.moov.traks.length; j++) {
       const trak = this.moov.traks[j];
-      if (trak.tkhd.track_id == id) return trak;
+      if (trak.tkhd.track_id === id) return trak;
     }
     return null;
   }
@@ -1880,7 +1880,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             length: itemloc.extents[j].extent_length,
             alreadyRead: 0,
           };
-          if (itemloc.construction_method == 1) {
+          if (itemloc.construction_method === 1) {
             item.extents[j].offset += meta.idat.start + meta.idat.hdr_size;
           }
           item.size += item.extents[j].length;
@@ -2125,7 +2125,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     } else {
       item = this.getPrimaryItem();
     }
-    if (item == null) return null;
+    if (item === null) return null;
 
     const file = new ISOFile();
     file.discardMdatData = false;

@@ -27,7 +27,7 @@ export class cttsBox extends FullBox {
         }
         this.sample_offsets.push(value);
       }
-    } else if (this.version == 1) {
+    } else if (this.version === 1) {
       for (let i = 0; i < entry_count; i++) {
         this.sample_counts.push(stream.readUint32());
         this.sample_offsets.push(stream.readInt32()); /* signed */

@@ -24,7 +24,7 @@ export class Descriptor {
 
   findDescriptor(tag: number) {
     for (let i = 0; i < this.descs.length; i++) {
-      if (this.descs[i].tag == tag) {
+      if (this.descs[i].tag === tag) {
         return this.descs[i];
       }
     }

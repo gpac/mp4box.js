@@ -24,7 +24,7 @@ export class sbpmBox extends FullBox {
       this.component_index.push(stream.readUint16());
     }
     const flags = stream.readUint8();
-    this.correction_applied = 0x80 == (flags & 0x80);
+    this.correction_applied = 0x80 === (flags & 0x80);
     this.num_bad_rows = stream.readUint32();
     this.num_bad_cols = stream.readUint32();
     this.num_bad_pixels = stream.readUint32();

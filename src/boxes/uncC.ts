@@ -28,9 +28,9 @@ export class uncCBox extends FullBox {
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
     this.profile = stream.readString(4);
-    if (this.version == 1) {
+    if (this.version === 1) {
       // Nothing - just the profile
-    } else if (this.version == 0) {
+    } else if (this.version === 0) {
       this.component_count = stream.readUint32();
       this.component_index = [];
       this.component_bit_depth_minus_one = [];

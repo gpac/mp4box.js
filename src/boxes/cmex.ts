@@ -26,7 +26,7 @@ export class cmexBox extends Box {
       this.pos_z = stream.readInt32();
     }
     if (this.flags & 0x8) {
-      if (this.version == 0) {
+      if (this.version === 0) {
         if (this.flags & 0x10) {
           this.quat_x = stream.readInt32();
           this.quat_y = stream.readInt32();
@@ -36,7 +36,7 @@ export class cmexBox extends Box {
           this.quat_y = stream.readInt16();
           this.quat_z = stream.readInt16();
         }
-      } else if (this.version == 1) {
+      } else if (this.version === 1) {
         //ViewpointGlobalCoordinateSysRotationStruct rot;
       }
     }

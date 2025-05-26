@@ -17,7 +17,7 @@ export class mvhdBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    if (this.version == 1) {
+    if (this.version === 1) {
       this.creation_time = stream.readUint64();
       this.modification_time = stream.readUint64();
       this.timescale = stream.readUint32();

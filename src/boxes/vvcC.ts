@@ -147,7 +147,7 @@ export class vvcCBox extends FullBox {
       nalu_array.nalu_type = bitReader.extract_bits(5);
 
       let numNalus = 1;
-      if (nalu_array.nalu_type != VVC_NALU_DEC_PARAM && nalu_array.nalu_type != VVC_NALU_OPI) {
+      if (nalu_array.nalu_type !== VVC_NALU_DEC_PARAM && nalu_array.nalu_type !== VVC_NALU_OPI) {
         numNalus = stream.readUint16();
       }
 

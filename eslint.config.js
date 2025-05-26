@@ -11,6 +11,10 @@ export default defineConfig([
   { files: ['**/*.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] },
   {
     rules: {
+      eqeqeq: ['error', 'always'],
+      'linebreak-style': ['error', 'unix'],
+      'one-var': ['error', 'never'],
+      semi: ['error', 'always'],
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },

@@ -127,7 +127,7 @@ export class Box {
 
   /** @bundle box-parse.js */
   parse(stream: MultiBufferStream) {
-    if (this.type != 'mdat') {
+    if (this.type !== 'mdat') {
       this.data = stream.readUint8Array(this.size - this.hdr_size);
     } else {
       if (this.size === 0) {
@@ -251,7 +251,7 @@ export class ContainerBox extends Box {
         }
         /* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
         this.boxes.push(box);
-        if (this.subBoxNames && this.subBoxNames.indexOf(box.type) != -1) {
+        if (this.subBoxNames && this.subBoxNames.indexOf(box.type) !== -1) {
           this[this.subBoxNames[this.subBoxNames.indexOf(box.type)] + 's'].push(box);
         } else {
           const box_type = box.type !== 'uuid' ? box.type : box.uuid;
@@ -417,7 +417,7 @@ export function parseOneBox(
     "Found box of type '" + type + "' and size " + size + ' at position ' + start,
   );
   hdr_size = 8;
-  if (type == 'uuid') {
+  if (type === 'uuid') {
     if (stream.getEndPosition() - stream.getPosition() < 16 || parentSize - hdr_size < 16) {
       stream.seek(start);
       Log.debug('BoxParser', 'Not enough bytes left in the parent box to parse a UUID box');
@@ -427,7 +427,7 @@ export function parseOneBox(
     hdr_size += 16;
     box_type = uuid;
   }
-  if (size == 1) {
+  if (size === 1) {
     if (
       stream.getEndPosition() - stream.getPosition() < 8 ||
       (parentSize && parentSize - hdr_size < 8)

@@ -124,7 +124,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       let reversed = 0;
       for (let i = 0; i < 32; i++) {
         reversed |= val & 1;
-        if (i == 31) break;
+        if (i === 31) break;
         reversed <<= 1;
         val >>= 1;
       }
@@ -260,11 +260,11 @@ class vpcCSampleEntryBase extends VisualSampleEntry {
   getCodec() {
     const baseCodec = super.getCodec();
     let level: number | string = this.vpcC.level;
-    if (level == 0) {
+    if (level === 0) {
       level = '00';
     }
     let bitDepth: number | string = this.vpcC.bitDepth;
-    if (bitDepth == 8) {
+    if (bitDepth === 8) {
       bitDepth = '08';
     }
     return `${baseCodec}.0${this.vpcC.profile}.${level}.${bitDepth}`;
