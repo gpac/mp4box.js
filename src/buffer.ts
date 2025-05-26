@@ -8,7 +8,7 @@ import type { MP4BoxBuffer } from './mp4boxbuffer';
  * @param buffer2
  * @return the concatenation of buffer1 and buffer2 in that order
  */
-function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
+function concatBuffers(buffer1: MP4BoxBuffer, buffer2: MP4BoxBuffer): MP4BoxBuffer {
   Log.debug(
     'ArrayBuffer',
     'Trying to create a new buffer of size: ' + (buffer1.byteLength + buffer2.byteLength),
@@ -16,7 +16,13 @@ function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
   const tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
   tmp.set(new Uint8Array(buffer1), 0);
   tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-  return tmp.buffer as MP4BoxBuffer;
+
+  const arrayBuffer = tmp.buffer;
+
+  return Object.assign(arrayBuffer, {
+    fileStart: buffer1.fileStart,
+    usedBytes: buffer1.usedBytes + buffer2.usedBytes,
+  });
 }
 
 /**
@@ -31,7 +37,7 @@ export class MultiBufferStream extends DataStream {
   bufferIndex: number;
 
   constructor(buffer?: MP4BoxBuffer) {
-    super(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
+    super(undefined, 0, DataStream.BIG_ENDIAN);
     // List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non-overlapping
     this.buffers = [];
     this.bufferIndex = -1;
@@ -73,14 +79,13 @@ export class MultiBufferStream extends DataStream {
    * @param  {ArrayBuffer} buffer
    * @param  {Number}      offset    the start of new buffer
    * @param  {Number}      newLength the length of the new buffer
-   * @return {ArrayBuffer}           the new buffer
+   * @return {MP4BoxBuffer}           the new buffer
    */
-  reduceBuffer(buffer: MP4BoxBuffer, offset: number, newLength: number) {
+  reduceBuffer(buffer: MP4BoxBuffer, offset: number, newLength: number): MP4BoxBuffer {
     const smallB = new Uint8Array(newLength);
     smallB.set(new Uint8Array(buffer, offset, newLength));
-    (smallB.buffer as MP4BoxBuffer).fileStart = buffer.fileStart + offset;
-    (smallB.buffer as MP4BoxBuffer).usedBytes = 0;
-    return smallB.buffer as MP4BoxBuffer;
+
+    return Object.assign(smallB.buffer, { fileStart: buffer.fileStart + offset, usedBytes: 0 });
   }
 
   /**
