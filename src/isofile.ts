@@ -503,7 +503,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     const _1904 = new Date('1904-01-01T00:00:00Z').getTime();
-    const isFragmented = this.moov.mvex !== null;
+    const isFragmented = this.moov.mvex !== undefined;
 
     const movie: Movie = {
       hasMoov: true,

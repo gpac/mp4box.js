@@ -130,7 +130,7 @@ export class moovBox extends ContainerBox {
   timescale: number;
   mvhd: mvhdBox;
   mvhds: Array<mvhdBox>;
-  mvex: mvexBox;
+  mvex: mvexBox | undefined;
   mvexs: Array<mvexBox>;
   iods: iodsBox;
   iodss: Array<iodsBox>;
@@ -243,7 +243,7 @@ export class mvexBox extends ContainerBox {
   type = 'mvex' as const;
   box_name = 'MovieExtendsBox';
   trex: trexBox;
-  mehd: mehdBox;
+  mehd: mehdBox | undefined;
   mehds: Array<mehdBox>;
 
   trexs: Array<trexBox> = [];
