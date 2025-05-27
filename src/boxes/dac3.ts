@@ -13,9 +13,9 @@ export class dac3Box extends Box {
   bit_rate_code: number;
 
   parse(stream: MultiBufferStream) {
-    let tmp_byte1 = stream.readUint8();
-    let tmp_byte2 = stream.readUint8();
-    let tmp_byte3 = stream.readUint8();
+    const tmp_byte1 = stream.readUint8();
+    const tmp_byte2 = stream.readUint8();
+    const tmp_byte3 = stream.readUint8();
     this.fscod = tmp_byte1 >> 6;
     this.bsid = (tmp_byte1 >> 1) & 0x1f;
     this.bsmod = ((tmp_byte1 & 0x1) << 2) | ((tmp_byte2 >> 6) & 0x3);

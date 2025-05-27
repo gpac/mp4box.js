@@ -18,7 +18,7 @@ export class sidxBox extends FullBox {
   timescale: number;
   earliest_presentation_time: number;
   first_offset: number;
-  references: Reference[];
+  references: Array<Reference>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

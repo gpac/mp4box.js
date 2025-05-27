@@ -9,7 +9,7 @@ export class co64Box extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    let entry_count = stream.readUint32();
+    const entry_count = stream.readUint32();
     this.chunk_offsets = [];
     if (this.version === 0) {
       for (let i = 0; i < entry_count; i++) {

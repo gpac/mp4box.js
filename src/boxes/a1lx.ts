@@ -12,7 +12,7 @@ export class a1lxBox extends Box {
     const FieldLength = ((large_size & 1) + 1) * 16;
     this.layer_size = [];
     for (let i = 0; i < 3; i++) {
-      if (FieldLength == 16) {
+      if (FieldLength === 16) {
         this.layer_size[i] = stream.readUint16();
       } else {
         this.layer_size[i] = stream.readUint32();

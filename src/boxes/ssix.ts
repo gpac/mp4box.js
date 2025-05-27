@@ -13,7 +13,7 @@ export class ssixBox extends FullBox {
   type = 'ssix' as const;
   box_name = 'CompressedSubsegmentIndexBox';
 
-  subsegments: SubSegment[];
+  subsegments: Array<SubSegment>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -25,7 +25,7 @@ export class ssixBox extends FullBox {
       subsegment.ranges = [];
       const range_count = stream.readUint32();
       for (let j = 0; j < range_count; j++) {
-        let range = {} as Range;
+        const range = {} as Range;
         subsegment.ranges.push(range);
         range.level = stream.readUint8();
         range.range_size = stream.readUint24();

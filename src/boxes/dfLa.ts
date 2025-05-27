@@ -25,10 +25,9 @@ export class dfLaBox extends FullBox {
       'RESERVED',
     ];
 
-    // for (i=0; ; i++) { // to end of box
+    let flagAndType: number;
     do {
-      const flagAndType = stream.readUint8();
-
+      flagAndType = stream.readUint8();
       const type = Math.min(flagAndType & BLOCKTYPE_MASK, knownBlockTypes.length - 1);
 
       // if this is a STREAMINFO block, read the true samplerate since this
@@ -48,11 +47,7 @@ export class dfLaBox extends FullBox {
       }
 
       boxesFound.push(knownBlockTypes[type]);
-
-      if (!!(flagAndType & LASTMETADATABLOCKFLAG_MASK)) {
-        break;
-      }
-    } while (true);
+    } while (flagAndType & LASTMETADATABLOCKFLAG_MASK);
 
     this.numMetadataBlocks = boxesFound.length + ' (' + boxesFound.join(', ') + ')';
   }

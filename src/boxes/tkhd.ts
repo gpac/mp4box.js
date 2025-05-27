@@ -19,7 +19,7 @@ export class tkhdBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    if (this.version == 1) {
+    if (this.version === 1) {
       this.creation_time = stream.readUint64();
       this.modification_time = stream.readUint64();
       this.track_id = stream.readUint32();

@@ -20,7 +20,7 @@ export class ilocBox extends FullBox {
     construction_method: number;
     item_ID: number;
     data_reference_index: number;
-    extents: Extent[];
+    extents: Array<Extent>;
   }>;
 
   parse(stream: MultiBufferStream) {

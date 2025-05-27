@@ -27,7 +27,7 @@ export class Descriptor {
 
   findDescriptor(tag: number) {
     for (let i = 0; i < this.descs.length; i++) {
-      if (this.descs[i].tag == tag) {
+      if (this.descs[i].tag === tag) {
         return this.descs[i];
       }
     }
@@ -35,16 +35,12 @@ export class Descriptor {
   }
 
   parseOneDescriptor(stream: DataStream): DescriptorKinds {
-    let hdrSize = 0;
     let size = 0;
     const tag = stream.readUint8();
-    hdrSize++;
     let byteRead = stream.readUint8();
-    hdrSize++;
     while (byteRead & 0x80) {
       size = (size << 7) + (byteRead & 0x7f);
       byteRead = stream.readUint8();
-      hdrSize++;
     }
     size = (size << 7) + (byteRead & 0x7f);
     Log.debug(
@@ -66,10 +62,10 @@ export class Descriptor {
   }
 
   parseRemainingDescriptors(stream: DataStream) {
-    let start = stream.position;
+    const start = stream.position;
     while (stream.position < start + this.size) {
       console.log('this.parseOneDescriptor', this, this.parseOneDescriptor);
-      let desc = this.parseOneDescriptor?.(stream);
+      const desc = this.parseOneDescriptor?.(stream);
       this.descs.push(desc);
     }
   }
@@ -195,8 +191,6 @@ const descTagToName = {
 };
 
 export class MPEG4DescriptorParser {
-  constructor() {}
-
   getDescriptorName(tag: number) {
     return descTagToName[tag];
   }

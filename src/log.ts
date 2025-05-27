@@ -11,15 +11,15 @@ const LOG_LEVEL_DEBUG = 1;
 
 let log_level = LOG_LEVEL_ERROR;
 
-export class Log {
-  static setLogLevel(level: { (module: string, msg?: string): void }) {
-    if (level == this.debug) log_level = LOG_LEVEL_DEBUG;
-    else if (level == this.info) log_level = LOG_LEVEL_INFO;
-    else if (level == this.warn) log_level = LOG_LEVEL_WARNING;
-    else if (level == this.error) log_level = LOG_LEVEL_ERROR;
+export const Log = {
+  setLogLevel(level: (module: string, msg?: string) => void) {
+    if (level === this.debug) log_level = LOG_LEVEL_DEBUG;
+    else if (level === this.info) log_level = LOG_LEVEL_INFO;
+    else if (level === this.warn) log_level = LOG_LEVEL_WARNING;
+    else if (level === this.error) log_level = LOG_LEVEL_ERROR;
     else log_level = LOG_LEVEL_ERROR;
-  }
-  static debug(module: string, msg?: string) {
+  },
+  debug(module: string, msg?: string) {
     if (console.debug === undefined) {
       console.debug = console.log;
     }
@@ -30,11 +30,11 @@ export class Log {
         msg,
       );
     }
-  }
-  static log(module: { msg: string }, msg?: string) {
+  },
+  log(module: { msg: string }, _msg?: string) {
     this.debug(module.msg);
-  }
-  static info(module: string, msg?: string) {
+  },
+  info(module: string, msg?: string) {
     if (LOG_LEVEL_INFO >= log_level) {
       console.info(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
@@ -42,8 +42,8 @@ export class Log {
         msg,
       );
     }
-  }
-  static warn(module: string, msg?: string) {
+  },
+  warn(module: string, msg?: string) {
     if (LOG_LEVEL_WARNING >= log_level) {
       console.warn(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
@@ -51,8 +51,8 @@ export class Log {
         msg,
       );
     }
-  }
-  static error(module: string, msg?: string) {
+  },
+  error(module: string, msg?: string) {
     if (LOG_LEVEL_ERROR >= log_level) {
       console.error(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
@@ -60,9 +60,9 @@ export class Log {
         msg,
       );
     }
-  }
+  },
   /* Helper function to print a duration value in the form H:MM:SS.MS */
-  static getDurationString(duration: number, _timescale?: number) {
+  getDurationString(duration: number, _timescale?: number) {
     let neg: boolean;
     /* Helper function to print a number on a fixed number of digits */
     function pad(number: string | number, length: number) {
@@ -99,12 +99,12 @@ export class Log {
       '.' +
       pad(msec, 3)
     );
-  }
+  },
   /* Helper function to stringify HTML5 TimeRanges objects */
-  static printRanges(ranges: {
+  printRanges(ranges: {
     length: number;
-    start: (index: number) => any;
-    end: (index: number) => any;
+    start: (index: number) => number;
+    end: (index: number) => number;
   }) {
     const length = ranges.length;
     if (length > 0) {
@@ -122,5 +122,5 @@ export class Log {
     } else {
       return '(empty)';
     }
-  }
-}
+  },
+};

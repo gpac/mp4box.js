@@ -6,14 +6,14 @@ export class elstBox extends FullBox {
   type = 'elst' as const;
   box_name = 'EditListBox';
 
-  entries: Entry[];
+  entries: Array<Entry>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
     this.entries = [];
     const entry_count = stream.readUint32();
     for (let i = 0; i < entry_count; i++) {
-      let entry: Entry = {
+      const entry: Entry = {
         segment_duration: this.version === 1 ? stream.readUint64() : stream.readUint32(),
         media_time: this.version === 1 ? stream.readInt64() : stream.readInt32(),
         media_rate_integer: stream.readInt16(),

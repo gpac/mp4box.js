@@ -20,15 +20,15 @@ export class dec3Box extends Box {
   ind_subs: Array<IndSub>;
 
   parse(stream: MultiBufferStream) {
-    let tmp_16 = stream.readUint16();
+    const tmp_16 = stream.readUint16();
     this.data_rate = tmp_16 >> 3;
     this.num_ind_sub = tmp_16 & 0x7;
     this.ind_subs = [];
     for (let i = 0; i < this.num_ind_sub + 1; i++) {
-      let tmp_byte1 = stream.readUint8();
-      let tmp_byte2 = stream.readUint8();
-      let tmp_byte3 = stream.readUint8();
-      let ind_sub: IndSub = {
+      const tmp_byte1 = stream.readUint8();
+      const tmp_byte2 = stream.readUint8();
+      const tmp_byte3 = stream.readUint8();
+      const ind_sub: IndSub = {
         fscod: tmp_byte1 >> 6,
         bsid: (tmp_byte1 >> 1) & 0x1f,
         bsmod: ((tmp_byte1 & 0x1) << 4) | ((tmp_byte2 >> 4) & 0xf),

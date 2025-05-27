@@ -37,10 +37,8 @@ export function boxEqualFields(box_a: Box, box_b: Box) {
   if (box_a && !box_b) return false;
   let prop: string;
   for (prop in box_a) {
-    if (DIFF_BOXES_PROP_NAMES.indexOf(prop as any) > -1) {
+    if (DIFF_BOXES_PROP_NAMES.find(name => name === prop)) {
       continue;
-      // } else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
-      // 	continue;
     } else if (box_a[prop] instanceof Box || box_b[prop] instanceof Box) {
       continue;
     } else if (typeof box_a[prop] === 'undefined' || typeof box_b[prop] === 'undefined') {
@@ -63,7 +61,7 @@ export function boxEqualFields(box_a: Box, box_b: Box) {
         prop === 'modification_time'
       ) {
         continue;
-      } else if (DIFF_PRIMITIVE_ARRAY_PROP_NAMES.indexOf(prop as any) > -1) {
+      } else if (DIFF_PRIMITIVE_ARRAY_PROP_NAMES.find(name => name === prop)) {
         continue;
       } else {
         if (box_a[prop] !== box_b[prop]) {
@@ -80,7 +78,7 @@ export function boxEqual(box_a: Box, box_b: Box) {
     return false;
   }
   for (let j = 0; j < DIFF_BOXES_PROP_NAMES.length; j++) {
-    let name = DIFF_BOXES_PROP_NAMES[j];
+    const name = DIFF_BOXES_PROP_NAMES[j];
     if (box_a[name] && box_b[name]) {
       if (!boxEqual(box_a[name], box_b[name])) {
         return false;

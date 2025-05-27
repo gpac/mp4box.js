@@ -31,7 +31,7 @@ export class sgpdBox extends FullBox {
   default_length: number;
   default_group_description_index: number;
   default_sample_description_index: number;
-  entries: SampleGroupEntry[];
+  entries: Array<SampleGroupEntry>;
   used: boolean;
 
   parse(stream: MultiBufferStream) {
@@ -88,7 +88,7 @@ export class sgpdBox extends FullBox {
     this.flags = 0;
     this.size = 12;
     for (let i = 0; i < this.entries.length; i++) {
-      let entry = this.entries[i];
+      const entry = this.entries[i];
       if (this.version === 1) {
         if (this.default_length === 0) {
           this.size += 4;
@@ -106,7 +106,7 @@ export class sgpdBox extends FullBox {
     }
     stream.writeUint32(this.entries.length);
     for (let i = 0; i < this.entries.length; i++) {
-      let entry = this.entries[i];
+      const entry = this.entries[i];
       if (this.version === 1) {
         if (this.default_length === 0) {
           stream.writeUint32(entry.description_length);

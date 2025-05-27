@@ -1,4 +1,4 @@
-import type { MP4Box } from '@types';
+import type * as MP4Box from '@types';
 
 export const BoxRegistry = {} as MP4Box.BoxRegistry;
 export function registerBoxes<T>(registry: T) {

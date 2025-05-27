@@ -31,7 +31,6 @@ export class MultiBufferStream extends DataStream {
   bufferIndex: number;
 
   constructor(buffer?: MP4BoxBuffer) {
-    // @ts-ignore FIXME expects byteLength
     super(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
     // List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non-overlapping
     this.buffers = [];
@@ -95,14 +94,14 @@ export class MultiBufferStream extends DataStream {
     let i = 0;
     /* TODO: improve insertion if many buffers */
     for (; i < this.buffers.length; i++) {
-      const b = this.buffers[i]!;
+      const b = this.buffers[i];
       if (ab.fileStart <= b.fileStart) {
         /* the insertion position is found */
         if (ab.fileStart === b.fileStart) {
           /* The new buffer overlaps with an existing buffer */
           if (ab.byteLength > b.byteLength) {
             /* the new buffer is bigger than the existing one
-					   remove the existing buffer and try again to insert 
+					   remove the existing buffer and try again to insert
 					   the new buffer to check overlap with the next ones */
             this.buffers.splice(i, 1);
             i--;
@@ -136,7 +135,7 @@ export class MultiBufferStream extends DataStream {
               ')',
           );
           this.buffers.splice(i, 0, ab);
-          /* if this new buffer is inserted in the first place in the list of the buffer, 
+          /* if this new buffer is inserted in the first place in the list of the buffer,
 				   and the DataStream is initialized, make it the buffer used for parsing */
           if (i === 0) {
             this.buffer = ab;
@@ -165,7 +164,7 @@ export class MultiBufferStream extends DataStream {
         'Appending new buffer (fileStart: ' + ab.fileStart + ' - Length: ' + ab.byteLength + ')',
       );
       this.buffers.push(ab);
-      /* if this new buffer is inserted in the first place in the list of the buffer, 
+      /* if this new buffer is inserted in the first place in the list of the buffer,
 		   and the DataStream is initialized, make it the buffer used for parsing */
       if (i === 0) {
         this.buffer = ab;
@@ -325,7 +324,7 @@ export class MultiBufferStream extends DataStream {
    * @return {Number}            The largest file position found in the buffers
    */
   findEndContiguousBuf(inputindex?: number) {
-    let index = inputindex !== undefined ? inputindex : this.bufferIndex;
+    const index = inputindex !== undefined ? inputindex : this.bufferIndex;
     let currentBuf = this.buffers[index];
     /* find the end of the contiguous range of data */
     if (this.buffers.length > index + 1) {

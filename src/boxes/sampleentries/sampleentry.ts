@@ -124,7 +124,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       let reversed = 0;
       for (let i = 0; i < 32; i++) {
         reversed |= val & 1;
-        if (i == 31) break;
+        if (i === 31) break;
         reversed <<= 1;
         val >>= 1;
       }
@@ -194,11 +194,9 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
       if (this.vvcC.general_constraint_info) {
         const bytes = [];
         let byte = 0;
-        // @ts-ignore   FIXME: shouldn't it be ptl_frame_only_constraint_flag?
-        byte |= this.vvcC.ptl_frame_only_constraint << 7;
-        // @ts-ignore   FIXME: shouldn't it be ptl_multilayer_enabled_flag?
-        byte |= this.vvcC.ptl_multilayer_enabled << 6;
-        let last_nonzero;
+        byte |= this.vvcC.ptl_frame_only_constraint_flag << 7;
+        byte |= this.vvcC.ptl_multilayer_enabled_flag << 6;
+        let last_nonzero: number | undefined = undefined;
         for (let i = 0; i < this.vvcC.general_constraint_info.length; ++i) {
           byte |= (this.vvcC.general_constraint_info[i] >> 2) & 0x3f;
           bytes.push(byte);
@@ -221,7 +219,7 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
             num_held_bits += 8;
 
             while (num_held_bits >= 5) {
-              let val = (held_bits >> (num_held_bits - 5)) & 0x1f;
+              const val = (held_bits >> (num_held_bits - 5)) & 0x1f;
               constraint_string += base32_chars[val];
 
               num_held_bits -= 5;
@@ -260,13 +258,13 @@ class vpcCSampleEntryBase extends VisualSampleEntry {
   vpcC: vpcCBox;
   vpcCs: Array<vpcCBox>;
   getCodec() {
-    let baseCodec = super.getCodec();
+    const baseCodec = super.getCodec();
     let level: number | string = this.vpcC.level;
-    if (level == 0) {
+    if (level === 0) {
       level = '00';
     }
     let bitDepth: number | string = this.vpcC.bitDepth;
-    if (bitDepth == 8) {
+    if (bitDepth === 8) {
       bitDepth = '08';
     }
     return `${baseCodec}.0${this.vpcC.profile}.${level}.${bitDepth}`;

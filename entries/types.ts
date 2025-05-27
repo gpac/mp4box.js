@@ -7,10 +7,9 @@ import type { SampleEntry } from './all';
 import type * as BOXES from './all-boxes';
 
 type AllBoxes = Partial<typeof BOXES> & Partial<typeof UUID_BOXES>;
-export namespace MP4Box {
-  export interface BoxRegistry extends AllBoxes {}
-  export interface DescriptorRegistry extends Partial<typeof DESCRIPTORS> {}
-}
+
+export type BoxRegistry = AllBoxes;
+export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
 
 export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
   | Int8Array<T>
@@ -26,19 +25,19 @@ export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
   | BigUint64Array<T>;
 
 export type ValueOf<T> = T[keyof T];
-export type InstanceOf<T> = T extends new (...args: Array<any>) => infer R ? R : never;
+export type InstanceOf<T> = T extends new (...args: Array<unknown>) => infer R ? R : never;
 export type KindOf<T> = InstanceOf<ValueOf<T>>;
 export type Extends<TObject, TExtends> = {
   [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
 }[keyof TObject];
 
-export type TupleOf<T, N extends number, R extends T[] = []> = R['length'] extends N
+export type TupleOf<T, N extends number, R extends Array<T> = []> = R['length'] extends N
   ? R
   : TupleOf<T, N, [T, ...R]>;
 export type NumberTuple<T extends number> = TupleOf<number, T>;
 
-export type BoxKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof Box>>;
-export type SampleEntryKind = InstanceOf<Extends<MP4Box.BoxRegistry, typeof SampleEntry>>;
+export type BoxKind = InstanceOf<Extends<BoxRegistry, typeof Box>>;
+export type SampleEntryKind = InstanceOf<Extends<BoxRegistry, typeof SampleEntry>>;
 
 export interface FragmentedTrack<TUser> {
   id: number;
@@ -99,7 +98,7 @@ export interface Track {
   created: Date;
   cts_shift: BOXES.cslgBox;
   duration: number;
-  edits?: Entry[];
+  edits?: Array<Entry>;
   id: number;
   kind: BOXES.kindBox | { schemeURI: ''; value: '' };
   language: string;
@@ -150,14 +149,14 @@ export interface Description {
   version: number;
 }
 
-export type IncompleteBox = {
+export interface IncompleteBox {
   box?: Box;
   code: number;
   hdr_size?: number;
   size?: number;
   start?: number;
   type?: string;
-};
+}
 
 export interface Item {
   alreadyRead?: number;
@@ -301,10 +300,11 @@ export type StringType =
   | EncodedLengthStringType
   | EndianStringType;
 
-export type GetterSetterType<T = any> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface GetterSetterType<T = any> {
   get(dataStream: DataStream, struct: Record<string, Type>): T;
   set?(dataStream: DataStream, value: T, struct?: Record<string, Type>): void;
-};
+}
 
 export type TupleType = [
   '[]',
@@ -317,7 +317,7 @@ export type TupleType = [
   ),
 ];
 
-export type FnType = <T = any>(dataStream: DataStream, struct: T) => number;
+export type FnType = <T = unknown>(dataStream: DataStream, struct: T) => number;
 
 export type Type =
   | NumberType
@@ -360,7 +360,7 @@ export type ValueFromType<TValue extends Type> = TValue extends StringType
             : never;
 
 export type StructDataFromStructDefinition<T extends StructDefinition> = {
-  [TKey in T[number][0]]: Extract<T[number], [TKey, any]>[1] extends infer TValue
+  [TKey in T[number][0]]: Extract<T[number], [TKey, unknown]>[1] extends infer TValue
     ? TValue extends Type
       ? ValueFromType<TValue>
       : never

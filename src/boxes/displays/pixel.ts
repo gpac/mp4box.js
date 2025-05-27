@@ -1,5 +1,3 @@
-import type { Nalu, NaluArray } from '@types';
-
 export class Pixel {
   constructor(
     public bad_pixel_row: number,

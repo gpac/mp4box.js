@@ -10,7 +10,7 @@ export class stshBox extends FullBox {
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
-    let entry_count = stream.readUint32();
+    const entry_count = stream.readUint32();
     this.shadowed_sample_numbers = [];
     this.sync_sample_numbers = [];
     if (this.version === 0) {

@@ -9,7 +9,7 @@ import type { Sample, TypedArray } from '@types';
  */
 export class VTTin4Parser {
   parseSample(data: TypedArray) {
-    const cues: Box[] = [];
+    const cues: Array<Box> = [];
     const stream = new MP4BoxStream(data.buffer);
 
     while (!stream.isEos()) {
@@ -39,7 +39,7 @@ export class VTTin4Parser {
     const cues = this.parseSample(data);
     let string = '';
     for (let i = 0; i < cues.length; i++) {
-      let cueIn4 = cues[i];
+      const cueIn4 = cues[i];
       string += secToTimestamp(startTime) + ' --> ' + secToTimestamp(endTime) + '\r\n';
       // @ts-expect-error FIXME: which box should get a payl-property?
       string += cueIn4.payl.text;
@@ -75,17 +75,15 @@ export class XMLSubtitlein4Parser {
 
 export class Textin4Parser {
   parseSample(sample: Sample) {
-    let textString: string;
-    let stream = new MP4BoxStream(sample.data.buffer);
-    textString = stream.readString(sample.data.length);
+    const stream = new MP4BoxStream(sample.data.buffer);
+    const textString = stream.readString(sample.data.length);
     return textString;
   }
 
   parseConfig(data: TypedArray) {
-    let textString: string;
-    let stream = new MP4BoxStream(data.buffer);
+    const stream = new MP4BoxStream(data.buffer);
     stream.readUint32(); // version & flags
-    textString = stream.readCString();
+    const textString = stream.readCString();
     return textString;
   }
 }
