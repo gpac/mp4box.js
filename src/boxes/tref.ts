@@ -23,6 +23,8 @@ export class trefBox extends ContainerBox {
           box.parseDataAndRewind(stream);
         }
         box.parse(stream);
+        if (!this.boxes)
+          this.boxes = [];
         this.boxes.push(box);
       } else {
         return;
