@@ -12,7 +12,7 @@ It can be used to:
 
 On this page, you'll find documentation on how to [build MP4box.js](#build), [use it in a browser](#browser-usage) or [in Node JS](#node-usage) or [contribute](#contribute).
 
-# Installation
+## Installation
 
 Currently, MP4Box.js has two separate versions:
 
@@ -31,7 +31,7 @@ Currently, MP4Box.js has two separate versions:
 > [!WARNING]
 > Any new development should be done using the `next` branch. The `master` branch will not receive any updates or bug fixes.
 
-# Demos
+## Demos
 
 - [A player that performs on-the-fly fragmentation](./test/index.html)
 - [A file inspection tool](./test/filereader.html)
@@ -40,7 +40,7 @@ Currently, MP4Box.js has two separate versions:
 - [An MSE-based AVIF viewing tool](./test/mse-avif-viewer.html)
 - [QUnit tests](./test/qunit.html)
 
-# API
+## API
 
 ### Getting Information
 
@@ -363,42 +363,60 @@ Releases the memory allocated for sample data for the given track id, up to (but
 mp4boxfile.releaseUsedSamples(1, 250);
 ```
 
-# Build
+## Build
 
-`MP4Box.js` implements many features (parsing of many types of boxes, writing of boxes, sample processing, on-the-fly fragmentation ...). All these features may not be needed in all applications. In order to allow for a flexible configuration of the features, and to reduce the size of the final library, `MP4Box.js` is split in many files and uses the [Grunt](http://gruntjs.com/) system to compile a set of selected features into a single file. Currently, `MP4Box.js` comes in two flavors:
+`MP4Box.js` implements many features (parsing of many types of boxes, writing of boxes, sample processing, on-the-fly fragmentation ...). All these features may not be needed in all applications. In order to allow for a flexible configuration of the features, and to reduce the size of the final library, `MP4Box.js` is split in many files and uses the [tsup](https://tsup.egoist.dev/) to compile a set of selected features into a single file. Currently, `MP4Box.js` comes in two flavors:
 
-- all: includes all the features
-- simple: allows for parsing of boxes only (no writing, no sample processing) and only of some boxes (not all). You can configure which box you want by adding the file in the [Gruntfile.js](Gruntfile.js) `concat:simple` task.
+- **all**: includes all the features
+- **simple**: allows for parsing of boxes only (no writing, no sample processing) and only of some boxes (not all).
 
-Grunt builds the versions of the single-file library in the `dist` folder, minified (`mp4box.all.min.js`,`mp4box.simple.min.js`) or not (`mp4box.all.js`,`mp4box.simple.js`).
+For every flavor, tsup builds ESM, CJS, and IIFE versions of the library, which can be used in different environments (browser, Node.js, etc.). The IIFE version is not distributed to npm, but utilized in the demos.
 
-# Dependencies
+Run the following command to build the library:
 
-In this `all` version, this code uses [DataStream.js](https://github.com/kig/DataStream.js), with some modifications for Uint24 and Uint64 types. In the `simple` version, there are no external dependencies.
+```bash
+npm run build
+```
 
-# Browser Usage
+## Browser Usage
 
-In order to use the `MP4Box.js` in a browser, use grunt to build a single-file library (see above) or use a pre-built version from the [demo](https://gpac.github.io/mp4box.js/#demos) page.
+Nowadays, most projects use bundlers like Webpack, Rollup, or Vite to manage dependencies and build their applications. If you are using one of these tools, you can simply import `MP4Box.js` in your JavaScript files:
+
+```ts
+import * as MP4Box from 'mp4box';
+```
+
+If you are not using a bundler, you can still use `MP4Box.js` in the browser. The library is written in ES6 modules, so you can import it directly in your HTML file. However, you will need to build it first or use a pre-built version. Check the [Build](#build) section above for instructions on how to build the library.
+
+Example of a simple HTML file that uses `MP4Box.js`:
 
 ```html
 <html>
   <head>
     <meta charset="utf-8" />
     <title>MP4Box.js in the browser</title>
-    <script src="mp4box.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mp4box/dist/mp4box.all.js"></script>
+    <!-- Alternatively, you can use a local build -->
+    <!-- <script type="module" src="mp4box.all.js"></script> -->
   </head>
   <body>
-    ...
+    <script type="module">
+      import * as MP4Box from './mp4box.all.js';
+
+      // Create a new MP4Box instance
+      const mp4box = MP4Box.createFile();
+
+      // Example usage: Add a file to the MP4Box instance
+      // Note: You would typically fetch or read a file here
+      // For demonstration, we will just log the instance
+      console.log(mp4box);
+    </script>
   </body>
 </html>
 ```
 
-# Node Usage
-
-MP4Box.js can be used in Node.js. See for example the [info.js](test/node/info.js) example.
-
 # Contribute
 
-If your favorite box is not parsed by MP4Box, you can easily contribute. Each box parsing code is stored in a separate file whose name is the 4CC of the box type. For instance, the parsing of the `ctts` box is located in [ctts.js](src/parsing/ctts.js).
+If your favorite box is not parsed by MP4Box, you can easily contribute. Check out the [CONTRIBUTING.md](./CONTRIBUTING.md) file for more information on how to add support for new boxes or features.
 
-To contribute to MP4Box.js, simply clone the repository, run `npm install` and `grunt test`.
+To contribute to MP4Box.js, simply clone the repository, run `npm install` and `npm test`.
