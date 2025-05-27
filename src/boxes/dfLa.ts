@@ -47,7 +47,7 @@ export class dfLaBox extends FullBox {
       }
 
       boxesFound.push(knownBlockTypes[type]);
-    } while (!(flagAndType & LASTMETADATABLOCKFLAG_MASK));
+    } while (flagAndType & LASTMETADATABLOCKFLAG_MASK);
 
     this.numMetadataBlocks = boxesFound.length + ' (' + boxesFound.join(', ') + ')';
   }
