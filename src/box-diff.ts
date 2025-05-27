@@ -34,15 +34,11 @@ export const DIFF_PRIMITIVE_ARRAY_PROP_NAMES = [
 
 /** @bundle box-diff.js */
 export function boxEqualFields(box_a: Box, box_b: Box) {
-  if (box_a && !box_b) {
-    return false;
-  }
+  if (box_a && !box_b) return false;
   let prop: string;
   for (prop in box_a) {
-    if ((DIFF_BOXES_PROP_NAMES as readonly string[]).indexOf(prop) > -1) {
+    if (DIFF_BOXES_PROP_NAMES.find(name => name === prop)) {
       continue;
-      // } else if (excluded_fields && excluded_fields.indexOf(prop) > -1) {
-      // 	continue;
     } else if (box_a[prop] instanceof Box || box_b[prop] instanceof Box) {
       continue;
     } else if (typeof box_a[prop] === 'undefined' || typeof box_b[prop] === 'undefined') {
@@ -50,8 +46,10 @@ export function boxEqualFields(box_a: Box, box_b: Box) {
     } else if (typeof box_a[prop] === 'function' || typeof box_b[prop] === 'function') {
       continue;
     } else if (
-      ('subBoxNames' in box_a && (box_a.subBoxNames as string[]).indexOf(prop.slice(0, 4)) > -1) ||
-      ('subBoxNames' in box_b && (box_b.subBoxNames as string[]).indexOf(prop.slice(0, 4)) > -1)
+      ('subBoxNames' in box_a &&
+        (box_a.subBoxNames as Array<string>).indexOf(prop.slice(0, 4)) > -1) ||
+      ('subBoxNames' in box_b &&
+        (box_b.subBoxNames as Array<string>).indexOf(prop.slice(0, 4)) > -1)
     ) {
       continue;
     } else {
@@ -63,7 +61,7 @@ export function boxEqualFields(box_a: Box, box_b: Box) {
         prop === 'modification_time'
       ) {
         continue;
-      } else if ((DIFF_PRIMITIVE_ARRAY_PROP_NAMES as readonly string[]).indexOf(prop) > -1) {
+      } else if (DIFF_PRIMITIVE_ARRAY_PROP_NAMES.find(name => name === prop)) {
         continue;
       } else {
         if (box_a[prop] !== box_b[prop]) {

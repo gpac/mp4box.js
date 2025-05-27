@@ -31,7 +31,7 @@ export class sgpdBox extends FullBox {
   default_length: number;
   default_group_description_index: number;
   default_sample_description_index: number;
-  entries: SampleGroupEntry[];
+  entries: Array<SampleGroupEntry>;
   used: boolean;
 
   parse(stream: MultiBufferStream) {

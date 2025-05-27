@@ -13,7 +13,7 @@ export class dOpsBox extends Box {
   ChannelMappingFamily: number;
   StreamCount: number;
   CoupledCount: number;
-  ChannelMapping: number[];
+  ChannelMapping: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.Version = stream.readUint8();

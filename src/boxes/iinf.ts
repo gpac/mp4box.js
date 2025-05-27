@@ -1,5 +1,5 @@
 import { FullBox, parseOneBox } from '#/box';
-import type { infeBox } from '#/boxes/infe';
+import { infeBox } from '#/boxes/infe';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
@@ -11,7 +11,7 @@ export class iinfBox extends FullBox {
 
   version: number;
   entry_count: number;
-  item_infos: infeBox[];
+  item_infos: Array<infeBox>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -1,5 +1,4 @@
-import type { Box } from '#/box';
-import { parseOneBox } from '#/box';
+import { Box, parseOneBox } from '#/box';
 import { OK } from '#/constants';
 import { MP4BoxStream } from '#/stream';
 import type { Sample, TypedArray } from '@types';
@@ -10,7 +9,7 @@ import type { Sample, TypedArray } from '@types';
  */
 export class VTTin4Parser {
   parseSample(data: TypedArray) {
-    const cues: Box[] = [];
+    const cues: Array<Box> = [];
     const stream = new MP4BoxStream(data.buffer);
 
     while (!stream.isEos()) {
@@ -35,11 +34,12 @@ export class VTTin4Parser {
       const m = Math.floor((insec - h * 3600) / 60);
       const s = Math.floor(insec - h * 3600 - m * 60);
       const ms = Math.floor((insec - h * 3600 - m * 60 - s) * 1000);
-      return `${pad(h, 2)}:${pad(m, 2)}:${pad(s, 2)}.${pad(ms, 3)}`;
+      return '' + pad(h, 2) + ':' + pad(m, 2) + ':' + pad(s, 2) + '.' + pad(ms, 3);
     }
     const cues = this.parseSample(data);
     let string = '';
-    for (const cueIn4 of cues) {
+    for (let i = 0; i < cues.length; i++) {
+      const cueIn4 = cues[i];
       string += secToTimestamp(startTime) + ' --> ' + secToTimestamp(endTime) + '\r\n';
       // @ts-expect-error FIXME: which box should get a payl-property?
       string += cueIn4.payl.text;
@@ -51,7 +51,7 @@ export class VTTin4Parser {
 export class XMLSubtitlein4Parser {
   parseSample(sample: Sample) {
     const res = {
-      resources: [] as Uint8Array[],
+      resources: [] as Array<Uint8Array>,
       documentString: '',
       document: undefined as undefined | Document,
     };
@@ -76,12 +76,14 @@ export class XMLSubtitlein4Parser {
 export class Textin4Parser {
   parseSample(sample: Sample) {
     const stream = new MP4BoxStream(sample.data.buffer);
-    return stream.readString(sample.data.length);
+    const textString = stream.readString(sample.data.length);
+    return textString;
   }
 
   parseConfig(data: TypedArray) {
     const stream = new MP4BoxStream(data.buffer);
     stream.readUint32(); // version & flags
-    return stream.readCString();
+    const textString = stream.readCString();
+    return textString;
   }
 }

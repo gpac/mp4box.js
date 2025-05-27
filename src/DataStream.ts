@@ -23,7 +23,7 @@ type ReadTypeReturnValue =
   | Float32Array
   | Float64Array
   | null
-  | ReadTypeReturnValue[]
+  | Array<ReadTypeReturnValue>
   | {
       [key: string]: ReadTypeReturnValue;
     };
@@ -32,7 +32,7 @@ type ReadTypeReturnValue =
 // TODO: check range/support for 64-bits numbers in JavaScript
 
 export class DataStream {
-  static DataStream: Record<never, never>; // for backward compatibility
+  static DataStream: DataStream;
 
   _buffer?: MP4BoxBuffer;
   _byteOffset?: number;
@@ -59,9 +59,7 @@ export class DataStream {
       this.buffer = arrayBuffer;
     } else if (arrayBuffer instanceof DataView) {
       this.dataView = arrayBuffer;
-      if (byteOffset) {
-        this._byteOffset += byteOffset;
-      }
+      if (byteOffset) this._byteOffset += byteOffset;
     } else {
       this.buffer = new MP4BoxBuffer(arrayBuffer || 0);
     }
@@ -226,9 +224,9 @@ export class DataStream {
    * @return Uint8Array to the DataStream backing buffer.
    */
   mapUint8Array(length: number) {
-    this._realloc(length);
+    this._realloc(length * 1);
     const arr = new Uint8Array(this._buffer, this.byteOffset + this.position, length);
-    this.position += length;
+    this.position += length * 1;
     return arr;
   }
 
@@ -638,9 +636,7 @@ export class DataStream {
     if (length !== null) {
       len = Math.min(length, blen);
     }
-    for (; i < len && u8[i] !== 0; i++) {
-      // find first zero byte
-    }
+    for (; i < len && u8[i] !== 0; i++); // find first zero byte
     const s = fromCharCodeUint8(this.mapUint8Array(i));
     if (length !== null) {
       this.position += len - i;
@@ -683,7 +679,7 @@ export class DataStream {
       a.click();
       window.URL.revokeObjectURL(url);
     } else {
-      throw new Error("DataStream.save: Can't create object URL.");
+      throw "DataStream.save: Can't create object URL.";
     }
   }
 
@@ -789,7 +785,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeInt8Array(array: ArrayLike<number>) {
-    this._realloc(array.length);
+    this._realloc(array.length * 1);
     if (
       array instanceof Int8Array &&
       this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
@@ -872,7 +868,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeUint8Array(array: ArrayLike<number>) {
-    this._realloc(array.length);
+    this._realloc(array.length * 1);
     if (
       array instanceof Uint8Array &&
       this.byteOffset + (this.position % array.BYTES_PER_ELEMENT) === 0
@@ -1574,20 +1570,17 @@ export class DataStream {
       default:
         if (this.#isTupleType(parsedType)) {
           const [, ta, len] = parsedType;
-          let length: number | null = null;
-          if (typeof len === 'function') {
-            length = len(struct, this, parsedType);
-          } else if (typeof len === 'string' && struct[len] !== null) {
-            // @ts-expect-error FIXME: Struct[string] is currently of type Type
-            length = parseInt(struct[len]);
-          } else if (typeof len === 'number') {
-            length = len;
-          } else if (len === '*') {
-            length = null;
-          } else {
-            length = parseInt(len);
-          }
-
+          const length =
+            typeof len === 'function'
+              ? len(struct, this, parsedType)
+              : typeof len === 'string' && struct[len] !== null
+                ? // @ts-expect-error   FIXME: Struct[string] is currently of type Type
+                  parseInt(struct[len])
+                : typeof len === 'number'
+                  ? len
+                  : len === '*'
+                    ? null
+                    : parseInt(len);
           if (typeof ta === 'string') {
             const tap = ta.replace(/(le|be)$/, '');
             let endianness: null | boolean = null;
@@ -1628,9 +1621,7 @@ export class DataStream {
                   value = [];
                   while (!this.isEof()) {
                     const u = this.readType(ta, struct);
-                    if (u === null) {
-                      break;
-                    }
+                    if (u === null) break;
                     value.push(u);
                   }
                 } else {
@@ -1662,9 +1653,7 @@ export class DataStream {
               value = new Array(length);
               for (let i = 0; i < length; i++) {
                 const type = this.readType(ta, struct);
-                if (type === null) {
-                  return null;
-                }
+                if (type === null) return null;
                 value[i] = type;
               }
             }
@@ -1732,9 +1721,9 @@ export class DataStream {
    * @bundle DataStream-map.js
    */
   mapInt8Array(length: number, _endianness?: boolean) {
-    this._realloc(length);
+    this._realloc(length * 1);
     const arr = new Int8Array(this._buffer, this.byteOffset + this.position, length);
-    this.position += length;
+    this.position += length * 1;
     return arr;
   }
 
@@ -1824,7 +1813,7 @@ export class DataStream {
 }
 
 function fromCharCodeUint8(uint8arr: Uint8Array) {
-  const arr: number[] = [];
+  const arr: Array<number> = [];
   for (let i = 0; i < uint8arr.length; i++) {
     arr[i] = uint8arr[i];
   }

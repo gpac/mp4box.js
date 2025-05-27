@@ -12,7 +12,7 @@ export class sbgpBox extends FullBox {
 
   grouping_type: string;
   grouping_type_parameter: number;
-  entries: Entry[];
+  entries: Array<Entry>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

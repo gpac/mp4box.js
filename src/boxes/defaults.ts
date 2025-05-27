@@ -112,7 +112,7 @@ export class iproBox extends FullBox {
   type = 'ipro' as const;
   box_name = 'ItemProtectionBox';
 
-  sinfs: sinfBox[] = [];
+  sinfs: Array<sinfBox> = [];
   get protections() {
     return this.sinfs;
   }
@@ -129,36 +129,36 @@ export class moovBox extends ContainerBox {
   box_name = 'MovieBox';
   timescale: number;
   mvhd: mvhdBox;
-  mvhds: mvhdBox[];
+  mvhds: Array<mvhdBox>;
   mvex: mvexBox;
-  mvexs: mvexBox[];
+  mvexs: Array<mvexBox>;
   iods: iodsBox;
-  iodss: iodsBox[];
+  iodss: Array<iodsBox>;
   trak: trakBox;
 
-  traks: trakBox[] = [];
-  psshs: psshBox[] = [];
+  traks: Array<trakBox> = [];
+  psshs: Array<psshBox> = [];
   subBoxNames = ['trak', 'pssh'] as const;
 }
 export class trakBox extends ContainerBox {
   type = 'trak' as const;
   box_name = 'TrackBox';
   mdia: mdiaBox;
-  mdias: mdiaBox[];
+  mdias: Array<mdiaBox>;
   tkhd: tkhdBox;
-  tkhds: tkhdBox[];
+  tkhds: Array<tkhdBox>;
   tref: trefBox;
-  trefs: trefBox[];
+  trefs: Array<trefBox>;
   edts: edtsBox;
-  edtss: edtsBox[];
+  edtss: Array<edtsBox>;
   udta: udtaBox;
-  udtas: udtaBox[];
+  udtas: Array<udtaBox>;
   samples_duration: number;
-  samples: Sample[];
+  samples: Array<Sample>;
   samples_size: number;
   nextSample: number;
   lastValidSample: number;
-  sample_groups_info: SampleGroupInfo[];
+  sample_groups_info: Array<SampleGroupInfo>;
   first_dts: number;
   first_traf_merged: boolean;
   has_fragment_subsamples: boolean;
@@ -167,39 +167,39 @@ export class edtsBox extends ContainerBox {
   type = 'edts' as const;
   box_name = 'EditBox';
   elst: elstBox;
-  elsts: elstBox[];
+  elsts: Array<elstBox>;
 }
 export class mdiaBox extends ContainerBox {
   type = 'mdia' as const;
   box_name = 'MediaBox';
   elng: elngBox;
-  elngs: elngBox[];
+  elngs: Array<elngBox>;
   hdlr: hdlrBox;
-  hdlrs: hdlrBox[];
+  hdlrs: Array<hdlrBox>;
   mdhd: mdhdBox;
-  mdhds: mdhdBox[];
+  mdhds: Array<mdhdBox>;
   minf: minfBox;
-  minfs: minfBox[];
+  minfs: Array<minfBox>;
 }
 export class minfBox extends ContainerBox {
   type = 'minf' as const;
   box_name = 'MediaInformationBox';
   stbl: stblBox;
-  stbls: stblBox[];
+  stbls: Array<stblBox>;
   hmhd: hmhdBox;
-  hmhds: hmhdBox[];
+  hmhds: Array<hmhdBox>;
   vmhd?: vmhdBox;
-  vmhds?: vmhdBox[];
+  vmhds?: Array<vmhdBox>;
   smhd?: smhdBox;
-  smhds?: smhdBox[];
+  smhds?: Array<smhdBox>;
   sthd?: sthdBox;
-  sthds?: sthdBox[];
+  sthds?: Array<sthdBox>;
   nmhd?: nmhdBox;
-  nmhds?: nmhdBox[];
+  nmhds?: Array<nmhdBox>;
   dinf: dinfBox;
-  dinfs: dinfBox[];
+  dinfs: Array<dinfBox>;
   dref: drefBox;
-  drefs: drefBox[];
+  drefs: Array<drefBox>;
 }
 export class dinfBox extends ContainerBox {
   type = 'dinf' as const;
@@ -209,34 +209,34 @@ export class stblBox extends ContainerBox {
   type = 'stbl' as const;
   box_name = 'SampleTableBox';
   cslg: cslgBox;
-  cslgs: cslgBox[];
+  cslgs: Array<cslgBox>;
   stsd: stsdBox;
-  stsds: stsdBox[];
+  stsds: Array<stsdBox>;
   stsc: stscBox;
-  stscs: stscBox[];
+  stscs: Array<stscBox>;
   stco: stcoBox;
-  stcos: stcoBox[];
+  stcos: Array<stcoBox>;
   co64: co64Box;
-  co64s: co64Box[];
+  co64s: Array<co64Box>;
   stsz: stszBox;
-  stszs: stszBox[];
+  stszs: Array<stszBox>;
   stz2: stz2Box;
-  stz2s: stz2Box[];
+  stz2s: Array<stz2Box>;
   stts: sttsBox;
-  sttss: sttsBox[];
+  sttss: Array<sttsBox>;
   ctts: cttsBox;
-  cttss: cttsBox[];
+  cttss: Array<cttsBox>;
   stss: stssBox;
-  stsss: stssBox[];
+  stsss: Array<stssBox>;
   subs: subsBox;
-  subss: subsBox[];
+  subss: Array<subsBox>;
   stdp: stdpBox;
-  stdps: stdpBox[];
+  stdps: Array<stdpBox>;
   sdtp: sdtpBox;
-  sdtps: sdtpBox[];
+  sdtps: Array<sdtpBox>;
 
-  sgpds: sgpdBox[] = [];
-  sbgps: sbgpBox[] = [];
+  sgpds: Array<sgpdBox> = [];
+  sbgps: Array<sbgpBox> = [];
   subBoxNames = ['sgpd', 'sbgp'];
 }
 export class mvexBox extends ContainerBox {
@@ -244,39 +244,39 @@ export class mvexBox extends ContainerBox {
   box_name = 'MovieExtendsBox';
   trex: trexBox;
   mehd: mehdBox;
-  mehds: mehdBox[];
+  mehds: Array<mehdBox>;
 
-  trexs: trexBox[] = [];
+  trexs: Array<trexBox> = [];
   subBoxNames = ['trex'];
 }
 export class moofBox extends ContainerBox {
   type = 'moof' as const;
   box_name = 'MovieFragmentBox';
   mfhd: mfhdBox;
-  mfhds: mfhdBox[];
+  mfhds: Array<mfhdBox>;
   traf: trafBox;
 
-  trafs: trafBox[] = [];
+  trafs: Array<trafBox> = [];
   subBoxNames = ['traf'];
 }
 export class trafBox extends ContainerBox {
   type = 'traf' as const;
   box_name = 'TrackFragmentBox';
   subs: subsBox;
-  subss: subsBox[];
+  subss: Array<subsBox>;
   tfdt: tfdtBox;
-  tfdts: tfdtBox[];
+  tfdts: Array<tfdtBox>;
   tfhd: tfhdBox;
-  tfhds: tfhdBox[];
+  tfhds: Array<tfhdBox>;
   trun: trunBox;
 
   first_sample_index: number;
   sample_number: number;
-  sample_groups_info: SampleGroupInfo[];
+  sample_groups_info: Array<SampleGroupInfo>;
 
-  truns: trunBox[] = [];
-  sgpds: sgpdBox[] = [];
-  sbgps: sbgpBox[] = [];
+  truns: Array<trunBox> = [];
+  sgpds: Array<sgpdBox> = [];
+  sbgps: Array<sbgpBox> = [];
   subBoxNames = ['trun', 'sgpd', 'sbgp'];
 }
 export class vttcBox extends ContainerBox {
@@ -287,7 +287,7 @@ export class vttcBox extends ContainerBox {
 export class mfraBox extends ContainerBox {
   type = 'mfra' as const;
   box_name = 'MovieFragmentRandomAccessBox';
-  tfras: tfraBox[] = [];
+  tfras: Array<tfraBox> = [];
   subBoxNames = ['tfra'] as const;
 }
 export class mecoBox extends ContainerBox {
@@ -330,7 +330,7 @@ export class trgrBox extends ContainerBox {
 export class udtaBox extends ContainerBox {
   type = 'udta' as const;
   box_name = 'UserDataBox';
-  kinds: kindBox[] = [];
+  kinds: Array<kindBox> = [];
   subBoxNames = ['kind'] as const;
 }
 export class iprpBox extends ContainerBox {
@@ -338,7 +338,7 @@ export class iprpBox extends ContainerBox {
   box_name = 'ItemPropertiesBox';
   ipco: ipcoBox;
 
-  ipmas: ipmaBox[] = [];
+  ipmas: Array<ipmaBox> = [];
   subBoxNames = ['ipma'] as const;
 }
 export class ipcoBox extends ContainerBox {
@@ -348,7 +348,7 @@ export class ipcoBox extends ContainerBox {
 export class grplBox extends ContainerBox {
   type = 'grpl' as const;
   box_name = 'GroupsListBox';
-  declare boxes: EntityToGroup[];
+  declare boxes: Array<EntityToGroup>;
 }
 export class j2kHBox extends ContainerBox {
   type = 'j2kH' as const;
@@ -357,6 +357,6 @@ export class j2kHBox extends ContainerBox {
 export class etypBox extends ContainerBox {
   type = 'etyp' as const;
   box_name = 'ExtendedTypeBox';
-  tycos: tycoBox[] = [];
+  tycos: Array<tycoBox> = [];
   subBoxNames = ['tyco'] as const;
 }

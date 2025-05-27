@@ -27,7 +27,7 @@ function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
  * It inherits also from DataStream for all read/write/alloc operations
  */
 export class MultiBufferStream extends DataStream {
-  buffers: MP4BoxBuffer[];
+  buffers: Array<MP4BoxBuffer>;
   bufferIndex: number;
 
   constructor(buffer?: MP4BoxBuffer) {
@@ -101,7 +101,7 @@ export class MultiBufferStream extends DataStream {
           /* The new buffer overlaps with an existing buffer */
           if (ab.byteLength > b.byteLength) {
             /* the new buffer is bigger than the existing one
-					   remove the existing buffer and try again to insert 
+					   remove the existing buffer and try again to insert
 					   the new buffer to check overlap with the next ones */
             this.buffers.splice(i, 1);
             i--;
@@ -135,7 +135,7 @@ export class MultiBufferStream extends DataStream {
               ')',
           );
           this.buffers.splice(i, 0, ab);
-          /* if this new buffer is inserted in the first place in the list of the buffer, 
+          /* if this new buffer is inserted in the first place in the list of the buffer,
 				   and the DataStream is initialized, make it the buffer used for parsing */
           if (i === 0) {
             this.buffer = ab;
@@ -164,7 +164,7 @@ export class MultiBufferStream extends DataStream {
         'Appending new buffer (fileStart: ' + ab.fileStart + ' - Length: ' + ab.byteLength + ')',
       );
       this.buffers.push(ab);
-      /* if this new buffer is inserted in the first place in the list of the buffer, 
+      /* if this new buffer is inserted in the first place in the list of the buffer,
 		   and the DataStream is initialized, make it the buffer used for parsing */
       if (i === 0) {
         this.buffer = ab;
@@ -216,7 +216,14 @@ export class MultiBufferStream extends DataStream {
     } else {
       log(
         'MultiBufferStream',
-        `${this.buffers.length} stored buffer(s) (${used}/${total} bytes), continuous ranges: ${bufferedString}`,
+        '' +
+          this.buffers.length +
+          ' stored buffer(s) (' +
+          used +
+          '/' +
+          total +
+          ' bytes), continuous ranges: ' +
+          bufferedString,
       );
     }
   }
@@ -274,7 +281,7 @@ export class MultiBufferStream extends DataStream {
    *                                should be marked as used for garbage collection
    * @return {Number}               the index of the buffer holding the seeked file position, -1 if not found.
    */
-  findPosition(fromStart: boolean, filePosition: number, markAsUsed: boolean): number {
+  findPosition(fromStart: boolean, filePosition: number, markAsUsed: boolean) {
     let index = -1;
     let i = fromStart === true ? 0 : this.bufferIndex;
 
@@ -316,7 +323,7 @@ export class MultiBufferStream extends DataStream {
    * @param  {Number} inputindex Index of the buffer to start from
    * @return {Number}            The largest file position found in the buffers
    */
-  findEndContiguousBuf(inputindex?: number): number {
+  findEndContiguousBuf(inputindex?: number) {
     const index = inputindex !== undefined ? inputindex : this.bufferIndex;
     let currentBuf = this.buffers[index];
     /* find the end of the contiguous range of data */
@@ -340,7 +347,7 @@ export class MultiBufferStream extends DataStream {
    * @return {Number}     the largest position in the current buffer or in the buffer and the next contiguous
    *                      buffer that holds the given position
    */
-  getEndFilePositionAfter(pos: number): number {
+  getEndFilePositionAfter(pos: number) {
     const index = this.findPosition(true, pos, false);
     if (index !== -1) {
       return this.findEndContiguousBuf(index);
@@ -405,7 +412,7 @@ export class MultiBufferStream extends DataStream {
    */
   getPosition() {
     if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
-      throw new Error('Error accessing position in the MultiBufferStream');
+      throw 'Error accessing position in the MultiBufferStream';
     }
     return this.buffers[this.bufferIndex].fileStart + this.position;
   }
@@ -420,7 +427,7 @@ export class MultiBufferStream extends DataStream {
 
   getEndPosition() {
     if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
-      throw new Error('Error accessing position in the MultiBufferStream');
+      throw 'Error accessing position in the MultiBufferStream';
     }
     return this.buffers[this.bufferIndex].fileStart + this.byteLength;
   }

@@ -13,17 +13,11 @@ let log_level = LOG_LEVEL_ERROR;
 
 export const Log = {
   setLogLevel(level: (module: string, msg?: string) => void) {
-    if (level === this.debug) {
-      log_level = LOG_LEVEL_DEBUG;
-    } else if (level === this.info) {
-      log_level = LOG_LEVEL_INFO;
-    } else if (level === this.warn) {
-      log_level = LOG_LEVEL_WARNING;
-    } else if (level === this.error) {
-      log_level = LOG_LEVEL_ERROR;
-    } else {
-      log_level = LOG_LEVEL_ERROR;
-    }
+    if (level === this.debug) log_level = LOG_LEVEL_DEBUG;
+    else if (level === this.info) log_level = LOG_LEVEL_INFO;
+    else if (level === this.warn) log_level = LOG_LEVEL_WARNING;
+    else if (level === this.error) log_level = LOG_LEVEL_ERROR;
+    else log_level = LOG_LEVEL_ERROR;
   },
   debug(module: string, msg?: string) {
     if (console.debug === undefined) {
@@ -72,7 +66,7 @@ export const Log = {
     let neg: boolean;
     /* Helper function to print a number on a fixed number of digits */
     function pad(number: string | number, length: number) {
-      const str = String(number);
+      const str = '' + number;
       const a = str.split('.');
       while (a[0].length < length) {
         a[0] = '0' + a[0];
@@ -116,9 +110,7 @@ export const Log = {
     if (length > 0) {
       let str = '';
       for (let i = 0; i < length; i++) {
-        if (i > 0) {
-          str += ',';
-        }
+        if (i > 0) str += ',';
         str +=
           '[' +
           Log.getDurationString(ranges.start(i)) +

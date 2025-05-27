@@ -17,7 +17,7 @@ export class dec3Box extends Box {
 
   data_rate: number;
   num_ind_sub: number;
-  ind_subs: IndSub[];
+  ind_subs: Array<IndSub>;
 
   parse(stream: MultiBufferStream) {
     const tmp_16 = stream.readUint16();

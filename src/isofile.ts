@@ -27,7 +27,7 @@ import { hdlrBox } from '#/boxes/hdlr';
 import { hvcCBox } from '#/boxes/hvcC';
 import { mdhdBox } from '#/boxes/mdhd';
 import { mehdBox } from '#/boxes/mehd';
-import type { metaBox } from '#/boxes/meta';
+import { metaBox } from '#/boxes/meta';
 import { mfhdBox } from '#/boxes/mfhd';
 import { mvhdBox } from '#/boxes/mvhd';
 import { stppSampleEntry } from '#/boxes/sampleentries';
@@ -39,10 +39,10 @@ import {
   SystemSampleEntry,
   VisualSampleEntry,
 } from '#/boxes/sampleentries/base';
-import type { sbgpBox } from '#/boxes/sbgp';
-import type { sdtpBox } from '#/boxes/sdtp';
-import type { sgpdBox } from '#/boxes/sgpd';
-import type { sidxBox } from '#/boxes/sidx';
+import { sbgpBox } from '#/boxes/sbgp';
+import { sdtpBox } from '#/boxes/sdtp';
+import { sgpdBox } from '#/boxes/sgpd';
+import { sidxBox } from '#/boxes/sidx';
 import { smhdBox } from '#/boxes/smhd';
 import { stcoBox } from '#/boxes/stco';
 import { sthdBox } from '#/boxes/sthd';
@@ -95,7 +95,7 @@ import type {
   SubSample,
   Track,
 } from '@types';
-import type { MP4BoxBuffer } from './mp4boxbuffer';
+import { MP4BoxBuffer } from './mp4boxbuffer';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;
@@ -113,8 +113,8 @@ export class SampleGroupInfo {
 }
 
 export interface IsoFileOptions {
-  brands?: string[];
-  description_boxes?: BoxKind[];
+  brands?: Array<string>;
+  description_boxes?: Array<BoxKind>;
   duration?: number;
   height?: number;
   id?: number;
@@ -147,11 +147,11 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** MutiBufferStream object used to parse boxes */
   stream: MultiBufferStream;
   /** Array of all boxes (in order) found in the file */
-  boxes: Box[] = [];
+  boxes: Array<Box> = [];
   /** Array of all mdats */
-  mdats: mdatBox[] = [];
+  mdats: Array<mdatBox> = [];
   /** Array of all moofs */
-  moofs: moofBox[] = [];
+  moofs: Array<moofBox> = [];
   /** Boolean indicating if the file is compatible with progressive parsing (moov first) */
   isProgressive = false;
   /** Boolean used to fire moov start event only once */
@@ -175,7 +175,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       ) => void)
     | null = null;
   /** Callback to call when samples are ready */
-  onSamples: ((id: number, user: TSampleUser, samples: Sample[]) => void) | null = null;
+  onSamples: ((id: number, user: TSampleUser, samples: Array<Sample>) => void) | null = null;
   /** Callback to call when there is an error in the parsing or processing of samples */
   onError: (() => void) | null = null;
 
@@ -183,9 +183,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
   sampleListBuilt = false;
   /** Array of Track objects for which fragmentation of samples is requested */
-  fragmentedTracks: FragmentedTrack<TSegmentUser>[] = [];
+  fragmentedTracks: Array<FragmentedTrack<TSegmentUser>> = [];
   /** Array of Track objects for which extraction of samples is requested */
-  extractedTracks: ExtractedTrack<TSampleUser>[] = [];
+  extractedTracks: Array<ExtractedTrack<TSampleUser>> = [];
   /** Boolean indicating that fragmention is ready */
   isFragmentationInitialized = false;
   /** Boolean indicating that fragmented has started */
@@ -200,10 +200,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   sidxSent = false;
 
   /** @bundle isofile-item-processing.js */
-  items: Item[] = [];
+  items: Array<Item> = [];
 
   /** @bundle isofile-item-processing.js */
-  entity_groups: EntityGroup[] = [];
+  entity_groups: Array<EntityGroup> = [];
 
   /**
    * size of the buffers allocated for samples
@@ -212,18 +212,18 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   itemsDataSize = 0;
 
   moov: moovBox;
-  moovs: moovBox[];
+  moovs: Array<moovBox>;
   sidx: sidxBox;
-  sidxs: sidxBox[];
+  sidxs: Array<sidxBox>;
   meta: metaBox;
-  metas: metaBox[];
+  metas: Array<metaBox>;
   ftyp: ftypBox;
-  ftyps: ftypBox[];
+  ftyps: Array<ftypBox>;
   nextSeekPosition: number;
   initial_duration: number;
 
   static type: BoxKind['type'];
-  static boxes: Box[];
+  static boxes: Array<Box>;
 
   constructor(stream?: MultiBufferStream) {
     this.stream = stream || new MultiBufferStream();
@@ -367,8 +367,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
                 break;
             }
           }
-
-          this.updateUsedBytes(box, ret);
+          if (this.updateUsedBytes) {
+            this.updateUsedBytes(box, ret);
+          }
         }
       }
     }
@@ -376,10 +377,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
   checkBuffer(ab?: MP4BoxBuffer) {
     if (ab === null || ab === undefined) {
-      throw new Error('Buffer must be defined and non empty');
+      throw 'Buffer must be defined and non empty';
     }
     if (ab.fileStart === undefined) {
-      throw new Error('Buffer must have a fileStart property');
+      throw 'Buffer must have a fileStart property';
     }
     if (ab.byteLength === 0) {
       Log.warn('ISOFile', 'Ignoring empty buffer (fileStart: ' + ab.fileStart + ')');
@@ -416,9 +417,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     /* Check if the moovStart callback needs to be called */
     if (this.moovStartFound && !this.moovStartSent) {
       this.moovStartSent = true;
-      if (this.onMoovStart) {
-        this.onMoovStart();
-      }
+      if (this.onMoovStart) this.onMoovStart();
     }
 
     if (this.moov) {
@@ -518,13 +517,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       brands: [this.ftyp.major_brand].concat(this.ftyp.compatible_brands),
       created: new Date(_1904 + this.moov.mvhd.creation_time * 1000),
       modified: new Date(_1904 + this.moov.mvhd.modification_time * 1000),
-      tracks: [] as Track[],
-      audioTracks: [] as Track[],
-      videoTracks: [] as Track[],
-      subtitleTracks: [] as Track[],
-      metadataTracks: [] as Track[],
-      hintTracks: [] as Track[],
-      otherTracks: [] as Track[],
+      tracks: [] as Array<Track>,
+      audioTracks: [] as Array<Track>,
+      videoTracks: [] as Array<Track>,
+      subtitleTracks: [] as Array<Track>,
+      metadataTracks: [] as Array<Track>,
+      hintTracks: [] as Array<Track>,
+      otherTracks: [] as Array<Track>,
       mime: '',
     };
 
@@ -619,9 +618,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       movie.mime += 'application/mp4; codecs="';
     }
     for (let i = 0; i < movie.tracks.length; i++) {
-      if (i !== 0) {
-        movie.mime += ',';
-      }
+      if (i !== 0) movie.mime += ',';
       movie.mime += movie.tracks[i].codec;
     }
     movie.mime += '"; profiles="';
@@ -643,9 +640,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   processSamples(last?: boolean) {
-    if (!this.sampleProcessingStarted) {
-      return;
-    }
+    if (!this.sampleProcessingStarted) return;
 
     /* For each track marked for fragmentation,
        check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded)
@@ -760,14 +755,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     return result;
   }
 
-  static _sweep(type: BoxKind['type'], result: (typeof ISOFile)[], returnEarly: boolean) {
-    if (this.type && this.type === type) {
-      result.push(this);
-    }
+  static _sweep(type: BoxKind['type'], result: Array<typeof ISOFile>, returnEarly: boolean) {
+    if (this.type && this.type === type) result.push(this);
     for (const box in this.boxes) {
-      if (result.length && returnEarly) {
-        return;
-      }
+      if (result.length && returnEarly) return;
       ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
     }
   }
@@ -791,9 +782,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   releaseUsedSamples(id: number, sampleNum: number) {
     let size = 0;
     const trak = this.getTrackById(id);
-    if (!trak.lastValidSample) {
-      trak.lastValidSample = 0;
-    }
+    if (!trak.lastValidSample) trak.lastValidSample = 0;
     for (let i = trak.lastValidSample; i < sampleNum; i++) {
       size += this.releaseSample(trak, i);
     }
@@ -835,7 +824,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   seekTrack(time: number, useRap: boolean, trak: trakBox) {
     let rap_seek_sample_num = 0;
     let seek_sample_num = 0;
-    let timescale: number;
+    let timescale: number = null;
 
     if (trak.samples.length === 0) {
       Log.info(
@@ -905,7 +894,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const moov = this.moov;
     let seek_info = { offset: Infinity, time: Infinity };
     if (!this.moov) {
-      throw new Error('Cannot seek: moov not received!');
+      throw 'Cannot seek: moov not received!';
     } else {
       for (let i = 0; i < moov.traks.length; i++) {
         const trak = moov.traks[i];
@@ -945,7 +934,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
   }
 
-  equal(b: { boxes: Box[] }) {
+  equal(b: { boxes: Array<Box> }) {
     let box_index = 0;
     while (box_index < this.boxes.length && box_index < b.boxes.length) {
       const a_box = this.boxes[box_index];
@@ -1067,7 +1056,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       this.nextMoofNumber = 0;
       this.resetTables();
     }
-    const initSegs: { id: number; user: TSegmentUser; buffer: MP4BoxBuffer }[] = [];
+    const initSegs: Array<{ id: number; user: TSegmentUser; buffer: MP4BoxBuffer }> = [];
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
       const moov = new moovBox();
       moov.mvhd = this.moov.mvhd;
@@ -1131,9 +1120,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       }
       const stss = trak.mdia.minf.stbl.stss;
       const k = trak.mdia.minf.stbl.boxes.indexOf(stss);
-      if (k !== -1) {
-        trak.mdia.minf.stbl.boxes[k] = null;
-      }
+      if (k !== -1) trak.mdia.minf.stbl.boxes[k] = null;
     }
   }
 
@@ -1141,9 +1128,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   static initSampleGroups(
     trak: trakBox,
     traf: trafBox | null,
-    sbgps: sbgpBox[],
-    trak_sgpds: sgpdBox[],
-    traf_sgpds?: sgpdBox[],
+    sbgps: Array<sbgpBox>,
+    trak_sgpds: Array<sgpdBox>,
+    traf_sgpds?: Array<sgpdBox>,
   ) {
     if (traf) {
       traf.sample_groups_info = [];
@@ -1211,7 +1198,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     trak: trakBox,
     sample: Sample,
     sample_number: number,
-    sample_groups_info: SampleGroupInfo[],
+    sample_groups_info: Array<SampleGroupInfo>,
   ) {
     sample.sample_groups = [];
     for (const k in sample_groups_info) {
@@ -1724,9 +1711,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         } else {
           /* the sample does not end in this buffer */
 
-          if (lengthAfterStart === 0) {
-            return null;
-          }
+          if (lengthAfterStart === 0) return null;
 
           Log.debug(
             'ISOFile',
@@ -1811,14 +1796,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * @bundle isofile-sample-processing.js
    */
   getTrexById(id: number) {
-    if (!this.moov || !this.moov.mvex) {
-      return null;
-    }
+    if (!this.moov || !this.moov.mvex) return null;
     for (let i = 0; i < this.moov.mvex.trexs.length; i++) {
       const trex = this.moov.mvex.trexs[i];
-      if (trex.track_id === id) {
-        return trex;
-      }
+      if (trex.track_id === id) return trex;
     }
     return null;
   }
@@ -1834,9 +1815,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
     for (let j = 0; j < this.moov.traks.length; j++) {
       const trak = this.moov.traks[j];
-      if (trak.tkhd.track_id === id) {
-        return trak;
-      }
+      if (trak.tkhd.track_id === id) return trak;
     }
     return null;
   }
@@ -1846,15 +1825,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const items = this.items;
     const entity_groups = this.entity_groups;
     const meta = this.meta;
-    if (meta === null || meta === undefined) {
-      return;
-    }
-    if (meta.hdlr === undefined) {
-      return;
-    }
-    if (meta.iinf === undefined) {
-      return;
-    }
+    if (meta === null || meta === undefined) return;
+    if (meta.hdlr === undefined) return;
+    if (meta.iinf === undefined) return;
     for (let i = 0; i < meta.iinf.item_infos.length; i++) {
       const id = meta.iinf.item_infos[i].item_ID;
       items[id] = {
@@ -2153,9 +2126,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     } else {
       item = this.getPrimaryItem();
     }
-    if (item === null) {
-      return null;
-    }
+    if (item === null) return null;
 
     const file = new ISOFile();
     file.discardMdatData = false;
@@ -2209,7 +2180,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (ret.type === 'mdat') {
       /* we had enough bytes to get its type and size and it's an 'mdat' */
 
-      /* special handling for mdat boxes, since we don't actually need to parse it linearly 
+      /* special handling for mdat boxes, since we don't actually need to parse it linearly
 		   we create the box */
       const box = new mdatBox(ret.size);
       this.parsingMdat = box;
@@ -2232,12 +2203,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         /* 'mdat' end not found in the existing buffers */
         /* determine the next position in the file to start parsing from */
         if (!this.moovStartFound) {
-          /* moov not find yet, 
-				   the file probably has 'mdat' at the beginning, and 'moov' at the end, 
+          /* moov not find yet,
+				   the file probably has 'mdat' at the beginning, and 'moov' at the end,
 				   indicate that the downloader should not try to download those bytes now */
           this.nextParsePosition = box.start + box.size;
         } else {
-          /* we have the start of the moov box, 
+          /* we have the start of the moov box,
 				   the next bytes should try to complete the current 'mdat' */
           this.nextParsePosition = this.stream.findEndContiguousBuf();
         }
@@ -2255,12 +2226,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       }
       /* either it's not an mdat box (and we need to parse it, we cannot skip it)
 		   (TODO: we could skip 'free' boxes ...)
-			   or we did not have enough data to parse the type and size of the box, 
+			   or we did not have enough data to parse the type and size of the box,
 		   we try to concatenate the current buffer with the next buffer to restart parsing */
       const merged = this.stream.mergeNextBuffer ? this.stream.mergeNextBuffer() : false;
       if (merged) {
         /* The next buffer was contiguous, the merging succeeded,
-			   we can now continue parsing, 
+			   we can now continue parsing,
 			   the next best position to parse is at the end of this new buffer */
         this.nextParsePosition = this.stream.getEndPosition();
         return true;
@@ -2273,7 +2244,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           this.nextParsePosition = this.stream.getEndPosition();
         } else {
           /* we had enough bytes to parse size and type of the incomplete box
-				   if we haven't found yet the moov box, skip this one and try the next one 
+				   if we haven't found yet the moov box, skip this one and try the next one
 				   if we have found the moov box, let's continue linear parsing */
           if (this.moovStartFound) {
             this.nextParsePosition = this.stream.getEndPosition();
@@ -2303,8 +2274,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       /* we can parse more in this buffer */
       return true;
     } else {
-      /* we don't have the end of this mdat yet, 
-		   indicate that the next byte to fetch is the end of the buffers we have so far, 
+      /* we don't have the end of this mdat yet,
+		   indicate that the next byte to fetch is the end of the buffers we have so far,
 		   return and wait for more buffer to come */
       this.nextParsePosition = this.stream.findEndContiguousBuf();
       return false;
@@ -2414,9 +2385,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     const sampleEntry = BoxRegistry[`${options.type}SampleEntry`];
 
-    if (!sampleEntry) {
-      return;
-    }
+    if (!sampleEntry) return;
 
     const sample_description_entry = new sampleEntry();
     sample_description_entry.data_reference_index = 1;
@@ -2537,14 +2506,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       is_depended_on?: number;
       has_redundancy?: number;
       degradation_priority?: number;
-      subsamples?: SubSample[];
+      subsamples?: Array<SubSample>;
       offset?: number;
     } = {},
   ) {
     const trak = this.getTrackById(track_id);
-    if (trak === null) {
-      return;
-    }
+    if (trak === null) return;
 
     const descriptionIndex = sample_description_index ? sample_description_index - 1 : 0;
 
@@ -2593,12 +2560,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** @bundle isofile-advanced-creation.js */
   createSingleSampleMoof(sample: Sample) {
     let sample_flags = 0;
-    if (sample.is_sync) {
-      sample_flags = 1 << 25;
-    } // sample_depends_on_none (I picture)
-    else {
-      sample_flags = 1 << 16;
-    } // non-sync
+    if (sample.is_sync)
+      sample_flags = 1 << 25; // sample_depends_on_none (I picture)
+    else sample_flags = 1 << 16; // non-sync
 
     const moof = new moofBox();
 

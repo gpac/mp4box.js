@@ -1,10 +1,10 @@
-import type { av1CBox } from '#/boxes/av1C';
-import type { avcCBox } from '#/boxes/avcC';
-import type { sinfBox } from '#/boxes/defaults';
-import type { esdsBox } from '#/boxes/esds';
-import type { hvcCBox } from '#/boxes/hvcC';
-import type { vpcCBox } from '#/boxes/vpcC';
-import type { vvcCBox } from '#/boxes/vvcC';
+import { av1CBox } from '#/boxes/av1C';
+import { avcCBox } from '#/boxes/avcC';
+import { sinfBox } from '#/boxes/defaults';
+import { esdsBox } from '#/boxes/esds';
+import { hvcCBox } from '#/boxes/hvcC';
+import { vpcCBox } from '#/boxes/vpcC';
+import { vvcCBox } from '#/boxes/vvcC';
 import {
   AudioSampleEntry,
   MetadataSampleEntry,
@@ -26,7 +26,7 @@ function decimalToHex(d: number | string, padding?: number | null) {
 
 class avcCSampleEntryBase extends VisualSampleEntry {
   declare avcC: avcCBox;
-  declare avcCs: avcCBox[];
+  declare avcCs: Array<avcCBox>;
 
   /** @bundle box-codecs.js */
   getCodec() {
@@ -60,7 +60,7 @@ export class avc4SampleEntry extends avcCSampleEntryBase {
 
 export class av01SampleEntry extends VisualSampleEntry {
   av1C: av1CBox;
-  av1Cs: av1CBox[];
+  av1Cs: Array<av1CBox>;
 
   type = 'av01' as const;
 
@@ -97,7 +97,7 @@ export class dav1SampleEntry extends VisualSampleEntry {
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
   declare hvcC: hvcCBox;
-  declare hvcCs: hvcCBox[];
+  declare hvcCs: Array<hvcCBox>;
 
   /** @bundle box-codecs.js */
   getCodec(): string {
@@ -106,6 +106,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       baseCodec += '.';
       switch (this.hvcC.general_profile_space) {
         case 0:
+          baseCodec += '';
           break;
         case 1:
           baseCodec += 'A';
@@ -123,9 +124,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       let reversed = 0;
       for (let i = 0; i < 32; i++) {
         reversed |= val & 1;
-        if (i === 31) {
-          break;
-        }
+        if (i === 31) break;
         reversed <<= 1;
         val >>= 1;
       }
@@ -179,7 +178,7 @@ export class dvheSampleEntry extends VisualSampleEntry {
 /** @babel box-codecs.js */
 class vvcCSampleEntryBase extends VisualSampleEntry {
   vvcC: vvcCBox;
-  vvcCs: vvcCBox[];
+  vvcCs: Array<vvcCBox>;
   getCodec() {
     let baseCodec = super.getCodec();
     if (this.vvcC) {
@@ -257,7 +256,7 @@ export class vvcNSampleEntry extends VisualSampleEntry {
 
 class vpcCSampleEntryBase extends VisualSampleEntry {
   vpcC: vpcCBox;
-  vpcCs: vpcCBox[];
+  vpcCs: Array<vpcCBox>;
   getCodec() {
     const baseCodec = super.getCodec();
     let level: number | string = this.vpcC.level;
@@ -302,7 +301,7 @@ export class uncvSampleEntry extends VisualSampleEntry {
 
 export class mp4aSampleEntry extends AudioSampleEntry {
   esds: esdsBox;
-  esdss: esdsBox[];
+  esdss: Array<esdsBox>;
 
   type = 'mp4a' as const;
 
@@ -364,28 +363,28 @@ export class encaSampleEntry extends AudioSampleEntry {
 }
 
 export class encuSampleEntry extends SubtitleSampleEntry {
-  sinfs: sinfBox[] = [];
+  sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'encu' as const;
 }
 
 export class encsSampleEntry extends SystemSampleEntry {
-  sinfs: sinfBox[] = [];
+  sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'encs' as const;
 }
 
 export class enctSampleEntry extends TextSampleEntry {
-  sinfs: sinfBox[] = [];
+  sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'enct' as const;
 }
 
 export class encmSampleEntry extends MetadataSampleEntry {
-  sinfs: sinfBox[] = [];
+  sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
   type = 'encm' as const;

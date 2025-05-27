@@ -15,13 +15,13 @@ export class ilocBox extends FullBox {
   length_size: number;
   base_offset_size: number;
   index_size: number;
-  items: {
+  items: Array<{
     base_offset: number;
     construction_method: number;
     item_ID: number;
     data_reference_index: number;
-    extents: Extent[];
-  }[];
+    extents: Array<Extent>;
+  }>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -44,7 +44,7 @@ export class ilocBox extends FullBox {
     } else if (this.version === 2) {
       item_count = stream.readUint32();
     } else {
-      throw new Error('version of iloc box not supported');
+      throw 'version of iloc box not supported';
     }
     for (let i = 0; i < item_count; i++) {
       let item_ID = 0;
@@ -56,7 +56,7 @@ export class ilocBox extends FullBox {
       } else if (this.version === 2) {
         item_ID = stream.readUint32();
       } else {
-        throw new Error('version of iloc box not supported');
+        throw 'version of iloc box not supported';
       }
       if (this.version === 1 || this.version === 2) {
         construction_method = stream.readUint16() & 0xf;
@@ -76,10 +76,10 @@ export class ilocBox extends FullBox {
           base_offset = stream.readUint64();
           break;
         default:
-          throw new Error('Error reading base offset size');
+          throw 'Error reading base offset size';
       }
 
-      const extents: Extent[] = [];
+      const extents: Array<Extent> = [];
       const extent_count = stream.readUint16();
 
       for (let j = 0; j < extent_count; j++) {
@@ -99,7 +99,7 @@ export class ilocBox extends FullBox {
               extent_index = stream.readUint64();
               break;
             default:
-              throw new Error('Error reading extent index');
+              throw 'Error reading extent index';
           }
         }
 
@@ -114,7 +114,7 @@ export class ilocBox extends FullBox {
             extent_offset = stream.readUint64();
             break;
           default:
-            throw new Error('Error reading extent index');
+            throw 'Error reading extent index';
         }
 
         switch (this.length_size) {
@@ -128,7 +128,7 @@ export class ilocBox extends FullBox {
             extent_length = stream.readUint64();
             break;
           default:
-            throw new Error('Error reading extent index');
+            throw 'Error reading extent index';
         }
 
         extents.push({ extent_index, extent_length, extent_offset });

@@ -6,7 +6,7 @@ export class stsgBox extends FullBox {
   box_name = 'SubTrackSampleGroupBox';
 
   grouping_type: number;
-  group_description_index: number[];
+  group_description_index: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

@@ -1,4 +1,4 @@
-import type { MP4BoxStream } from '#/stream';
+import { MP4BoxStream } from '#/stream';
 
 export class AudioSpecificConfig {
   samplingFrequencyIndex?: number;

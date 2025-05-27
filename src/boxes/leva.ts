@@ -15,7 +15,7 @@ export class levaBox extends FullBox {
   type = 'leva' as const;
   box_name = 'LevelAssignmentBox';
 
-  levels: Level[];
+  levels: Array<Level>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

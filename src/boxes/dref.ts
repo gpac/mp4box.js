@@ -1,5 +1,4 @@
-import type { Box } from '#/box';
-import { FullBox, parseOneBox } from '#/box';
+import { Box, FullBox, parseOneBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
@@ -8,7 +7,7 @@ export class drefBox extends FullBox {
   type = 'dref' as const;
   box_name = 'DataReferenceBox';
 
-  entries: Box[];
+  entries: Array<Box>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

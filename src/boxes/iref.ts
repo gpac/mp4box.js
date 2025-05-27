@@ -34,7 +34,7 @@ export class irefBox extends FullBox {
   type = 'iref' as const;
   box_name = 'ItemReferenceBox';
 
-  references: { references: Reference[]; from_item_ID: number; type: string }[];
+  references: Array<{ references: Array<Reference>; from_item_ID: number; type: string }>;
   version: number;
 
   parse(stream: MultiBufferStream) {

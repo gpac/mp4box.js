@@ -3,8 +3,8 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
-import type { MultiBufferStream } from '#/buffer';
-import type { DataStream } from '#/DataStream';
+import { MultiBufferStream } from '#/buffer';
+import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 
 const ES_DescrTag = 0x03;
@@ -119,9 +119,7 @@ export class ES_Descriptor extends Descriptor {
 
   getAudioConfig() {
     const dcd = this.findDescriptor(DecoderConfigDescrTag);
-    if (!dcd) {
-      return null;
-    }
+    if (!dcd) return null;
     const dsi = dcd.findDescriptor(DecSpecificInfoTag);
     if (dsi && dsi.data) {
       let audioObjectType = (dsi.data[0] & 0xf8) >> 3;

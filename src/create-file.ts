@@ -3,7 +3,7 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
-import type { MultiBufferStream } from '#/buffer';
+import { MultiBufferStream } from '#/buffer';
 import { ISOFile } from '#/isofile';
 
 export function createFile(keepMdatData = true, stream?: MultiBufferStream) {

@@ -5,14 +5,14 @@ import type { SubSample } from '@types';
 interface SampleInfo {
   size: number;
   sample_delta: number;
-  subsamples: SubSample[];
+  subsamples: Array<SubSample>;
 }
 
 export class subsBox extends FullBox {
   type = 'subs' as const;
   box_name = 'SubSampleInformationBox';
 
-  entries: SampleInfo[];
+  entries: Array<SampleInfo>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

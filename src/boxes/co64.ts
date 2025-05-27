@@ -5,7 +5,7 @@ export class co64Box extends FullBox {
   type = 'co64' as const;
   box_name = 'ChunkLargeOffsetBox';
 
-  chunk_offsets: number[];
+  chunk_offsets: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

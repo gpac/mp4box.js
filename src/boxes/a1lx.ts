@@ -5,7 +5,7 @@ export class a1lxBox extends Box {
   type = 'a1lx' as const;
   box_name = 'AV1LayeredImageIndexingProperty';
 
-  layer_size: number[];
+  layer_size: Array<number>;
 
   parse(stream: MultiBufferStream) {
     const large_size = stream.readUint8() & 1;

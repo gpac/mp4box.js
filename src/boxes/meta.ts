@@ -1,10 +1,10 @@
 import { ContainerBox, FullBox } from '#/box';
-import type { dinfBox, grplBox, idatBox, iproBox, iprpBox } from '#/boxes/defaults';
-import type { hdlrBox } from '#/boxes/hdlr';
-import type { iinfBox } from '#/boxes/iinf';
-import type { ilocBox } from '#/boxes/iloc';
-import type { irefBox } from '#/boxes/iref';
-import type { pitmBox } from '#/boxes/pitm';
+import { dinfBox, grplBox, idatBox, iproBox, iprpBox } from '#/boxes/defaults';
+import { hdlrBox } from '#/boxes/hdlr';
+import { iinfBox } from '#/boxes/iinf';
+import { ilocBox } from '#/boxes/iloc';
+import { irefBox } from '#/boxes/iref';
+import { pitmBox } from '#/boxes/pitm';
 import type { MultiBufferStream } from '#/buffer';
 
 export class metaBox extends FullBox {
@@ -12,25 +12,25 @@ export class metaBox extends FullBox {
   box_name = 'MetaBox';
 
   hdlr: hdlrBox;
-  hdlrs: hdlrBox[];
+  hdlrs: Array<hdlrBox>;
   iinf: iinfBox;
-  iinfs: iinfBox[];
+  iinfs: Array<iinfBox>;
   idat: idatBox;
-  idats: idatBox[];
+  idats: Array<idatBox>;
   ipro: iproBox;
-  ipros: iproBox[];
+  ipros: Array<iproBox>;
   grpl: grplBox;
-  grpls: grplBox[];
+  grpls: Array<grplBox>;
   iloc: ilocBox;
-  ilocs: ilocBox[];
+  ilocs: Array<ilocBox>;
   iprp: iprpBox;
-  iprps: iprpBox[];
+  iprps: Array<iprpBox>;
   pitm: pitmBox;
-  pitms: pitmBox[];
+  pitms: Array<pitmBox>;
   iref: irefBox;
-  irefs: irefBox[];
+  irefs: Array<irefBox>;
   dinf: dinfBox;
-  dinfs: dinfBox[];
+  dinfs: Array<dinfBox>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

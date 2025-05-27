@@ -6,7 +6,7 @@ export class mdcvBox extends Box {
   type = 'mdcv' as const;
   box_name = 'MasteringDisplayColourVolumeBox';
 
-  display_primaries: ColorPoint[];
+  display_primaries: Array<ColorPoint>;
   white_point: ColorPoint;
   max_display_mastering_luminance: number;
   min_display_mastering_luminance: number;

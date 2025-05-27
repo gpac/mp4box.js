@@ -6,7 +6,7 @@ export class elstBox extends FullBox {
   type = 'elst' as const;
   box_name = 'EditListBox';
 
-  entries: Entry[];
+  entries: Array<Entry>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

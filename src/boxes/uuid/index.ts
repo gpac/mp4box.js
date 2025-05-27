@@ -64,7 +64,7 @@ export const UUID_BOXES = {
     uuid = 'd4807ef2ca3946958e5426cb9e46a79f' as const;
 
     fragment_count: number;
-    entries: { absolute_time: number; absolute_duration: number }[];
+    entries: Array<{ absolute_time: number; absolute_duration: number }>;
 
     parse(stream: MultiBufferStream): void {
       this.parseFullHeader(stream);

@@ -19,6 +19,14 @@ export default tseslint.config(
       'no-unused-vars': 'off',
       // Disable @typescript-eslint/prefer-for-of we have too much for now
       '@typescript-eslint/prefer-for-of': 'off',
+      // Prefer to use Array<T> over T[]
+      '@typescript-eslint/array-type': ['error', { default: 'generic' }],
+      // Use interfaces for object type definitions
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      // Don't require curly braces for simple if statements
+      curly: ['error', 'multi-line'],
+      // Enforce strict equality checks
+      eqeqeq: 'error',
     },
   },
   eslintPlugin,

@@ -10,7 +10,7 @@ export class tfraBox extends FullBox {
   length_size_of_traf_num: number;
   length_size_of_trun_num: number;
   length_size_of_sample_num: number;
-  entries: SampleEntry[];
+  entries: Array<SampleEntry>;
   time: number;
   moof_offset: number;
   traf_number: number;

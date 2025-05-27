@@ -12,7 +12,7 @@ export class padbBox extends FullBox {
   type = 'padb' as const;
   box_name = 'PaddingBitsBox';
 
-  padbits: PaddingBit[];
+  padbits: Array<PaddingBit>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

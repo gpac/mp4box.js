@@ -6,14 +6,14 @@ interface Range {
   range_size: number;
 }
 interface SubSegment {
-  ranges: Range[];
+  ranges: Array<Range>;
 }
 
 export class ssixBox extends FullBox {
   type = 'ssix' as const;
   box_name = 'CompressedSubsegmentIndexBox';
 
-  subsegments: SubSegment[];
+  subsegments: Array<SubSegment>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);

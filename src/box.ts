@@ -5,15 +5,15 @@
 
 import { MultiBufferStream } from '#/buffer';
 import { ERR_NOT_ENOUGH_DATA, MAX_SIZE, OK } from '#/constants';
-import type { DataStream } from '#/DataStream';
+import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
-import type { MP4BoxStream } from '#/stream';
+import { MP4BoxStream } from '#/stream';
 import type { BoxKind, Extends, Output, Reference } from '@types';
 
 export class Box {
-  boxes?: Box[];
-  data: number[] | Uint8Array;
+  boxes?: Array<Box>;
+  data: Array<number> | Uint8Array;
   has_unparsed_data?: boolean;
   hdr_size?: number;
   language: number;
@@ -209,7 +209,7 @@ export class FullBox extends Box {
 }
 
 export class ContainerBox extends Box {
-  subBoxNames?: readonly string[];
+  subBoxNames?: ReadonlyArray<string>;
 
   /** @bundle box-write.js */
   write(stream: MultiBufferStream) {
@@ -309,7 +309,7 @@ export class TrackGroupTypeBox extends FullBox {
 /** @bundle parsing/singleitemtypereference.js */
 export class SingleItemTypeReferenceBox extends Box {
   from_item_ID: number;
-  references: Reference[];
+  references: Array<Reference>;
 
   constructor(
     public type: string,
@@ -335,7 +335,7 @@ export class SingleItemTypeReferenceBox extends Box {
 /** @bundle parsing/singleitemtypereferencelarge.js */
 export class SingleItemTypeReferenceBoxLarge extends Box {
   from_item_ID: number;
-  references: Reference[];
+  references: Array<Reference>;
 
   constructor(
     public type: string,
@@ -563,9 +563,7 @@ export function parseOneBox(
         diff +
         ' more bytes than the indicated box data size, seeking backwards',
     );
-    if (box.size !== 0) {
-      stream.seek(box.start + box.size);
-    }
+    if (box.size !== 0) stream.seek(box.start + box.size);
   }
   return { code: OK, box, size: box.size };
 }

@@ -25,13 +25,13 @@ export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
   | BigUint64Array<T>;
 
 export type ValueOf<T> = T[keyof T];
-export type InstanceOf<T> = T extends new (...args: unknown[]) => infer R ? R : never;
+export type InstanceOf<T> = T extends new (...args: Array<unknown>) => infer R ? R : never;
 export type KindOf<T> = InstanceOf<ValueOf<T>>;
 export type Extends<TObject, TExtends> = {
   [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
 }[keyof TObject];
 
-export type TupleOf<T, N extends number, R extends T[] = []> = R['length'] extends N
+export type TupleOf<T, N extends number, R extends Array<T> = []> = R['length'] extends N
   ? R
   : TupleOf<T, N, [T, ...R]>;
 export type NumberTuple<T extends number> = TupleOf<number, T>;
@@ -52,7 +52,7 @@ export interface ExtractedTrack<TUser> {
   user: TUser;
   trak: trakBox;
   nb_samples: number;
-  samples: Sample[];
+  samples: Array<Sample>;
 }
 
 export interface Sample {
@@ -76,9 +76,9 @@ export interface Sample {
   number: number;
   offset: number;
   pts?: number;
-  sample_groups?: SampleGroup[];
+  sample_groups?: Array<SampleGroup>;
   size: number;
-  subsamples?: SubSample[];
+  subsamples?: Array<SubSample>;
   timescale: number;
   track_id: number;
 }
@@ -98,7 +98,7 @@ export interface Track {
   created: Date;
   cts_shift: BOXES.cslgBox;
   duration: number;
-  edits?: Entry[];
+  edits?: Array<Entry>;
   id: number;
   kind: BOXES.kindBox | { schemeURI: ''; value: '' };
   language: string;
@@ -109,9 +109,9 @@ export interface Track {
   movie_timescale: number;
   name: string;
   nb_samples: number;
-  references: { track_ids: ArrayLike<number>; type: string }[];
+  references: Array<{ track_ids: ArrayLike<number>; type: string }>;
   samples_duration: number;
-  samples?: Sample[];
+  samples?: Array<Sample>;
   size: number;
   timescale: number;
   track_height: number;
@@ -123,28 +123,28 @@ export interface Track {
 
 export interface Movie {
   hasMoov: boolean;
-  audioTracks: Track[];
-  brands: string[];
+  audioTracks: Array<Track>;
+  brands: Array<string>;
   created: Date;
   duration: number;
   fragment_duration: number | undefined;
   hasIOD: boolean;
-  hintTracks: Track[];
+  hintTracks: Array<Track>;
   isFragmented: boolean;
   isProgressive: boolean;
-  metadataTracks: Track[];
+  metadataTracks: Array<Track>;
   mime: string;
   modified: Date;
-  otherTracks: Track[];
-  subtitleTracks: Track[];
+  otherTracks: Array<Track>;
+  subtitleTracks: Array<Track>;
   timescale: number;
-  tracks: Track[];
-  videoTracks: Track[];
+  tracks: Array<Track>;
+  videoTracks: Array<Track>;
 }
 
 export interface Description {
   default_group_description_index: number;
-  entries: (SampleGroupEntry | SampleEntry)[];
+  entries: Array<SampleGroupEntry | SampleEntry>;
   used: boolean;
   version: number;
 }
@@ -164,20 +164,20 @@ export interface Item {
   content_type?: string;
   item_uri_type: string;
   data?: Uint8Array;
-  extents?: {
+  extents?: Array<{
     alreadyRead?: number;
     length: number;
     offset: number;
-  }[];
+  }>;
   id?: number;
   name?: string;
   primary?: boolean;
-  properties?: { boxes: Box[] };
+  properties?: { boxes: Array<Box> };
   protection?: BOXES.sinfBox;
-  ref_to?: {
+  ref_to?: Array<{
     type: string;
     id: Reference;
-  }[];
+  }>;
   sent?: boolean;
   size?: number;
   source?: Box;
@@ -186,10 +186,10 @@ export interface Item {
 
 export interface EntityGroup {
   id: number;
-  entity_ids: number[];
+  entity_ids: Array<number>;
   type: string;
   properties?: {
-    boxes: Box[];
+    boxes: Array<Box>;
   };
 }
 
@@ -210,7 +210,7 @@ export interface Nalu {
   length?: number;
 }
 
-export type NaluArray = Nalu[] & {
+export type NaluArray = Array<Nalu> & {
   completeness: number;
   nalu_type: number;
   length: number;
@@ -337,7 +337,7 @@ export type ParsedType =
   | SimpleNumberType
   | EndianNumberType;
 
-export type StructDefinition = [name: string, type: Type][];
+export type StructDefinition = Array<[name: string, type: Type]>;
 
 export type ValueFromType<TValue extends Type> = TValue extends StringType
   ? string
@@ -354,7 +354,7 @@ export type ValueFromType<TValue extends Type> = TValue extends StringType
               ? TReturnType extends number
                 ? TupleOf<number, TReturnType>
                 : never
-              : number[]
+              : Array<number>
           : TValue extends StructDefinition
             ? StructDataFromStructDefinition<TValue>
             : never;

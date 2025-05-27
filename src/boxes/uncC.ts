@@ -7,10 +7,10 @@ export class uncCBox extends FullBox {
 
   profile: string;
   component_count: number;
-  component_index: number[];
-  component_bit_depth_minus_one: number[];
-  component_format: number[];
-  component_align_size: number[];
+  component_index: Array<number>;
+  component_bit_depth_minus_one: Array<number>;
+  component_format: Array<number>;
+  component_align_size: Array<number>;
   sampling_type: number;
   interleave_type: number;
   block_size: number;

@@ -30,7 +30,7 @@ const regularBuild = defineConfig({
   dts: true,
 });
 
-const build: (typeof iifeBuild | typeof regularBuild)[] = [];
+const build: Array<typeof iifeBuild | typeof regularBuild> = [];
 if (PUBLISH_TO_NPM) {
   build.push(regularBuild);
 } else {

@@ -25,10 +25,9 @@ export class dfLaBox extends FullBox {
       'RESERVED',
     ];
 
-    let i: number;
-    for (i = 0; i < 1_000_000; i++) {
-      const flagAndType = stream.readUint8();
-
+    let flagAndType: number;
+    do {
+      flagAndType = stream.readUint8();
       const type = Math.min(flagAndType & BLOCKTYPE_MASK, knownBlockTypes.length - 1);
 
       // if this is a STREAMINFO block, read the true samplerate since this
@@ -48,16 +47,7 @@ export class dfLaBox extends FullBox {
       }
 
       boxesFound.push(knownBlockTypes[type]);
-
-      if (flagAndType & LASTMETADATABLOCKFLAG_MASK) {
-        break;
-      }
-    }
-
-    // Defensive
-    if (i >= 1_000_000) {
-      throw new Error('dfLaBox: Too many metadata blocks found, parsing stopped');
-    }
+    } while (!(flagAndType & LASTMETADATABLOCKFLAG_MASK));
 
     this.numMetadataBlocks = boxesFound.length + ' (' + boxesFound.join(', ') + ')';
   }

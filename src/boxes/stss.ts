@@ -5,7 +5,7 @@ export class stssBox extends FullBox {
   type = 'stss' as const;
   box_name = 'SyncSampleBox';
 
-  sample_numbers: number[];
+  sample_numbers: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
