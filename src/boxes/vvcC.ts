@@ -19,7 +19,7 @@ export class vvcCBox extends FullBox {
   general_level_idc: number;
   ptl_frame_only_constraint_flag: number;
   ptl_multilayer_enabled_flag: number;
-  general_constraint_info: Uint8Array;
+  general_constraint_info: Uint8Array | undefined;
   ptl_sublayer_present_mask: number;
   sublayer_level_idc: Array<number>;
   ptl_num_sub_profiles: number;
@@ -58,7 +58,7 @@ export class vvcCBox extends FullBox {
     this.lengthSizeMinusOne = bitReader.extract_bits(2);
     this.ptl_present_flag = bitReader.extract_bits(1);
 
-    if (this.ptl_present_flag) {
+    if (this.ptl_present_flag !== 0) {
       bitReader.stream_read_2_bytes(stream);
       this.ols_idx = bitReader.extract_bits(9);
       this.num_sublayers = bitReader.extract_bits(3);
@@ -84,7 +84,7 @@ export class vvcCBox extends FullBox {
         this.ptl_multilayer_enabled_flag = bitReader.extract_bits(1);
 
         this.general_constraint_info = new Uint8Array(this.num_bytes_constraint_info);
-        if (this.num_bytes_constraint_info) {
+        if (this.num_bytes_constraint_info !== 0) {
           for (let i = 0; i < this.num_bytes_constraint_info - 1; i++) {
             const cnstr1 = bitReader.extract_bits(6);
             bitReader.stream_read_1_bytes(stream);
@@ -120,7 +120,7 @@ export class vvcCBox extends FullBox {
 
         this.ptl_num_sub_profiles = stream.readUint8();
         this.general_sub_profile_idc = [];
-        if (this.ptl_num_sub_profiles) {
+        if (this.ptl_num_sub_profiles !== 0) {
           for (let i = 0; i < this.ptl_num_sub_profiles; i++) {
             this.general_sub_profile_idc.push(stream.readUint32());
           }

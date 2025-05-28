@@ -5,7 +5,7 @@ export class urlBox extends FullBox {
   type = 'url ' as const;
   box_name = 'DataEntryUrlBox';
 
-  location?: string;
+  location: string | undefined;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -17,7 +17,7 @@ export class urlBox extends FullBox {
   /** @bundle writing/url.js */
   write = (stream: MultiBufferStream) => {
     this.version = 0;
-    if (this.location) {
+    if (this.location !== undefined) {
       this.flags = 0;
       this.size = this.location.length + 1;
     } else {
@@ -25,7 +25,7 @@ export class urlBox extends FullBox {
       this.size = 0;
     }
     this.writeHeader(stream);
-    if (this.location) {
+    if (this.location !== undefined) {
       stream.writeCString(this.location);
     }
   };

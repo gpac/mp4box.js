@@ -6,7 +6,7 @@ export class urnBox extends FullBox {
   box_name = 'DataEntryUrnBox';
 
   name: string;
-  location: string;
+  location: string | undefined;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -23,7 +23,7 @@ export class urnBox extends FullBox {
     this.size = this.name.length + 1 + (this.location ? this.location.length + 1 : 0);
     this.writeHeader(stream);
     stream.writeCString(this.name);
-    if (this.location) {
+    if (this.location !== undefined) {
       stream.writeCString(this.location);
     }
   };

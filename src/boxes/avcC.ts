@@ -17,7 +17,7 @@ export class avcCBox extends Box {
   SPS: ParameterSetArray;
   nb_PPS_nalus: number;
   PPS: ParameterSetArray;
-  ext: Uint8Array;
+  ext: Uint8Array | undefined;
 
   parse(stream: DataStream | MP4BoxStream) {
     this.configurationVersion = stream.readUint8();
@@ -62,7 +62,7 @@ export class avcCBox extends Box {
     for (let i = 0; i < this.PPS.length; i++) {
       this.size += 2 + this.PPS[i].length;
     }
-    if (this.ext) {
+    if (this.ext !== undefined) {
       this.size += this.ext.length;
     }
     this.writeHeader(stream);
@@ -81,7 +81,7 @@ export class avcCBox extends Box {
       stream.writeUint16(this.PPS[i].length);
       stream.writeUint8Array(this.PPS[i].data);
     }
-    if (this.ext) {
+    if (this.ext !== undefined) {
       stream.writeUint8Array(this.ext);
     }
   };

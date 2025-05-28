@@ -22,10 +22,10 @@ export class avssSampleGroupEntry extends SampleGroupEntry {
     const tmp_byte = stream.readUint8();
     this.durationFlag = tmp_byte >> 7;
     this.avgRateFlag = (tmp_byte >> 6) & 0x1;
-    if (this.durationFlag) {
+    if (this.durationFlag !== 0) {
       this.duration = stream.readUint32();
     }
-    if (this.avgRateFlag) {
+    if (this.avgRateFlag !== 0) {
       this.accurateStatisticsFlag = stream.readUint8();
       this.avgBitRate = stream.readUint16();
       this.avgFrameRate = stream.readUint16();

@@ -31,7 +31,7 @@ class avcCSampleEntryBase extends VisualSampleEntry {
   /** @bundle box-codecs.js */
   getCodec() {
     const baseCodec = super.getCodec();
-    if (this.avcC) {
+    if (this.avcC !== undefined) {
       return `${baseCodec}.${decimalToHex(this.avcC.AVCProfileIndication)}${decimalToHex(
         this.avcC.profile_compatibility,
       )}${decimalToHex(this.avcC.AVCLevelIndication)}`;
@@ -96,13 +96,13 @@ export class dav1SampleEntry extends VisualSampleEntry {
 }
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
-  hvcC: hvcCBox;
+  hvcC: hvcCBox | undefined;
   hvcCs: Array<hvcCBox> = [];
 
   /** @bundle box-codecs.js */
   getCodec(): string {
     let baseCodec = super.getCodec();
-    if (this.hvcC) {
+    if (this.hvcC !== undefined) {
       baseCodec += '.';
       switch (this.hvcC.general_profile_space) {
         case 0:
@@ -139,7 +139,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       let hasByte = false;
       let constraint_string = '';
       for (let i = 5; i >= 0; i--) {
-        if (this.hvcC.general_constraint_indicator[i] || hasByte) {
+        if (this.hvcC.general_constraint_indicator[i] !== 0 || hasByte) {
           constraint_string =
             '.' + decimalToHex(this.hvcC.general_constraint_indicator[i], 0) + constraint_string;
           hasByte = true;
@@ -147,6 +147,7 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
       }
       baseCodec += constraint_string;
     }
+
     return baseCodec;
   }
 }
@@ -177,13 +178,14 @@ export class dvheSampleEntry extends VisualSampleEntry {
 
 /** @babel box-codecs.js */
 class vvcCSampleEntryBase extends VisualSampleEntry {
-  vvcC: vvcCBox;
+  vvcC: vvcCBox | undefined;
   vvcCs: Array<vvcCBox>;
+
   getCodec() {
     let baseCodec = super.getCodec();
-    if (this.vvcC) {
+    if (this.vvcC !== undefined) {
       baseCodec += '.' + this.vvcC.general_profile_idc;
-      if (this.vvcC.general_tier_flag) {
+      if (this.vvcC.general_tier_flag !== 0) {
         baseCodec += '.H';
       } else {
         baseCodec += '.L';
@@ -191,7 +193,7 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
       baseCodec += this.vvcC.general_level_idc;
 
       let constraint_string = '';
-      if (this.vvcC.general_constraint_info) {
+      if (this.vvcC.general_constraint_info !== undefined) {
         const bytes = [];
         let byte = 0;
         byte |= this.vvcC.ptl_frame_only_constraint_flag << 7;
@@ -300,14 +302,15 @@ export class uncvSampleEntry extends VisualSampleEntry {
 }
 
 export class mp4aSampleEntry extends AudioSampleEntry {
-  esds: esdsBox;
+  esds: esdsBox | undefined;
   esdss: Array<esdsBox>;
 
   type = 'mp4a' as const;
 
   getCodec() {
     const baseCodec = super.getCodec();
-    if (this.esds && this.esds.esd) {
+    // TODO: Check if esds.esd can be undefined
+    if (this.esds !== undefined && this.esds.esd) {
       const oti = this.esds.esd.getOTI();
       const dsi = this.esds.esd.getAudioConfig();
       return baseCodec + '.' + decimalToHex(oti) + (dsi ? '.' + dsi : '');
