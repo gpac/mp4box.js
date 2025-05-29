@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p ${{ runner.temp }}/public
           mv ${{ github.workspace }}/dist ${{ runner.temp }}/public
-          mv ${{ github.workspace }}/test ${{ runner.temp }}/public
+          mv ${{ github.workspace }}/demo ${{ runner.temp }}/public/test
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
