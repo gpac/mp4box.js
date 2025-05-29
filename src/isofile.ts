@@ -2443,7 +2443,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       });
     }
     minf.addBox(new dinfBox());
-    // NOTE:    there was an error here before: addEntry(new BoxParser['url Box']()...)
     const dref = minf.addBox(new drefBox());
     const url = new urlBox();
     url.flags = 0x1;
