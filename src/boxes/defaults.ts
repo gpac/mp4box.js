@@ -130,7 +130,7 @@ export class moovBox extends ContainerBox {
   timescale: number;
   mvhd: mvhdBox;
   mvhds: Array<mvhdBox>;
-  mvex: mvexBox;
+  mvex?: mvexBox;
   mvexs: Array<mvexBox>;
   iods: iodsBox;
   iodss: Array<iodsBox>;

@@ -1,12 +1,12 @@
 import { OK } from '#//constants';
-import { Box, ContainerBox, parseOneBox, TrackReferenceTypeBox } from '#/box';
+import { Box, parseOneBox, TrackReferenceTypeBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
-export class trefBox extends ContainerBox {
+export class trefBox extends Box {
   type = 'tref' as const;
 
-  declare boxes: Array<TrackReferenceTypeBox>;
+  boxes: Array<TrackReferenceTypeBox> = [];
 
   parse(stream: MultiBufferStream) {
     while (stream.getPosition() < this.start + this.size) {

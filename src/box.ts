@@ -5,7 +5,7 @@
 
 import { MultiBufferStream } from '#/buffer';
 import { ERR_NOT_ENOUGH_DATA, MAX_SIZE, OK } from '#/constants';
-import { DataStream } from '#/DataStream';
+import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
@@ -158,7 +158,7 @@ export class Box {
   /** @bundle isofile-advanced-creation.js */
   computeSize(stream_?: MultiBufferStream) {
     const stream = stream_ || new MultiBufferStream();
-    stream.endianness = MultiBufferStream.BIG_ENDIAN;
+    stream.endianness = Endianness.BIG_ENDIAN;
     this.write(stream);
   }
 }
@@ -170,7 +170,6 @@ export class FullBox extends Box {
   /** @bundle box-write.js */
   writeHeader(stream: MultiBufferStream) {
     this.size += 4;
-    // TODO: writeHeader is not a static method so not sure what to do here
     super.writeHeader(stream, ' v=' + this.version + ' f=' + this.flags);
     stream.writeUint8(this.version);
     stream.writeUint24(this.flags);
@@ -254,7 +253,9 @@ export class ContainerBox extends Box {
         /* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
         this.boxes.push(box);
         if (this.subBoxNames && this.subBoxNames.indexOf(box.type) !== -1) {
-          this[this.subBoxNames[this.subBoxNames.indexOf(box.type)] + 's'].push(box);
+          const fourcc = this.subBoxNames[this.subBoxNames.indexOf(box.type)] + 's';
+          if (!this[fourcc]) this[fourcc] = [];
+          this[fourcc].push(box);
         } else {
           const box_type = box.type !== 'uuid' ? box.type : box.uuid;
           if (this[box_type]) {

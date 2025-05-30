@@ -1,4 +1,4 @@
-import { DataStream } from '#/DataStream';
+import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
 import type { MP4BoxBuffer } from './mp4boxbuffer';
 
@@ -31,7 +31,7 @@ export class MultiBufferStream extends DataStream {
   bufferIndex: number;
 
   constructor(buffer?: MP4BoxBuffer) {
-    super(new ArrayBuffer(), 0, DataStream.BIG_ENDIAN);
+    super(new ArrayBuffer(), 0, Endianness.BIG_ENDIAN);
     // List of ArrayBuffers, with a fileStart property, sorted in fileStart order and non-overlapping
     this.buffers = [];
     this.bufferIndex = -1;

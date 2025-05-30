@@ -64,7 +64,6 @@ export class Descriptor {
   parseRemainingDescriptors(stream: DataStream) {
     const start = stream.position;
     while (stream.position < start + this.size) {
-      console.log('this.parseOneDescriptor', this, this.parseOneDescriptor);
       const desc = this.parseOneDescriptor?.(stream);
       this.descs.push(desc);
     }

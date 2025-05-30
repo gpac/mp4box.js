@@ -76,7 +76,7 @@ import {
   TRUN_FLAGS_FLAGS,
   TRUN_FLAGS_SIZE,
 } from '#/constants';
-import { DataStream } from '#/DataStream';
+import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
@@ -157,11 +157,11 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** Boolean used to fire moov start event only once */
   moovStartFound = false;
   /** Callback called when the moov parsing starts */
-  onMoovStart = null;
+  onMoovStart: (() => void) | null = null;
   /** Boolean keeping track of the call to onMoovStart, to avoid double calls */
   moovStartSent = false;
   /** Callback called when the moov is entirely parsed */
-  onReady = null;
+  onReady: ((info: Movie) => void) | null = null;
   /** Boolean keeping track of the call to onReady, to avoid double calls */
   readySent = false;
   /** Callback to call when segments are ready */
@@ -195,7 +195,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** Boolean indicating if the initial list of items has been produced */
   itemListBuilt = false;
   /** Callback called when the sidx box is entirely parsed */
-  onSidx = null;
+  onSidx: ((sidx: sidxBox) => void) | null = null;
   /** Boolean keeping track of the call to onSidx, to avoid double calls */
   sidxSent = false;
 
@@ -221,9 +221,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   ftyps: Array<ftypBox>;
   nextSeekPosition: number;
   initial_duration: number;
-
-  static type: BoxKind['type'];
-  static boxes: Array<Box>;
 
   constructor(stream?: MultiBufferStream) {
     this.stream = stream || new MultiBufferStream();
@@ -500,15 +497,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     const _1904 = new Date('1904-01-01T00:00:00Z').getTime();
-    const isFragmented = this.moov.mvex !== null;
+    const isFragmented = this.moov.mvex?.mehd !== undefined;
 
     const movie: Movie = {
       hasMoov: true,
       duration: this.moov.mvhd.duration,
       timescale: this.moov.mvhd.timescale,
       isFragmented,
-      fragment_duration:
-        isFragmented && this.moov.mvex.mehd ? this.moov.mvex.mehd.fragment_duration : undefined,
+      fragment_duration: isFragmented ? this.moov.mvex.mehd.fragment_duration : undefined,
       isProgressive: this.isProgressive,
       hasIOD: this.moov.iods !== null,
       brands: [this.ftyp.major_brand].concat(this.ftyp.compatible_brands),
@@ -748,16 +744,20 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
   getBoxes(type: BoxKind['type'], returnEarly: boolean) {
     const result = [];
-    ISOFile._sweep.call(this, type, result, returnEarly);
-    return result;
-  }
 
-  static _sweep(type: BoxKind['type'], result: Array<typeof ISOFile>, returnEarly: boolean) {
-    if (this.type && this.type === type) result.push(this);
-    for (const box in this.boxes) {
-      if (result.length && returnEarly) return;
-      ISOFile._sweep.call(this.boxes[box], type, result, returnEarly);
-    }
+    const sweep = (root: Box | ISOFile) => {
+      if (root instanceof Box && root.type && root.type === type) {
+        result.push(root);
+      }
+
+      for (const box in this.boxes) {
+        if (result.length && returnEarly) return;
+        sweep(this.boxes[box]);
+      }
+    };
+
+    sweep(this);
+    return result;
   }
 
   getTrackSamplesInfo(track_id: number) {
@@ -964,7 +964,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     const stream = _stream || new DataStream();
-    stream.endianness = DataStream.BIG_ENDIAN;
+    stream.endianness = Endianness.BIG_ENDIAN;
 
     const moof = this.createSingleSampleMoof(sample);
     // @ts-expect-error FIXME: expects MultiBufferStream
@@ -1000,7 +1000,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     Log.debug('ISOFile', 'Generating initialization segment');
 
     const stream = new DataStream();
-    stream.endianness = DataStream.BIG_ENDIAN;
+    stream.endianness = Endianness.BIG_ENDIAN;
     // @ts-expect-error FIXME: expects MultiBufferStream
     ftyp.write(stream);
 
@@ -1028,7 +1028,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** @bundle isofile-write.js */
   save(name: string) {
     const stream = new DataStream();
-    stream.endianness = DataStream.BIG_ENDIAN;
+    stream.endianness = Endianness.BIG_ENDIAN;
     // @ts-expect-error FIXME: figure out stream-type
     this.write(stream);
     return stream.save(name);
@@ -1037,7 +1037,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** @bundle isofile-write.js */
   getBuffer() {
     const stream = new DataStream();
-    stream.endianness = DataStream.BIG_ENDIAN;
+    stream.endianness = Endianness.BIG_ENDIAN;
     // @ts-expect-error   fix stream type
     this.write(stream);
     return stream.buffer;
@@ -1525,8 +1525,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               let dts: number;
               if (trak.first_traf_merged || k > 0) {
                 dts =
-                  trak.samples[trak.samples.length - 2].dts +
-                  trak.samples[trak.samples.length - 2].duration;
+                  trak.samples[trak.samples.length - 1].dts +
+                  trak.samples[trak.samples.length - 1].duration;
               } else {
                 if (traf.tfdt) {
                   dts = traf.tfdt.baseMediaDecodeTime;
