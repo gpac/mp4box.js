@@ -118,9 +118,11 @@ export class SampleEntry extends ContainerBox {
 
   /** @bundle writing/sampleentry.js */
   writeFooter(stream: MultiBufferStream) {
-    for (let i = 0; i < this.boxes.length; i++) {
-      this.boxes[i].write(stream);
-      this.size += this.boxes[i].size;
+    if (this.boxes) {
+      for (let i = 0; i < this.boxes.length; i++) {
+        this.boxes[i].write(stream);
+        this.size += this.boxes[i].size;
+      }
     }
     Log.debug('BoxWriter', 'Adjusting box ' + this.type + ' with new size ' + this.size);
     stream.adjustUint32(this.sizePosition, this.size);

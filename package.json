@@ -52,16 +52,20 @@
   "scripts": {
     "prepare": "node .husky/install.mjs",
     "build": "tsup",
-    "circular": "dpdm -T ./entries/all.ts",
-    "types": "tsc --noEmit --project tsconfig.json",
-    "test": "npm run lint && npm run build && npm run types && npm run circular",
-    "lint": "eslint"
+    "circular": "dpdm -T ./entries/all.ts --tsconfig tsconfig.lib.json",
+    "types": "tsc --noEmit -p tsconfig.lib.json",
+    "test": "vitest run",
+    "test:dev": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint",
+    "check": "npm run lint && npm run build && npm run types && npm run circular"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^9.27.0",
     "@types/node": "^22.15.21",
+    "@vitest/coverage-v8": "^3.1.4",
     "dpdm": "^3.14.0",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
@@ -71,7 +75,9 @@
     "prettier": "^3.5.3",
     "tsup": "^8.3.5",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.32.1"
+    "typescript-eslint": "^8.32.1",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.1.4"
   },
   "packageManager": "npm@11.4.1"
 }

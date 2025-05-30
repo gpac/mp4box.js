@@ -17,6 +17,8 @@ export default tseslint.config(
       ],
       // Disable the base rule 'no-unused-vars' to avoid conflicts with TypeScript's rule
       'no-unused-vars': 'off',
+      // Only allow Error objects to be thrown
+      'no-throw-literal': 'error',
       // Disable @typescript-eslint/prefer-for-of we have too much for now
       '@typescript-eslint/prefer-for-of': 'off',
       // Prefer to use Array<T> over T[]

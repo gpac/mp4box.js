@@ -215,10 +215,12 @@ export class ContainerBox extends Box {
   write(stream: MultiBufferStream) {
     this.size = 0;
     this.writeHeader(stream);
-    for (let i = 0; i < this.boxes.length; i++) {
-      if (this.boxes[i]) {
-        this.boxes[i].write(stream);
-        this.size += this.boxes[i].size;
+    if (this.boxes) {
+      for (let i = 0; i < this.boxes.length; i++) {
+        if (this.boxes[i]) {
+          this.boxes[i].write(stream);
+          this.size += this.boxes[i].size;
+        }
       }
     }
     /* adjusting the size, now that all sub-boxes are known */

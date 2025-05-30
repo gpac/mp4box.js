@@ -377,10 +377,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
   checkBuffer(ab?: MP4BoxBuffer) {
     if (ab === null || ab === undefined) {
-      throw 'Buffer must be defined and non empty';
-    }
-    if (ab.fileStart === undefined) {
-      throw 'Buffer must have a fileStart property';
+      throw new Error('Buffer must be defined and non empty');
     }
     if (ab.byteLength === 0) {
       Log.warn('ISOFile', 'Ignoring empty buffer (fileStart: ' + ab.fileStart + ')');
@@ -894,7 +891,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const moov = this.moov;
     let seek_info = { offset: Infinity, time: Infinity };
     if (!this.moov) {
-      throw 'Cannot seek: moov not received!';
+      throw new Error('Cannot seek: moov not received!');
     } else {
       for (let i = 0; i < moov.traks.length; i++) {
         const trak = moov.traks[i];
@@ -1034,7 +1031,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     stream.endianness = DataStream.BIG_ENDIAN;
     // @ts-expect-error FIXME: figure out stream-type
     this.write(stream);
-    stream.save(name);
+    return stream.save(name);
   }
 
   /** @bundle isofile-write.js */
@@ -1060,9 +1057,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
       const moov = new moovBox();
       moov.mvhd = this.moov.mvhd;
-      moov.boxes.push(moov.mvhd);
+      moov.addBox(moov.mvhd);
       const trak = this.getTrackById(this.fragmentedTracks[i].id);
-      moov.boxes.push(trak);
+      moov.addBox(trak);
       moov.traks.push(trak);
       const seg = {
         id: trak.tkhd.track_id,
@@ -2337,7 +2334,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /** @bundle isofile-advanced-creation.js */
-  addTrack(_options: IsoFileOptions) {
+  addTrack(_options: IsoFileOptions = {}) {
     if (!this.moov) {
       this.init(_options);
     }
@@ -2514,7 +2511,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     const descriptionIndex = sample_description_index ? sample_description_index - 1 : 0;
 
-    const sample = {
+    const sample: Sample = {
       number: trak.samples.length,
       track_id: trak.tkhd.track_id,
       timescale: trak.mdia.mdhd.timescale,
@@ -2534,7 +2531,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       degradation_priority,
       offset,
       subsamples,
-    } satisfies Sample;
+    };
 
     trak.samples.push(sample);
     trak.samples_size += sample.size;

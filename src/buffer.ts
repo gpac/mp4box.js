@@ -287,7 +287,7 @@ export class MultiBufferStream extends DataStream {
 
     while (i < this.buffers.length) {
       const abuffer = this.buffers[i];
-      if (abuffer.fileStart <= filePosition) {
+      if (abuffer && abuffer.fileStart <= filePosition) {
         index = i;
         if (markAsUsed) {
           if (abuffer.fileStart + abuffer.byteLength <= filePosition) {
@@ -411,9 +411,7 @@ export class MultiBufferStream extends DataStream {
    * @return {Number} the position in the file
    */
   getPosition() {
-    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
-      throw 'Error accessing position in the MultiBufferStream';
-    }
+    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) return 0;
     return this.buffers[this.bufferIndex].fileStart + this.position;
   }
 
@@ -426,9 +424,7 @@ export class MultiBufferStream extends DataStream {
   }
 
   getEndPosition() {
-    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) {
-      throw 'Error accessing position in the MultiBufferStream';
-    }
+    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) return 0;
     return this.buffers[this.bufferIndex].fileStart + this.byteLength;
   }
 }

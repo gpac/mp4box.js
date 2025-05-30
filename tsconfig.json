@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
     "strict": false,
-    "target": "ESNext",
-    "module": "ESNext",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -13,12 +11,16 @@
     "skipDefaultLibCheck": true,
     "isolatedModules": false,
     "verbatimModuleSyntax": true,
-    "useDefineForClassFields": false,
-    "allowJs": true,
-    "paths": {
-      "#/*": ["./src/*"],
-      "@types": ["./entries/types"]
-    }
+    "useDefineForClassFields": false
   },
-  "include": ["./src/**/*", "./entries/**/*"]
+  "include": [],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.test.json"
+    }
+  ]
 }

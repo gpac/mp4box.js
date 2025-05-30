@@ -56,7 +56,7 @@ export class DataStream {
   ) {
     this._byteOffset = byteOffset || 0;
     if (arrayBuffer instanceof ArrayBuffer) {
-      this.buffer = arrayBuffer;
+      this.buffer = MP4BoxBuffer.fromArrayBuffer(arrayBuffer);
     } else if (arrayBuffer instanceof DataView) {
       this.dataView = arrayBuffer;
       if (byteOffset) this._byteOffset += byteOffset;
@@ -183,7 +183,7 @@ export class DataStream {
   }
   set dataView(value: DataView<ArrayBuffer>) {
     this._byteOffset = value.byteOffset;
-    this._buffer = value.buffer;
+    this._buffer = MP4BoxBuffer.fromArrayBuffer(value.buffer);
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._byteOffset + value.byteLength;
   }
@@ -667,20 +667,23 @@ export class DataStream {
    */
   save(filename: string) {
     const blob = new Blob([this.buffer]);
-    if (window.URL && URL.createObjectURL) {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      // Required in Firefox:
-      document.body.appendChild(a);
-      a.setAttribute('href', url);
-      a.setAttribute('download', filename);
-      // Required in Firefox:
-      a.setAttribute('target', '_self');
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } else {
-      throw "DataStream.save: Can't create object URL.";
+    // Modernized: Works in browser, and is a no-op (or throws) in Vitest/node
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      if (window.URL && URL.createObjectURL) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        document.body.appendChild(a);
+        a.setAttribute('href', url);
+        a.setAttribute('download', filename);
+        a.setAttribute('target', '_self');
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        throw new Error("DataStream.save: Can't create object URL.");
+      }
     }
+    return blob;
   }
 
   /**

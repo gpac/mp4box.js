@@ -45,5 +45,8 @@ jobs:
       - run: npm install --global corepack@latest
       - run: corepack npm audit signatures
 
-      - name: Run tests
+      - name: Run Preliminary Checks
+        run: npm run check
+
+      - name: Run Tests
         run: npm test
