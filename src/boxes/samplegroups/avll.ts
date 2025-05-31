@@ -2,6 +2,8 @@ import { SampleGroupEntry } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class avllSampleGroupEntry extends SampleGroupEntry {
+  static grouping_type = 'avll' as const;
+
   layerNumber: number;
   accurateStatisticsFlag: number;
   avgBitRate: number;

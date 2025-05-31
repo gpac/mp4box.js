@@ -2,6 +2,8 @@ import { SampleGroupEntry } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class alstSampleGroupEntry extends SampleGroupEntry {
+  static grouping_type = 'alst' as const;
+
   first_output_sample: number;
   sample_offset: Array<number>;
   num_output_samples: Array<number>;

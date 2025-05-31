@@ -2,6 +2,8 @@ import { SampleGroupEntry } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class avssSampleGroupEntry extends SampleGroupEntry {
+  static grouping_type = 'avss' as const;
+
   subSequenceIdentifier: number;
   layerNumber: number;
   durationFlag: number;

@@ -2,6 +2,8 @@ import { SampleGroupEntry, parseHex16 } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class seigSampleGroupEntry extends SampleGroupEntry {
+  static grouping_type = 'seig' as const;
+
   reserved: number;
   crypt_byte_block: number;
   skip_byte_block: number;

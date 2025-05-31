@@ -2,6 +2,8 @@ import { SampleGroupEntry } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class rapSampleGroupEntry extends SampleGroupEntry {
+  static grouping_type = 'rap ' as const;
+
   num_leading_samples_known: number;
   num_leading_samples: number;
 

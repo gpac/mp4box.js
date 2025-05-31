@@ -3,6 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class rashSampleGroupEntry extends SampleGroupEntry {
+  static grouping_type = 'rash' as const;
+
   operation_point_count: number;
   target_rate_share: number | Array<number>;
   available_bitrate: Array<number>;

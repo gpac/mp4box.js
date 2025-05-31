@@ -2,6 +2,8 @@ import { SampleGroupEntry } from '#//box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class syncSampleGroupEntry extends SampleGroupEntry {
+  static grouping_type = 'sync' as const;
+
   NAL_unit_type: number;
 
   parse(stream: MultiBufferStream) {
