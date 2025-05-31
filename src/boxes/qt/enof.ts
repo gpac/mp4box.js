@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class enofBox extends FullBox {
-  type = 'enof' as const;
-  box_name = 'TrackEncodedPixelsDimensionsBox';
+  static fourcc = 'enof' as const;
+  box_name = 'TrackEncodedPixelsDimensionsBox' as const;
 
   width: number;
   height: number;

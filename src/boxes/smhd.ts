@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class smhdBox extends FullBox {
-  type = 'smhd' as const;
-  box_name = 'SoundMediaHeaderBox';
+  static fourcc = 'smhd' as const;
+  box_name = 'SoundMediaHeaderBox' as const;
 
   balance: number;
 

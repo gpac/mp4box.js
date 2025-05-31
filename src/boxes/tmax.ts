@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tmaxBox extends Box {
-  type = 'tmax' as const;
-  box_name = 'hintmaxrelativetime';
+  static fourcc = 'tmax' as const;
+  box_name = 'hintmaxrelativetime' as const;
 
   time: number;
 

@@ -3,8 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { SampleEntry } from './sampleentries/base';
 
 export class tfraBox extends FullBox {
-  type = 'tfra' as const;
-  box_name = 'TrackFragmentRandomAccessBox';
+  static fourcc = 'tfra' as const;
+  box_name = 'TrackFragmentRandomAccessBox' as const;
 
   track_ID: number;
   length_size_of_traf_num: number;

@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class pitmBox extends FullBox {
-  type = 'pitm' as const;
-  box_name = 'PrimaryItemBox';
+  static fourcc = 'pitm' as const;
+  box_name = 'PrimaryItemBox' as const;
 
   item_id: number;
 

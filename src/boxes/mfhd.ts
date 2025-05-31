@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mfhdBox extends FullBox {
-  type = 'mfhd' as const;
-  box_name = 'MovieFragmentHeaderBox';
+  static fourcc = 'mfhd' as const;
+  box_name = 'MovieFragmentHeaderBox' as const;
 
   sequence_number: number;
 

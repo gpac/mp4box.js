@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class sdtpBox extends FullBox {
-  type = 'sdtp' as const;
-  box_name = 'SampleDependencyTypeBox';
+  static fourcc = 'sdtp' as const;
+  box_name = 'SampleDependencyTypeBox' as const;
 
   is_leading: Array<number>;
   sample_depends_on: Array<number>;

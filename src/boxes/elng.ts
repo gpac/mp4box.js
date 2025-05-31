@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class elngBox extends FullBox {
-  type = 'elng' as const;
-  box_name = 'ExtendedLanguageBox';
+  static fourcc = 'elng' as const;
+  box_name = 'ExtendedLanguageBox' as const;
 
   extended_language: string;
 

@@ -3,8 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Matrix, Output } from '@types';
 
 export class mvhdBox extends FullBox {
-  type = 'mvhd' as const;
-  box_name = 'MovieHeaderBox';
+  static fourcc = 'mvhd' as const;
+  box_name = 'MovieHeaderBox' as const;
 
   creation_time: number;
   modification_time: number;

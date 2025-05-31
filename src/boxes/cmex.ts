@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cmexBox extends Box {
-  type = 'cmex' as const;
-  box_name = 'CameraExtrinsicMatrixProperty';
+  static fourcc = 'cmex' as const;
+  box_name = 'CameraExtrinsicMatrixProperty' as const;
 
   flags: number;
   pos_x: number;

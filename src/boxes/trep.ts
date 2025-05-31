@@ -3,8 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 
 export class trepBox extends FullBox {
-  type = 'trep' as const;
-  box_name = 'TrackExtensionPropertiesBox';
+  static fourcc = 'trep' as const;
+  box_name = 'TrackExtensionPropertiesBox' as const;
 
   track_ID: number;
 

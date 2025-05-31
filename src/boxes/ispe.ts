@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class ispeBox extends FullBox {
-  type = 'ispe' as const;
-  box_name = 'ImageSpatialExtentsProperty';
+  static fourcc = 'ispe' as const;
+  box_name = 'ImageSpatialExtentsProperty' as const;
 
   image_width: number;
   image_height: number;

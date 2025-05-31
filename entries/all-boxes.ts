@@ -154,3 +154,5 @@ export * from '#/boxes/samplegroups/tele';
 export * from '#/boxes/samplegroups/tsas';
 export * from '#/boxes/samplegroups/tscl';
 export * from '#/boxes/samplegroups/vipr';
+
+export * from '#/boxes/uuid';

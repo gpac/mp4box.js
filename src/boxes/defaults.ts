@@ -47,27 +47,27 @@ import type { vmhdBox } from './vmhd';
 /**********************************************************************************/
 
 export class mdatBox extends Box {
-  type = 'mdat' as const;
-  box_name = 'MediaDataBox';
+  static fourcc = 'mdat' as const;
+  box_name = 'MediaDataBox' as const;
 }
 
 export class idatBox extends Box {
-  type = 'idat' as const;
-  box_name = 'ItemDataBox';
+  static fourcc = 'idat' as const;
+  box_name = 'ItemDataBox' as const;
 }
 export class freeBox extends Box {
-  type = 'free' as const;
-  box_name = 'FreeSpaceBox';
+  static fourcc = 'free' as const;
+  box_name = 'FreeSpaceBox' as const;
 }
 export class skipBox extends Box {
-  type = 'skip' as const;
-  box_name = 'FreeSpaceBox';
+  static fourcc = 'skip' as const;
+  box_name = 'FreeSpaceBox' as const;
 }
 
 // NOTE: duplicate declaration (see `mecoBox extends ContainerBox`)
 // export class mecoBox extends Box {
-//   type = 'meco' as const;
-//   box_name = 'AdditionalMetadataContainerBox';
+//   static fourcc = 'meco' as const;
+//   box_name = 'AdditionalMetadataContainerBox' as const;
 //   constructor(size?: number) {
 //     super('meco', size);
 //   }
@@ -75,8 +75,8 @@ export class skipBox extends Box {
 
 // NOTE: duplicate declaration (see `strkBox extends ContainerBox`)
 // export class strkBox extends Box {
-//   type = 'strk' as const;
-//   box_name = 'SubTrackBox';
+//   static fourcc = 'strk' as const;
+//   box_name = 'SubTrackBox' as const;
 //   constructor(size?: number) {
 //     super('strk', size);
 //   }
@@ -89,28 +89,28 @@ export class skipBox extends Box {
 /**********************************************************************************/
 
 export class hmhdBox extends FullBox {
-  type = 'hmhd' as const;
-  box_name = 'HintMediaHeaderBox';
+  static fourcc = 'hmhd' as const;
+  box_name = 'HintMediaHeaderBox' as const;
 }
 export class nmhdBox extends FullBox {
-  type = 'nmhd' as const;
-  box_name = 'NullMediaHeaderBox';
+  static fourcc = 'nmhd' as const;
+  box_name = 'NullMediaHeaderBox' as const;
 }
 export class iodsBox extends FullBox {
-  type = 'iods' as const;
-  box_name = 'ObjectDescriptorBox';
+  static fourcc = 'iods' as const;
+  box_name = 'ObjectDescriptorBox' as const;
 }
 export class xmlBox extends FullBox {
-  type = 'xml ' as const;
-  box_name = 'XMLBox';
+  static fourcc = 'xml ' as const;
+  box_name = 'XMLBox' as const;
 }
 export class bxmlBox extends FullBox {
-  type = 'bxml' as const;
-  box_name = 'BinaryXMLBox';
+  static fourcc = 'bxml' as const;
+  box_name = 'BinaryXMLBox' as const;
 }
 export class iproBox extends FullBox {
-  type = 'ipro' as const;
-  box_name = 'ItemProtectionBox';
+  static fourcc = 'ipro' as const;
+  box_name = 'ItemProtectionBox' as const;
 
   sinfs: Array<sinfBox> = [];
   get protections() {
@@ -125,8 +125,8 @@ export class iproBox extends FullBox {
 /**********************************************************************************/
 
 export class moovBox extends ContainerBox {
-  type = 'moov' as const;
-  box_name = 'MovieBox';
+  static fourcc = 'moov' as const;
+  box_name = 'MovieBox' as const;
   timescale: number;
   mvhd: mvhdBox;
   mvhds: Array<mvhdBox>;
@@ -141,8 +141,8 @@ export class moovBox extends ContainerBox {
   subBoxNames = ['trak', 'pssh'] as const;
 }
 export class trakBox extends ContainerBox {
-  type = 'trak' as const;
-  box_name = 'TrackBox';
+  static fourcc = 'trak' as const;
+  box_name = 'TrackBox' as const;
   mdia: mdiaBox;
   mdias: Array<mdiaBox>;
   tkhd: tkhdBox;
@@ -164,14 +164,14 @@ export class trakBox extends ContainerBox {
   has_fragment_subsamples: boolean;
 }
 export class edtsBox extends ContainerBox {
-  type = 'edts' as const;
-  box_name = 'EditBox';
+  static fourcc = 'edts' as const;
+  box_name = 'EditBox' as const;
   elst: elstBox;
   elsts: Array<elstBox>;
 }
 export class mdiaBox extends ContainerBox {
-  type = 'mdia' as const;
-  box_name = 'MediaBox';
+  static fourcc = 'mdia' as const;
+  box_name = 'MediaBox' as const;
   elng: elngBox;
   elngs: Array<elngBox>;
   hdlr: hdlrBox;
@@ -182,8 +182,8 @@ export class mdiaBox extends ContainerBox {
   minfs: Array<minfBox>;
 }
 export class minfBox extends ContainerBox {
-  type = 'minf' as const;
-  box_name = 'MediaInformationBox';
+  static fourcc = 'minf' as const;
+  box_name = 'MediaInformationBox' as const;
   stbl: stblBox;
   stbls: Array<stblBox>;
   hmhd: hmhdBox;
@@ -202,12 +202,12 @@ export class minfBox extends ContainerBox {
   drefs: Array<drefBox>;
 }
 export class dinfBox extends ContainerBox {
-  type = 'dinf' as const;
-  box_name = 'DataInformationBox';
+  static fourcc = 'dinf' as const;
+  box_name = 'DataInformationBox' as const;
 }
 export class stblBox extends ContainerBox {
-  type = 'stbl' as const;
-  box_name = 'SampleTableBox';
+  static fourcc = 'stbl' as const;
+  box_name = 'SampleTableBox' as const;
   cslg: cslgBox;
   cslgs: Array<cslgBox>;
   stsd: stsdBox;
@@ -240,8 +240,8 @@ export class stblBox extends ContainerBox {
   subBoxNames = ['sgpd', 'sbgp'];
 }
 export class mvexBox extends ContainerBox {
-  type = 'mvex' as const;
-  box_name = 'MovieExtendsBox';
+  static fourcc = 'mvex' as const;
+  box_name = 'MovieExtendsBox' as const;
   trex: trexBox;
   mehd: mehdBox;
   mehds: Array<mehdBox>;
@@ -250,8 +250,8 @@ export class mvexBox extends ContainerBox {
   subBoxNames = ['trex'];
 }
 export class moofBox extends ContainerBox {
-  type = 'moof' as const;
-  box_name = 'MovieFragmentBox';
+  static fourcc = 'moof' as const;
+  box_name = 'MovieFragmentBox' as const;
   mfhd: mfhdBox;
   mfhds: Array<mfhdBox>;
   traf: trafBox;
@@ -260,8 +260,8 @@ export class moofBox extends ContainerBox {
   subBoxNames = ['traf'];
 }
 export class trafBox extends ContainerBox {
-  type = 'traf' as const;
-  box_name = 'TrackFragmentBox';
+  static fourcc = 'traf' as const;
+  box_name = 'TrackFragmentBox' as const;
   subs: subsBox;
   subss: Array<subsBox>;
   tfdt: tfdtBox;
@@ -280,83 +280,84 @@ export class trafBox extends ContainerBox {
   subBoxNames = ['trun', 'sgpd', 'sbgp'];
 }
 export class vttcBox extends ContainerBox {
-  type = 'vttc' as const;
-  box_name = 'VTTCueBox';
+  static fourcc = 'vttc' as const;
+  box_name = 'VTTCueBox' as const;
 }
 
 export class mfraBox extends ContainerBox {
-  type = 'mfra' as const;
-  box_name = 'MovieFragmentRandomAccessBox';
+  static fourcc = 'mfra' as const;
+  box_name = 'MovieFragmentRandomAccessBox' as const;
   tfras: Array<tfraBox> = [];
   subBoxNames = ['tfra'] as const;
 }
 export class mecoBox extends ContainerBox {
-  type = 'meco' as const;
-  box_name = 'AdditionalMetadataContainerBox';
+  static fourcc = 'meco' as const;
+  box_name = 'AdditionalMetadataContainerBox' as const;
 }
 
 export class hntiBox extends ContainerBox {
-  type = 'hnti' as const;
-  box_name = 'trackhintinformation';
+  static fourcc = 'hnti' as const;
+  box_name = 'trackhintinformation' as const;
+  subBoxNames = ['sdp ', 'rtp '] as const;
 }
 export class hinfBox extends ContainerBox {
-  type = 'hinf' as const;
-  box_name = 'hintstatisticsbox';
+  static fourcc = 'hinf' as const;
+  box_name = 'hintstatisticsbox' as const;
 }
 export class strkBox extends ContainerBox {
-  type = 'strk' as const;
-  box_name = 'SubTrackBox';
+  static fourcc = 'strk' as const;
+  box_name = 'SubTrackBox' as const;
 }
 export class strdBox extends ContainerBox {
-  type = 'strd' as const;
-  box_name = 'SubTrackDefinitionBox';
+  static fourcc = 'strd' as const;
+  box_name = 'SubTrackDefinitionBox' as const;
 }
 export class sinfBox extends ContainerBox {
-  type = 'sinf' as const;
-  box_name = 'ProtectionSchemeInfoBox';
+  static fourcc = 'sinf' as const;
+  box_name = 'ProtectionSchemeInfoBox' as const;
 }
 export class rinfBox extends ContainerBox {
-  type = 'rinf' as const;
-  box_name = 'RestrictedSchemeInfoBox';
+  static fourcc = 'rinf' as const;
+  box_name = 'RestrictedSchemeInfoBox' as const;
 }
 export class schiBox extends ContainerBox {
-  type = 'schi' as const;
-  box_name = 'SchemeInformationBox';
+  static fourcc = 'schi' as const;
+  box_name = 'SchemeInformationBox' as const;
 }
 export class trgrBox extends ContainerBox {
-  type = 'trgr' as const;
-  box_name = 'TrackGroupBox';
+  static fourcc = 'trgr' as const;
+  box_name = 'TrackGroupBox' as const;
 }
 export class udtaBox extends ContainerBox {
-  type = 'udta' as const;
-  box_name = 'UserDataBox';
+  static fourcc = 'udta' as const;
+  box_name = 'UserDataBox' as const;
   kinds: Array<kindBox> = [];
   subBoxNames = ['kind'] as const;
 }
 export class iprpBox extends ContainerBox {
-  type = 'iprp' as const;
-  box_name = 'ItemPropertiesBox';
+  static fourcc = 'iprp' as const;
+  box_name = 'ItemPropertiesBox' as const;
   ipco: ipcoBox;
 
   ipmas: Array<ipmaBox> = [];
   subBoxNames = ['ipma'] as const;
 }
 export class ipcoBox extends ContainerBox {
-  type = 'ipco' as const;
-  box_name = 'ItemPropertyContainerBox';
+  static fourcc = 'ipco' as const;
+  box_name = 'ItemPropertyContainerBox' as const;
 }
 export class grplBox extends ContainerBox {
-  type = 'grpl' as const;
-  box_name = 'GroupsListBox';
+  static fourcc = 'grpl' as const;
+  box_name = 'GroupsListBox' as const;
   declare boxes: Array<EntityToGroup>;
 }
 export class j2kHBox extends ContainerBox {
-  type = 'j2kH' as const;
-  box_name = 'J2KHeaderInfoBox';
+  static fourcc = 'j2kH' as const;
+  box_name = 'J2KHeaderInfoBox' as const;
 }
 export class etypBox extends ContainerBox {
-  type = 'etyp' as const;
-  box_name = 'ExtendedTypeBox';
+  static fourcc = 'etyp' as const;
+  box_name = 'ExtendedTypeBox' as const;
   tycos: Array<tycoBox> = [];
   subBoxNames = ['tyco'] as const;
 }

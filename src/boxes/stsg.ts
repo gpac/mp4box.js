@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stsgBox extends FullBox {
-  type = 'stsg' as const;
-  box_name = 'SubTrackSampleGroupBox';
+  static fourcc = 'stsg' as const;
+  box_name = 'SubTrackSampleGroupBox' as const;
 
   grouping_type: number;
   group_description_index: Array<number>;

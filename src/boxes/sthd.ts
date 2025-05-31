@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 
 export class sthdBox extends FullBox {
-  type = 'sthd' as const;
-  box_name = 'SubtitleMediaHeaderBox';
+  static fourcc = 'sthd' as const;
+  box_name = 'SubtitleMediaHeaderBox' as const;
 }

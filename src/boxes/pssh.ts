@@ -2,8 +2,8 @@ import { FullBox, parseHex16 } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class psshBox extends FullBox {
-  type = 'pssh' as const;
-  box_name = 'ProtectionSystemSpecificHeaderBox';
+  static fourcc = 'pssh' as const;
+  box_name = 'ProtectionSystemSpecificHeaderBox' as const;
 
   system_id: string;
   kid: Array<string>;

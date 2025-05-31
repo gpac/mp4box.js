@@ -4,8 +4,8 @@ import { enofBox } from '#/boxes/qt/enof';
 import { profBox } from '#/boxes/qt/prof';
 
 export class taptBox extends ContainerBox {
-  type = 'tapt' as const;
-  box_name = 'TrackApertureModeDimensionsBox';
+  static fourcc = 'tapt' as const;
+  box_name = 'TrackApertureModeDimensionsBox' as const;
 
   clefs: Array<clefBox> = [];
   profs: Array<profBox> = [];

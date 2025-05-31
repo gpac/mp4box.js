@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class prdiBox extends FullBox {
-  type = 'prdi' as const;
-  box_name = 'ProgressiveDerivedImageItemInformationProperty';
+  static fourcc = 'prdi' as const;
+  box_name = 'ProgressiveDerivedImageItemInformationProperty' as const;
 
   step_count: number;
   item_count: Array<number>;

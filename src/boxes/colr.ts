@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class colrBox extends Box {
-  type = 'colr' as const;
-  box_name = 'ColourInformationBox';
+  static fourcc = 'colr' as const;
+  box_name = 'ColourInformationBox' as const;
 
   colour_type: string;
   colour_primaries: number;

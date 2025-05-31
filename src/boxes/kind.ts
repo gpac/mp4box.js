@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class kindBox extends FullBox {
-  type = 'kind' as const;
-  box_name = 'KindBox';
+  static fourcc = 'kind' as const;
+  box_name = 'KindBox' as const;
 
   schemeURI: string;
   value: string;

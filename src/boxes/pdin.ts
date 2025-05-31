@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class pdinBox extends FullBox {
-  type = 'pdin' as const;
-  box_name = 'ProgressiveDownloadInfoBox';
+  static fourcc = 'pdin' as const;
+  box_name = 'ProgressiveDownloadInfoBox' as const;
 
   rate: Array<number> = [];
   initial_delay: Array<number> = [];

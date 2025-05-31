@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class CoLLBox extends FullBox {
-  type = 'CoLL' as const;
-  box_name = 'ContentLightLevelBox';
+  static fourcc = 'CoLL' as const;
+  box_name = 'ContentLightLevelBox' as const;
 
   maxCLL: number;
   maxFALL: number;

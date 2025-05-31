@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class btrtBox extends Box {
-  type = 'btrt' as const;
-  box_name = 'BitRateBox';
+  static fourcc = 'btrt' as const;
+  box_name = 'BitRateBox' as const;
 
   bufferSizeDB: number;
   maxBitrate: number;

@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class ftypBox extends Box {
-  type = 'ftyp' as const;
-  box_name = 'FileTypeBox';
+  static fourcc = 'ftyp' as const;
+  box_name = 'FileTypeBox' as const;
 
   major_brand: string;
   minor_version: number;

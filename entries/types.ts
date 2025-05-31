@@ -1,14 +1,25 @@
 import type { Box, SampleGroupEntry } from '#/box';
 import type { trakBox } from '#/boxes/defaults';
-import type { UUID_BOXES } from '#/boxes/uuid';
 import type { DataStream } from '#/DataStream';
 import type * as DESCRIPTORS from '#/descriptor';
 import type { SampleEntry } from './all';
 import type * as BOXES from './all-boxes';
 
-type AllBoxes = Partial<typeof BOXES> & Partial<typeof UUID_BOXES>;
+type AllBoxes = Partial<typeof BOXES>;
 
-export type BoxRegistry = AllBoxes;
+export type BoxRegistry = {
+  [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: infer TType }
+    ? TType extends 'uuid'
+      ? AllBoxes[K] extends { uuid: infer TUuid }
+        ? TUuid extends string
+          ? TUuid
+          : never
+        : never
+      : TType extends string
+        ? TType
+        : never
+    : never]: AllBoxes[K];
+} & { uuid: never };
 export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
 
 export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
@@ -36,6 +47,7 @@ export type TupleOf<T, N extends number, R extends Array<T> = []> = R['length'] 
   : TupleOf<T, N, [T, ...R]>;
 export type NumberTuple<T extends number> = TupleOf<number, T>;
 
+export type BoxFourCC = keyof BoxRegistry;
 export type BoxKind = InstanceOf<Extends<BoxRegistry, typeof Box>>;
 export type SampleEntryKind = InstanceOf<Extends<BoxRegistry, typeof SampleEntry>>;
 

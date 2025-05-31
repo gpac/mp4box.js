@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stdpBox extends FullBox {
-  type = 'stpd' as const;
-  box_name = 'DegradationPriorityBox';
+  static fourcc = 'stpd' as const;
+  box_name = 'DegradationPriorityBox' as const;
 
   priority: Array<number>;
 

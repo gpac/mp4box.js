@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class irotBox extends Box {
-  type = 'irot' as const;
-  box_name = 'ImageRotation';
+  static fourcc = 'irot' as const;
+  box_name = 'ImageRotation' as const;
 
   angle: number;
 

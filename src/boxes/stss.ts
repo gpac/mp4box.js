@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stssBox extends FullBox {
-  type = 'stss' as const;
-  box_name = 'SyncSampleBox';
+  static fourcc = 'stss' as const;
+  box_name = 'SyncSampleBox' as const;
 
   sample_numbers: Array<number>;
 

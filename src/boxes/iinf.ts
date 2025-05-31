@@ -6,8 +6,8 @@ import { Log } from '#/log';
 import type { BoxKind } from '@types';
 
 export class iinfBox extends FullBox {
-  type = 'iinf' as const;
-  box_name = 'ItemInfoBox';
+  static fourcc = 'iinf' as const;
+  box_name = 'ItemInfoBox' as const;
 
   version: number;
   entry_count: number;

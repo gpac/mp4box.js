@@ -4,8 +4,7 @@ import { MetadataSampleEntry } from './base';
 export class mettSampleEntry extends MetadataSampleEntry {
   content_encoding: string;
   mime_format: string;
-
-  type = 'mett' as const;
+  static fourcc = 'mett' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

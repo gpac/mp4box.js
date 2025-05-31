@@ -5,8 +5,8 @@ import type { ES_Descriptor } from '#/descriptor';
 import { DescriptorRegistry } from '#/registry';
 
 export class esdsBox extends FullBox {
-  type = 'esds' as const;
-  box_name = 'ElementaryStreamDescriptorBox';
+  static fourcc = 'esds' as const;
+  box_name = 'ElementaryStreamDescriptorBox' as const;
 
   esd: ES_Descriptor;
 

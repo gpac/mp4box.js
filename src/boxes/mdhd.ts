@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mdhdBox extends FullBox {
-  type = 'mdhd' as const;
-  box_name = 'MediaHeaderBox';
+  static fourcc = 'mdhd' as const;
+  box_name = 'MediaHeaderBox' as const;
 
   creation_time: number;
   modification_time: number;

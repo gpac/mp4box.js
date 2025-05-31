@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class saioBox extends FullBox {
-  type = 'saio' as const;
-  box_name = 'SampleAuxiliaryInformationOffsetsBox';
+  static fourcc = 'saio' as const;
+  box_name = 'SampleAuxiliaryInformationOffsetsBox' as const;
 
   aux_info_type: string;
   aux_info_type_parameter: number;

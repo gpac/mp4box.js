@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class dmax extends Box {
-  type = 'dmax' as const;
-  box_name = 'hintlongestpacket';
+  static fourcc = 'dmax' as const;
+  box_name = 'hintlongestpacket' as const;
 
   time: number;
 

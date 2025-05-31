@@ -11,8 +11,8 @@ interface Reference {
 }
 
 export class sidxBox extends FullBox {
-  type = 'sidx' as const;
-  box_name = 'CompressedSegmentIndexBox';
+  static fourcc = 'sidx' as const;
+  box_name = 'CompressedSegmentIndexBox' as const;
 
   reference_ID: number;
   timescale: number;

@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class maxrBox extends Box {
-  type = 'maxr' as const;
-  box_name = 'hintmaxrate';
+  static fourcc = 'maxr' as const;
+  box_name = 'hintmaxrate' as const;
 
   period: number;
   bytes: number;

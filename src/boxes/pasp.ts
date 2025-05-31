@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class paspBox extends Box {
-  type = 'pasp' as const;
-  box_name = 'PixelAspectRatioBox';
+  static fourcc = 'pasp' as const;
+  box_name = 'PixelAspectRatioBox' as const;
 
   hSpacing: number;
   vSpacing: number;

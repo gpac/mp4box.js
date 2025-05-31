@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class trexBox extends FullBox {
-  type = 'trex' as const;
-  box_name = 'TrackExtendsBox';
+  static fourcc = 'trex' as const;
+  box_name = 'TrackExtendsBox' as const;
 
   track_id: number;
   default_sample_description_index: number;

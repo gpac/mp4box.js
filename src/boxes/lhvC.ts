@@ -4,8 +4,8 @@ import type { NaluArray } from '@types';
 import type { NALUArrays } from './displays/naluArrays';
 
 export class lhvCBox extends Box {
-  type = 'lhvC' as const;
-  box_name = 'LHEVCConfigurationBox';
+  static fourcc = 'lhvC' as const;
+  box_name = 'LHEVCConfigurationBox' as const;
 
   configurationVersion: number;
   min_spatial_segmentation_idc: number;

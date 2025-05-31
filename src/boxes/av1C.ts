@@ -3,8 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class av1CBox extends Box {
-  type = 'av1C' as const;
-  box_name = 'AV1CodecConfigurationBox';
+  static fourcc = 'av1C' as const;
+  box_name = 'AV1CodecConfigurationBox' as const;
 
   version: number;
   seq_profile: number;

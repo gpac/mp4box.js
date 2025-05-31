@@ -1,9 +1,9 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-export class rtpBox extends Box {
-  type = 'rtp ' as const;
-  box_name = 'rtpmoviehintinformation';
+export class rtp_Box extends Box {
+  static fourcc = 'rtp ' as const;
+  box_name = 'rtpmoviehintinformation' as const;
 
   descriptionformat: string;
   sdptext: string;

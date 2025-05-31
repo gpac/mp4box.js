@@ -4,8 +4,8 @@ import { OK } from '#/constants';
 import { Log } from '#/log';
 
 export class drefBox extends FullBox {
-  type = 'dref' as const;
-  box_name = 'DataReferenceBox';
+  static fourcc = 'dref' as const;
+  box_name = 'DataReferenceBox' as const;
 
   entries: Array<Box>;
 

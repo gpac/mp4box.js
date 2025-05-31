@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class auxCBox extends FullBox {
-  type = 'auxC' as const;
-  box_name = 'AuxiliaryTypeProperty';
+  static fourcc = 'auxC' as const;
+  box_name = 'AuxiliaryTypeProperty' as const;
 
   aux_type: string;
   aux_subtype: Uint8Array;

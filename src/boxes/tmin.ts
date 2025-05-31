@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tminBox extends Box {
-  type = 'tmin' as const;
-  box_name = 'hintminrelativetime';
+  static fourcc = 'tmin' as const;
+  box_name = 'hintminrelativetime' as const;
 
   time: number;
 

@@ -5,8 +5,8 @@ import { MP4BoxStream } from '#/stream';
 import type { ParameterSetArray } from './displays/parameterSetArray';
 
 export class avcCBox extends Box {
-  type = 'avcC' as const;
-  box_name = 'AVCConfigurationBox';
+  static fourcc = 'avcC' as const;
+  box_name = 'AVCConfigurationBox' as const;
 
   configurationVersion: number;
   AVCProfileIndication: number;

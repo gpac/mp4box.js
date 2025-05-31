@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cminBox extends Box {
-  type = 'cmin' as const;
-  box_name = 'CameraIntrinsicMatrixProperty';
+  static fourcc = 'cmin' as const;
+  box_name = 'CameraIntrinsicMatrixProperty' as const;
 
   focal_length_x: number;
   principal_point_x: number;

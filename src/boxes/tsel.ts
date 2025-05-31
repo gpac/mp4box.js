@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tselBox extends FullBox {
-  type = 'tsel' as const;
-  box_name = 'TrackSelectionBox';
+  static fourcc = 'tsel' as const;
+  box_name = 'TrackSelectionBox' as const;
 
   switch_group: number;
   attribute_list: Array<number>;

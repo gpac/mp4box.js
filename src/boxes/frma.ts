@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class frmaBox extends Box {
-  type = 'frma' as const;
-  box_name = 'OriginalFormatBox';
+  static fourcc = 'frma' as const;
+  box_name = 'OriginalFormatBox' as const;
 
   data_format: string;
 

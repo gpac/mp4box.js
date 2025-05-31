@@ -6,8 +6,8 @@ import { BoxRegistry } from '#/registry';
 import { SampleEntry } from './sampleentries/base';
 
 export class stsdBox extends FullBox {
-  type = 'stsd' as const;
-  box_name = 'SampleDescriptionBox';
+  static fourcc = 'stsd' as const;
+  box_name = 'SampleDescriptionBox' as const;
 
   entries: Array<SampleEntry>;
 

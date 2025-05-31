@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class SmDmBox extends FullBox {
-  type = 'SmDm' as const;
-  box_name = 'SMPTE2086MasteringDisplayMetadataBox';
+  static fourcc = 'SmDm' as const;
+  box_name = 'SMPTE2086MasteringDisplayMetadataBox' as const;
 
   primaryRChromaticity_x: number;
   primaryRChromaticity_y: number;

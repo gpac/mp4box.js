@@ -3,8 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Sample } from '@types';
 
 export class stcoBox extends FullBox {
-  type = 'stco' as const;
-  box_name = 'ChunkOffsetBox';
+  static fourcc = 'stco' as const;
+  box_name = 'ChunkOffsetBox' as const;
 
   chunk_offsets: Array<number>;
 

@@ -8,8 +8,8 @@ import { pitmBox } from '#/boxes/pitm';
 import type { MultiBufferStream } from '#/buffer';
 
 export class metaBox extends FullBox {
-  type = 'meta' as const;
-  box_name = 'MetaBox';
+  static fourcc = 'meta' as const;
+  box_name = 'MetaBox' as const;
 
   hdlr: hdlrBox;
   hdlrs: Array<hdlrBox>;

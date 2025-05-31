@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class paytBox extends Box {
-  type = 'payt' as const;
-  box_name = 'hintpayloadID';
+  static fourcc = 'payt' as const;
+  box_name = 'hintpayloadID' as const;
 
   payloadID: number;
   rtpmap_string: string;

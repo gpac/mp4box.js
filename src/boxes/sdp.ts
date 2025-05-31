@@ -1,9 +1,9 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
-export class sdpBox extends Box {
-  type = 'sdp ' as const;
-  box_name = 'rtptracksdphintinformation';
+export class sdp_Box extends Box {
+  static fourcc = 'sdp ' as const;
+  box_name = 'rtptracksdphintinformation' as const;
 
   sdptext?: string;
 

@@ -341,10 +341,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             /* but also store box in a property for more direct access */
             switch (box.type) {
               case 'mdat':
-                this.mdats.push(box);
+                this.mdats.push(box as mdatBox);
                 break;
               case 'moof':
-                this.moofs.push(box);
+                this.moofs.push(box as moofBox);
                 break;
               case 'moov':
                 this.moovStartFound = true;

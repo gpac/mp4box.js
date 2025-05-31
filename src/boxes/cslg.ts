@@ -4,8 +4,8 @@ import type { MultiBufferStream } from '#/buffer';
 const INT32_MAX = 2_147_483_647;
 
 export class cslgBox extends FullBox {
-  type = 'cslg' as const;
-  box_name = 'CompositionToDecodeBox';
+  static fourcc = 'cslg' as const;
+  box_name = 'CompositionToDecodeBox' as const;
 
   compositionToDTSShift: number;
   leastDecodeToDisplayDelta: number;

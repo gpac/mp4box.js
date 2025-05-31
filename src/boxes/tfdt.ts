@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tfdtBox extends FullBox {
-  type = 'tfdt' as const;
-  box_name = 'TrackFragmentBaseMediaDecodeTimeBox';
+  static fourcc = 'tfdt' as const;
+  box_name = 'TrackFragmentBaseMediaDecodeTimeBox' as const;
 
   baseMediaDecodeTime: number;
 

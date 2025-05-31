@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class profBox extends FullBox {
-  type = 'prof' as const;
-  box_name = 'TrackProductionApertureDimensionsBox';
+  static fourcc = 'prof' as const;
+  box_name = 'TrackProductionApertureDimensionsBox' as const;
 
   width: number;
   height: number;

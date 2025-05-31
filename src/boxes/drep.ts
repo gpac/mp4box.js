@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class drepBox extends Box {
-  type = 'drep' as const;
-  box_name = 'hintrepeatedBytesSent';
+  static fourcc = 'drep' as const;
+  box_name = 'hintrepeatedBytesSent' as const;
 
   bytessent: number;
 

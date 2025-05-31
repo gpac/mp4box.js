@@ -12,8 +12,8 @@ interface Level {
 }
 
 export class levaBox extends FullBox {
-  type = 'leva' as const;
-  box_name = 'LevelAssignmentBox';
+  static fourcc = 'leva' as const;
+  box_name = 'LevelAssignmentBox' as const;
 
   levels: Array<Level>;
 

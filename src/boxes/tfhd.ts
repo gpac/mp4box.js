@@ -9,8 +9,8 @@ import {
 } from '#/constants';
 
 export class tfhdBox extends FullBox {
-  type = 'tfhd' as const;
-  box_name = 'TrackFragmentHeaderBox';
+  static fourcc = 'tfhd' as const;
+  box_name = 'TrackFragmentHeaderBox' as const;
 
   track_id: number;
   base_data_offset: number;

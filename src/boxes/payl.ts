@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class paylBox extends Box {
-  type = 'payl' as const;
-  box_name = 'CuePayloadBox';
+  static fourcc = 'payl' as const;
+  box_name = 'CuePayloadBox' as const;
 
   text: string;
 

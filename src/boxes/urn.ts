@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class urnBox extends FullBox {
-  type = 'urn ' as const;
-  box_name = 'DataEntryUrnBox';
+  static fourcc = 'urn ' as const;
+  box_name = 'DataEntryUrnBox' as const;
 
   name: string;
   location: string;

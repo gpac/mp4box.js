@@ -43,26 +43,26 @@ class avcCSampleEntryBase extends VisualSampleEntry {
 
 // Sample entries inheriting from Audio and Video
 export class avc1SampleEntry extends avcCSampleEntryBase {
-  type = 'avc1' as const;
+  static fourcc = 'avc1' as const;
 }
 
 export class avc2SampleEntry extends avcCSampleEntryBase {
-  type = 'avc2' as const;
+  static fourcc = 'avc2' as const;
 }
 
 export class avc3SampleEntry extends avcCSampleEntryBase {
-  type = 'avc3' as const;
+  static fourcc = 'avc3' as const;
 }
 
 export class avc4SampleEntry extends avcCSampleEntryBase {
-  type = 'avc4' as const;
+  static fourcc = 'avc4' as const;
 }
 
 export class av01SampleEntry extends VisualSampleEntry {
   av1C: av1CBox;
   av1Cs: Array<av1CBox>;
 
-  type = 'av01' as const;
+  static fourcc = 'av01' as const;
 
   /** @bundle box-codecs.js */
   getCodec(): string {
@@ -92,7 +92,7 @@ export class av01SampleEntry extends VisualSampleEntry {
 }
 
 export class dav1SampleEntry extends VisualSampleEntry {
-  type = 'dav1' as const;
+  static fourcc = 'dav1' as const;
 }
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
@@ -152,27 +152,27 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
 }
 
 export class hvc1SampleEntry extends hvcCSampleEntryBase {
-  type = 'hvc1' as const;
+  static fourcc = 'hvc1' as const;
 }
 
 export class hev1SampleEntry extends hvcCSampleEntryBase {
-  type = 'hev1' as const;
+  static fourcc = 'hev1' as const;
 }
 
 export class hvt1SampleEntry extends VisualSampleEntry {
-  type = 'hvt1' as const;
+  static fourcc = 'hvt1' as const;
 }
 
 export class lhe1SampleEntry extends VisualSampleEntry {
-  type = 'lhe1' as const;
+  static fourcc = 'lhe1' as const;
 }
 
 export class dvh1SampleEntry extends VisualSampleEntry {
-  type = 'dvh1' as const;
+  static fourcc = 'dvh1' as const;
 }
 
 export class dvheSampleEntry extends VisualSampleEntry {
-  type = 'dvhe' as const;
+  static fourcc = 'dvhe' as const;
 }
 
 /** @babel box-codecs.js */
@@ -239,19 +239,19 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
 }
 
 export class vvc1SampleEntry extends vvcCSampleEntryBase {
-  type = 'vvc1' as const;
+  static fourcc = 'vvc1' as const;
 }
 
 export class vvi1SampleEntry extends vvcCSampleEntryBase {
-  type = 'vvi1' as const;
+  static fourcc = 'vvi1' as const;
 }
 
 export class vvs1SampleEntry extends VisualSampleEntry {
-  type = 'vvs1' as const;
+  static fourcc = 'vvs1' as const;
 }
 
 export class vvcNSampleEntry extends VisualSampleEntry {
-  type = 'vvcN' as const;
+  static fourcc = 'vvcN' as const;
 }
 
 class vpcCSampleEntryBase extends VisualSampleEntry {
@@ -272,38 +272,38 @@ class vpcCSampleEntryBase extends VisualSampleEntry {
 }
 
 export class vp08SampleEntry extends vpcCSampleEntryBase {
-  type = 'vp08' as const;
+  static fourcc = 'vp08' as const;
 }
 
 export class vp09SampleEntry extends vpcCSampleEntryBase {
-  type = 'vp09' as const;
+  static fourcc = 'vp09' as const;
 }
 
 export class avs3SampleEntry extends VisualSampleEntry {
-  type = 'avs3' as const;
+  static fourcc = 'avs3' as const;
 }
 
 export class j2kiSampleEntry extends VisualSampleEntry {
-  type = 'j2ki' as const;
+  static fourcc = 'j2ki' as const;
 }
 
 export class mjp2SampleEntry extends VisualSampleEntry {
-  type = 'mjp2' as const;
+  static fourcc = 'mjp2' as const;
 }
 
 export class mjpgSampleEntry extends VisualSampleEntry {
-  type = 'mjpg' as const;
+  static fourcc = 'mjpg' as const;
 }
 
 export class uncvSampleEntry extends VisualSampleEntry {
-  type = 'uncv' as const;
+  static fourcc = 'uncv' as const;
 }
 
 export class mp4aSampleEntry extends AudioSampleEntry {
   esds: esdsBox;
   esdss: Array<esdsBox>;
 
-  type = 'mp4a' as const;
+  static fourcc = 'mp4a' as const;
 
   getCodec() {
     const baseCodec = super.getCodec();
@@ -318,74 +318,74 @@ export class mp4aSampleEntry extends AudioSampleEntry {
 }
 
 export class ac_3SampleEntry extends AudioSampleEntry {
-  type = 'ac-3' as const;
+  static fourcc = 'ac-3' as const;
 }
 
 export class ac_4SampleEntry extends AudioSampleEntry {
-  type = 'ac-4' as const;
+  static fourcc = 'ac-4' as const;
 }
 
 export class ec_3SampleEntry extends AudioSampleEntry {
-  type = 'ec-3' as const;
+  static fourcc = 'ec-3' as const;
 }
 
 export class OpusSampleEntry extends AudioSampleEntry {
-  type = 'Opus' as const;
+  static fourcc = 'Opus' as const;
 }
 
 export class mha1SampleEntry extends AudioSampleEntry {
-  type = 'mha1' as const;
+  static fourcc = 'mha1' as const;
 }
 
 export class mha2SampleEntry extends AudioSampleEntry {
-  type = 'mha2' as const;
+  static fourcc = 'mha2' as const;
 }
 
 export class mhm1SampleEntry extends AudioSampleEntry {
-  type = 'mhm1' as const;
+  static fourcc = 'mhm1' as const;
 }
 
 export class mhm2SampleEntry extends AudioSampleEntry {
-  type = 'mhm2' as const;
+  static fourcc = 'mhm2' as const;
 }
 
 export class fLaCSampleEntry extends AudioSampleEntry {
-  type = 'fLaC' as const;
+  static fourcc = 'fLaC' as const;
 }
 
 // Encrypted sample entries
 export class encvSampleEntry extends VisualSampleEntry {
-  type = 'encv' as const;
+  static fourcc = 'encv' as const;
 }
 
 export class encaSampleEntry extends AudioSampleEntry {
-  type = 'enca' as const;
+  static fourcc = 'enca' as const;
 }
 
 export class encuSampleEntry extends SubtitleSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
-  type = 'encu' as const;
+  static fourcc = 'encu' as const;
 }
 
 export class encsSampleEntry extends SystemSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
-  type = 'encs' as const;
+  static fourcc = 'encs' as const;
 }
 
 export class enctSampleEntry extends TextSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
-  type = 'enct' as const;
+  static fourcc = 'enct' as const;
 }
 
 export class encmSampleEntry extends MetadataSampleEntry {
   sinfs: Array<sinfBox> = [];
   subBoxNames = ['sinf'] as const;
 
-  type = 'encm' as const;
+  static fourcc = 'encm' as const;
 }

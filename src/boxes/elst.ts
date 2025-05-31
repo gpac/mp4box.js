@@ -3,8 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Entry } from '@types';
 
 export class elstBox extends FullBox {
-  type = 'elst' as const;
-  box_name = 'EditListBox';
+  static fourcc = 'elst' as const;
+  box_name = 'EditListBox' as const;
 
   entries: Array<Entry>;
 

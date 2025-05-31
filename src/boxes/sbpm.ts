@@ -3,8 +3,8 @@ import type { MultiBufferStream } from '#/buffer';
 import { Pixel } from './displays/pixel';
 
 export class sbpmBox extends FullBox {
-  type = 'sbpm' as const;
-  box_name = 'SensorBadPixelsMapBox';
+  static fourcc = 'sbpm' as const;
+  box_name = 'SensorBadPixelsMapBox' as const;
 
   component_count: number;
   component_index: Array<number>;

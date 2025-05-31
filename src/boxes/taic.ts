@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class taicBox extends FullBox {
-  type = 'taic' as const;
-  box_name = 'TAIClockInfoBox';
+  static fourcc = 'taic' as const;
+  box_name = 'TAIClockInfoBox' as const;
 
   time_uncertainty: number;
   clock_resolution: number;

@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cdefBox extends Box {
-  type = 'cdef' as const;
-  box_name = 'ComponentDefinitionBox';
+  static fourcc = 'cdef' as const;
+  box_name = 'ComponentDefinitionBox' as const;
 
   channel_count: number;
   channel_indexes: Array<number>;

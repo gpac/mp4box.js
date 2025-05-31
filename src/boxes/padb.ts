@@ -9,8 +9,8 @@ class PaddingBit {
 }
 
 export class padbBox extends FullBox {
-  type = 'padb' as const;
-  box_name = 'PaddingBitsBox';
+  static fourcc = 'padb' as const;
+  box_name = 'PaddingBitsBox' as const;
 
   padbits: Array<PaddingBit>;
 

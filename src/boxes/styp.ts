@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stypBox extends Box {
-  type = 'styp' as const;
-  box_name = 'SegmentTypeBox';
+  static fourcc = 'styp' as const;
+  box_name = 'SegmentTypeBox' as const;
 
   major_brand: string;
   minor_version: number;

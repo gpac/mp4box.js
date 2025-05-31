@@ -50,8 +50,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class prftBox extends FullBox {
-  type = 'prft' as const;
-  box_name = 'ProducerReferenceTimeBox';
+  static fourcc = 'prft' as const;
+  box_name = 'ProducerReferenceTimeBox' as const;
 
   ref_track_id: number;
   ntp_timestamp: number;

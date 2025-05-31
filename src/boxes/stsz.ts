@@ -2,8 +2,8 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stszBox extends FullBox {
-  type = 'stsz' as const;
-  box_name = 'SampleSizeBox';
+  static fourcc = 'stsz' as const;
+  box_name = 'SampleSizeBox' as const;
 
   sample_sizes: Array<number>;
   sample_size: number;

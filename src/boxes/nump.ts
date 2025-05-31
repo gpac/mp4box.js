@@ -2,8 +2,8 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class numpBox extends Box {
-  type = 'nump' as const;
-  box_name = 'hintPacketsSent';
+  static fourcc = 'nump' as const;
+  box_name = 'hintPacketsSent' as const;
 
   packetssent: number;
 
