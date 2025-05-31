@@ -9,4 +9,3 @@ import { registerBoxes } from '#/registry';
 import * as SIMPLE_BOXES from './simple-boxes';
 
 export const BoxParser = registerBoxes(SIMPLE_BOXES);
-type BoxParser = typeof BoxParser;

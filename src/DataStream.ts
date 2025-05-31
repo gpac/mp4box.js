@@ -9,7 +9,7 @@ import type {
   TypedArray,
   ValueFromType,
 } from '@types';
-import { MP4BoxBuffer } from './mp4boxbuffer';
+import { MP4BoxBuffer } from '#/mp4boxbuffer';
 
 type ReadTypeReturnValue =
   | string

@@ -1,5 +1,6 @@
-import { Box, FullBox, parseHex16 } from '#/box';
+import { Box, FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import { parseHex16 } from '#/parser';
 
 class UUIDBox extends Box {
   static fourcc = 'uuid' as const;

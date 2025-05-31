@@ -6,8 +6,17 @@ import { createFile, MP4BoxBuffer, type Movie } from '../entries/all';
 const publishedPrefix = 'published/';
 const file_groups: Record<string, Array<string>> = {};
 
-function getFilePath(group: string, test: string): string {
-  return path.join(import.meta.dirname, '..', '.cache', 'files', publishedPrefix, group, test);
+function getFilePath(group: string, test: string) {
+  const location = path.join(import.meta.dirname, '..', '.cache', 'files', publishedPrefix, group);
+  const [...rest] = test.split(path.sep);
+  const fileName = rest.pop() || '';
+  if (!fileName) throw new Error(`Invalid test name: ${test}`);
+
+  const testFile = path.join(location, ...rest, fileName);
+  const [file] = fileName.split('.');
+  const gpacFile = path.join(location, ...rest, `${file}_gpac.json`);
+
+  return { testFile, gpacFile };
 }
 
 async function getFileRange(
@@ -25,6 +34,20 @@ async function getFileRange(
     reader.on('error', reject);
     reader.on('end', resolve);
   });
+}
+
+async function loadAndGetInfo(file_path: string, loadAll = false) {
+  const mp4 = createFile();
+  const ready = new Promise<Movie>(resolve => {
+    mp4.onReady = resolve;
+  });
+
+  const populate = getFileRange(file_path, data => mp4.appendBuffer(data))
+    .then(() => mp4.flush())
+    .then(() => mp4.getInfo());
+
+  if (loadAll) await populate;
+  return { info: await Promise.race([ready, populate]), mp4 };
 }
 
 Object.values(files.file_metadata).forEach(meta => {
@@ -51,30 +74,17 @@ Object.keys(file_groups).forEach(groupName => {
 describe('Conformance Tests', () => {
   describe.concurrent.for(Object.keys(file_groups))('%s', groupName => {
     test.concurrent.for(file_groups[groupName])('loads %s', async testName => {
-      const file_path = getFilePath(groupName, testName);
-      const mp4 = createFile();
-
-      // Attach a promise to wait for the file to be ready
-      const ready = new Promise<Movie>(resolve => {
-        mp4.onReady = resolve;
-      });
-
-      // Start reading the file
-      const populate = await getFileRange(file_path, data => mp4.appendBuffer(data))
-        .then(() => mp4.flush())
-        .then(() => mp4.getInfo());
-
-      // Race the population and the ready promise
-      const result = await Promise.race([ready, populate]);
+      const { testFile } = getFilePath(groupName, testName);
+      const { info } = await loadAndGetInfo(testFile);
 
       // Check the result
-      if (result.hasMoov) {
-        expect(result.brands.length).toBeGreaterThan(0);
-        expect(result.mime).not.toBe('');
-        expect(result.tracks.length).toBeGreaterThan(0);
+      if (info.hasMoov) {
+        expect(info.brands.length).toBeGreaterThan(0);
+        expect(info.mime).not.toBe('');
+        expect(info.tracks.length).toBeGreaterThan(0);
       } else {
         // The test doesn't have a valid moov atom
-        expect(result).toBeDefined();
+        expect(info).toBeDefined();
       }
     });
   });

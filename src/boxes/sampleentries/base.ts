@@ -1,10 +1,12 @@
-import { ContainerBox } from '#/box';
+import { ContainerBox } from '#/containerBox';
 import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 import type { avcCBox } from '../avcC';
 import type { hvcCBox } from '../hvcC';
 
 export class SampleEntry extends ContainerBox {
+  static override registryId = Symbol.for('SampleEntryIdentifier');
+
   data_reference_index?: number;
 
   constructor(
@@ -152,7 +154,6 @@ export class SubtitleSampleEntry extends SampleEntry {
     return true;
   }
 }
-export class SystemSampleEntry extends SampleEntry {}
 export class TextSampleEntry extends SampleEntry {}
 
 //Base SampleEntry types for Audio and Video with specific parsing
@@ -276,6 +277,19 @@ export class AudioSampleEntry extends SampleEntry {
     stream.writeUint16(0);
     stream.writeUint16(0);
     stream.writeUint32(this.samplerate << 16);
+    this.writeFooter(stream);
+  }
+}
+
+export class SystemSampleEntry extends SampleEntry {
+  parse(stream: MultiBufferStream) {
+    this.parseHeader(stream);
+    this.parseFooter(stream);
+  }
+
+  /** @bundle writing/sampleentry.js */
+  write(stream: MultiBufferStream) {
+    this.writeHeader(stream);
     this.writeFooter(stream);
   }
 }

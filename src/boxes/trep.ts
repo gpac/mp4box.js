@@ -1,6 +1,7 @@
-import { FullBox, parseOneBox } from '#/box';
+import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
+import { parseOneBox } from '#/parser';
 
 export class trepBox extends FullBox {
   static fourcc = 'trep' as const;

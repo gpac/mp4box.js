@@ -1,8 +1,9 @@
-import { FullBox, parseOneBox } from '#/box';
+import { FullBox } from '#/box';
 import { infeBox } from '#/boxes/infe';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
+import { parseOneBox } from '#/parser';
 import type { BoxKind } from '@types';
 
 export class iinfBox extends FullBox {
@@ -28,7 +29,7 @@ export class iinfBox extends FullBox {
       if (ret.code === OK) {
         const box = ret.box as BoxKind;
         if (box.type === 'infe') {
-          this.item_infos[i] = box;
+          this.item_infos[i] = box as infeBox;
         } else {
           Log.error('BoxParser', "Expected 'infe' box, got " + ret.box.type);
         }

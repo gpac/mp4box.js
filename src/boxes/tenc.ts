@@ -1,5 +1,6 @@
-import { FullBox, parseHex16 } from '#/box';
+import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import { parseHex16 } from '#/parser';
 
 export class tencBox extends FullBox {
   static fourcc = 'tenc' as const;

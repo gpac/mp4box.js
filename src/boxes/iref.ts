@@ -1,13 +1,8 @@
-import {
-  Box,
-  FullBox,
-  SingleItemTypeReferenceBox,
-  SingleItemTypeReferenceBoxLarge,
-  parseOneBox,
-} from '#/box';
+import { Box, FullBox, SingleItemTypeReferenceBox, SingleItemTypeReferenceBoxLarge } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
+import { parseOneBox } from '#/parser';
 import type { Reference } from '@types';
 
 const REFERENCE_TYPE_NAMES = {

@@ -3,7 +3,7 @@
  * License: BSD-3-Clause (see LICENSE file)
  */
 
-import { Box, parseOneBox } from '#/box';
+import { Box } from '#/box';
 import { boxEqual } from '#/box-diff';
 import { avcCBox } from '#/boxes/avcC';
 import {
@@ -91,11 +91,12 @@ import type {
   Movie,
   Output,
   Sample,
-  SampleEntryKind,
+  SampleEntryFourCC,
   SubSample,
   Track,
 } from '@types';
-import { MP4BoxBuffer } from './mp4boxbuffer';
+import { MP4BoxBuffer } from '#/mp4boxbuffer';
+import { parseOneBox } from '#/parser';
 
 export class SampleGroupInfo {
   last_sample_in_run = -1;
@@ -123,7 +124,7 @@ export interface IsoFileOptions {
   media_duration?: number;
   rate?: number;
   timescale?: number;
-  type?: SampleEntryKind['type'];
+  type?: SampleEntryFourCC;
   width?: number;
   hdlr?: string;
   name?: string;
@@ -2308,7 +2309,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /** @bundle isofile-advanced-creation.js */
-  addBox = Box.prototype.addBox.bind(this);
+  addBox<T extends Box>(box: T): T {
+    return Box.prototype.addBox.call(this, box);
+  }
 
   /** @bundle isofile-advanced-creation.js */
   init(options: IsoFileOptions = {}) {
@@ -2380,40 +2383,41 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     const minf = mdia.addBox(new minfBox());
 
-    const sampleEntry = BoxRegistry[`${options.type}SampleEntry`];
-
+    const sampleEntry = BoxRegistry.sampleEntry[options.type];
     if (!sampleEntry) return;
 
     const sample_description_entry = new sampleEntry();
     sample_description_entry.data_reference_index = 1;
 
     if (sample_description_entry instanceof VisualSampleEntry) {
+      const sde = sample_description_entry as VisualSampleEntry;
       const vmhd = minf.addBox(new vmhdBox());
       vmhd.graphicsmode = 0;
       vmhd.opcolor = [0, 0, 0];
 
-      (sample_description_entry as VisualSampleEntry).width = options.width;
-      (sample_description_entry as VisualSampleEntry).height = options.height;
-      (sample_description_entry as VisualSampleEntry).horizresolution = 0x48 << 16;
-      (sample_description_entry as VisualSampleEntry).vertresolution = 0x48 << 16;
-      (sample_description_entry as VisualSampleEntry).frame_count = 1;
-      (sample_description_entry as VisualSampleEntry).compressorname = options.type + ' Compressor';
-      (sample_description_entry as VisualSampleEntry).depth = 0x18;
+      sde.width = options.width;
+      sde.height = options.height;
+      sde.horizresolution = 0x48 << 16;
+      sde.vertresolution = 0x48 << 16;
+      sde.frame_count = 1;
+      sde.compressorname = options.type + ' Compressor';
+      sde.depth = 0x18;
 
       if (options.avcDecoderConfigRecord) {
-        const avcC = sample_description_entry.addBox(new avcCBox());
+        const avcC = sde.addBox(new avcCBox());
         avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
       } else if (options.hevcDecoderConfigRecord) {
-        const hvcC = sample_description_entry.addBox(new hvcCBox());
+        const hvcC = sde.addBox(new hvcCBox());
         hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
       }
     } else if (sample_description_entry instanceof AudioSampleEntry) {
+      const sde = sample_description_entry as AudioSampleEntry;
       const smhd = minf.addBox(new smhdBox());
       smhd.balance = options.balance || 0;
 
-      (sample_description_entry as AudioSampleEntry).channel_count = options.channel_count || 2;
-      (sample_description_entry as AudioSampleEntry).samplesize = options.samplesize || 16;
-      (sample_description_entry as AudioSampleEntry).samplerate = options.samplerate || 1 << 16;
+      sde.channel_count = options.channel_count || 2;
+      sde.samplesize = options.samplesize || 16;
+      sde.samplerate = options.samplerate || 1 << 16;
     } else if (sample_description_entry instanceof HintSampleEntry) {
       minf.addBox(new hmhdBox()); // TODO: add properties
     } else if (sample_description_entry instanceof SubtitleSampleEntry) {
@@ -2432,11 +2436,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     if (options.description) {
-      sample_description_entry.addBox(options.description);
+      (sample_description_entry.addBox as (box: Box) => Box).call(
+        sample_description_entry,
+        options.description,
+      );
     }
     if (options.description_boxes) {
       options.description_boxes.forEach(function (b) {
-        sample_description_entry.addBox(b);
+        (sample_description_entry.addBox as (box: Box) => Box).call(sample_description_entry, b);
       });
     }
     minf.addBox(new dinfBox());

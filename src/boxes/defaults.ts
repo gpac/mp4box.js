@@ -1,4 +1,5 @@
-import { Box, ContainerBox, FullBox } from '#/box';
+import { Box, FullBox } from '#/box';
+import { ContainerBox } from '#/containerBox';
 import type { co64Box } from '#/boxes/co64';
 import type { cslgBox } from '#/boxes/cslg';
 import type { cttsBox } from '#/boxes/ctts';

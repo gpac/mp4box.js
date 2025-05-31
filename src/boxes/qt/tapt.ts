@@ -1,4 +1,4 @@
-import { ContainerBox } from '#/box';
+import { ContainerBox } from '#/containerBox';
 import { clefBox } from '#/boxes/qt/clef';
 import { enofBox } from '#/boxes/qt/enof';
 import { profBox } from '#/boxes/qt/prof';

@@ -1,6 +1,7 @@
-import { FullBox, parseOneBox } from '#/box';
+import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
+import { parseOneBox } from '#/parser';
 import type { BoxKind } from '@types';
 
 export class stviBox extends FullBox {

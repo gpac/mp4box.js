@@ -1,4 +1,4 @@
-import { ContainerBox, FullBox } from '#/box';
+import { FullBox } from '#/box';
 import { dinfBox, grplBox, idatBox, iproBox, iprpBox } from '#/boxes/defaults';
 import { hdlrBox } from '#/boxes/hdlr';
 import { iinfBox } from '#/boxes/iinf';
@@ -6,6 +6,7 @@ import { ilocBox } from '#/boxes/iloc';
 import { irefBox } from '#/boxes/iref';
 import { pitmBox } from '#/boxes/pitm';
 import type { MultiBufferStream } from '#/buffer';
+import { ContainerBox } from '#/containerBox';
 
 export class metaBox extends FullBox {
   static fourcc = 'meta' as const;

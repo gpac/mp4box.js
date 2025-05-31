@@ -1,7 +1,8 @@
 import { OK } from '#//constants';
-import { Box, parseOneBox, TrackReferenceTypeBox } from '#/box';
+import { Box, TrackReferenceTypeBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
+import { parseOneBox } from '#/parser';
 
 export class trefBox extends Box {
   static fourcc = 'tref' as const;

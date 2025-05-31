@@ -7,19 +7,46 @@ import type * as BOXES from './all-boxes';
 
 type AllBoxes = Partial<typeof BOXES>;
 
-export type BoxRegistry = {
-  [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: infer TType }
-    ? TType extends 'uuid'
+export interface BoxRegistry {
+  uuid: {
+    [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: 'uuid' }
       ? AllBoxes[K] extends { uuid: infer TUuid }
         ? TUuid extends string
           ? TUuid
           : never
         : never
-      : TType extends string
-        ? TType
+      : never]: AllBoxes[K];
+  };
+  sampleEntry: {
+    [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: infer TFourCC }
+      ? AllBoxes[K] extends typeof SampleEntry
+        ? TFourCC extends string
+          ? TFourCC
+          : never
         : never
-    : never]: AllBoxes[K];
-} & { uuid: never };
+      : never]: AllBoxes[K];
+  };
+  sampleGroupEntry: {
+    [K in keyof AllBoxes as AllBoxes[K] extends { grouping_type: infer G }
+      ? G extends string
+        ? G
+        : never
+      : never]: AllBoxes[K];
+  };
+  box: {
+    [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: 'uuid' }
+      ? never
+      : AllBoxes[K] extends typeof SampleEntry
+        ? never
+        : AllBoxes[K] extends typeof SampleGroupEntry
+          ? never
+          : AllBoxes[K] extends { fourcc: infer TFourCC }
+            ? TFourCC extends string
+              ? TFourCC
+              : never
+            : never]: AllBoxes[K];
+  };
+}
 export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
 
 export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
@@ -47,9 +74,22 @@ export type TupleOf<T, N extends number, R extends Array<T> = []> = R['length'] 
   : TupleOf<T, N, [T, ...R]>;
 export type NumberTuple<T extends number> = TupleOf<number, T>;
 
-export type BoxFourCC = keyof BoxRegistry;
-export type BoxKind = InstanceOf<Extends<BoxRegistry, typeof Box>>;
-export type SampleEntryKind = InstanceOf<Extends<BoxRegistry, typeof SampleEntry>>;
+export type BoxFourCC = keyof BoxRegistry['box'];
+export type SampleEntryFourCC = keyof BoxRegistry['sampleEntry'];
+export type SampleGroupEntryGroupingType = keyof BoxRegistry['sampleGroupEntry'];
+export type UUIDKeys = keyof BoxRegistry['uuid'];
+export type AllIdentifiers =
+  | BoxFourCC
+  | SampleEntryFourCC
+  | SampleGroupEntryGroupingType
+  | UUIDKeys;
+
+export type UUIDKind = InstanceOf<Extends<BoxRegistry['uuid'], typeof Box>>;
+export type BoxKind = InstanceOf<Extends<BoxRegistry['box'], typeof Box>>;
+export type SampleEntryKind = InstanceOf<Extends<BoxRegistry['sampleEntry'], typeof SampleEntry>>;
+export type SampleGroupEntryKind = InstanceOf<
+  Extends<BoxRegistry['sampleGroupEntry'], typeof SampleGroupEntry>
+>;
 
 export interface FragmentedTrack<TUser> {
   id: number;

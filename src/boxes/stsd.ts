@@ -1,9 +1,11 @@
-import { FullBox, parseOneBox } from '#/box';
+import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
+import type { BoxFourCC } from '@types';
 import { SampleEntry } from './sampleentries/base';
+import { parseOneBox } from '#/parser';
 
 export class stsdBox extends FullBox {
   static fourcc = 'stsd' as const;
@@ -22,17 +24,16 @@ export class stsdBox extends FullBox {
 
       if (ret.code === OK) {
         let box: SampleEntry;
-        if (`${ret.type}SampleEntry` in BoxRegistry) {
-          box = new BoxRegistry[`${ret.type}SampleEntry`](ret.size);
+        if (ret.type in BoxRegistry.sampleEntry) {
+          box = new BoxRegistry.sampleEntry[ret.type](ret.size);
           box.hdr_size = ret.hdr_size;
           box.start = ret.start;
         } else {
           Log.warn('BoxParser', 'Unknown sample entry type: ' + ret.type);
           box = new SampleEntry(ret.size, ret.hdr_size, ret.start);
-          box.type = ret.type;
+          box.type = ret.type as BoxFourCC;
         }
 
-        // TODO:    a bit funky code: it checks if the SampleEntry-class implemented their own parse-method.
         if (box.write === SampleEntry.prototype.write) {
           Log.info(
             'BoxParser',

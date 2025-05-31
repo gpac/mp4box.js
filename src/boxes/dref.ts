@@ -1,7 +1,8 @@
-import { Box, FullBox, parseOneBox } from '#/box';
+import { Box, FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { OK } from '#/constants';
 import { Log } from '#/log';
+import { parseOneBox } from '#/parser';
 
 export class drefBox extends FullBox {
   static fourcc = 'dref' as const;

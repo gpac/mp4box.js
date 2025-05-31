@@ -1,7 +1,8 @@
-import { Box, parseOneBox } from '#/box';
+import { Box } from '#/box';
 import { OK } from '#/constants';
 import { MP4BoxStream } from '#/stream';
 import type { Sample, TypedArray } from '@types';
+import { parseOneBox } from '#/parser';
 
 /*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato

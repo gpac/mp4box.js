@@ -50,8 +50,8 @@ export class sgpdBox extends FullBox {
     const entry_count = stream.readUint32();
     for (let i = 0; i < entry_count; i++) {
       let entry: SampleGroupEntry;
-      if (`${this.grouping_type}SampleGroupEntry` in BoxRegistry) {
-        entry = new BoxRegistry[`${this.grouping_type}SampleGroupEntry`](this.grouping_type);
+      if (this.grouping_type in BoxRegistry.sampleGroupEntry) {
+        entry = new BoxRegistry.sampleGroupEntry[this.grouping_type](this.grouping_type);
       } else {
         entry = new SampleGroupEntry(this.grouping_type);
       }

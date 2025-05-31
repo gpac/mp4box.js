@@ -299,11 +299,15 @@ export class uncvSampleEntry extends VisualSampleEntry {
   static fourcc = 'uncv' as const;
 }
 
+export class mp4vSampleEntry extends VisualSampleEntry {
+  static fourcc = 'mp4v' as const;
+}
+
 export class mp4aSampleEntry extends AudioSampleEntry {
+  static fourcc = 'mp4a' as const;
+
   esds: esdsBox;
   esdss: Array<esdsBox>;
-
-  static fourcc = 'mp4a' as const;
 
   getCodec() {
     const baseCodec = super.getCodec();
@@ -363,29 +367,35 @@ export class encaSampleEntry extends AudioSampleEntry {
 }
 
 export class encuSampleEntry extends SubtitleSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  static fourcc = 'encu' as const;
   subBoxNames = ['sinf'] as const;
 
-  static fourcc = 'encu' as const;
+  sinfs: Array<sinfBox> = [];
 }
 
 export class encsSampleEntry extends SystemSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  static fourcc = 'encs' as const;
   subBoxNames = ['sinf'] as const;
 
-  static fourcc = 'encs' as const;
+  sinfs: Array<sinfBox> = [];
+}
+
+export class mp4sSampleEntry extends SystemSampleEntry {
+  static fourcc = 'mp4s' as const;
+
+  esds: esdsBox;
 }
 
 export class enctSampleEntry extends TextSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  static fourcc = 'enct' as const;
   subBoxNames = ['sinf'] as const;
 
-  static fourcc = 'enct' as const;
+  sinfs: Array<sinfBox> = [];
 }
 
 export class encmSampleEntry extends MetadataSampleEntry {
-  sinfs: Array<sinfBox> = [];
+  static fourcc = 'encm' as const;
   subBoxNames = ['sinf'] as const;
 
-  static fourcc = 'encm' as const;
+  sinfs: Array<sinfBox> = [];
 }

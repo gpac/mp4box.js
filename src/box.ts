@@ -4,14 +4,15 @@
  */
 
 import { MultiBufferStream } from '#/buffer';
-import { ERR_NOT_ENOUGH_DATA, MAX_SIZE, OK } from '#/constants';
+import { MAX_SIZE } from '#/constants';
 import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
-import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
-import type { BoxKind, Extends, Output, Reference } from '@types';
+import type { BoxFourCC, Extends, Output, Reference } from '@types';
 
 export class Box {
+  static registryId = Symbol.for('BoxIdentifier');
+
   boxes?: Array<Box>;
   data: Array<number> | Uint8Array;
   has_unparsed_data?: boolean;
@@ -21,9 +22,20 @@ export class Box {
   sizePosition?: number;
   start?: number;
   track_ids?: Uint32Array;
-  type?: string;
   box_name?: string;
   uuid?: string;
+
+  // Handle box designation (4CC)
+  // Instance-defined type (used for dynamic box types)
+  private _type?: string;
+  static fourcc?: string;
+
+  get type(): string | undefined {
+    return (this.constructor as typeof Box).fourcc ?? this._type;
+  }
+  set type(value: string) {
+    this._type = value;
+  }
 
   constructor(public size = 0) {}
 
@@ -207,74 +219,9 @@ export class FullBox extends Box {
   }
 }
 
-export class ContainerBox extends Box {
-  subBoxNames?: ReadonlyArray<string>;
-
-  /** @bundle box-write.js */
-  write(stream: MultiBufferStream) {
-    this.size = 0;
-    this.writeHeader(stream);
-    if (this.boxes) {
-      for (let i = 0; i < this.boxes.length; i++) {
-        if (this.boxes[i]) {
-          this.boxes[i].write(stream);
-          this.size += this.boxes[i].size;
-        }
-      }
-    }
-    /* adjusting the size, now that all sub-boxes are known */
-    Log.debug('BoxWriter', 'Adjusting box ' + this.type + ' with new size ' + this.size);
-    stream.adjustUint32(this.sizePosition, this.size);
-  }
-
-  /** @bundle box-print.js */
-  print(output: Output) {
-    this.printHeader(output);
-    for (let i = 0; i < this.boxes.length; i++) {
-      if (this.boxes[i]) {
-        const prev_indent = output.indent;
-        output.indent += ' ';
-        this.boxes[i].print(output);
-        output.indent = prev_indent;
-      }
-    }
-  }
-
-  /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream) {
-    let ret: ReturnType<typeof parseOneBox>;
-    while (stream.getPosition() < this.start + this.size) {
-      ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
-      if (ret.code === OK) {
-        const box = ret.box as BoxKind;
-        if (!this.boxes) {
-          this.boxes = [];
-        }
-        /* store the box in the 'boxes' array to preserve box order (for offset) but also store box in a property for more direct access */
-        this.boxes.push(box);
-        if (this.subBoxNames && this.subBoxNames.indexOf(box.type) !== -1) {
-          const fourcc = this.subBoxNames[this.subBoxNames.indexOf(box.type)] + 's';
-          if (!this[fourcc]) this[fourcc] = [];
-          this[fourcc].push(box);
-        } else {
-          const box_type = box.type !== 'uuid' ? box.type : box.uuid;
-          if (this[box_type]) {
-            Log.warn(
-              'ContainerBox',
-              'Box of type ' + box_type + ' already stored in field of this type',
-            );
-          } else {
-            this[box_type] = box;
-          }
-        }
-      } else {
-        return;
-      }
-    }
-  }
-}
-
 export class SampleGroupEntry {
+  static registryId = Symbol.for('SampleGroupEntryIdentifier');
+
   data: ArrayLike<number>;
   description_length: number;
 
@@ -295,13 +242,6 @@ export class SampleGroupEntry {
 export class TrackGroupTypeBox extends FullBox {
   track_group_id: number;
 
-  constructor(
-    public type: string,
-    size: number,
-  ) {
-    super(size);
-  }
-
   /** @bundle parsing/TrackGroup.js */
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -315,13 +255,14 @@ export class SingleItemTypeReferenceBox extends Box {
   references: Array<Reference>;
 
   constructor(
-    public type: string,
+    fourcc: string,
     size: number,
     public box_name: string,
     public hdr_size: number,
     public start: number,
   ) {
     super(size);
+    this.type = fourcc as BoxFourCC;
   }
   parse(stream: MultiBufferStream): void {
     this.from_item_ID = stream.readUint16();
@@ -341,13 +282,14 @@ export class SingleItemTypeReferenceBoxLarge extends Box {
   references: Array<Reference>;
 
   constructor(
-    public type: string,
+    fourcc: string,
     size: number,
     public box_name: string,
     public hdr_size: number,
     public start: number,
   ) {
     super(size);
+    this.type = fourcc as BoxFourCC;
   }
   parse(stream: MultiBufferStream): void {
     this.from_item_ID = stream.readUint32();
@@ -364,12 +306,13 @@ export class SingleItemTypeReferenceBoxLarge extends Box {
 /** @bundle parsing/TrakReference.js */
 export class TrackReferenceTypeBox extends Box {
   constructor(
-    public type: string,
+    fourcc: string,
     size: number,
     public hdr_size: number,
     public start: number,
   ) {
     super(size);
+    this.type = fourcc as BoxFourCC;
   }
 
   parse(stream: DataStream) {
@@ -382,191 +325,4 @@ export class TrackReferenceTypeBox extends Box {
     this.writeHeader(stream);
     stream.writeUint32Array(this.track_ids);
   }
-}
-
-/**********************************************************************************/
-/*                                                                                */
-/*                                  Parse Utils                                   */
-/*                                                                                */
-/**********************************************************************************/
-
-export function parseUUID(stream: MultiBufferStream | MP4BoxStream) {
-  return parseHex16(stream);
-}
-
-export function parseHex16(stream: MultiBufferStream | MP4BoxStream) {
-  let hex16 = '';
-  for (let i = 0; i < 16; i++) {
-    const hex = stream.readUint8().toString(16);
-    hex16 += hex.length === 1 ? '0' + hex : hex;
-  }
-  return hex16;
-}
-
-export function parseOneBox(
-  stream: MultiBufferStream | MP4BoxStream,
-  headerOnly: boolean,
-  parentSize?: number,
-) {
-  let box: Box;
-  const start = stream.getPosition();
-  let hdr_size = 0;
-  let uuid: string;
-  if (stream.getEndPosition() - start < 8) {
-    Log.debug('BoxParser', 'Not enough data in stream to parse the type and size of the box');
-    return { code: ERR_NOT_ENOUGH_DATA };
-  }
-  if (parentSize && parentSize < 8) {
-    Log.debug('BoxParser', 'Not enough bytes left in the parent box to parse a new box');
-    return { code: ERR_NOT_ENOUGH_DATA };
-  }
-  let size = stream.readUint32();
-  const type = stream.readString(4);
-  let box_type = type;
-  Log.debug(
-    'BoxParser',
-    "Found box of type '" + type + "' and size " + size + ' at position ' + start,
-  );
-  hdr_size = 8;
-  if (type === 'uuid') {
-    if (stream.getEndPosition() - stream.getPosition() < 16 || parentSize - hdr_size < 16) {
-      stream.seek(start);
-      Log.debug('BoxParser', 'Not enough bytes left in the parent box to parse a UUID box');
-      return { code: ERR_NOT_ENOUGH_DATA };
-    }
-    uuid = parseUUID(stream);
-    hdr_size += 16;
-    box_type = uuid;
-  }
-  if (size === 1) {
-    if (
-      stream.getEndPosition() - stream.getPosition() < 8 ||
-      (parentSize && parentSize - hdr_size < 8)
-    ) {
-      stream.seek(start);
-      Log.warn(
-        'BoxParser',
-        'Not enough data in stream to parse the extended size of the "' + type + '" box',
-      );
-      return { code: ERR_NOT_ENOUGH_DATA };
-    }
-    size = stream.readUint64();
-    hdr_size += 8;
-  } else if (size === 0) {
-    /* box extends till the end of file or invalid file */
-    if (parentSize) {
-      size = parentSize;
-    } else {
-      /* box extends till the end of file */
-      if (type !== 'mdat') {
-        Log.error('BoxParser', "Unlimited box size not supported for type: '" + type + "'");
-        box = new Box(size);
-        box.type = type;
-        return { code: OK, box, size: box.size };
-      }
-    }
-  }
-  if (size !== 0 && size < hdr_size) {
-    Log.error(
-      'BoxParser',
-      'Box of type ' + type + ' has an invalid size ' + size + ' (too small to be a box)',
-    );
-    return {
-      code: ERR_NOT_ENOUGH_DATA,
-      type: type,
-      size: size,
-      hdr_size: hdr_size,
-      start: start,
-    };
-  }
-  if (size !== 0 && parentSize && size > parentSize) {
-    Log.error(
-      'BoxParser',
-      "Box of type '" +
-        type +
-        "' has a size " +
-        size +
-        ' greater than its container size ' +
-        parentSize,
-    );
-    return {
-      code: ERR_NOT_ENOUGH_DATA,
-      type: type,
-      size: size,
-      hdr_size: hdr_size,
-      start: start,
-    };
-  }
-  if (size !== 0 && start + size > stream.getEndPosition()) {
-    stream.seek(start);
-    Log.info('BoxParser', "Not enough data in stream to parse the entire '" + type + "' box");
-    return {
-      code: ERR_NOT_ENOUGH_DATA,
-      type: type,
-      size: size,
-      hdr_size: hdr_size,
-      start: start,
-    };
-  }
-  if (headerOnly) {
-    return { code: OK, type: type, size: size, hdr_size: hdr_size, start: start };
-  } else {
-    if (BoxRegistry[type + 'Box']) {
-      box = new BoxRegistry[type + 'Box'](size);
-    } else {
-      if (type !== 'uuid') {
-        Log.warn('BoxParser', "Unknown box type: '" + type + "'");
-        box = new Box(size);
-        box.type = type;
-        box.has_unparsed_data = true;
-      } else {
-        if (uuid in BoxRegistry) {
-          box = new BoxRegistry[uuid](size);
-        } else {
-          Log.warn('BoxParser', "Unknown uuid type: '" + uuid + "'");
-          box = new Box(size);
-          box.type = type;
-          box.uuid = uuid;
-          box.has_unparsed_data = true;
-        }
-      }
-    }
-  }
-  box.hdr_size = hdr_size;
-  /* recording the position of the box in the input stream */
-  box.start = start;
-  if (box.write === Box.prototype.write && box.type !== 'mdat') {
-    Log.info(
-      'BoxParser',
-      "'" +
-        box_type +
-        "' box writing not yet implemented, keeping unparsed data in memory for later write",
-    );
-    box.parseDataAndRewind(stream);
-  }
-  // @ts-expect-error FIXME: figure out stream-types
-  box.parse(stream);
-  const diff = stream.getPosition() - (box.start + box.size);
-  if (diff < 0) {
-    Log.warn(
-      'BoxParser',
-      "Parsing of box '" +
-        box_type +
-        "' did not read the entire indicated box data size (missing " +
-        -diff +
-        ' bytes), seeking forward',
-    );
-    stream.seek(box.start + box.size);
-  } else if (diff > 0) {
-    Log.error(
-      'BoxParser',
-      "Parsing of box '" +
-        box_type +
-        "' read " +
-        diff +
-        ' more bytes than the indicated box data size, seeking backwards',
-    );
-    if (box.size !== 0) stream.seek(box.start + box.size);
-  }
-  return { code: OK, box, size: box.size };
 }

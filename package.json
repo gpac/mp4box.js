@@ -52,7 +52,7 @@
   "scripts": {
     "prepare": "node .husky/install.mjs",
     "build": "tsup",
-    "circular": "dpdm -T ./entries/all.ts --tsconfig tsconfig.lib.json",
+    "circular": "dpdm -T ./entries/all.ts --tsconfig tsconfig.lib.json --exit-code circular:1",
     "types": "tsc --noEmit -p tsconfig.lib.json",
     "test": "vitest run",
     "test:dev": "vitest",

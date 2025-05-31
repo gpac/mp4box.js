@@ -1,6 +1,6 @@
 import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
-import type { MP4BoxBuffer } from './mp4boxbuffer';
+import type { MP4BoxBuffer } from '#/mp4boxbuffer';
 
 /**
  * helper functions to concatenate two ArrayBuffer objects
