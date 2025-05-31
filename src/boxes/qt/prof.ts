@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class profBox extends FullBox {
-  static fourcc = 'prof' as const;
+  static override fourcc = 'prof' as const;
   box_name = 'TrackProductionApertureDimensionsBox' as const;
 
   width: number;

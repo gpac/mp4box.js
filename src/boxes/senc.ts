@@ -1,7 +1,7 @@
 import { FullBox } from '#/box';
 
 export class sencBox extends FullBox {
-  static fourcc = 'senc' as const;
+  static override fourcc = 'senc' as const;
   box_name = 'SampleEncryptionBox' as const;
 
   // Cannot be fully parsed because Per_Sample_IV_Size needs to be known

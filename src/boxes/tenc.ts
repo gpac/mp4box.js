@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 import { parseHex16 } from '#/parser';
 
 export class tencBox extends FullBox {
-  static fourcc = 'tenc' as const;
+  static override fourcc = 'tenc' as const;
   box_name = 'TrackEncryptionBox' as const;
 
   default_crypt_byte_block: number;

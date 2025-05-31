@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 import { ColorPoint } from './displays/colorPoint';
 
 export class mdcvBox extends Box {
-  static fourcc = 'mdcv' as const;
+  static override fourcc = 'mdcv' as const;
   box_name = 'MasteringDisplayColourVolumeBox' as const;
 
   display_primaries: Array<ColorPoint>;

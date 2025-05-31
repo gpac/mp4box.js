@@ -4,7 +4,7 @@ import { Log } from '#/log';
 import type { Sample } from '@types';
 
 export class cttsBox extends FullBox {
-  static fourcc = 'ctts' as const;
+  static override fourcc = 'ctts' as const;
   box_name = 'CompositionOffsetBox' as const;
 
   sample_counts: Array<number>;

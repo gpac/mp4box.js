@@ -5,7 +5,7 @@ export class stxtSampleEntry extends SubtitleSampleEntry {
   content_encoding: string;
   mime_format: string;
 
-  static fourcc = 'stxt' as const;
+  static override fourcc = 'stxt' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

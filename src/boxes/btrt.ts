@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class btrtBox extends Box {
-  static fourcc = 'btrt' as const;
+  static override fourcc = 'btrt' as const;
   box_name = 'BitRateBox' as const;
 
   bufferSizeDB: number;

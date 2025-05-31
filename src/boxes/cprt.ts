@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cprtBox extends FullBox {
-  static fourcc = 'cprt' as const;
+  static override fourcc = 'cprt' as const;
   box_name = 'CopyrightBox' as const;
 
   notice: string;

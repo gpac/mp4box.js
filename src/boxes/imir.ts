@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class imirBox extends Box {
-  static fourcc = 'imir' as const;
+  static override fourcc = 'imir' as const;
   box_name = 'ImageMirror' as const;
 
   reserved: number;

@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class clliBox extends Box {
-  static fourcc = 'clli' as const;
+  static override fourcc = 'clli' as const;
   box_name = 'ContentLightLevelBox' as const;
 
   max_content_light_level: number;

@@ -9,7 +9,7 @@ interface SampleInfo {
 }
 
 export class subsBox extends FullBox {
-  static fourcc = 'subs' as const;
+  static override fourcc = 'subs' as const;
   box_name = 'SubSampleInformationBox' as const;
 
   entries: Array<SampleInfo>;

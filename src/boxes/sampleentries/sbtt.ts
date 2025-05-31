@@ -5,7 +5,7 @@ export class sbttSampleEntry extends SubtitleSampleEntry {
   content_encoding: string;
   mime_format: string;
 
-  static fourcc = 'sbtt' as const;
+  static override fourcc = 'sbtt' as const;
 
   parse(stream: MultiBufferStream): void {
     this.parseHeader(stream);

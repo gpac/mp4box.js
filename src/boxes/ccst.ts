@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class ccstBox extends FullBox {
-  static fourcc = 'ccst' as const;
+  static override fourcc = 'ccst' as const;
   box_name = 'CodingConstraintsBox' as const;
 
   all_ref_pics_intra: boolean;

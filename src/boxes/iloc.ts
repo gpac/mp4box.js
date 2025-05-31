@@ -8,7 +8,7 @@ export interface Extent {
 }
 
 export class ilocBox extends FullBox {
-  static fourcc = 'iloc' as const;
+  static override fourcc = 'iloc' as const;
   box_name = 'ItemLocationBox' as const;
 
   offset_size: number;

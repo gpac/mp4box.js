@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class taicBox extends FullBox {
-  static fourcc = 'taic' as const;
+  static override fourcc = 'taic' as const;
   box_name = 'TAIClockInfoBox' as const;
 
   time_uncertainty: number;

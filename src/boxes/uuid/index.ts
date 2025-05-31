@@ -3,12 +3,12 @@ import type { MultiBufferStream } from '#/buffer';
 import { parseHex16 } from '#/parser';
 
 class UUIDBox extends Box {
-  static fourcc = 'uuid' as const;
+  static override fourcc = 'uuid' as const;
   static uuid?: string;
 }
 
 class UUIDFullBox extends FullBox {
-  static fourcc = 'uuid' as const;
+  static override fourcc = 'uuid' as const;
   static uuid?: string;
 }
 

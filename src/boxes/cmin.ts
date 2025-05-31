@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cminBox extends Box {
-  static fourcc = 'cmin' as const;
+  static override fourcc = 'cmin' as const;
   box_name = 'CameraIntrinsicMatrixProperty' as const;
 
   focal_length_x: number;

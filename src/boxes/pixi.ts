@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class pixiBox extends FullBox {
-  static fourcc = 'pixi' as const;
+  static override fourcc = 'pixi' as const;
   box_name = 'PixelInformationProperty' as const;
 
   num_channels: number;

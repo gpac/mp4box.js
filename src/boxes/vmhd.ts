@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class vmhdBox extends FullBox {
-  static fourcc = 'vmhd' as const;
+  static override fourcc = 'vmhd' as const;
   box_name = 'VideoMediaHeaderBox' as const;
 
   graphicsmode: number;

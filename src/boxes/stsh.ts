@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stshBox extends FullBox {
-  static fourcc = 'stsh' as const;
+  static override fourcc = 'stsh' as const;
   box_name = 'ShadowSyncSampleBox' as const;
 
   shadowed_sample_numbers: Array<number>;

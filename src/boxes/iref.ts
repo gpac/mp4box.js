@@ -26,7 +26,7 @@ const REFERENCE_TYPE_NAMES = {
 };
 
 export class irefBox extends FullBox {
-  static fourcc = 'iref' as const;
+  static override fourcc = 'iref' as const;
   box_name = 'ItemReferenceBox' as const;
 
   references: Array<{ references: Array<Reference>; from_item_ID: number; type: string }>;

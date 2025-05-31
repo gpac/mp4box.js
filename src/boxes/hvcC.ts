@@ -5,7 +5,7 @@ import type { NaluArray } from '@types';
 import type { NALUArrays } from './displays/naluArrays';
 
 export class hvcCBox extends Box {
-  static fourcc = 'hvcC' as const;
+  static override fourcc = 'hvcC' as const;
   box_name = 'HEVCConfigurationBox' as const;
 
   configurationVersion: number;

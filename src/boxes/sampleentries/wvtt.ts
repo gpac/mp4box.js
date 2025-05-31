@@ -2,7 +2,7 @@ import type { MultiBufferStream } from '#/buffer';
 import { MetadataSampleEntry } from './base';
 
 export class wvttSampleEntry extends MetadataSampleEntry {
-  static fourcc = 'wvtt' as const;
+  static override fourcc = 'wvtt' as const;
 
   parse(stream: MultiBufferStream): void {
     this.parseHeader(stream);

@@ -8,7 +8,7 @@ import { SampleEntry } from './sampleentries/base';
 import { parseOneBox } from '#/parser';
 
 export class stsdBox extends FullBox {
-  static fourcc = 'stsd' as const;
+  static override fourcc = 'stsd' as const;
   box_name = 'SampleDescriptionBox' as const;
 
   entries: Array<SampleEntry>;

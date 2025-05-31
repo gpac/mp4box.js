@@ -5,7 +5,7 @@ import { Log } from '#/log';
 import { parseOneBox } from '#/parser';
 
 export class drefBox extends FullBox {
-  static fourcc = 'dref' as const;
+  static override fourcc = 'dref' as const;
   box_name = 'DataReferenceBox' as const;
 
   entries: Array<Box>;

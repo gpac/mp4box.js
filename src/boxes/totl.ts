@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class totlBox extends Box {
-  static fourcc = 'totl' as const;
+  static override fourcc = 'totl' as const;
   box_name = 'hintBytesSent' as const;
 
   bytessent: number;

@@ -10,7 +10,7 @@ import {
 } from '#/constants';
 
 export class trunBox extends FullBox {
-  static fourcc = 'trun' as const;
+  static override fourcc = 'trun' as const;
   box_name = 'TrackRunBox' as const;
 
   sample_count: number;

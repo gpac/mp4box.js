@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class pmaxBox extends Box {
-  static fourcc = 'pmax' as const;
+  static override fourcc = 'pmax' as const;
   box_name = 'hintlargestpacket' as const;
 
   bytes: number;

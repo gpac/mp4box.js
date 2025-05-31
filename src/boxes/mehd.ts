@@ -3,7 +3,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mehdBox extends FullBox {
-  static fourcc = 'mehd' as const;
+  static override fourcc = 'mehd' as const;
   box_name = 'MovieExtendsHeaderBox' as const;
 
   fragment_duration: number;

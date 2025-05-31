@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class schmBox extends FullBox {
-  static fourcc = 'schm' as const;
+  static override fourcc = 'schm' as const;
   box_name = 'SchemeTypeBox' as const;
 
   scheme_type: string;

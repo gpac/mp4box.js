@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class emsgBox extends FullBox {
-  static fourcc = 'emsg' as const;
+  static override fourcc = 'emsg' as const;
   box_name = 'EventMessageBox' as const;
 
   timescale: number;

@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mfroBox extends FullBox {
-  static fourcc = 'mfro' as const;
+  static override fourcc = 'mfro' as const;
   box_name = 'MovieFragmentRandomAccessOffsetBox' as const;
 
   _size: number;
