@@ -9,7 +9,7 @@ export class tx3gSampleEntry extends SubtitleSampleEntry {
   box_record: Int16Array;
   style_record: Uint8Array;
 
-  static override fourcc = 'tx3g' as const;
+  static override readonly fourcc = 'tx3g' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

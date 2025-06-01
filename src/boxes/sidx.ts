@@ -11,7 +11,7 @@ interface Reference {
 }
 
 export class sidxBox extends FullBox {
-  static override fourcc = 'sidx' as const;
+  static override readonly fourcc = 'sidx' as const;
   box_name = 'CompressedSegmentIndexBox' as const;
 
   reference_ID: number;

@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class itaiBox extends FullBox {
-  static override fourcc = 'itai' as const;
+  static override readonly fourcc = 'itai' as const;
   box_name = 'TAITimestampBox' as const;
 
   TAI_timestamp: number;

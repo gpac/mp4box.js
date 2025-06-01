@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Sample } from '@types';
 
 export class stscBox extends FullBox {
-  static override fourcc = 'stsc' as const;
+  static override readonly fourcc = 'stsc' as const;
   box_name = 'SampleToChunkBox' as const;
 
   first_chunk: Array<number>;

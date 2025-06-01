@@ -10,7 +10,7 @@ interface SubSegment {
 }
 
 export class ssixBox extends FullBox {
-  static override fourcc = 'ssix' as const;
+  static override readonly fourcc = 'ssix' as const;
   box_name = 'CompressedSubsegmentIndexBox' as const;
 
   subsegments: Array<SubSegment>;

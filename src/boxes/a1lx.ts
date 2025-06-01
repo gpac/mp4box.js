@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class a1lxBox extends Box {
-  static override fourcc = 'a1lx' as const;
+  static override readonly fourcc = 'a1lx' as const;
   box_name = 'AV1LayeredImageIndexingProperty' as const;
 
   layer_size: Array<number>;

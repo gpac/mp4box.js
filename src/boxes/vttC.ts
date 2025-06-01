@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class vttCBox extends Box {
-  static override fourcc = 'vttC' as const;
+  static override readonly fourcc = 'vttC' as const;
   box_name = 'WebVTTConfigurationBox' as const;
 
   text: string;

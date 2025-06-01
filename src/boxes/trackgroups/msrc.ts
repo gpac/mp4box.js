@@ -1,5 +1,5 @@
 import { TrackGroupTypeBox } from '#//box';
 
 export class msrcTrackGroupTypeBox extends TrackGroupTypeBox {
-  static override fourcc = 'msrc' as const;
+  static override readonly fourcc = 'msrc' as const;
 }

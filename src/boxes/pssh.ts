@@ -3,7 +3,7 @@ import { parseHex16 } from '#/parser';
 import type { MultiBufferStream } from '#/buffer';
 
 export class psshBox extends FullBox {
-  static override fourcc = 'pssh' as const;
+  static override readonly fourcc = 'pssh' as const;
   box_name = 'ProtectionSystemSpecificHeaderBox' as const;
 
   system_id: string;

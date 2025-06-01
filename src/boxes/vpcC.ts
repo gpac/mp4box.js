@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class vpcCBox extends FullBox {
-  static override fourcc = 'vpcC' as const;
+  static override readonly fourcc = 'vpcC' as const;
   box_name = 'VPCodecConfigurationRecord' as const;
 
   profile: number;

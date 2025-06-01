@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 import type { NaluArray } from '@types';
 
 export class vvcCBox extends FullBox {
-  static override fourcc = 'vvcC' as const;
+  static override readonly fourcc = 'vvcC' as const;
   box_name = 'VvcConfigurationBox' as const;
 
   lengthSizeMinusOne: number;

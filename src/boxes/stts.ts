@@ -4,7 +4,7 @@ import { Log } from '#/log';
 import type { Sample } from '@types';
 
 export class sttsBox extends FullBox {
-  static override fourcc = 'stts' as const;
+  static override readonly fourcc = 'stts' as const;
   box_name = 'TimeToSampleBox' as const;
 
   sample_counts: Array<number> = [];

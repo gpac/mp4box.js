@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class numpBox extends Box {
-  static override fourcc = 'nump' as const;
+  static override readonly fourcc = 'nump' as const;
   box_name = 'hintPacketsSent' as const;
 
   packetssent: number;

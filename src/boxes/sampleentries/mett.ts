@@ -4,7 +4,7 @@ import { MetadataSampleEntry } from './base';
 export class mettSampleEntry extends MetadataSampleEntry {
   content_encoding: string;
   mime_format: string;
-  static override fourcc = 'mett' as const;
+  static override readonly fourcc = 'mett' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

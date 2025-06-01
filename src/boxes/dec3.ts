@@ -12,7 +12,7 @@ interface IndSub {
 }
 
 export class dec3Box extends Box {
-  static override fourcc = 'dec3' as const;
+  static override readonly fourcc = 'dec3' as const;
   box_name = 'EC3SpecificBox' as const;
 
   data_rate: number;

@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class hdlrBox extends FullBox {
-  static override fourcc = 'hdlr' as const;
+  static override readonly fourcc = 'hdlr' as const;
   box_name = 'HandlerBox' as const;
 
   version: number;

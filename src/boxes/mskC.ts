@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class mskCBox extends FullBox {
-  static override fourcc = 'mskC' as const;
+  static override readonly fourcc = 'mskC' as const;
   box_name = 'MaskConfigurationProperty' as const;
 
   bits_per_pixel: number;

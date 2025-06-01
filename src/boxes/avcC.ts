@@ -5,7 +5,7 @@ import { MP4BoxStream } from '#/stream';
 import type { ParameterSetArray } from './displays/parameterSetArray';
 
 export class avcCBox extends Box {
-  static override fourcc = 'avcC' as const;
+  static override readonly fourcc = 'avcC' as const;
   box_name = 'AVCConfigurationBox' as const;
 
   configurationVersion: number;

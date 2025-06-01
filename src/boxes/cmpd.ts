@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cmpdBox extends Box {
-  static override fourcc = 'cmpd' as const;
+  static override readonly fourcc = 'cmpd' as const;
   box_name = 'ComponentDefinitionBox' as const;
 
   component_count: number;

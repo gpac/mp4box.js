@@ -3,97 +3,97 @@ import { EntityToGroup } from './base';
 
 // Auto exposure bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.2.1)
 export class aebrBox extends EntityToGroup {
-  static override fourcc = 'aebr' as const;
+  static override readonly fourcc = 'aebr' as const;
   box_name = 'Auto exposure bracketing' as const;
 }
 
 // Flash exposure bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.5.1)
 export class afbrBox extends EntityToGroup {
-  static override fourcc = 'afbr' as const;
+  static override readonly fourcc = 'afbr' as const;
   box_name = 'Flash exposure information' as const;
 }
 
 // Album collection (ISO/IEC 23008-12:2022 Section 6.8.7.1)
 export class albcBox extends EntityToGroup {
-  static override fourcc = 'albc' as const;
+  static override readonly fourcc = 'albc' as const;
   box_name = 'Album collection' as const;
 }
 
 // Alternative entity (ISO/IEC 14496-12:2022 Section 8.18.3.1)
 export class altrBox extends EntityToGroup {
-  static override fourcc = 'altr' as const;
+  static override readonly fourcc = 'altr' as const;
   box_name = 'Alternative entity' as const;
 }
 
 // Burst image entity group (ISO/IEC 23008-12:2022 Section 6.8.2.2)
 export class brstBox extends EntityToGroup {
-  static override fourcc = 'brst' as const;
+  static override readonly fourcc = 'brst' as const;
   box_name = 'Burst image' as const;
 }
 
 // Depth of field bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.6.1)
 export class dobrBox extends EntityToGroup {
-  static override fourcc = 'dobr' as const;
+  static override readonly fourcc = 'dobr' as const;
   box_name = 'Depth of field bracketing' as const;
 }
 
 // Equivalent entity (ISO/IEC 23008-12:2022 Section 6.8.1.1)
 export class eqivBox extends EntityToGroup {
-  static override fourcc = 'eqiv' as const;
+  static override readonly fourcc = 'eqiv' as const;
   box_name = 'Equivalent entity' as const;
 }
 
 // Favourites collection (ISO/IEC 23008-12:2022 Section 6.8.7.2)
 export class favcBox extends EntityToGroup {
-  static override fourcc = 'favc' as const;
+  static override readonly fourcc = 'favc' as const;
   box_name = 'Favorites collection' as const;
 }
 
 // Focus bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.4.1)
 export class fobrBox extends EntityToGroup {
-  static override fourcc = 'fobr' as const;
+  static override readonly fourcc = 'fobr' as const;
   box_name = 'Focus bracketing' as const;
 }
 
 // Audio to image entity group (ISO/IEC 23008-12:2022 Section 6.8.4)
 export class iaugBox extends EntityToGroup {
-  static override fourcc = 'iaug' as const;
+  static override readonly fourcc = 'iaug' as const;
   box_name = 'Image item with an audio track' as const;
 }
 
 // Panorama (ISO/IEC 23008-12:2022 Section 6.8.8.1)
 export class panoBox extends EntityToGroup {
-  static override fourcc = 'pano' as const;
+  static override readonly fourcc = 'pano' as const;
   box_name = 'Panorama' as const;
 }
 
 // Slideshow (ISO/IEC 23008-12:2022 Section 6.8.9.1)
 export class slidBox extends EntityToGroup {
-  static override fourcc = 'slid' as const;
+  static override readonly fourcc = 'slid' as const;
   box_name = 'Slideshow' as const;
 }
 
 // Stereo pair (ISO/IEC 23008-12:2022 Section 6.8.5)
 export class sterBox extends EntityToGroup {
-  static override fourcc = 'ster' as const;
+  static override readonly fourcc = 'ster' as const;
   box_name = 'Stereo' as const;
 }
 
 // Time-synchronised capture entity group (ISO/IEC 23008-12:2022 Section 6.8.3)
 export class tsynBox extends EntityToGroup {
-  static override fourcc = 'tsyn' as const;
+  static override readonly fourcc = 'tsyn' as const;
   box_name = 'Time-synchronized capture' as const;
 }
 
 // White balance bracketing (ISO/IEC 23008-12:2022 Section 6.8.6.3.1)
 export class wbbrBox extends EntityToGroup {
-  static override fourcc = 'wbbr' as const;
+  static override readonly fourcc = 'wbbr' as const;
   box_name = 'White balance bracketing' as const;
 }
 
 // Alternative entity (ISO/IEC 23008-12:2022 AMD1 Section 6.8.10)
 export class prgrBox extends EntityToGroup {
-  static override fourcc = 'prgr' as const;
+  static override readonly fourcc = 'prgr' as const;
   box_name = 'Progressive rendering' as const;
 }
 
@@ -105,7 +105,7 @@ export class pymdBox extends EntityToGroup {
   tiles_in_layer_column_minus1: Array<number>;
   tiles_in_layer_row_minus1: Array<number>;
 
-  static override fourcc = 'pymd' as const;
+  static override readonly fourcc = 'pymd' as const;
   box_name = 'Image pyramid' as const;
 
   parse(stream: MultiBufferStream) {

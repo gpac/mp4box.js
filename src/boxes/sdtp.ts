@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class sdtpBox extends FullBox {
-  static override fourcc = 'sdtp' as const;
+  static override readonly fourcc = 'sdtp' as const;
   box_name = 'SampleDependencyTypeBox' as const;
 
   is_leading: Array<number>;

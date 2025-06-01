@@ -9,7 +9,7 @@ import {
 } from '#/constants';
 
 export class tfhdBox extends FullBox {
-  static override fourcc = 'tfhd' as const;
+  static override readonly fourcc = 'tfhd' as const;
   box_name = 'TrackFragmentHeaderBox' as const;
 
   track_id: number;

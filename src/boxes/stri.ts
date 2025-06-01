@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class striBox extends FullBox {
-  static override fourcc = 'stri' as const;
+  static override readonly fourcc = 'stri' as const;
   box_name = 'SubTrackInformationBox' as const;
 
   switch_group: number;

@@ -6,7 +6,7 @@ export class stppSampleEntry extends SubtitleSampleEntry {
   schema_location: string;
   auxiliary_mime_types: string;
 
-  static override fourcc = 'stpp' as const;
+  static override readonly fourcc = 'stpp' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

@@ -5,7 +5,7 @@ import type { avcCBox } from '../avcC';
 import type { hvcCBox } from '../hvcC';
 
 export class SampleEntry extends ContainerBox {
-  static override registryId = Symbol.for('SampleEntryIdentifier');
+  static override readonly registryId = Symbol.for('SampleEntryIdentifier');
 
   data_reference_index?: number;
 

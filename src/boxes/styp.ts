@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stypBox extends Box {
-  static override fourcc = 'styp' as const;
+  static override readonly fourcc = 'styp' as const;
   box_name = 'SegmentTypeBox' as const;
 
   major_brand: string;

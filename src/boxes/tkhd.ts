@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 import type { Matrix } from '@types';
 
 export class tkhdBox extends FullBox {
-  static override fourcc = 'tkhd' as const;
+  static override readonly fourcc = 'tkhd' as const;
   box_name = 'TrackHeaderBox' as const;
 
   creation_time: number;

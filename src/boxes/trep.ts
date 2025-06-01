@@ -4,7 +4,7 @@ import { OK } from '#/constants';
 import { parseOneBox } from '#/parser';
 
 export class trepBox extends FullBox {
-  static override fourcc = 'trep' as const;
+  static override readonly fourcc = 'trep' as const;
   box_name = 'TrackExtensionPropertiesBox' as const;
 
   track_ID: number;

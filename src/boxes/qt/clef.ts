@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class clefBox extends FullBox {
-  static override fourcc = 'clef' as const;
+  static override readonly fourcc = 'clef' as const;
   box_name = 'TrackCleanApertureDimensionsBox' as const;
 
   width: number;

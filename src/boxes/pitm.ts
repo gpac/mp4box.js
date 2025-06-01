@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class pitmBox extends FullBox {
-  static override fourcc = 'pitm' as const;
+  static override readonly fourcc = 'pitm' as const;
   box_name = 'PrimaryItemBox' as const;
 
   item_id: number;

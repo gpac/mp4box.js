@@ -5,7 +5,7 @@ import { Log } from '#/log';
 import { parseOneBox } from '#/parser';
 
 export class trefBox extends Box {
-  static override fourcc = 'tref' as const;
+  static override readonly fourcc = 'tref' as const;
   box_name = 'TrackReferenceBox' as const;
 
   static allowed_types = [

@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class infeBox extends FullBox {
-  static override fourcc = 'infe' as const;
+  static override readonly fourcc = 'infe' as const;
   box_name = 'ItemInfoEntry' as const;
 
   item_ID: number;

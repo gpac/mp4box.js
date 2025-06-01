@@ -5,7 +5,7 @@ import { parseOneBox } from '#/parser';
 import type { BoxKind } from '@types';
 
 export class stviBox extends FullBox {
-  static override fourcc = 'stvi' as const;
+  static override readonly fourcc = 'stvi' as const;
   box_name = 'StereoVideoBox' as const;
 
   single_view_allowed: number;

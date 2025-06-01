@@ -6,7 +6,7 @@ export class metxSampleEntry extends MetadataSampleEntry {
   namespace: string;
   schema_location: string;
 
-  static override fourcc = 'metx' as const;
+  static override readonly fourcc = 'metx' as const;
 
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);

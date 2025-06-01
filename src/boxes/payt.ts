@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class paytBox extends Box {
-  static override fourcc = 'payt' as const;
+  static override readonly fourcc = 'payt' as const;
   box_name = 'hintpayloadID' as const;
 
   payloadID: number;

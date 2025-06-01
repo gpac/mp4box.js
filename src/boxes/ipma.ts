@@ -7,7 +7,7 @@ export interface Assocation {
 }
 
 export class ipmaBox extends FullBox {
-  static override fourcc = 'ipma' as const;
+  static override readonly fourcc = 'ipma' as const;
   box_name = 'ItemPropertyAssociationBox' as const;
 
   associations: Array<Assocation>;

@@ -7,7 +7,7 @@ import { parseOneBox } from '#/parser';
 import type { BoxKind } from '@types';
 
 export class iinfBox extends FullBox {
-  static override fourcc = 'iinf' as const;
+  static override readonly fourcc = 'iinf' as const;
   box_name = 'ItemInfoBox' as const;
 
   version: number;

@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class rtp_Box extends Box {
-  static override fourcc = 'rtp ' as const;
+  static override readonly fourcc = 'rtp ' as const;
   box_name = 'rtpmoviehintinformation' as const;
 
   descriptionformat: string;

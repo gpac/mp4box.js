@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class fielBox extends Box {
-  static override fourcc = 'fiel' as const;
+  static override readonly fourcc = 'fiel' as const;
   box_name = 'FieldHandlingBox' as const;
 
   fieldCount: number;

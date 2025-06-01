@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class clapBox extends Box {
-  static override fourcc = 'clap' as const;
+  static override readonly fourcc = 'clap' as const;
   box_name = 'CleanApertureBox' as const;
 
   cleanApertureWidthN: number;

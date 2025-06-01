@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class frmaBox extends Box {
-  static override fourcc = 'frma' as const;
+  static override readonly fourcc = 'frma' as const;
   box_name = 'OriginalFormatBox' as const;
 
   data_format: string;

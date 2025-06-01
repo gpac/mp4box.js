@@ -3,7 +3,7 @@ import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
 
 export class av1CBox extends Box {
-  static override fourcc = 'av1C' as const;
+  static override readonly fourcc = 'av1C' as const;
   box_name = 'AV1CodecConfigurationBox' as const;
 
   version: number;

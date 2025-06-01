@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class cdefBox extends Box {
-  static override fourcc = 'cdef' as const;
+  static override readonly fourcc = 'cdef' as const;
   box_name = 'ComponentDefinitionBox' as const;
 
   channel_count: number;

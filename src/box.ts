@@ -27,14 +27,14 @@ export class Box {
 
   // Handle box designation (4CC)
   // Instance-defined type (used for dynamic box types)
-  private _type?: string;
-  static fourcc?: string;
+  #type?: string;
+  static readonly fourcc?: string;
 
   get type(): string | undefined {
-    return (this.constructor as typeof Box).fourcc ?? this._type;
+    return (this.constructor as typeof Box).fourcc ?? this.#type;
   }
   set type(value: string) {
-    this._type = value;
+    this.#type = value;
   }
 
   constructor(public size = 0) {}

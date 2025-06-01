@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class co64Box extends FullBox {
-  static override fourcc = 'co64' as const;
+  static override readonly fourcc = 'co64' as const;
   box_name = 'ChunkLargeOffsetBox' as const;
 
   chunk_offsets: Array<number>;

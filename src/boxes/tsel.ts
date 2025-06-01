@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class tselBox extends FullBox {
-  static override fourcc = 'tsel' as const;
+  static override readonly fourcc = 'tsel' as const;
   box_name = 'TrackSelectionBox' as const;
 
   switch_group: number;

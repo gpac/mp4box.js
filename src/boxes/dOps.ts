@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class dOpsBox extends Box {
-  static override fourcc = 'dOps' as const;
+  static override readonly fourcc = 'dOps' as const;
   box_name = 'OpusSpecificBox' as const;
 
   Version: number;

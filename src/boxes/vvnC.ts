@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class vvnCBox extends FullBox {
-  static override fourcc = 'vvnC' as const;
+  static override readonly fourcc = 'vvnC' as const;
   box_name = 'VvcNALUConfigBox' as const;
 
   lengthSizeMinusOne: number;

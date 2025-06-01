@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class udesBox extends FullBox {
-  static override fourcc = 'udes' as const;
+  static override readonly fourcc = 'udes' as const;
   box_name = 'UserDescriptionProperty' as const;
 
   lang: string;

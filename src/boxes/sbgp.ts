@@ -7,7 +7,7 @@ interface Entry {
 }
 
 export class sbgpBox extends FullBox {
-  static override fourcc = 'sbgp' as const;
+  static override readonly fourcc = 'sbgp' as const;
   box_name = 'SampleToGroupBox' as const;
 
   grouping_type: string;

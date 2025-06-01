@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class dfLaBox extends FullBox {
-  static override fourcc = 'dfLa' as const;
+  static override readonly fourcc = 'dfLa' as const;
   box_name = 'FLACSpecificBox' as const;
 
   samplerate: number;

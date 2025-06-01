@@ -5,7 +5,7 @@ import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 
 export class sgpdBox extends FullBox {
-  static override fourcc = 'sgpd' as const;
+  static override readonly fourcc = 'sgpd' as const;
   box_name = 'SampleGroupDescriptionBox' as const;
 
   grouping_type:
