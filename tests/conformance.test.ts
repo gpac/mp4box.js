@@ -27,9 +27,12 @@ async function getFileRange(
 ) {
   const reader = fs.createReadStream(path, { start, end });
   return new Promise<void>((resolve, reject) => {
+    let bytesRead = 0;
     reader.on('data', chunk => {
       if (typeof chunk === 'string') chunk = Buffer.from(chunk);
-      progress(MP4BoxBuffer.fromArrayBuffer(chunk.buffer));
+      const data = MP4BoxBuffer.fromArrayBuffer(chunk.buffer, start + bytesRead);
+      bytesRead += chunk.length;
+      progress(data);
     });
     reader.on('error', reject);
     reader.on('end', resolve);

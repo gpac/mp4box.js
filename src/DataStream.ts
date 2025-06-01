@@ -64,7 +64,7 @@ export class DataStream {
   ) {
     this._byteOffset = byteOffset || 0;
     if (arrayBuffer instanceof ArrayBuffer) {
-      this.buffer = MP4BoxBuffer.fromArrayBuffer(arrayBuffer);
+      this.buffer = MP4BoxBuffer.fromArrayBuffer(arrayBuffer, 0);
     } else if (arrayBuffer instanceof DataView) {
       this.dataView = arrayBuffer;
       if (byteOffset) this._byteOffset += byteOffset;
@@ -181,7 +181,7 @@ export class DataStream {
   }
   set dataView(value: DataView<ArrayBuffer>) {
     this._byteOffset = value.byteOffset;
-    this._buffer = MP4BoxBuffer.fromArrayBuffer(value.buffer);
+    this._buffer = MP4BoxBuffer.fromArrayBuffer(value.buffer, 0);
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._byteOffset + value.byteLength;
   }
