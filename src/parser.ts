@@ -131,7 +131,7 @@ export function parseOneBox(
       box = new BoxRegistry.box[type](size);
     } else {
       if (type !== 'uuid') {
-        Log.warn('BoxParser', "Unknown box type: '" + type + "'");
+        Log.warn('BoxParser', `Unknown box type: '${type}'`);
         box = new Box(size);
         box.type = type as BoxFourCC;
         box.has_unparsed_data = true;
@@ -139,7 +139,7 @@ export function parseOneBox(
         if (uuid in BoxRegistry.uuid) {
           box = new BoxRegistry.uuid[uuid](size);
         } else {
-          Log.warn('BoxParser', "Unknown uuid type: '" + uuid + "'");
+          Log.warn('BoxParser', `Unknown UUID box type: '${uuid}'`);
           box = new Box(size);
           box.type = type as BoxFourCC;
           box.uuid = uuid;

@@ -44,7 +44,7 @@ export class levaBox extends FullBox {
           level.sub_track_id = stream.readUint32();
           break;
         default:
-          Log.warn('BoxParser', 'Unknown leva assignement type');
+          Log.warn('BoxParser', `Unknown level assignment type: ${level.assignment_type}`);
       }
     }
   }

@@ -29,7 +29,7 @@ export class stsdBox extends FullBox {
           box.hdr_size = ret.hdr_size;
           box.start = ret.start;
         } else {
-          Log.warn('BoxParser', 'Unknown sample entry type: ' + ret.type);
+          Log.warn('BoxParser', `Unknown sample entry type: '${ret.type}'`);
           box = new SampleEntry(ret.size, ret.hdr_size, ret.start);
           box.type = ret.type as BoxFourCC;
         }

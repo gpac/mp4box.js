@@ -61,7 +61,7 @@ export class irefBox extends FullBox {
       if (ret.code === OK) {
         let name = 'Unknown item reference';
         if (!irefBox.allowed_types.includes(ret.type as (typeof irefBox.allowed_types)[number])) {
-          Log.warn('BoxParser', 'Unknown item reference type: ' + ret.type);
+          Log.warn('BoxParser', `Unknown item reference type: '${ret.type}'`);
         } else name = REFERENCE_TYPE_NAMES[ret.type];
 
         const box =

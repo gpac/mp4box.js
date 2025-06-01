@@ -30,7 +30,7 @@ export class trefBox extends Box {
       const ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
         if (!trefBox.allowed_types.includes(ret.type as (typeof trefBox.allowed_types)[number])) {
-          Log.warn('BoxParser', 'Unknown track reference type: ' + ret.type);
+          Log.warn('BoxParser', `Unknown track reference type: '${ret.type}'`);
         }
 
         const box = new TrackReferenceTypeBox(ret.type, ret.size, ret.hdr_size, ret.start);

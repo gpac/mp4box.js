@@ -234,7 +234,7 @@ export class SampleGroupEntry {
 
   /** @bundle parsing/samplegroups/samplegroup.js */
   parse(stream: MultiBufferStream) {
-    Log.warn('BoxParser', 'Unknown Sample Group type: ' + this.grouping_type);
+    Log.warn('BoxParser', `Unknown sample group type: '${this.grouping_type}'`);
     this.data = stream.readUint8Array(this.description_length);
   }
 }
