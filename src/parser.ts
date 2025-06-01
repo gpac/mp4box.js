@@ -160,7 +160,6 @@ export function parseOneBox(
     );
     box.parseDataAndRewind(stream);
   }
-  // @ts-expect-error FIXME: figure out stream-types
   box.parse(stream);
   const diff = stream.getPosition() - (box.start + box.size);
   if (diff < 0) {

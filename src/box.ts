@@ -138,7 +138,7 @@ export class Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream) {
+  parse(stream: MultiBufferStream | MP4BoxStream) {
     if (this.type !== 'mdat') {
       this.data = stream.readUint8Array(this.size - this.hdr_size);
     } else {
@@ -315,7 +315,7 @@ export class TrackReferenceTypeBox extends Box {
     this.type = fourcc as BoxFourCC;
   }
 
-  parse(stream: DataStream) {
+  parse(stream: MultiBufferStream | MP4BoxStream | DataStream) {
     this.track_ids = stream.readUint32Array((this.size - this.hdr_size) / 4);
   }
 
