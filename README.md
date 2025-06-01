@@ -1,16 +1,38 @@
+<div align="center">
+
 # MP4Box.js
 
-[![Test](https://github.com/gpac/mp4box.js/actions/workflows/test.yml/badge.svg)](https://github.com/gpac/mp4box.js/actions/workflows/test.yml)
+### A Powerful JavaScript Library for MP4 File Processing
 
-JavaScript library to process MP4 files in the browser (and in NodeJS), with support for progressive parsing.
-Inspired by the [MP4Box](https://github.com/gpac/gpac/wiki/MP4Box) tool from the [GPAC](http://gpac.io) project.
-It can be used to:
+MP4Box.js enables advanced MP4 parsing, segmentation, and sample extraction directly in the browser or in Node.js environments. Built for performance and flexibility, it's inspired by the [MP4Box](https://wiki.gpac.io/MP4Box/MP4Box) tool from the [GPAC Project](http://gpac.io).
 
-- [get information about an MP4 file](#getting-information),
-- [segment](#segmentation) an MP4 file for use with the [Media Source Extension API](https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html),
-- [extract](#extraction) samples from an MP4 to create TextTracks.
+[![Build & Test](https://github.com/gpac/mp4box.js/actions/workflows/test.yml/badge.svg)](https://github.com/gpac/mp4box.js/actions/workflows/test.yml)
+[![NPM Downloads](https://img.shields.io/npm/dm/mp4box)](https://www.npmjs.com/package/mp4box)
+[![Latest Version](https://img.shields.io/npm/v/mp4box/latest.svg?color=blue)](https://www.npmjs.com/package/mp4box/v/latest)
+[![Next Version](https://img.shields.io/npm/v/mp4box/next.svg?color=red)](https://www.npmjs.com/package/mp4box/v/next)
 
-On this page, you'll find documentation on how to [build MP4box.js](#build), [use it in a browser](#browser-usage) or [in Node JS](#node-usage) or [contribute](#contribute).
+</div>
+
+---
+
+## Key Features
+
+MP4Box.js makes it easy to work with MP4 files using JavaScript, offering:
+
+- **Progressive Parsing**: Analyze MP4 content as it's being loaded.
+- **Segmentation**: Split MP4 files for use with the [Media Source Extensions (MSE)](https://www.w3.org/TR/media-source/) API.
+- **Sample Extraction**: Extract media samples for custom processing, such as generating subtitles or audio analysis.
+- **Cross-Platform Support**: Works seamlessly in both browser and Node.js environments.
+
+## Use Cases
+
+You can use MP4Box.js to:
+
+- 🔍 [Inspect MP4 metadata](#getting-information) in real-time
+- ✂️ [Segment MP4 files](#segmentation) for adaptive streaming or MSE playback
+- 🎯 [Extract specific samples](#extraction) to build features like TextTracks or timeline previews
+
+On this page, you'll find documentation on how to [build MP4box.js](#build), [install](#installation), [use it in a browser](#browser-usage), or [contribute](./CONTRIBUTING.md).
 
 ## Installation
 
