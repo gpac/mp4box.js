@@ -1,4 +1,3 @@
-import os from 'node:os';
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -6,7 +5,6 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     globals: true,
-    maxConcurrency: os.cpus().length,
     include: ['tests/**/*.test.ts'],
     setupFiles: ['tests/setup.ts'],
     typecheck: {
@@ -14,7 +12,7 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
-      reporter: ['html-spa'],
+      reporter: ['html-spa', 'text-summary'],
       include: ['src/**/*.ts', 'entries/**/*.ts'],
     },
   },
