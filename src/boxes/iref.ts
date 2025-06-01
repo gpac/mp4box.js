@@ -29,6 +29,26 @@ export class irefBox extends FullBox {
   static override fourcc = 'iref' as const;
   box_name = 'ItemReferenceBox' as const;
 
+  static allowed_types = [
+    'auxl',
+    'base',
+    'cdsc',
+    'dimg',
+    'dpnd',
+    'eroi',
+    'evir',
+    'exbl',
+    'fdl ',
+    'font',
+    'iloc',
+    'mask',
+    'mint',
+    'pred',
+    'prem',
+    'tbas',
+    'thmb',
+  ] as const;
+
   references: Array<{ references: Array<Reference>; from_item_ID: number; type: string }>;
   version: number;
 
@@ -39,7 +59,11 @@ export class irefBox extends FullBox {
     while (stream.getPosition() < this.start + this.size) {
       const ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
       if (ret.code === OK) {
-        const name = REFERENCE_TYPE_NAMES[ret.type];
+        let name = 'Unknown item reference';
+        if (!irefBox.allowed_types.includes(ret.type as (typeof irefBox.allowed_types)[number])) {
+          Log.warn('BoxParser', 'Unknown item reference type: ' + ret.type);
+        } else name = REFERENCE_TYPE_NAMES[ret.type];
+
         const box =
           this.version === 0
             ? new SingleItemTypeReferenceBox(ret.type, ret.size, name, ret.hdr_size, ret.start)
