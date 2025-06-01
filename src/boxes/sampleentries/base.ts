@@ -97,7 +97,7 @@ export class SampleEntry extends ContainerBox {
     // restore the header size as if the sample entry header had not been parsed
     this.hdr_size -= 8;
     // rewinding
-    stream.position -= this.size - this.hdr_size;
+    stream.seek(this.start + this.hdr_size);
   }
 
   /** @bundle parsing/sampleentries/sampleentry.js */

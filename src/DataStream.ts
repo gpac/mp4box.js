@@ -47,7 +47,7 @@ export class DataStream {
   _dataView?: DataView<ArrayBuffer>;
 
   endianness: Endianness;
-  position: number;
+  protected position: number;
 
   /**
    * DataStream reads scalars, arrays and structs of data from an ArrayBuffer.

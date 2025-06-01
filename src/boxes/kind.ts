@@ -11,7 +11,9 @@ export class kindBox extends FullBox {
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
     this.schemeURI = stream.readCString();
-    this.value = stream.readCString();
+    if (!this.isEndOfBox(stream)) {
+      this.value = stream.readCString();
+    }
   }
 
   /** @bundle writing/kind.js */

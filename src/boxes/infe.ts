@@ -22,7 +22,9 @@ export class infeBox extends FullBox {
       this.item_protection_index = stream.readUint16();
       this.item_name = stream.readCString();
       this.content_type = stream.readCString();
-      this.content_encoding = stream.readCString();
+      if (!this.isEndOfBox(stream)) {
+        this.content_encoding = stream.readCString();
+      }
     }
     if (this.version === 1) {
       this.extension_type = stream.readString(4);

@@ -172,7 +172,7 @@ export function parseOneBox(
         ' bytes), seeking forward',
     );
     stream.seek(box.start + box.size);
-  } else if (diff > 0) {
+  } else if (diff > 0 && box.size !== 0) {
     Log.error(
       'BoxParser',
       "Parsing of box '" +
@@ -181,7 +181,7 @@ export function parseOneBox(
         diff +
         ' more bytes than the indicated box data size, seeking backwards',
     );
-    if (box.size !== 0) stream.seek(box.start + box.size);
+    stream.seek(box.start + box.size);
   }
   return { code: OK, box, size: box.size };
 }

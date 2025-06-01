@@ -5,6 +5,7 @@ import { esdsBox } from '#/boxes/esds';
 import { hvcCBox } from '#/boxes/hvcC';
 import { vpcCBox } from '#/boxes/vpcC';
 import { vvcCBox } from '#/boxes/vvcC';
+import { colrBox } from '#/boxes/colr';
 import {
   AudioSampleEntry,
   MetadataSampleEntry,
@@ -25,8 +26,8 @@ function decimalToHex(d: number | string, padding?: number | null) {
 }
 
 class avcCSampleEntryBase extends VisualSampleEntry {
-  declare avcC: avcCBox;
-  declare avcCs: Array<avcCBox>;
+  avcC: avcCBox;
+  avcCs: Array<avcCBox>;
 
   /** @bundle box-codecs.js */
   getCodec() {
@@ -96,8 +97,8 @@ export class dav1SampleEntry extends VisualSampleEntry {
 }
 
 class hvcCSampleEntryBase extends VisualSampleEntry {
-  declare hvcC: hvcCBox;
-  declare hvcCs: Array<hvcCBox>;
+  hvcC: hvcCBox;
+  hvcCs: Array<hvcCBox>;
 
   /** @bundle box-codecs.js */
   getCodec(): string {
@@ -155,8 +156,18 @@ export class hvc1SampleEntry extends hvcCSampleEntryBase {
   static override readonly fourcc = 'hvc1' as const;
 }
 
+export class hvc2SampleEntry extends hvcCSampleEntryBase {
+  static override readonly fourcc = 'hvc2' as const;
+}
+
 export class hev1SampleEntry extends hvcCSampleEntryBase {
   static override readonly fourcc = 'hev1' as const;
+  colrs: Array<colrBox> = [];
+  subBoxNames = ['colr'] as const;
+}
+
+export class hev2SampleEntry extends hvcCSampleEntryBase {
+  static override readonly fourcc = 'hev2' as const;
 }
 
 export class hvt1SampleEntry extends VisualSampleEntry {
@@ -165,6 +176,10 @@ export class hvt1SampleEntry extends VisualSampleEntry {
 
 export class lhe1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'lhe1' as const;
+}
+
+export class lhv1SampleEntry extends VisualSampleEntry {
+  static override readonly fourcc = 'lhv1' as const;
 }
 
 export class dvh1SampleEntry extends VisualSampleEntry {
@@ -321,6 +336,10 @@ export class mp4aSampleEntry extends AudioSampleEntry {
   }
 }
 
+export class m4aeSampleEntry extends AudioSampleEntry {
+  static override readonly fourcc = 'm4ae' as const;
+}
+
 export class ac_3SampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'ac-3' as const;
 }
@@ -398,4 +417,9 @@ export class encmSampleEntry extends MetadataSampleEntry {
   subBoxNames = ['sinf'] as const;
 
   sinfs: Array<sinfBox> = [];
+}
+
+// Restricted sample entries
+export class resvSampleEntry extends VisualSampleEntry {
+  static override readonly fourcc = 'resv' as const;
 }

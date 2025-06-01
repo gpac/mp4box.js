@@ -40,6 +40,11 @@ import type { mfhdBox } from './mfhd';
 import type { smhdBox } from './smhd';
 import type { sthdBox } from './sthd';
 import type { vmhdBox } from './vmhd';
+import type { hvcCBox } from './hvcC';
+import type { ispeBox } from './ispe';
+import type { clapBox } from './clap';
+import type { irotBox } from './irot';
+import type { maxrBox } from './maxr';
 
 /**********************************************************************************/
 /*                                                                                */
@@ -64,24 +69,6 @@ export class skipBox extends Box {
   static override readonly fourcc = 'skip' as const;
   box_name = 'FreeSpaceBox' as const;
 }
-
-// NOTE: duplicate declaration (see `mecoBox extends ContainerBox`)
-// export class mecoBox extends Box {
-//   static override readonly fourcc = 'meco' as const;
-//   box_name = 'AdditionalMetadataContainerBox' as const;
-//   constructor(size?: number) {
-//     super('meco', size);
-//   }
-// }
-
-// NOTE: duplicate declaration (see `strkBox extends ContainerBox`)
-// export class strkBox extends Box {
-//   static override readonly fourcc = 'strk' as const;
-//   box_name = 'SubTrackBox' as const;
-//   constructor(size?: number) {
-//     super('strk', size);
-//   }
-// }
 
 /**********************************************************************************/
 /*                                                                                */
@@ -304,6 +291,8 @@ export class hntiBox extends ContainerBox {
 export class hinfBox extends ContainerBox {
   static override readonly fourcc = 'hinf' as const;
   box_name = 'hintstatisticsbox' as const;
+  maxrs: Array<maxrBox> = [];
+  subBoxNames = ['maxr'] as const;
 }
 export class strkBox extends ContainerBox {
   static override readonly fourcc = 'strk' as const;
@@ -333,7 +322,8 @@ export class udtaBox extends ContainerBox {
   static override readonly fourcc = 'udta' as const;
   box_name = 'UserDataBox' as const;
   kinds: Array<kindBox> = [];
-  subBoxNames = ['kind'] as const;
+  strks: Array<strkBox> = [];
+  subBoxNames = ['kind', 'strk'] as const;
 }
 export class iprpBox extends ContainerBox {
   static override readonly fourcc = 'iprp' as const;
@@ -346,11 +336,16 @@ export class iprpBox extends ContainerBox {
 export class ipcoBox extends ContainerBox {
   static override readonly fourcc = 'ipco' as const;
   box_name = 'ItemPropertyContainerBox' as const;
+  hvcCs: Array<hvcCBox> = [];
+  ispes: Array<ispeBox> = [];
+  claps: Array<clapBox> = [];
+  irots: Array<irotBox> = [];
+  subBoxNames = ['hvcC', 'ispe', 'clap', 'irot'] as const;
 }
 export class grplBox extends ContainerBox {
   static override readonly fourcc = 'grpl' as const;
   box_name = 'GroupsListBox' as const;
-  declare boxes: Array<EntityToGroup>;
+  boxes: Array<EntityToGroup>;
 }
 export class j2kHBox extends ContainerBox {
   static override readonly fourcc = 'j2kH' as const;

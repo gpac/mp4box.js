@@ -75,7 +75,7 @@ export class sgpdBox extends FullBox {
         // storing data
         entry.data = stream.readUint8Array(entry.description_length);
         // rewinding
-        stream.position -= entry.description_length;
+        stream.seek(stream.getPosition() - entry.description_length);
       }
       entry.parse(stream);
     }

@@ -81,6 +81,7 @@ import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
 import type {
+  AllIdentifiers,
   BoxKind,
   Description,
   EntityGroup,
@@ -347,6 +348,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               case 'moof':
                 this.moofs.push(box as moofBox);
                 break;
+              case 'free':
+              case 'skip':
+                break;
               case 'moov':
                 this.moovStartFound = true;
                 if (this.mdats.length === 0) {
@@ -356,12 +360,25 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               /* falls through */
               default:
                 if (this[box.type] !== undefined) {
-                  Log.warn(
-                    'ISOFile',
-                    'Duplicate Box of type: ' + box.type + ', overriding previous occurrence',
-                  );
+                  if (Array.isArray(this[box.type + 's'])) {
+                    Log.info(
+                      'ISOFile',
+                      `Found multiple boxes of type ${box.type} in ISOFile, adding to array`,
+                    );
+                    this[box.type + 's'].push(box);
+                  } else {
+                    Log.warn(
+                      'ISOFile',
+                      `Found multiple boxes of type ${box.type} but no array exists. Creating array dynamically.`,
+                    );
+                    this[box.type + 's'] = [this[box.type], box];
+                  }
+                } else {
+                  this[box.type] = box;
+                  if (Array.isArray(this[box.type + 's'])) {
+                    this[box.type + 's'].push(box);
+                  }
                 }
-                this[box.type] = box;
                 break;
             }
           }
@@ -562,10 +579,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       movie.tracks.push(track);
 
       if (trak.tref) {
-        for (let j = 0; j < trak.tref.boxes.length; j++) {
+        for (let j = 0; j < trak.tref.references.length; j++) {
           track.references.push({
-            type: trak.tref.boxes[j].type,
-            track_ids: trak.tref.boxes[j].track_ids,
+            type: trak.tref.references[j].type,
+            track_ids: trak.tref.references[j].track_ids,
           });
         }
       }
@@ -738,12 +755,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /* Find and return specific boxes using recursion and early return */
-  getBox(type: BoxKind['type']) {
+  getBox(type: AllIdentifiers) {
     const result = this.getBoxes(type, true);
     return result.length ? result[0] : null;
   }
 
-  getBoxes(type: BoxKind['type'], returnEarly: boolean) {
+  getBoxes(type: AllIdentifiers, returnEarly: boolean) {
     const result = [];
 
     const sweep = (root: Box | ISOFile) => {
@@ -751,9 +768,15 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         result.push(root);
       }
 
-      for (const box in this.boxes) {
+      const inner: Array<Box> = [];
+      if (root['boxes']) inner.push(...root.boxes);
+      if (root['entries']) inner.push(...(root['entries'] as Array<Box>));
+      if (root['item_infos']) inner.push(...(root['item_infos'] as Array<Box>));
+      if (root['references']) inner.push(...(root['references'] as Array<Box>));
+
+      for (const box of inner) {
         if (result.length && returnEarly) return;
-        sweep(this.boxes[box]);
+        sweep(box);
       }
     };
 
@@ -1861,15 +1884,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         if (itemloc.data_reference_index !== 0) {
           Log.warn('Item storage with reference to other files: not supported');
           item.source = meta.dinf.boxes[itemloc.data_reference_index - 1];
-        }
-        switch (itemloc.construction_method) {
-          case 0: // offset into the file referenced by the data reference index
-            break;
-          case 1: // offset into the idat box of this meta box
-            break;
-          case 2: // offset into another item
-            Log.warn('Item storage with construction_method : not supported');
-            break;
         }
         item.extents = [];
         item.size = 0;

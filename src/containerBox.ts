@@ -59,7 +59,7 @@ export class ContainerBox extends Box {
           if (this[box_type]) {
             Log.warn(
               'ContainerBox',
-              'Box of type ' + box_type + ' already stored in field of this type',
+              `Box of type ${box_type} already exists in container box ${this.type}.`,
             );
           } else {
             this[box_type] = box;

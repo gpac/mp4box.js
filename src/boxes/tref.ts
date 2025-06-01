@@ -23,7 +23,7 @@ export class trefBox extends Box {
     'aest',
   ] as const;
 
-  boxes: Array<TrackReferenceTypeBox> = [];
+  references: Array<TrackReferenceTypeBox> = [];
 
   parse(stream: MultiBufferStream) {
     while (stream.getPosition() < this.start + this.size) {
@@ -44,7 +44,7 @@ export class trefBox extends Box {
           box.parseDataAndRewind(stream);
         }
         box.parse(stream);
-        this.boxes.push(box);
+        this.references.push(box);
       } else {
         return;
       }

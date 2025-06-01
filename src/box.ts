@@ -154,7 +154,7 @@ export class Box {
   parseDataAndRewind(stream: MultiBufferStream | MP4BoxStream) {
     this.data = stream.readUint8Array(this.size - this.hdr_size);
     // rewinding
-    stream.position -= this.size - this.hdr_size;
+    stream.seek(this.start + this.hdr_size);
   }
 
   /** @bundle box-parse.js */
@@ -172,6 +172,12 @@ export class Box {
     const stream = stream_ || new MultiBufferStream();
     stream.endianness = Endianness.BIG_ENDIAN;
     this.write(stream);
+  }
+
+  isEndOfBox(stream: MultiBufferStream | MP4BoxStream): boolean {
+    const pos = stream.getPosition();
+    const end = this.start + this.size;
+    return pos === end;
   }
 }
 
@@ -202,7 +208,7 @@ export class FullBox extends Box {
     // restore the header size as if the full header had not been parsed
     this.hdr_size -= 4;
     // rewinding
-    stream.position -= this.size - this.hdr_size;
+    stream.seek(this.start + this.hdr_size);
   }
 
   /** @bundle box-parse.js */
