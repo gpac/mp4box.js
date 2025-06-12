@@ -1,6 +1,6 @@
 import type { MultiBufferStream } from '#/buffer';
 import type { MP4BoxStream } from '#/stream';
-import type { BoxFourCC } from '@types';
+import type { BoxFourCC, IncompleteBox } from '@types';
 import { Log } from '#/log';
 import { ERR_NOT_ENOUGH_DATA, OK } from '#/constants';
 import { Box } from '#/box';
@@ -23,8 +23,9 @@ export function parseOneBox(
   stream: MultiBufferStream | MP4BoxStream,
   headerOnly: boolean,
   parentSize?: number,
-) {
+): IncompleteBox {
   let box: Box;
+  let originalSize: number;
   const start = stream.getPosition();
   let hdr_size = 0;
   let uuid: string;
@@ -66,6 +67,7 @@ export function parseOneBox(
       );
       return { code: ERR_NOT_ENOUGH_DATA };
     }
+    originalSize = size;
     size = stream.readUint64();
     hdr_size += 8;
   } else if (size === 0) {
@@ -122,6 +124,7 @@ export function parseOneBox(
       size: size,
       hdr_size: hdr_size,
       start: start,
+      original_size: originalSize,
     };
   }
   if (headerOnly) {
@@ -148,6 +151,7 @@ export function parseOneBox(
       }
     }
   }
+  box.original_size = originalSize;
   box.hdr_size = hdr_size;
   /* recording the position of the box in the input stream */
   box.start = start;

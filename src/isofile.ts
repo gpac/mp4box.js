@@ -224,8 +224,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   nextSeekPosition: number;
   initial_duration: number;
 
-  constructor(stream?: MultiBufferStream) {
-    this.stream = stream || new MultiBufferStream();
+  constructor(stream?: MultiBufferStream, discardMdatData = true) {
+    this.discardMdatData = discardMdatData;
+    if (stream) {
+      this.stream = stream;
+      this.parse();
+    } else {
+      this.stream = new MultiBufferStream();
+    }
   }
 
   setSegmentOptions(
@@ -344,6 +350,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             switch (box.type) {
               case 'mdat':
                 this.mdats.push(box as mdatBox);
+                this.transferMdatData(box as mdatBox);
                 break;
               case 'moof':
                 this.moofs.push(box as moofBox);
@@ -2006,7 +2013,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             );
 
             /* update the number of bytes used in this buffer and check if it needs to be removed */
-            buffer.usedBytes += extent.length - extent.alreadyRead;
+            if (!this.parsingMdat || this.discardMdatData)
+              buffer.usedBytes += extent.length - extent.alreadyRead;
             this.stream.logBufferLevel();
 
             item.alreadyRead += extent.length - extent.alreadyRead;
@@ -2045,7 +2053,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             item.alreadyRead += lengthAfterStart;
 
             /* update the number of bytes used in this buffer and check if it needs to be removed */
-            buffer.usedBytes += lengthAfterStart;
+            if (!this.parsingMdat || this.discardMdatData) buffer.usedBytes += lengthAfterStart;
             this.stream.logBufferLevel();
             return null;
           }
@@ -2166,7 +2174,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    *
    * @bundle isofile-advanced-parsing.js
    */
-  parsingMdat: Box | null = null;
+  parsingMdat: mdatBox | null = null;
   /* next file position that the parser needs:
    *  - 0 until the first buffer (i.e. fileStart ===0) has been received
    *  - otherwise, the next box start until the moov box has been parsed
@@ -2179,7 +2187,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    *
    * @bundle isofile-advanced-parsing.js
    */
-  discardMdatData = false;
+  discardMdatData = true;
 
   /** @bundle isofile-advanced-parsing.js */
   processIncompleteBox(ret: IncompleteBox) {
@@ -2195,6 +2203,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       this.mdats.push(box);
       box.start = ret.start;
       box.hdr_size = ret.hdr_size;
+      box.original_size = ret.original_size;
       this.stream.addUsedBytes(box.hdr_size);
 
       /* indicate that the parsing should start from the end of the box */
@@ -2202,6 +2211,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       /* let's see if we have the end of the box in the other buffers */
       const found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
       if (found) {
+        /* we can now transfer the data to the mdat box stream */
+        this.transferMdatData();
         /* found the end of the box */
         this.parsingMdat = null;
         /* let's see if we can parse more in this buffer */
@@ -2269,6 +2280,66 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     return this.parsingMdat !== null;
   }
 
+  /**
+   * Transfer the data of the mdat box to its stream
+   * @param mdat the mdat box to use
+   */
+  transferMdatData(inMdat?: mdatBox) {
+    const mdat = inMdat ?? this.parsingMdat;
+    if (this.discardMdatData) {
+      Log.debug('ISOFile', "Discarding 'mdat' data, not transferring it to the mdat box stream");
+      return;
+    }
+    if (!mdat) {
+      Log.warn('ISOFile', "Cannot transfer 'mdat' data, no mdat box is being parsed");
+      return;
+    }
+
+    // Start by finding the starting buffer
+    const startBufferIndex = this.stream.findPosition(true, mdat.start + mdat.hdr_size, false);
+    const endBufferIndex = this.stream.findPosition(true, mdat.start + mdat.size, false);
+
+    if (startBufferIndex === -1 || endBufferIndex === -1) {
+      console.trace(mdat, startBufferIndex, endBufferIndex);
+      Log.warn('ISOFile', "Cannot transfer 'mdat' data, start or end buffer not found");
+      return;
+    }
+
+    // Transfer the data
+    mdat.stream = new MultiBufferStream();
+    for (let i = startBufferIndex; i <= endBufferIndex; i++) {
+      const buffer = this.stream.buffers[i];
+      const startOffset =
+        i === startBufferIndex ? mdat.start + mdat.hdr_size - buffer.fileStart : 0;
+      const endOffset =
+        i === endBufferIndex ? mdat.start + mdat.size - buffer.fileStart : buffer.byteLength;
+      if (endOffset > startOffset) {
+        Log.debug(
+          'ISOFile',
+          "Transferring 'mdat' data from buffer #" +
+            i +
+            ' (' +
+            startOffset +
+            ' to ' +
+            endOffset +
+            ')',
+        );
+
+        const transferSize = endOffset - startOffset;
+        const newBuffer = new MP4BoxBuffer(transferSize);
+        const lastPosition = mdat.stream.getAbsoluteEndPosition();
+        DataStream.memcpy(newBuffer, 0, buffer, startOffset, transferSize);
+        newBuffer.fileStart = lastPosition;
+
+        // Insert the new buffer into the mdat stream
+        mdat.stream.insertBuffer(newBuffer);
+
+        // Consume the bytes in the original stream
+        buffer.usedBytes += transferSize;
+      }
+    }
+  }
+
   /** @bundle isofile-advanced-parsing.js */
   processIncompleteMdat() {
     /* we are in the parsing of an incomplete mdat box */
@@ -2276,6 +2347,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const found = this.stream.seek(box.start + box.size, false, this.discardMdatData);
     if (found) {
       Log.debug('ISOFile', "Found 'mdat' end in buffered data");
+      /* we can now transfer the data to the mdat box stream */
+      this.transferMdatData();
       /* the end of the mdat has been found */
       this.parsingMdat = null;
       /* we can parse more in this buffer */

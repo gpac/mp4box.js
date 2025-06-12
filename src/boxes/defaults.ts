@@ -45,6 +45,7 @@ import type { ispeBox } from './ispe';
 import type { clapBox } from './clap';
 import type { irotBox } from './irot';
 import type { maxrBox } from './maxr';
+import type { MultiBufferStream } from '#/buffer';
 
 /**********************************************************************************/
 /*                                                                                */
@@ -55,6 +56,7 @@ import type { maxrBox } from './maxr';
 export class mdatBox extends Box {
   static override readonly fourcc = 'mdat' as const;
   box_name = 'MediaDataBox' as const;
+  stream?: MultiBufferStream;
 }
 
 export class idatBox extends Box {

@@ -208,6 +208,7 @@ export interface IncompleteBox {
   size?: number;
   start?: number;
   type?: string;
+  original_size?: number;
 }
 
 export interface Item {
