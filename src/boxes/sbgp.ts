@@ -34,12 +34,15 @@ export class sbgpBox extends FullBox {
 
   /** @bundle writing/sbgp.js */
   write(stream: MultiBufferStream) {
-    this.version = 1;
+    if (this.grouping_type_parameter) this.version = 1;
+    else this.version = 0;
     this.flags = 0;
-    this.size = 12 + 8 * this.entries.length;
+    this.size = 8 + 8 * this.entries.length + (this.version === 1 ? 4 : 0);
     this.writeHeader(stream);
     stream.writeString(this.grouping_type, null, 4);
-    stream.writeUint32(this.grouping_type_parameter);
+    if (this.version === 1) {
+      stream.writeUint32(this.grouping_type_parameter);
+    }
     stream.writeUint32(this.entries.length);
     for (let i = 0; i < this.entries.length; i++) {
       const entry = this.entries[i];

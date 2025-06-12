@@ -17,7 +17,6 @@ export class vmhdBox extends FullBox {
   /** @bundle writing/vmhd.js */
   write(stream: MultiBufferStream) {
     this.version = 0;
-    this.flags = 1;
     this.size = 8;
     this.writeHeader(stream);
     stream.writeUint16(this.graphicsmode);

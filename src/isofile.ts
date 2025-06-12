@@ -972,7 +972,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * Rewrite the entire file
    * @bundle isofile-write.js
    */
-  write(outstream: MultiBufferStream) {
+  write(outstream: DataStream) {
     for (let i = 0; i < this.boxes.length; i++) {
       this.boxes[i].write(outstream);
     }
@@ -991,7 +991,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     stream.endianness = Endianness.BIG_ENDIAN;
 
     const moof = this.createSingleSampleMoof(sample);
-    // @ts-expect-error FIXME: expects MultiBufferStream
     moof.write(stream);
 
     /* adjusting the data_offset now that the moof size is known*/
@@ -1025,7 +1024,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     const stream = new DataStream();
     stream.endianness = Endianness.BIG_ENDIAN;
-    // @ts-expect-error FIXME: expects MultiBufferStream
     ftyp.write(stream);
 
     /* we can now create the new mvex box */
@@ -1043,7 +1041,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       trex.default_sample_flags = 1 << 16;
     }
 
-    // @ts-expect-error FIXME: fix stream types
     moov.write(stream);
 
     return stream.buffer;
@@ -1053,7 +1050,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   save(name: string) {
     const stream = new DataStream();
     stream.endianness = Endianness.BIG_ENDIAN;
-    // @ts-expect-error FIXME: figure out stream-type
     this.write(stream);
     return stream.save(name);
   }
@@ -1062,9 +1058,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   getBuffer() {
     const stream = new DataStream();
     stream.endianness = Endianness.BIG_ENDIAN;
-    // @ts-expect-error   fix stream type
     this.write(stream);
-    return stream.buffer;
+    return stream;
   }
 
   /** @bundle isofile-write.js */

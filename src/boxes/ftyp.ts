@@ -1,5 +1,6 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import type { DataStream } from '#/DataStream';
 
 export class ftypBox extends Box {
   static override readonly fourcc = 'ftyp' as const;
@@ -24,7 +25,7 @@ export class ftypBox extends Box {
   }
 
   /** @bundle writing/ftyp.js */
-  write(stream: MultiBufferStream) {
+  write(stream: MultiBufferStream | DataStream) {
     this.size = 8 + 4 * this.compatible_brands.length;
     this.writeHeader(stream);
     stream.writeString(this.major_brand, null, 4);

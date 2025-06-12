@@ -11,13 +11,13 @@ export class hdlrBox extends FullBox {
   flags: number;
 
   parse(stream: MultiBufferStream) {
+    this.parseFullHeader(stream);
     if (this.version === 0) {
       stream.readUint32();
       this.handler = stream.readString(4);
       stream.readUint32Array(3);
-      this.name = stream.readString(this.size - this.hdr_size - 20);
-      if (this.name[this.name.length - 1] === '\0') {
-        this.name = this.name.slice(0, -1);
+      if (!this.isEndOfBox(stream)) {
+        this.name = stream.readCString();
       }
     }
   }
@@ -30,9 +30,7 @@ export class hdlrBox extends FullBox {
     this.writeHeader(stream);
     stream.writeUint32(0);
     stream.writeString(this.handler, null, 4);
-    stream.writeUint32(0);
-    stream.writeUint32(0);
-    stream.writeUint32(0);
+    stream.writeUint32Array([0, 0, 0]); // reserved
     stream.writeCString(this.name);
   }
 }

@@ -1,5 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import { MAX_SIZE } from '#/constants';
 import type { Matrix, Output } from '@types';
 
 export class mvhdBox extends FullBox {
@@ -39,14 +40,30 @@ export class mvhdBox extends FullBox {
 
   /** @bundle writing/mvhd.js */
   write(stream: MultiBufferStream) {
-    this.version = 0;
+    const useVersion1 =
+      this.modification_time > MAX_SIZE ||
+      this.creation_time > MAX_SIZE ||
+      this.duration > MAX_SIZE ||
+      this.version === 1;
+    this.version = useVersion1 ? 1 : 0;
+
+    this.size = 4 * 4 + 20 * 4;
+    this.size += useVersion1 ? 3 * 4 : 0; // creation_time, modification_time, duration
+
     this.flags = 0;
-    this.size = 23 * 4 + 2 * 2;
     this.writeHeader(stream);
-    stream.writeUint32(this.creation_time);
-    stream.writeUint32(this.modification_time);
-    stream.writeUint32(this.timescale);
-    stream.writeUint32(this.duration);
+
+    if (useVersion1) {
+      stream.writeUint64(this.creation_time);
+      stream.writeUint64(this.modification_time);
+      stream.writeUint32(this.timescale);
+      stream.writeUint64(this.duration);
+    } else {
+      stream.writeUint32(this.creation_time);
+      stream.writeUint32(this.modification_time);
+      stream.writeUint32(this.timescale);
+      stream.writeUint32(this.duration);
+    }
     stream.writeUint32(this.rate);
     stream.writeUint16(this.volume << 8);
     stream.writeUint16(0);

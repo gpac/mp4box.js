@@ -344,8 +344,8 @@ export class DataStream {
    * @param e Endianness of the data to read.
    * @return The read Uint8Array.
    */
-  readUint8Array(length: number | null) {
-    length = length === null ? this.byteLength - this.position : length;
+  readUint8Array(length?: number) {
+    length = length === undefined ? this.byteLength - this.position : length;
     const arr = new Uint8Array(length);
     DataStream.memcpy(
       arr.buffer,
@@ -1145,7 +1145,7 @@ export class DataStream {
    */
   writeCString(value: string, length?: number) {
     let i = 0;
-    if (length !== null) {
+    if (length !== undefined) {
       const len = Math.min(value.length, length);
       for (i = 0; i < len; i++) {
         this.writeUint8(value.charCodeAt(i));
