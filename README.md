@@ -36,22 +36,11 @@ On this page, you'll find documentation on how to [build MP4box.js](#build), [in
 
 ## Installation
 
-Currently, MP4Box.js has two separate versions:
+You can install MP4Box.js via npm:
 
-- **`master` branch**: This version has been tested and used for years. However, it has not been updated to follow the latest ECMAScript standards, and it will no longer receive updates.
-
-  ```bash
-  npm install mp4box@latest
-  ```
-
-- **`next` branch**: This version is a complete rewrite of MP4Box.js, using modern JavaScript features and APIs. It supports the latest ECMAScript standards and includes TypeScript definitions. We are still planning to add a more comprehensive test suite, but so far, we haven't observed any major regressions compared to the `master` branch.
-
-  ```bash
-  npm install mp4box@next
-  ```
-
-> [!WARNING]
-> Any new development should be done using the `next` branch. The `master` branch will not receive any updates or bug fixes.
+```bash
+npm install mp4box@latest
+```
 
 ## Demos
 

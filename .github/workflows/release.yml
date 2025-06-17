@@ -3,10 +3,8 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
       - next
-      - beta
-      - '*.x'
 
 permissions:
   contents: read
