@@ -1,8 +1,11 @@
 import { ContainerBox } from '#/containerBox';
 import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
+import type { av1CBox } from '../av1C';
 import type { avcCBox } from '../avcC';
 import type { hvcCBox } from '../hvcC';
+import type { vpcCBox } from '../vpcC';
+import type { vvcCBox } from '../vvcC';
 
 export class SampleEntry extends ContainerBox {
   static override readonly registryId = Symbol.for('SampleEntryIdentifier');
@@ -158,10 +161,16 @@ export class TextSampleEntry extends SampleEntry {}
 
 //Base SampleEntry types for Audio and Video with specific parsing
 export class VisualSampleEntry extends SampleEntry {
+  av1C?: av1CBox;
+  av1Cs?: Array<av1CBox>;
   avcC?: avcCBox;
   avcCs?: Array<avcCBox>;
   hvcC?: hvcCBox;
   hvcCs?: Array<hvcCBox>;
+  vpcC?: vpcCBox;
+  vpcCs?: Array<vpcCBox>;
+  vvcC?: vvcCBox;
+  vvcCs?: Array<vvcCBox>;
 
   width: number;
   height: number;
