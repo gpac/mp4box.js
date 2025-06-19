@@ -13,7 +13,10 @@ export * from '#/text-mp4';
 export * from './types';
 import * as DESCRIPTORS from '#/descriptor';
 import { registerBoxes, registerDescriptors } from '#/registry';
+
 import * as BOXES from './all-boxes';
+export { BOXES };
+export * from '#/boxes/sampleentries';
 
 export const BoxParser = registerBoxes(BOXES);
 
