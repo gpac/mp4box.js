@@ -25,7 +25,7 @@ function decimalToHex(d: number | string, padding?: number | null) {
   return hex;
 }
 
-class avcCSampleEntryBase extends VisualSampleEntry {
+export class avcCSampleEntryBase extends VisualSampleEntry {
   avcC: avcCBox;
   avcCs: Array<avcCBox>;
 
@@ -96,7 +96,7 @@ export class dav1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'dav1' as const;
 }
 
-class hvcCSampleEntryBase extends VisualSampleEntry {
+export class hvcCSampleEntryBase extends VisualSampleEntry {
   hvcC: hvcCBox;
   hvcCs: Array<hvcCBox>;
 
@@ -191,7 +191,7 @@ export class dvheSampleEntry extends VisualSampleEntry {
 }
 
 /** @babel box-codecs.js */
-class vvcCSampleEntryBase extends VisualSampleEntry {
+export class vvcCSampleEntryBase extends VisualSampleEntry {
   vvcC: vvcCBox;
   vvcCs: Array<vvcCBox>;
   getCodec() {
@@ -269,7 +269,7 @@ export class vvcNSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'vvcN' as const;
 }
 
-class vpcCSampleEntryBase extends VisualSampleEntry {
+export class vpcCSampleEntryBase extends VisualSampleEntry {
   vpcC: vpcCBox;
   vpcCs: Array<vpcCBox>;
   getCodec() {

@@ -58,6 +58,10 @@ export function registerBoxes(registry: Record<string, object>) {
 
     // Check if SampleEntry class
     if (isSampleEntry(value)) {
+      if (key.endsWith('SampleEntryBase')) {
+        continue;
+      }
+
       const fourcc = 'fourcc' in value ? (value.fourcc as string) : undefined;
 
       if (!fourcc) {
