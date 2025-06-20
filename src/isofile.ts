@@ -179,7 +179,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** Callback to call when samples are ready */
   onSamples: ((id: number, user: TSampleUser, samples: Array<Sample>) => void) | null = null;
   /** Callback to call when there is an error in the parsing or processing of samples */
-  onError: (() => void) | null = null;
+  onError: ((e: string) => void) | null = null;
 
   onItem?: (() => void) | null = null;
   /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
