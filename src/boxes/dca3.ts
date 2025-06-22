@@ -7,9 +7,9 @@ import { Box } from '#/box';
 import { MP4BoxStream } from '#/stream';
 import { BitBuffer } from '#/BitBuffer';
 
-type DescriberFunction = (n: number) => string;
+export type DescriberFunction = (n: number) => string;
 
-class DescribedValue {
+export class DescribedValue {
   private value: number;
   private description: string;
 
@@ -90,7 +90,7 @@ function AVS3Acodingprofile(conding_profile: number) {
   return 'reserved';
 }
 
-class AVS3data {
+export class AVS3data {
   toHTML(data): string {
     let res = '';
     const props = Object.getOwnPropertyNames(data);

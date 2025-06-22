@@ -173,7 +173,7 @@ export class BitBuffer {
     return this._CondByteSwap24LE(val);
   };
 
-  _getUint32() {
+  getUint32() {
     return this._big_endian ? this._GetUInt32BE(this._rdb(4)) : this._GetUInt32LE(this._rdb(4));
   }
 
