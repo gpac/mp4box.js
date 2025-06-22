@@ -376,6 +376,14 @@ export class fLaCSampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'fLaC' as const;
 }
 
+export class av3aSampleEntry extends AudioSampleEntry {
+  static override readonly fourcc = 'av3a' as const;
+}
+
+export class a3asSampleEntry extends AudioSampleEntry {
+  static override readonly fourcc = 'a3as' as const;
+}
+
 // Encrypted sample entries
 export class encvSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'encv' as const;
