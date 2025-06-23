@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Paul Higgs
+ * Copyright (c) 2025. Paul Higgs
  * License: BSD-3-Clause (see LICENSE file)
  */
 
@@ -7,23 +7,18 @@ import { Box } from '#/box';
 import { MP4BoxStream } from '#/stream';
 import { BitBuffer } from '#/BitBuffer';
 
-export type DescriberFunction = (n: number) => string;
+import { DescribedValue, AVS3data } from './avs-common';
 
-export class DescribedValue {
-  private value: number;
-  private description: string;
+// values for audio_codec_id
+const HIGH_RATE_CODING = 0,
+  LOSSLESS_CODING = 1,
+  FULL_RATE_CODING = 2;
 
-  constructor(value: number, descriptionFn?: DescriberFunction) {
-    this.value = value;
-    this.description = descriptionFn ? descriptionFn(value) : null;
-  }
-  toString() {
-    return this.value + (this.description ? ' (' + this.description + ')' : '');
-  }
-  get() {
-    return this.value;
-  }
-}
+// values for content_type
+const CHANNEL_BASED = 0,
+  OBJECT_BASED = 1,
+  CHANNEL_AND_OBJECT = 2,
+  HOA = 3;
 
 function AVS3Acodec(codec_id: number) {
   const codecs = ['General High Rate', 'Lossless', 'General Full Rate'];
@@ -90,26 +85,6 @@ function AVS3Acodingprofile(conding_profile: number) {
   return 'reserved';
 }
 
-export class AVS3data {
-  toHTML(data): string {
-    let res = '';
-    const props = Object.getOwnPropertyNames(data);
-    if (props)
-      props.forEach(function (val) {
-        let fmt_val = '';
-        if (Array.isArray(data[val])) {
-          for (let i = 0; i < data[val].length; i++) {
-            const hex = data[val][i].toString(16);
-            fmt_val += hex.length === 1 ? '0' + hex : hex;
-            if (i % 4 === 3) fmt_val += ' ';
-          }
-        } else fmt_val = data[val];
-        res += '<tr><td><code>' + val + '</code></td><td><code>' + fmt_val + '</code></td></tr>';
-      });
-    return '<table>' + res + '</table>';
-  }
-}
-
 interface GAconfig {
   sampling_frequency_index?: DescribedValue;
   nn_type?: DescribedValue;
@@ -135,16 +110,16 @@ class AVS3GAConfig extends AVS3data {
     this.data.nn_type = new DescribedValue(bit_reader.getBits(3), AVS3Anntype);
     bit_reader.skipBits(1);
     this.data.content_type = bit_reader.getBits(4);
-    if (this.data.content_type === 0) {
+    if (this.data.content_type === CHANNEL_BASED) {
       this.data.channel_number_index = new DescribedValue(
         bit_reader.getBits(7),
         AVS3Achannel_number,
       );
       bit_reader.skipBits(1);
-    } else if (this.data.content_type === 1) {
+    } else if (this.data.content_type === OBJECT_BASED) {
       this.data.number_objects = bit_reader.getBits(7);
       bit_reader.skipBits(1);
-    } else if (this.data.content_type === 2) {
+    } else if (this.data.content_type === CHANNEL_AND_OBJECT) {
       this.data.channel_number_index = new DescribedValue(
         bit_reader.getBits(7),
         AVS3Achannel_number,
@@ -152,7 +127,7 @@ class AVS3GAConfig extends AVS3data {
       bit_reader.skipBits(1);
       this.data.number_objects = bit_reader.getBits(7);
       bit_reader.skipBits(1);
-    } else if (this.data.content_type === 3) {
+    } else if (this.data.content_type === HOA) {
       this.data.hoa_order = bit_reader.getBits(4);
     }
     this.data.total_bitrate = bit_reader.getUint16();
@@ -254,16 +229,20 @@ export class dca3Box extends Box {
     this.audio_codec_id = new DescribedValue(bit_reader.getBits(4), AVS3Acodec);
 
     switch (this.audio_codec_id.get()) {
-      case 2:
+      case FULL_RATE_CODING:
         this.Avs3AudioGAConfig = new AVS3GAConfig(bit_reader);
         break;
-      case 0:
+      case HIGH_RATE_CODING:
         this.Avs3AudioGHConfig = new AVS3GHConfig(bit_reader);
         break;
-      case 1:
+      case LOSSLESS_CODING:
         this.Avs3AudioLLConfig = new AVS3LLConfig(bit_reader);
         break;
     }
     bit_reader.byte_alignment();
+  }
+
+  get_audio_codec_id_str() {
+    return (this.audio_codec_id.get() < 9 ? '0' : '') + this.audio_codec_id.get();
   }
 }

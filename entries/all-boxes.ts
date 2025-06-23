@@ -2,6 +2,7 @@ export * from '#/boxes/a1lx';
 export * from '#/boxes/a1op';
 export * from '#/boxes/auxC';
 export * from '#/boxes/av1C';
+export * from '#/boxes/av3c';
 export * from '#/boxes/avcC';
 export * from '#/boxes/btrt';
 export * from '#/boxes/ccst';
