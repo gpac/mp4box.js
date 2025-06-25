@@ -27,7 +27,7 @@ const regularBuild = defineConfig({
   tsconfig: 'tsconfig.build.json',
   splitting: false,
   sourcemap: true,
-  minify: true,
+  minify: false,
   clean: PUBLISH_TO_NPM,
   dts: true,
 });
