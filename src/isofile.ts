@@ -59,7 +59,9 @@ import { urlBox } from '#/boxes/url';
 import { vmhdBox } from '#/boxes/vmhd';
 import { MultiBufferStream } from '#/buffer';
 import {
+  ERR_INVALID_DATA,
   ERR_NOT_ENOUGH_DATA,
+  OK,
   TFHD_FLAG_BASE_DATA_OFFSET,
   TFHD_FLAG_DEFAULT_BASE_IS_MOOF,
   TFHD_FLAG_SAMPLE_DESC,
@@ -335,7 +337,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           } else {
             return;
           }
-        } else {
+        } else if (ret.code === OK) {
           /* the box is entirely parsed */
           const box = ret.box as BoxKind;
           /* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
@@ -395,6 +397,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           if (this.updateUsedBytes) {
             this.updateUsedBytes(box, ret);
           }
+        } else if (ret.code === ERR_INVALID_DATA) {
+          Log.error(
+            'ISOFile',
+            `Invalid data found while parsing box of type '${ret.type}' at position ${ret.start}. Aborting parsing.`,
+          );
+          break;
         }
       }
     }

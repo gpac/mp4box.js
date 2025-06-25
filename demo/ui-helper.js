@@ -144,8 +144,8 @@ function parseFile(fileobj, progressbar, progresslabel, loadbutton, finalizeUI) 
 
   fileobj.mp4boxfile = MP4Box.createFile(false);
 
-  fileobj.mp4boxfile.onError = function (e) {
-    console.log('Failed to parse ISOBMFF data');
+  fileobj.mp4boxfile.onError = function (module, msg) {
+    throw new Error('Failed to parse ISOBMFF file: [' + module + '] ' + msg);
   };
 
   fileobj.mp4boxfile.onSidx = function (sidx) {
