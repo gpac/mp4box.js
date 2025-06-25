@@ -178,9 +178,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     | null = null;
   /** Callback to call when samples are ready */
   onSamples: ((id: number, user: TSampleUser, samples: Array<Sample>) => void) | null = null;
-  /** Callback to call when there is an error in the parsing or processing of samples */
-  onError: (() => void) | null = null;
-
+  /** Callback to call when an item is processed */
   onItem?: (() => void) | null = null;
   /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
   sampleListBuilt = false;
@@ -232,6 +230,11 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     } else {
       this.stream = new MultiBufferStream();
     }
+  }
+
+  /** Callback to call when there is an error in the parsing or processing of samples */
+  set onError(callback: Parameters<typeof Log.setErrorCallback>[0]) {
+    Log.setErrorCallback(callback);
   }
 
   setSegmentOptions(

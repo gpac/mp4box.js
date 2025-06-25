@@ -10,8 +10,12 @@ const LOG_LEVEL_INFO = 2;
 const LOG_LEVEL_DEBUG = 1;
 
 let log_level = LOG_LEVEL_ERROR;
+let errorCallback: ((module: string, msg?: string) => void) | undefined;
 
 export const Log = {
+  setErrorCallback(callback?: typeof errorCallback) {
+    errorCallback = callback;
+  },
   setLogLevel(level: (module: string, msg?: string) => void) {
     if (level === this.debug) log_level = LOG_LEVEL_DEBUG;
     else if (level === this.info) log_level = LOG_LEVEL_INFO;
@@ -53,7 +57,9 @@ export const Log = {
     }
   },
   error(module: string, msg?: string) {
-    if (LOG_LEVEL_ERROR >= log_level) {
+    if (errorCallback) {
+      errorCallback(module, msg);
+    } else if (LOG_LEVEL_ERROR >= log_level) {
       console.error(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
