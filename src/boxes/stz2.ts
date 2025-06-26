@@ -32,7 +32,7 @@ export class stz2Box extends FullBox {
           this.sample_sizes[i] = stream.readUint16();
         }
       } else {
-        Log.error('BoxParser', 'Error in length field in stz2 box');
+        Log.error('BoxParser', 'Error in length field in stz2 box', stream.isofile);
       }
     }
   }

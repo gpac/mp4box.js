@@ -180,6 +180,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     | null = null;
   /** Callback to call when samples are ready */
   onSamples: ((id: number, user: TSampleUser, samples: Array<Sample>) => void) | null = null;
+  /** Callback to call when there is an error in the parsing or processing of samples */
+  onError: ((module: string, message: string) => void) | null = null;
   /** Callback to call when an item is processed */
   onItem?: (() => void) | null = null;
   /** Boolean indicating if the moov box run-length encoded tables of sample information have been processed */
@@ -232,11 +234,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     } else {
       this.stream = new MultiBufferStream();
     }
-  }
-
-  /** Callback to call when there is an error in the parsing or processing of samples */
-  set onError(callback: Parameters<typeof Log.setErrorCallback>[0]) {
-    Log.setErrorCallback(callback);
   }
 
   setSegmentOptions(
@@ -401,6 +398,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           Log.error(
             'ISOFile',
             `Invalid data found while parsing box of type '${ret.type}' at position ${ret.start}. Aborting parsing.`,
+            this,
           );
           break;
         }

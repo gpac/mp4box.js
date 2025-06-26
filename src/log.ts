@@ -1,3 +1,5 @@
+import type { ISOFile } from './isofile';
+
 /*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
@@ -10,12 +12,8 @@ const LOG_LEVEL_INFO = 2;
 const LOG_LEVEL_DEBUG = 1;
 
 let log_level = LOG_LEVEL_ERROR;
-let errorCallback: ((module: string, msg?: string) => void) | undefined;
 
 export const Log = {
-  setErrorCallback(callback?: typeof errorCallback) {
-    errorCallback = callback;
-  },
   setLogLevel(level: (module: string, msg?: string) => void) {
     if (level === this.debug) log_level = LOG_LEVEL_DEBUG;
     else if (level === this.info) log_level = LOG_LEVEL_INFO;
@@ -56,9 +54,9 @@ export const Log = {
       );
     }
   },
-  error(module: string, msg?: string) {
-    if (errorCallback) {
-      errorCallback(module, msg);
+  error(module: string, msg?: string, isofile?: ISOFile) {
+    if (isofile?.onError) {
+      isofile.onError(module, msg);
     } else if (LOG_LEVEL_ERROR >= log_level) {
       console.error(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
