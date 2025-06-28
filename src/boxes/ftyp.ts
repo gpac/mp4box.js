@@ -1,5 +1,4 @@
 import { Box } from '#/box';
-import { DataStream } from '#/DataStream';
 import type { MultiBufferStream } from '#/buffer';
 import type { DataStream } from '#/DataStream';
 
@@ -23,9 +22,6 @@ export class ftypBox extends Box {
       toparse -= 4;
       i++;
     }
-
-    // Certain Boxes/Atoms have different behavior when parsing QTFF files
-    if (this.major_brand.indexOf('qt') === 0) stream.behavior |= DataStream.BEHAVIOR_QTFF;
   }
 
   /** @bundle writing/ftyp.js */
