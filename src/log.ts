@@ -1,3 +1,5 @@
+import type { ISOFile } from './isofile';
+
 /*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
  * License: BSD-3-Clause (see LICENSE file)
@@ -52,8 +54,10 @@ export const Log = {
       );
     }
   },
-  error(module: string, msg?: string) {
-    if (LOG_LEVEL_ERROR >= log_level) {
+  error(module: string, msg?: string, isofile?: ISOFile) {
+    if (isofile?.onError) {
+      isofile.onError(module, msg);
+    } else if (LOG_LEVEL_ERROR >= log_level) {
       console.error(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',

@@ -2,7 +2,7 @@ import type { MultiBufferStream } from '#/buffer';
 import type { MP4BoxStream } from '#/stream';
 import type { BoxFourCC, IncompleteBox } from '@types';
 import { Log } from '#/log';
-import { ERR_NOT_ENOUGH_DATA, OK } from '#/constants';
+import { ERR_INVALID_DATA, ERR_NOT_ENOUGH_DATA, OK } from '#/constants';
 import { Box } from '#/box';
 import { BoxRegistry } from '#/registry';
 
@@ -39,6 +39,13 @@ export function parseOneBox(
   }
   let size = stream.readUint32();
   const type = stream.readString(4);
+
+  // Check if type is a valid fourcc
+  if (type.length !== 4 || !/^[\x20-\x7E]{4}$/.test(type)) {
+    Log.error('BoxParser', `Invalid box type: '${type}'`);
+    return { code: ERR_INVALID_DATA, start, type };
+  }
+
   let box_type = type;
   Log.debug(
     'BoxParser',

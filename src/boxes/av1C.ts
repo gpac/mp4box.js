@@ -25,12 +25,12 @@ export class av1CBox extends Box {
   parse(stream: MultiBufferStream) {
     let tmp = stream.readUint8();
     if (((tmp >> 7) & 0x1) !== 1) {
-      Log.error('av1C marker problem');
+      Log.error('BoxParser', 'av1C marker problem', stream.isofile);
       return;
     }
     this.version = tmp & 0x7f;
     if (this.version !== 1) {
-      Log.error('av1C version ' + this.version + ' not supported');
+      Log.error('BoxParser', 'av1C version ' + this.version + ' not supported', stream.isofile);
       return;
     }
     tmp = stream.readUint8();
@@ -47,7 +47,7 @@ export class av1CBox extends Box {
     tmp = stream.readUint8();
     this.reserved_1 = (tmp >> 5) & 0x7;
     if (this.reserved_1 !== 0) {
-      Log.error('av1C reserved_1 parsing problem');
+      Log.error('BoxParser', 'av1C reserved_1 parsing problem', stream.isofile);
       return;
     }
     this.initial_presentation_delay_present = (tmp >> 4) & 0x1;
@@ -56,7 +56,7 @@ export class av1CBox extends Box {
     } else {
       this.reserved_2 = tmp & 0xf;
       if (this.reserved_2 !== 0) {
-        Log.error('av1C reserved_2 parsing problem');
+        Log.error('BoxParser', 'av1C reserved_2 parsing problem', stream.isofile);
         return;
       }
     }

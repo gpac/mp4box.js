@@ -31,7 +31,7 @@ export class iinfBox extends FullBox {
         if (box.type === 'infe') {
           this.item_infos[i] = box as infeBox;
         } else {
-          Log.error('BoxParser', "Expected 'infe' box, got " + ret.box.type);
+          Log.error('BoxParser', "Expected 'infe' box, got " + ret.box.type, stream.isofile);
         }
       } else {
         return;
