@@ -1,5 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import { MAX_SIZE } from '#/constants';
 
 interface Reference {
   reference_type: number;
@@ -57,14 +58,27 @@ export class sidxBox extends FullBox {
 
   /** @bundle writing/sidx.js */
   write(stream: MultiBufferStream) {
-    this.version = 0;
+    const useVersion1 =
+      this.earliest_presentation_time > MAX_SIZE ||
+      this.first_offset > MAX_SIZE ||
+      this.version === 1;
+    this.version = useVersion1 ? 1 : 0;
+
+    this.size = 4 * 2 + 2 + 2 + 12 * this.references.length;
+    this.size += useVersion1 ? 16 : 8; // earliest_presentation_time and first_offset
+
     this.flags = 0;
-    this.size = 4 * 4 + 2 + 2 + 12 * this.references.length;
     this.writeHeader(stream);
+
     stream.writeUint32(this.reference_ID);
     stream.writeUint32(this.timescale);
-    stream.writeUint32(this.earliest_presentation_time);
-    stream.writeUint32(this.first_offset);
+    if (useVersion1) {
+      stream.writeUint64(this.earliest_presentation_time);
+      stream.writeUint64(this.first_offset);
+    } else {
+      stream.writeUint32(this.earliest_presentation_time);
+      stream.writeUint32(this.first_offset);
+    }
     stream.writeUint16(0);
     stream.writeUint16(this.references.length);
     for (let i = 0; i < this.references.length; i++) {

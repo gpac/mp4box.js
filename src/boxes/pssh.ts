@@ -8,6 +8,7 @@ export class psshBox extends FullBox {
 
   system_id: string;
   kid: Array<string>;
+  protection_data?: Uint8Array;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -21,7 +22,7 @@ export class psshBox extends FullBox {
     }
     const datasize = stream.readUint32();
     if (datasize > 0) {
-      this.data = stream.readUint8Array(datasize);
+      this.protection_data = stream.readUint8Array(datasize);
     }
   }
 }

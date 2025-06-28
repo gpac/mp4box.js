@@ -6,9 +6,8 @@
 import { MultiBufferStream } from '#/buffer';
 import { ISOFile } from '#/isofile';
 
-export function createFile(keepMdatData = true, stream?: MultiBufferStream) {
+export function createFile(keepMdatData = false, stream?: MultiBufferStream) {
   /* Boolean indicating if bytes containing media data should be kept in memory */
-  const file = new ISOFile(stream);
-  file.discardMdatData = keepMdatData ? false : true;
+  const file = new ISOFile(stream, !keepMdatData);
   return file;
 }

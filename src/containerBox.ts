@@ -1,5 +1,6 @@
 import type { BoxKind, Output } from '@types';
 import type { MultiBufferStream } from '#/buffer';
+import type { DataStream } from '#/DataStream';
 import { Box } from '#/box';
 import { Log } from '#/log';
 import { OK } from '#/constants';
@@ -9,7 +10,7 @@ export class ContainerBox extends Box {
   subBoxNames?: ReadonlyArray<string>;
 
   /** @bundle box-write.js */
-  write(stream: MultiBufferStream) {
+  write(stream: MultiBufferStream | DataStream) {
     this.size = 0;
     this.writeHeader(stream);
     if (this.boxes) {

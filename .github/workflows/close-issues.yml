@@ -1,0 +1,35 @@
+name: Close Issues
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  close-issues:
+    if: github.repository == 'gpac/mp4box.js'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close Stale Issues
+        uses: actions-cool/issues-helper@a610082f8ac0cf03e357eb8dd0d5e2ba075e017e # v3
+        with:
+          actions: 'close-issues'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          exclude-labels: 'enhancement,question,box request,bug'
+          inactive-day: 90
+
+  action:
+    if: github.repository == 'gpac/mp4box.js'
+    needs: close-issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lock Inactive Issues
+        uses: dessant/lock-threads@1bf7ec25051fe7c00bdd17e6a7cf3d7bfb7dc771 # v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-inactive-days: '180'
+          issue-lock-reason: ''
+          process-only: 'issues'

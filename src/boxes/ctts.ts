@@ -37,7 +37,7 @@ export class cttsBox extends FullBox {
 
   /** @bundle writing/ctts.js */
   write(stream: MultiBufferStream) {
-    this.version = 0;
+    this.version = this.sample_offsets.some(offset => offset < 0) ? 1 : 0;
     this.flags = 0;
     this.size = 4 + 8 * this.sample_counts.length;
     this.writeHeader(stream);

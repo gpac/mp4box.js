@@ -3,10 +3,8 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
       - next
-      - beta
-      - '*.x'
 
 permissions:
   contents: read
@@ -16,6 +14,7 @@ env:
 
 jobs:
   release:
+    if: github.repository == 'gpac/mp4box.js'
     permissions:
       contents: write
       issues: write

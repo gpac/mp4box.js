@@ -5,46 +5,44 @@ import type * as DESCRIPTORS from '#/descriptor';
 import type { SampleEntry } from './all';
 import type * as BOXES from './all-boxes';
 
-type AllBoxes = Partial<typeof BOXES>;
-
-export interface BoxRegistry {
+export interface BoxRegistry<TBoxes = Partial<typeof BOXES>> {
   uuid: {
-    [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: 'uuid' }
-      ? AllBoxes[K] extends { uuid: infer TUuid }
+    [K in keyof TBoxes as TBoxes[K] extends { fourcc: 'uuid' }
+      ? TBoxes[K] extends { uuid: infer TUuid }
         ? TUuid extends string
           ? TUuid
           : never
         : never
-      : never]: AllBoxes[K];
+      : never]: TBoxes[K];
   };
   sampleEntry: {
-    [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: infer TFourCC }
-      ? AllBoxes[K] extends typeof SampleEntry
+    [K in keyof TBoxes as TBoxes[K] extends { fourcc: infer TFourCC }
+      ? TBoxes[K] extends typeof SampleEntry
         ? TFourCC extends string
           ? TFourCC
           : never
         : never
-      : never]: AllBoxes[K];
+      : never]: TBoxes[K];
   };
   sampleGroupEntry: {
-    [K in keyof AllBoxes as AllBoxes[K] extends { grouping_type: infer G }
+    [K in keyof TBoxes as TBoxes[K] extends { grouping_type: infer G }
       ? G extends string
         ? G
         : never
-      : never]: AllBoxes[K];
+      : never]: TBoxes[K];
   };
   box: {
-    [K in keyof AllBoxes as AllBoxes[K] extends { fourcc: 'uuid' }
+    [K in keyof TBoxes as TBoxes[K] extends { fourcc: 'uuid' }
       ? never
-      : AllBoxes[K] extends typeof SampleEntry
+      : TBoxes[K] extends typeof SampleEntry
         ? never
-        : AllBoxes[K] extends typeof SampleGroupEntry
+        : TBoxes[K] extends typeof SampleGroupEntry
           ? never
-          : AllBoxes[K] extends { fourcc: infer TFourCC }
+          : TBoxes[K] extends { fourcc: infer TFourCC }
             ? TFourCC extends string
               ? TFourCC
               : never
-            : never]: AllBoxes[K];
+            : never]: TBoxes[K];
   };
 }
 export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
@@ -208,6 +206,7 @@ export interface IncompleteBox {
   size?: number;
   start?: number;
   type?: string;
+  original_size?: number;
 }
 
 export interface Item {

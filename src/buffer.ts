@@ -1,6 +1,7 @@
 import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
-import type { MP4BoxBuffer } from '#/mp4boxbuffer';
+import { MP4BoxBuffer } from '#/mp4boxbuffer';
+import type { ISOFile } from './isofile';
 
 /**
  * helper functions to concatenate two ArrayBuffer objects
@@ -27,6 +28,7 @@ function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
  * It inherits also from DataStream for all read/write/alloc operations
  */
 export class MultiBufferStream extends DataStream {
+  isofile: ISOFile | null = null; // Reference to the ISOFile object if any
   buffers: Array<MP4BoxBuffer>;
   bufferIndex: number;
 
@@ -426,5 +428,11 @@ export class MultiBufferStream extends DataStream {
   getEndPosition() {
     if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) return 0;
     return this.buffers[this.bufferIndex].fileStart + this.byteLength;
+  }
+
+  getAbsoluteEndPosition() {
+    if (this.buffers.length === 0) return 0;
+    const lastBuffer = this.buffers[this.buffers.length - 1];
+    return lastBuffer.fileStart + lastBuffer.byteLength;
   }
 }

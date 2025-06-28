@@ -34,7 +34,14 @@ export const BoxRegistry: MP4Box.BoxRegistry = {
   sampleGroupEntry: {},
   box: {},
 };
-export function registerBoxes(registry: Record<string, object>) {
+export function registerBoxes<T>(registry: T): MP4Box.BoxRegistry<T> {
+  const localRegistry = {
+    uuid: {},
+    sampleEntry: {},
+    sampleGroupEntry: {},
+    box: {},
+  } as MP4Box.BoxRegistry<T>;
+
   for (const [key, value] of Object.entries(registry)) {
     // Check if SampleGroupEntry class
     if (isSampleGroupEntry(value)) {
@@ -46,13 +53,13 @@ export function registerBoxes(registry: Record<string, object>) {
         );
       }
 
-      if (groupingType in BoxRegistry.sampleGroupEntry) {
+      if (groupingType in localRegistry.sampleGroupEntry) {
         throw new Error(
           `SampleGroupEntry class ${key} has a grouping_type that is already registered. Please ensure it is unique.`,
         );
       }
 
-      BoxRegistry.sampleGroupEntry[groupingType] = value;
+      localRegistry.sampleGroupEntry[groupingType] = value;
       continue;
     }
 
@@ -66,13 +73,13 @@ export function registerBoxes(registry: Record<string, object>) {
         );
       }
 
-      if (fourcc in BoxRegistry.sampleEntry) {
+      if (fourcc in localRegistry.sampleEntry) {
         throw new Error(
           `SampleEntry class ${key} has a fourcc that is already registered. Please ensure it is unique.`,
         );
       }
 
-      BoxRegistry.sampleEntry[fourcc] = value;
+      localRegistry.sampleEntry[fourcc] = value;
       continue;
     }
 
@@ -89,18 +96,18 @@ export function registerBoxes(registry: Record<string, object>) {
           );
         }
 
-        if (uuid in BoxRegistry.uuid) {
+        if (uuid in localRegistry.uuid) {
           throw new Error(
             `Box class ${key} has a uuid that is already registered. Please ensure it is unique.`,
           );
         }
 
-        BoxRegistry.uuid[uuid] = value;
+        localRegistry.uuid[uuid] = value;
         continue;
       }
 
       // This is a regular box with a fourcc
-      BoxRegistry.box[fourcc] = value;
+      localRegistry.box[fourcc] = value;
       continue;
     }
 
@@ -108,11 +115,18 @@ export function registerBoxes(registry: Record<string, object>) {
       `Box class ${key} does not have a valid static fourcc, uuid, or grouping_type. Please ensure it is defined correctly.`,
     );
   }
-  return registry;
+
+  // Assign the local registry to the global BoxRegistry
+  BoxRegistry.uuid = { ...localRegistry.uuid };
+  BoxRegistry.sampleEntry = { ...localRegistry.sampleEntry };
+  BoxRegistry.sampleGroupEntry = { ...localRegistry.sampleGroupEntry };
+  BoxRegistry.box = { ...localRegistry.box };
+
+  return BoxRegistry as MP4Box.BoxRegistry<T>;
 }
 
 export const DescriptorRegistry = {} as MP4Box.DescriptorRegistry;
 export function registerDescriptors<T>(registry: T) {
   Object.entries(registry).forEach(([key, value]) => (DescriptorRegistry[key] = value));
-  return registry;
+  return DescriptorRegistry;
 }

@@ -9,6 +9,7 @@ import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
 import { MP4BoxStream } from '#/stream';
 import type { BoxFourCC, Extends, Output, Reference } from '@types';
+import type { mdatBox } from 'entries/all-boxes';
 
 export class Box {
   static registryId = Symbol.for('BoxIdentifier');
@@ -19,6 +20,7 @@ export class Box {
   hdr_size?: number;
   language: number;
   languageString?: string;
+  original_size?: number;
   sizePosition?: number;
   start?: number;
   track_ids?: Uint32Array;
@@ -69,7 +71,7 @@ export class Box {
   /** @bundle box-write.js */
   writeHeader(stream: DataStream, msg?: string) {
     this.size += 8;
-    if (this.size > MAX_SIZE) {
+    if (this.size > MAX_SIZE || this.original_size === 1) {
       this.size += 8;
     }
     if (this.type === 'uuid') {
@@ -85,7 +87,9 @@ export class Box {
         stream.getPosition() +
         (msg || ''),
     );
-    if (this.size > MAX_SIZE) {
+    if (this.original_size === 0) {
+      stream.writeUint32(0);
+    } else if (this.size > MAX_SIZE || this.original_size === 1) {
       stream.writeUint32(1);
     } else {
       this.sizePosition = stream.getPosition();
@@ -93,10 +97,14 @@ export class Box {
     }
     stream.writeString(this.type, null, 4);
     if (this.type === 'uuid') {
-      // @ts-expect-error FIXME: find out actual type of uuid
-      stream.writeUint8Array(this.uuid);
+      const uuidBytes = new Uint8Array(16);
+      for (let i = 0; i < 16; i++) {
+        uuidBytes[i] = parseInt(this.uuid.substring(i * 2, i * 2 + 2), 16);
+      }
+      stream.writeUint8Array(uuidBytes);
     }
-    if (this.size > MAX_SIZE) {
+    if (this.size > MAX_SIZE || this.original_size === 1) {
+      this.sizePosition = stream.getPosition();
       stream.writeUint64(this.size);
     }
   }
@@ -104,11 +112,14 @@ export class Box {
   /** @bundle box-write.js */
   write(stream: DataStream) {
     if (this.type === 'mdat') {
-      /* TODO: fix this */
-      if (this.data) {
-        this.size = this.data.length;
+      const box = this as mdatBox;
+      if (box.stream) {
+        this.size = box.stream.getAbsoluteEndPosition();
         this.writeHeader(stream);
-        stream.writeUint8Array(this.data);
+        for (const buffer of box.stream.buffers) {
+          const u8 = new Uint8Array(buffer);
+          stream.writeUint8Array(u8);
+        }
       }
     } else {
       this.size = this.data ? this.data.length : 0;
