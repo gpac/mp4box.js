@@ -234,6 +234,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     } else {
       this.stream = new MultiBufferStream();
     }
+    this.stream.isofile = this;
   }
 
   setSegmentOptions(
@@ -1065,6 +1066,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** @bundle isofile-write.js */
   save(name: string) {
     const stream = new DataStream();
+    stream.isofile = this;
     stream.endianness = Endianness.BIG_ENDIAN;
     this.write(stream);
     return stream.save(name);
@@ -1073,6 +1075,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** @bundle isofile-write.js */
   getBuffer() {
     const stream = new DataStream();
+    stream.isofile = this;
     stream.endianness = Endianness.BIG_ENDIAN;
     this.write(stream);
     return stream;

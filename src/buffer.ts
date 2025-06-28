@@ -1,7 +1,6 @@
 import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
 import { MP4BoxBuffer } from '#/mp4boxbuffer';
-import type { ISOFile } from './isofile';
 
 /**
  * helper functions to concatenate two ArrayBuffer objects
@@ -28,7 +27,6 @@ function concatBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
  * It inherits also from DataStream for all read/write/alloc operations
  */
 export class MultiBufferStream extends DataStream {
-  isofile: ISOFile | null = null; // Reference to the ISOFile object if any
   buffers: Array<MP4BoxBuffer>;
   bufferIndex: number;
 
