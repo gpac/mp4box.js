@@ -359,3 +359,8 @@ export class etypBox extends ContainerBox {
   tycos: Array<tycoBox> = [];
   subBoxNames = ['tyco'] as const;
 }
+export class povdBox extends ContainerBox {
+  static override readonly fourcc = 'povd' as const;
+  box_name = 'ProjectedOmniVideoBox' as const;
+  subBoxNames = ['prfr'] as const;
+}
