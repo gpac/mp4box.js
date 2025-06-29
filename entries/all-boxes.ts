@@ -70,6 +70,7 @@ export * from '#/boxes/pitm';
 export * from '#/boxes/pixi';
 export * from '#/boxes/pmax';
 export * from '#/boxes/prdi';
+export * from '#/boxes/prfr';
 export * from '#/boxes/prft';
 export * from '#/boxes/pssh';
 export * from '#/boxes/qt/clef';
