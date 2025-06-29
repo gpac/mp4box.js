@@ -1,5 +1,7 @@
 import { av1CBox } from '#/boxes/av1C';
 import { avcCBox } from '#/boxes/avcC';
+import { av3cBox } from '#/boxes/av3c';
+import { dca3Box } from '#/boxes/dca3';
 import { sinfBox } from '#/boxes/defaults';
 import { esdsBox } from '#/boxes/esds';
 import { hvcCBox } from '#/boxes/hvcC';
@@ -89,6 +91,22 @@ export class av01SampleEntry extends VisualSampleEntry {
       '.' +
       bitdepth
     ); //+"."+this.av1C.monochrome+"."+this.av1C.chroma_subsampling_x+""+this.av1C.chroma_subsampling_y+""+this.av1C.chroma_sample_position;
+  }
+}
+
+export class avs3SampleEntry extends VisualSampleEntry {
+  static override readonly fourcc = 'avs3' as const;
+
+  av3c: av3cBox;
+
+  getCodec(): string {
+    const profile = this.av3c.sequence_header?.data?.profile_id
+      ? this.av3c.sequence_header.data?.profile_id.get().toString(16)
+      : 'XX';
+    const level = this.av3c.sequence_header?.data?.level_id
+      ? this.av3c.sequence_header.data?.level_id.get().toString(16)
+      : 'XX';
+    return `${super.getCodec()}.${profile}.${level}`;
   }
 }
 
@@ -294,10 +312,6 @@ export class vp09SampleEntry extends vpcCSampleEntryBase {
   static override readonly fourcc = 'vp09' as const;
 }
 
-export class avs3SampleEntry extends VisualSampleEntry {
-  static override readonly fourcc = 'avs3' as const;
-}
-
 export class j2kiSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'j2ki' as const;
 }
@@ -374,6 +388,21 @@ export class mhm2SampleEntry extends AudioSampleEntry {
 
 export class fLaCSampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'fLaC' as const;
+}
+
+export class av3aSampleEntry extends AudioSampleEntry {
+  // AATF (AVS3 Audio Transport Format) audio sample entry
+  static override readonly fourcc = 'av3a' as const;
+
+  dca3: dca3Box;
+
+  getCodec() {
+    return `${super.getCodec()}.${this.dca3.get_audio_codec_id_str()}`;
+  }
+}
+
+export class a3asSampleEntry extends AudioSampleEntry {
+  static override readonly fourcc = 'a3as' as const;
 }
 
 // Encrypted sample entries
