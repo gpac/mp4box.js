@@ -7,7 +7,13 @@ import { Box } from '#/box';
 import { MP4BoxStream } from '#/stream';
 import { BitBuffer } from '#/BitBuffer';
 
-import { DescribedValue, AVS3data, HexadecimalValue, BinaryValue } from './avs-common';
+import {
+  DescribedValue,
+  AVS3data,
+  HexadecimalValue,
+  BinaryValue,
+  BooleanValue,
+} from './avs-common';
 
 interface ReferencePicture {
   library_index_flag?: number;
@@ -36,7 +42,7 @@ class ReferencePictureSet {
   get_reference_to_library_enable_flag(): number {
     return this.library_enable_flag_set ? this.reference_to_library_enable_flag : 0;
   }
-  push(pic) {
+  push(pic: ReferencePicture) {
     this.pics.push(pic);
   }
   toString() {
@@ -188,23 +194,17 @@ const AVS3ratios = ['', '1.0', '4:3', '16:9', '2.21:1'];
 const AVS3Vconfiguration = (version: number) => (version !== 1 ? 'not supported' : '');
 
 function AVS3profile(profile: number) {
-  const t = AVS3profiles.find(function (e) {
-    return e.profile === profile;
-  });
+  const t = AVS3profiles.find(e => e.profile === profile);
   return t === undefined ? RESERVED : t.description;
 }
 
 function AVS3level(level: number) {
-  const t = AVS3levels.find(function (e) {
-    return e.level === level;
-  });
+  const t = AVS3levels.find(e => e.level === level);
   return t === undefined ? RESERVED : t.description;
 }
 
 function AVS3precision(precision: number) {
-  const t = AVS3precisions.find(function (e) {
-    return e.precision === precision;
-  });
+  const t = AVS3precisions.find(e => e.precision === precision);
   return t === undefined ? RESERVED : t.description;
 }
 
@@ -224,11 +224,11 @@ interface SequenceHeaderElements {
   video_sequence_start_code?: HexadecimalValue;
   profile_id?: HexadecimalValue;
   level_id?: HexadecimalValue;
-  progressive_sequence?: number;
-  field_coded_sequence?: number;
-  library_stream_flag?: number;
-  library_picture_enable_flag?: number;
-  duplicate_sequence_number_flag?: number;
+  progressive_sequence?: BooleanValue;
+  field_coded_sequence?: BooleanValue;
+  library_stream_flag?: BooleanValue;
+  library_picture_enable_flag?: BooleanValue;
+  duplicate_sequence_number_flag?: BooleanValue;
   horizontal_size?: number;
   vertical_size?: number;
   chroma_format?: BinaryValue;
@@ -239,11 +239,11 @@ interface SequenceHeaderElements {
   bit_rate_lower?: number;
   bit_rate_upper?: number;
   low_delay?: number;
-  temporal_id_enable_flag?: number;
+  temporal_id_enable_flag?: BooleanValue;
   max_dpb_minus1?: number;
   bbv_buffer_size?: number;
-  rpl1_index_exist_flag?: number;
-  rpl1_same_as_rpl0_flag?: number;
+  rpl1_index_exist_flag?: BooleanValue;
+  rpl1_same_as_rpl0_flag?: BooleanValue;
   num_ref_pic_list_set0?: number;
   rpl0?: ReferencePictureList;
   num_ref_pic_list_set1?: number;
@@ -257,52 +257,52 @@ interface SequenceHeaderElements {
   log2_min_qt_size_minus2?: number;
   log2_max_bt_size_minus2?: number;
   log2_max_eqt_size_minus3?: number;
-  weight_quant_enable_flag?: number;
-  load_seq_weight_quant_data_flag?: number;
+  weight_quant_enable_flag?: BooleanValue;
+  load_seq_weight_quant_data_flag?: BooleanValue;
   weight_quant_matrix?: WeightQuantMatrix;
-  st_enable_flag?: number;
-  sao_enable_flag?: number;
-  alf_enable_flag?: number;
-  affine_enable_flag?: number;
-  smvd_enable_flag?: number;
-  ipcm_enable_flag?: number;
-  amvr_enable_flag?: number;
+  st_enable_flag?: BooleanValue;
+  sao_enable_flag?: BooleanValue;
+  alf_enable_flag?: BooleanValue;
+  affine_enable_flag?: BooleanValue;
+  smvd_enable_flag?: BooleanValue;
+  ipcm_enable_flag?: BooleanValue;
+  amvr_enable_flag?: BooleanValue;
   num_of_hmvp_cand?: number;
-  umve_enable_flag?: number;
-  emvr_enable_flag?: number;
-  intra_pf_enable_flag?: number;
-  tscpm_enable_flag?: number;
-  dt_enable_flag?: number;
+  umve_enable_flag?: BooleanValue;
+  emvr_enable_flag?: BooleanValue;
+  intra_pf_enable_flag?: BooleanValue;
+  tscpm_enable_flag?: BooleanValue;
+  dt_enable_flag?: BooleanValue;
   log2_max_dt_size_minus4?: number;
-  pbt_enable_flag?: number;
-  pmc_enable_flag?: number;
-  iip_enable_flag?: number;
-  sawp_enable_flag?: number;
-  asr_enable_flag?: number;
-  awp_enable_flag?: number;
-  etmvp_mvap_enable_flag?: number;
-  dmvr_enable_flag?: number;
-  bio_enable_flag?: number;
-  bgc_enable_flag?: number;
-  inter_pf_enable_flag?: number;
-  inter_pfc_enable_flag?: number;
-  obmc_enable_flag?: number;
-  sbt_enable_flag?: number;
-  ist_enable_flag?: number;
-  esao_enable_flag?: number;
-  ccsao_enable_flag?: number;
-  ealf_enable_flag?: number;
-  ibc_enable_flag?: number;
-  isc_enable_flag?: number;
+  pbt_enable_flag?: BooleanValue;
+  pmc_enable_flag?: BooleanValue;
+  iip_enable_flag?: BooleanValue;
+  sawp_enable_flag?: BooleanValue;
+  asr_enable_flag?: BooleanValue;
+  awp_enable_flag?: BooleanValue;
+  etmvp_mvap_enable_flag?: BooleanValue;
+  dmvr_enable_flag?: BooleanValue;
+  bio_enable_flag?: BooleanValue;
+  bgc_enable_flag?: BooleanValue;
+  inter_pf_enable_flag?: BooleanValue;
+  inter_pfc_enable_flag?: BooleanValue;
+  obmc_enable_flag?: BooleanValue;
+  sbt_enable_flag?: BooleanValue;
+  ist_enable_flag?: BooleanValue;
+  esao_enable_flag?: BooleanValue;
+  ccsao_enable_flag?: BooleanValue;
+  ealf_enable_flag?: BooleanValue;
+  ibc_enable_flag?: BooleanValue;
+  isc_enable_flag?: BooleanValue;
   num_of_intra_hmvp_cand?: number;
-  fimc_enable_flag?: number;
+  fimc_enable_flag?: BooleanValue;
   nn_tools_set_hook?: number;
   num_of_nn_filter_minus1?: number;
   output_reorder_delay?: number;
-  cross_patch_loop_filter_enable_flag?: number;
-  ref_colocated_patch_flag?: number;
-  stable_patch_flag?: number;
-  uniform_patch_flag?: number;
+  cross_patch_loop_filter_enable_flag?: BooleanValue;
+  ref_colocated_patch_flag?: BooleanValue;
+  stable_patch_flag?: BooleanValue;
+  uniform_patch_flag?: BooleanValue;
   patch_width_minus1?: number;
   patch_height_minus1?: number;
 }
@@ -313,19 +313,19 @@ class AVS3SequenceHeader extends AVS3data {
   constructor(bit_reader: BitBuffer) {
     super();
     this.data = {};
-    this.load(bit_reader);
+    this.deserialise(bit_reader);
   }
-  load(bit_reader: BitBuffer) {
+  deserialise(bit_reader: BitBuffer) {
     this.data.video_sequence_start_code = new HexadecimalValue(bit_reader.getUint32());
     this.data.profile_id = new HexadecimalValue(bit_reader.getUint8(), AVS3profile);
     this.data.level_id = new HexadecimalValue(bit_reader.getUint8(), AVS3level);
-    this.data.progressive_sequence = bit_reader.getBit();
-    this.data.field_coded_sequence = bit_reader.getBit();
-    this.data.library_stream_flag = bit_reader.getBit();
-    if (!this.data.library_stream_flag) {
-      this.data.library_picture_enable_flag = bit_reader.getBit();
-      if (this.data.library_picture_enable_flag)
-        this.data.duplicate_sequence_number_flag = bit_reader.getBit();
+    this.data.progressive_sequence = new BooleanValue(bit_reader.getBit());
+    this.data.field_coded_sequence = new BooleanValue(bit_reader.getBit());
+    this.data.library_stream_flag = new BooleanValue(bit_reader.getBit());
+    if (!this.data.library_stream_flag.get()) {
+      this.data.library_picture_enable_flag = new BooleanValue(bit_reader.getBit());
+      if (this.data.library_picture_enable_flag.get())
+        this.data.duplicate_sequence_number_flag = new BooleanValue(bit_reader.getBit());
     }
     bit_reader.skipBit(); // marker_bit
 
@@ -349,21 +349,21 @@ class AVS3SequenceHeader extends AVS3data {
 
     this.data.bit_rate_upper = bit_reader.getBits(12);
     this.data.low_delay = bit_reader.getBit();
-    this.data.temporal_id_enable_flag = bit_reader.getBit();
+    this.data.temporal_id_enable_flag = new BooleanValue(bit_reader.getBit());
     bit_reader.skipBit(); // marker_bit
 
     this.data.bbv_buffer_size = bit_reader.getBits(18);
     bit_reader.skipBit(); // marker_bit
 
     this.data.max_dpb_minus1 = bit_reader.getBits(4);
-    this.data.rpl1_index_exist_flag = bit_reader.getBit();
-    this.data.rpl1_same_as_rpl0_flag = bit_reader.getBit();
+    this.data.rpl1_index_exist_flag = new BooleanValue(bit_reader.getBit());
+    this.data.rpl1_same_as_rpl0_flag = new BooleanValue(bit_reader.getBit());
     bit_reader.skipBit(); // marker_bit
 
     const reference_picture_list = function (
       list: number,
       rpls: number,
-      library_picture_enable_flag: number,
+      library_picture_enable_flag: boolean,
     ) {
       const this_set = new ReferencePictureSet(list, rpls);
       if (library_picture_enable_flag)
@@ -387,13 +387,17 @@ class AVS3SequenceHeader extends AVS3data {
     this.data.num_ref_pic_list_set0 = bit_reader.getUE();
     this.data.rpl0 = new ReferencePictureList(0);
     for (let j = 0; j < this.data.num_ref_pic_list_set0; j++)
-      this.data.rpl0.push(reference_picture_list(0, j, this.data.library_picture_enable_flag));
+      this.data.rpl0.push(
+        reference_picture_list(0, j, this.data.library_picture_enable_flag.get()),
+      );
 
     if (!this.data.rpl1_same_as_rpl0_flag) {
       this.data.num_ref_pic_list_set1 = bit_reader.getUE();
       this.data.rpl1 = new ReferencePictureList(1);
       for (let j = 0; j < this.data.num_ref_pic_list_set1; j++)
-        this.data.rpl1.push(reference_picture_list(1, j, this.data.library_picture_enable_flag));
+        this.data.rpl1.push(
+          reference_picture_list(1, j, this.data.library_picture_enable_flag.get()),
+        );
     }
 
     this.data.num_ref_default_active_minus1_0 = bit_reader.getUE();
@@ -407,71 +411,73 @@ class AVS3SequenceHeader extends AVS3data {
     this.data.log2_max_eqt_size_minus3 = bit_reader.getBits(2);
     bit_reader.skipBit(); // marker_bit
 
-    this.data.weight_quant_enable_flag = bit_reader.getBit();
-    if (this.data.weight_quant_enable_flag) {
-      this.data.load_seq_weight_quant_data_flag = bit_reader.getBit();
-      if (this.data.load_seq_weight_quant_data_flag)
+    this.data.weight_quant_enable_flag = new BooleanValue(bit_reader.getBit());
+    if (this.data.weight_quant_enable_flag.get()) {
+      this.data.load_seq_weight_quant_data_flag = new BooleanValue(bit_reader.getBit());
+      if (this.data.load_seq_weight_quant_data_flag.get())
         this.data.weight_quant_matrix = new WeightQuantMatrix(bit_reader);
     }
 
-    this.data.st_enable_flag = bit_reader.getBit();
-    this.data.sao_enable_flag = bit_reader.getBit();
-    this.data.alf_enable_flag = bit_reader.getBit();
-    this.data.affine_enable_flag = bit_reader.getBit();
-    this.data.smvd_enable_flag = bit_reader.getBit();
-    this.data.ipcm_enable_flag = bit_reader.getBit();
-    this.data.amvr_enable_flag = bit_reader.getBit();
+    this.data.st_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.sao_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.alf_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.affine_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.smvd_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.ipcm_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.amvr_enable_flag = new BooleanValue(bit_reader.getBit());
     this.data.num_of_hmvp_cand = bit_reader.getBits(4);
-    this.data.umve_enable_flag = bit_reader.getBit();
-    if (this.data.num_of_hmvp_cand !== 0 && this.data.amvr_enable_flag)
-      this.data.emvr_enable_flag = bit_reader.getBit();
-    this.data.intra_pf_enable_flag = bit_reader.getBit();
-    this.data.tscpm_enable_flag = bit_reader.getBit();
+    this.data.umve_enable_flag = new BooleanValue(bit_reader.getBit());
+    if (this.data.num_of_hmvp_cand !== 0 && this.data.amvr_enable_flag.get())
+      this.data.emvr_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.intra_pf_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.tscpm_enable_flag = new BooleanValue(bit_reader.getBit());
     bit_reader.skipBit(); // marker_bit
 
-    this.data.dt_enable_flag = bit_reader.getBit();
-    if (this.data.dt_enable_flag) this.data.log2_max_dt_size_minus4 = bit_reader.getBits(2);
-    this.data.pbt_enable_flag = bit_reader.getBit();
+    this.data.dt_enable_flag = new BooleanValue(bit_reader.getBit());
+    if (this.data.dt_enable_flag.get()) this.data.log2_max_dt_size_minus4 = bit_reader.getBits(2);
+    this.data.pbt_enable_flag = new BooleanValue(bit_reader.getBit());
 
     if (this.data.profile_id.get() === MAIN_10 || this.data.profile_id.get() === HIGH_10) {
-      this.data.pmc_enable_flag = bit_reader.getBit();
-      this.data.iip_enable_flag = bit_reader.getBit();
-      this.data.sawp_enable_flag = bit_reader.getBit();
-      if (this.data.affine_enable_flag) this.data.asr_enable_flag = bit_reader.getBit();
-      this.data.awp_enable_flag = bit_reader.getBit();
-      this.data.etmvp_mvap_enable_flag = bit_reader.getBit();
-      this.data.dmvr_enable_flag = bit_reader.getBit();
-      this.data.bio_enable_flag = bit_reader.getBit();
-      this.data.bgc_enable_flag = bit_reader.getBit();
-      this.data.inter_pf_enable_flag = bit_reader.getBit();
-      this.data.inter_pfc_enable_flag = bit_reader.getBit();
-      this.data.obmc_enable_flag = bit_reader.getBit();
+      this.data.pmc_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.iip_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.sawp_enable_flag = new BooleanValue(bit_reader.getBit());
+      if (this.data.affine_enable_flag.get())
+        this.data.asr_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.awp_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.etmvp_mvap_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.dmvr_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.bio_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.bgc_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.inter_pf_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.inter_pfc_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.obmc_enable_flag = new BooleanValue(bit_reader.getBit());
 
-      this.data.sbt_enable_flag = bit_reader.getBit();
-      this.data.ist_enable_flag = bit_reader.getBit();
+      this.data.sbt_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.ist_enable_flag = new BooleanValue(bit_reader.getBit());
 
-      this.data.esao_enable_flag = bit_reader.getBit();
-      this.data.ccsao_enable_flag = bit_reader.getBit();
-      if (this.data.alf_enable_flag) this.data.ealf_enable_flag = bit_reader.getBit();
-      this.data.ibc_enable_flag = bit_reader.getBit();
+      this.data.esao_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.ccsao_enable_flag = new BooleanValue(bit_reader.getBit());
+      if (this.data.alf_enable_flag.get())
+        this.data.ealf_enable_flag = new BooleanValue(bit_reader.getBit());
+      this.data.ibc_enable_flag = new BooleanValue(bit_reader.getBit());
       bit_reader.skipBit(); // marker_bit
 
-      this.data.isc_enable_flag = bit_reader.getBit();
-      if (this.data.ibc_enable_flag || this.data.isc_enable_flag)
+      this.data.isc_enable_flag = new BooleanValue(bit_reader.getBit());
+      if (this.data.ibc_enable_flag.get() || this.data.isc_enable_flag.get())
         this.data.num_of_intra_hmvp_cand = bit_reader.getBits(4);
-      this.data.fimc_enable_flag = bit_reader.getBit();
+      this.data.fimc_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.nn_tools_set_hook = bit_reader.getBits(8);
       if (this.data.nn_tools_set_hook & 0x01)
         this.data.num_of_nn_filter_minus1 = bit_reader.getUE();
       bit_reader.skipBit(); // marker_bit
     }
     if (this.data.low_delay === 0) this.data.output_reorder_delay = bit_reader.getBits(5);
-    this.data.cross_patch_loop_filter_enable_flag = bit_reader.getBit();
-    this.data.ref_colocated_patch_flag = bit_reader.getBit();
-    this.data.stable_patch_flag = bit_reader.getBit();
-    if (this.data.stable_patch_flag) {
-      this.data.uniform_patch_flag = bit_reader.getBit();
-      if (this.data.uniform_patch_flag) {
+    this.data.cross_patch_loop_filter_enable_flag = new BooleanValue(bit_reader.getBit());
+    this.data.ref_colocated_patch_flag = new BooleanValue(bit_reader.getBit());
+    this.data.stable_patch_flag = new BooleanValue(bit_reader.getBit());
+    if (this.data.stable_patch_flag.get()) {
+      this.data.uniform_patch_flag = new BooleanValue(bit_reader.getBit());
+      if (this.data.uniform_patch_flag.get()) {
         bit_reader.skipBit(); // marker_bit
         this.data.patch_width_minus1 = bit_reader.getUE();
         this.data.patch_height_minus1 = bit_reader.getUE();

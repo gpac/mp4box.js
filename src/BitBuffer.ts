@@ -4,6 +4,7 @@
  *
  *
  * reads bits and bytes from a buffer that may not contain aligned values
+ * TODO: add writing support
  */
 
 import { Endianness } from '#/DataStream';
@@ -26,7 +27,6 @@ class State {
 export class BitBuffer {
   private endianness: Endianness;
   private _buffer: Array<number>;
-  private _buffer_size: number;
   private _state: State;
   private _big_endian = true; // results are returned Big Endian
 
@@ -38,16 +38,23 @@ export class BitBuffer {
 
   load(stream: Uint8Array): void {
     this._buffer = [...stream];
-    this._buffer_size = stream.length;
     this._state.rbit = this._state.rbyte = 0;
     this._state.wbit = 0;
-    this._state.wbyte = this._state.end = this._buffer_size;
+    this._state.wbyte = this._state.end = this._buffer.length;
     this._state.read_error = this._state.write_error = false;
   }
+
   appendUint8(byte: number): void {
     this._buffer.push(byte);
-    this._buffer_size += 1;
-    this._state.end = this._state.wbyte = this._buffer_size;
+    this._state.end = this._state.wbyte = this._buffer.length;
+  }
+
+  extend(bits: number): void {
+    let count = bits;
+    while (count > 0) {
+      this._buffer.push(0);
+      count -= 8;
+    }
   }
 
   getBit(): number {
@@ -140,16 +147,16 @@ export class BitBuffer {
   private _ByteSwap16 = function (x) {
     return (x << 8) | (x >> 8);
   };
-  private _CondByteSwap16BE = function (val) {
+  private _CondByteSwap16BE = function (val: number) {
     return this._OSisLittleEndian() ? this._ByteSwap16(val) : val;
   };
-  private _CondByteSwap16LE = function (val) {
+  private _CondByteSwap16LE = function (val: number) {
     return this._OSisLittleEndian() ? val : this._ByteSwap16(val);
   };
-  private _GetUInt16BE = function (val) {
+  private _GetUInt16BE = function (val: number) {
     return this._CondByteSwap16BE(val);
   };
-  private _GetUInt16LE = function (val) {
+  private _GetUInt16LE = function (val: number) {
     return this._CondByteSwap16LE(val);
   };
 
@@ -157,19 +164,19 @@ export class BitBuffer {
     return this._big_endian ? this._GetUInt24BE(this._rdb(3)) : this._GetUInt24LE(this._rdb(3));
   }
 
-  private _ByteSwap24 = function (x) {
+  private _ByteSwap24 = function (x: number) {
     return ((x & 0xff0000) >> 16) | (x & 0xff00) | (x & (0xff << 16));
   };
-  private _CondByteSwap24BE = function (val) {
+  private _CondByteSwap24BE = function (val: number) {
     return this._OSisLittleEndian() ? this._ByteSwap24(val) : val;
   };
-  private _CondByteSwap24LE = function (val) {
+  private _CondByteSwap24LE = function (val: number) {
     return this._OSisLittleEndian() ? val : this._ByteSwap24(val);
   };
-  private _GetUInt24BE = function (val) {
+  private _GetUInt24BE = function (val: number) {
     return this._CondByteSwap24BE(val);
   };
-  private _GetUInt24LE = function (val) {
+  private _GetUInt24LE = function (val: number) {
     return this._CondByteSwap24LE(val);
   };
 
@@ -177,19 +184,19 @@ export class BitBuffer {
     return this._big_endian ? this._GetUInt32BE(this._rdb(4)) : this._GetUInt32LE(this._rdb(4));
   }
 
-  private _ByteSwap32(x) {
+  private _ByteSwap32(x: number) {
     return (x << 24) | ((x << 8) & 0x00ff0000) | ((x >> 8) & 0x0000ff00) | (x >> 24);
   }
-  private _CondByteSwap32BE(val) {
+  private _CondByteSwap32BE(val: number) {
     return this._OSisLittleEndian() ? this._ByteSwap32(val) : val;
   }
-  private _CondByteSwap32LE(val) {
+  private _CondByteSwap32LE(val: number) {
     return this._OSisLittleEndian() ? val : this._ByteSwap32(val);
   }
-  private _GetUInt32BE(val) {
+  private _GetUInt32BE(val: number) {
     return this._CondByteSwap32BE(val);
   }
-  private _GetUInt32LE(val) {
+  private _GetUInt32LE(val: number) {
     return this._CondByteSwap32LE(val);
   }
 
@@ -282,11 +289,11 @@ export class BitBuffer {
     return this.getBits(zero_count + 1) - 1;
   }
 
-  byte_alignment() {
+  byte_alignment(): void {
     while (!this._state.read_error && this._state.rbit !== 0) this.skipBit();
   }
 
-  private _OSisLittleEndian() {
+  private _OSisLittleEndian(): boolean {
     return this.endianness === Endianness.LITTLE_ENDIAN;
   }
 
@@ -298,19 +305,29 @@ export class BitBuffer {
     return u8data[3] === 0xca ? Endianness.BIG_ENDIAN : Endianness.LITTLE_ENDIAN;
   }
 
-  currentReadByteOffset() {
+  currentReadByteOffset(): number {
     return this._state.rbyte;
   }
-  currentReadBitOffset() {
+  currentReadBitOffset(): number {
     return 8 * this._state.rbyte + this._state.rbit;
   }
-  currentWriteByteOffset() {
+  currentWriteByteOffset(): number {
     return this._state.wbyte;
   }
-  currentWriteBitOffset() {
+  currentWriteBitOffset(): number {
     return 8 * this._state.wbyte + this._state.wbit;
   }
   bitsRemaining() {
     return this.currentWriteBitOffset() - this.currentReadBitOffset();
   }
+  writeBitsRemaining(): number {
+    return 8 * this._buffer.length - this.currentWriteBitOffset();
+  }
+  /*
+  TODO - for near future implementation to support writing AVS3 related boxes that are not byte aligned
+  writeBit(bit: number): void {
+    if (this.writeBitsRemaining() < 1)
+      this.extend(1);
+  }
+ */
 }

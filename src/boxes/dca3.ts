@@ -100,9 +100,9 @@ class AVS3GAConfig extends AVS3data {
   constructor(bit_reader: BitBuffer) {
     super();
     this.data = {};
-    this.parse(bit_reader);
+    this.deserialise(bit_reader);
   }
-  parse(bit_reader: BitBuffer) {
+  deserialise(bit_reader: BitBuffer) {
     this.data.sampling_frequency_index = new DescribedValue(
       bit_reader.getBits(4),
       AVS3Asampling_frequency,
@@ -154,9 +154,9 @@ class AVS3GHConfig extends AVS3data {
   constructor(bit_reader: BitBuffer) {
     super();
     this.data = {};
-    this.parse(bit_reader);
+    this.deserialise(bit_reader);
   }
-  parse(bit_reader: BitBuffer) {
+  deserialise(bit_reader: BitBuffer) {
     this.data.sampling_frequency_index = bit_reader.getBits(4);
     this.data.anc_data_index = bit_reader.getBit();
     this.data.coding_profile = new DescribedValue(bit_reader.getBits(3), AVS3Acodingprofile);
@@ -191,9 +191,9 @@ class AVS3LLConfig extends AVS3data {
   constructor(bit_reader: BitBuffer) {
     super();
     this.data = {};
-    this.parse(bit_reader);
+    this.deserialise(bit_reader);
   }
-  parse(bit_reader: BitBuffer) {
+  deserialise(bit_reader: BitBuffer) {
     this.data.sampling_frequency_index = bit_reader.getBits(4);
     if (this.data.sampling_frequency_index === 0xf)
       this.data.sampling_frequency = bit_reader.getUint24();
@@ -243,6 +243,6 @@ export class dca3Box extends Box {
   }
 
   get_audio_codec_id_str() {
-    return (this.audio_codec_id.get() < 9 ? '0' : '') + this.audio_codec_id.get();
+    return this.audio_codec_id.get().toString(10).padStart(2, '0');
   }
 }

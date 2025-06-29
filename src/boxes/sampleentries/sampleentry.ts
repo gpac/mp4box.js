@@ -95,22 +95,18 @@ export class av01SampleEntry extends VisualSampleEntry {
 }
 
 export class avs3SampleEntry extends VisualSampleEntry {
-  av3c: av3cBox;
   static override readonly fourcc = 'avs3' as const;
 
+  av3c: av3cBox;
+
   getCodec(): string {
-    const baseCodec = super.getCodec();
-    return (
-      baseCodec +
-      '.' +
-      (this.av3c.sequence_header?.data?.profile_id
-        ? this.av3c.sequence_header.data?.profile_id.get().toString(16)
-        : 'XX') +
-      '.' +
-      (this.av3c.sequence_header?.data?.level_id
-        ? this.av3c.sequence_header.data?.level_id.get().toString(16)
-        : 'XX')
-    );
+    const profile = this.av3c.sequence_header?.data?.profile_id
+      ? this.av3c.sequence_header.data?.profile_id.get().toString(16)
+      : 'XX';
+    const level = this.av3c.sequence_header?.data?.level_id
+      ? this.av3c.sequence_header.data?.level_id.get().toString(16)
+      : 'XX';
+    return `${super.getCodec()}.${profile}.${level}`;
   }
 }
 
@@ -395,11 +391,13 @@ export class fLaCSampleEntry extends AudioSampleEntry {
 }
 
 export class av3aSampleEntry extends AudioSampleEntry {
-  dca3: dca3Box;
+  // AATF (AVS3 Audio Transport Format) audio sample entry
   static override readonly fourcc = 'av3a' as const;
+
+  dca3: dca3Box;
+
   getCodec() {
-    const baseCodec = super.getCodec();
-    return baseCodec + '.' + this.dca3.get_audio_codec_id_str();
+    return `${super.getCodec()}.${this.dca3.get_audio_codec_id_str()}`;
   }
 }
 

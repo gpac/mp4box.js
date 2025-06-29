@@ -57,8 +57,22 @@ export class BinaryValue {
   }
 }
 
+export class BooleanValue {
+  private value: boolean;
+
+  constructor(value: boolean | number) {
+    this.value = typeof value === 'number' ? value > 0 : value;
+  }
+  toString() {
+    return `${this.value ? 1 : 0} (${this.value ? 'true' : 'false'})`;
+  }
+  public get() {
+    return this.value;
+  }
+}
+
 export class AVS3data {
-  toHTML(data): string {
+  toHTML(data: object): string {
     let res = '';
     const props = Object.getOwnPropertyNames(data);
     if (props)
