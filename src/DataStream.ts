@@ -10,6 +10,7 @@ import type {
   ValueFromType,
 } from '@types';
 import { MP4BoxBuffer } from '#/mp4boxbuffer';
+import type { ISOFile } from './isofile';
 
 type ReadTypeReturnValue =
   | string
@@ -41,6 +42,8 @@ export class DataStream {
     new Int8Array(new Int16Array([1]).buffer)[0] > 0
       ? Endianness.LITTLE_ENDIAN
       : Endianness.BIG_ENDIAN;
+
+  isofile: ISOFile | null = null; // Reference to the ISOFile object if any
 
   _buffer?: MP4BoxBuffer;
   _byteOffset?: number;
