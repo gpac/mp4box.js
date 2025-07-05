@@ -14,6 +14,7 @@ export * from '#/boxes/cmpd';
 export * from '#/boxes/co64';
 export * from '#/boxes/CoLL';
 export * from '#/boxes/colr';
+export * from '#/boxes/covi';
 export * from '#/boxes/cprt';
 export * from '#/boxes/csch';
 export * from '#/boxes/cslg';
