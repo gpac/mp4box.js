@@ -120,6 +120,10 @@ export class Box {
           const u8 = new Uint8Array(buffer);
           stream.writeUint8Array(u8);
         }
+      } else if (box.data) {
+        this.size = box.data.length;
+        this.writeHeader(stream);
+        stream.writeUint8Array(box.data);
       }
     } else {
       this.size = this.data ? this.data.length : 0;

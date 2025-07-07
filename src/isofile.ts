@@ -1705,11 +1705,34 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     /* The sample has only been partially fetched, we need to check in all buffers */
     while (true) {
-      const index = this.stream.findPosition(true, sample.offset + sample.alreadyRead, false);
+      let stream = this.stream;
+      let index = stream.findPosition(true, sample.offset + sample.alreadyRead, false);
+      let buffer: MP4BoxBuffer;
+      let fileStart: number;
       if (index > -1) {
-        const buffer = this.stream.buffers[index];
+        // We haven't yet transferred the sample data to mdat
+        buffer = stream.buffers[index];
+        fileStart = buffer.fileStart;
+      } else {
+        // We might have already transferred the sample data to mdat
+        for (const mdat of this.mdats) {
+          index = mdat.stream.findPosition(
+            true,
+            sample.offset + sample.alreadyRead - mdat.start - mdat.hdr_size,
+            false,
+          );
+          if (index > -1) {
+            stream = mdat.stream;
+            buffer = mdat.stream.buffers[index];
+            fileStart = mdat.start + mdat.hdr_size + buffer.fileStart;
+            break;
+          }
+        }
+      }
+
+      if (buffer) {
         const lengthAfterStart =
-          buffer.byteLength - (sample.offset + sample.alreadyRead - buffer.fileStart);
+          buffer.byteLength - (sample.offset + sample.alreadyRead - fileStart);
         if (sample.size - sample.alreadyRead <= lengthAfterStart) {
           /* the (rest of the) sample is entirely contained in this buffer */
 
@@ -1720,7 +1743,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               ' data (alreadyRead: ' +
               sample.alreadyRead +
               ' offset: ' +
-              (sample.offset + sample.alreadyRead - buffer.fileStart) +
+              (sample.offset + sample.alreadyRead - fileStart) +
               ' read size: ' +
               (sample.size - sample.alreadyRead) +
               ' full size: ' +
@@ -1732,13 +1755,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             sample.data.buffer,
             sample.alreadyRead,
             buffer,
-            sample.offset + sample.alreadyRead - buffer.fileStart,
+            sample.offset + sample.alreadyRead - fileStart,
             sample.size - sample.alreadyRead,
           );
 
           /* update the number of bytes used in this buffer and check if it needs to be removed */
           buffer.usedBytes += sample.size - sample.alreadyRead;
-          this.stream.logBufferLevel();
+          stream.logBufferLevel();
 
           sample.alreadyRead = sample.size;
 
@@ -1755,7 +1778,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               ' partial data (alreadyRead: ' +
               sample.alreadyRead +
               ' offset: ' +
-              (sample.offset + sample.alreadyRead - buffer.fileStart) +
+              (sample.offset + sample.alreadyRead - fileStart) +
               ' read size: ' +
               lengthAfterStart +
               ' full size: ' +
@@ -1769,14 +1792,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             sample.data.buffer,
             sample.alreadyRead,
             buffer,
-            sample.offset + sample.alreadyRead - buffer.fileStart,
+            sample.offset + sample.alreadyRead - fileStart,
             lengthAfterStart,
           );
           sample.alreadyRead += lengthAfterStart;
 
           /* update the number of bytes used in this buffer and check if it needs to be removed */
           buffer.usedBytes += lengthAfterStart;
-          this.stream.logBufferLevel();
+          stream.logBufferLevel();
 
           /* keep looking in the next buffer */
         }
