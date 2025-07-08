@@ -95,7 +95,14 @@ export interface FragmentedTrack<TUser> {
   trak: trakBox;
   segmentStream: DataStream;
   nb_samples: number;
+  nb_samples_per_fragment: number;
+  size_per_segment: number;
   rapAlignement: boolean;
+  state: Partial<{
+    lastFragmentSampleNumber: number;
+    lastSegmentSampleNumber: number;
+    accumulatedSize: number;
+  }>;
 }
 export interface ExtractedTrack<TUser> {
   id: number;

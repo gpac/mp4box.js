@@ -144,7 +144,7 @@ export class trakBox extends ContainerBox {
   udta: udtaBox;
   udtas: Array<udtaBox>;
   samples_duration: number;
-  samples: Array<Sample>;
+  samples: Array<Sample> = [];
   samples_size: number;
   nextSample: number;
   lastValidSample: number;
