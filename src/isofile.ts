@@ -240,11 +240,17 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   setSegmentOptions(
     id: number,
     user: TSegmentUser,
-    {
-      nbSamples: nb_samples = 1000,
-      rapAlignement = true,
-    }: { nbSamples?: number; rapAlignement?: boolean } = {},
+    { nbSamples = 1000, nbSamplesPerFragment = 1000, rapAlignement = true } = {},
   ) {
+    if (nbSamples <= 0 || nbSamplesPerFragment <= 0) {
+      throw new Error('nbSamples and nbSamplesPerFragment must be greater than 0');
+    }
+    if (nbSamples < nbSamplesPerFragment) {
+      throw new Error(
+        'nbSamplesPerFragment must be less than or equal to nbSamples (' + nbSamples + ')',
+      );
+    }
+
     const trak = this.getTrackById(id);
     if (trak) {
       const fragTrack = {
@@ -252,7 +258,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         user,
         trak,
         segmentStream: null,
-        nb_samples,
+        nb_samples: nbSamples,
+        nb_samples_per_fragment: nbSamplesPerFragment,
         rapAlignement,
       };
       this.fragmentedTracks.push(fragTrack);
@@ -678,26 +685,56 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         const fragTrak = this.fragmentedTracks[i];
         const trak = fragTrak.trak;
         while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
-          /* The sample information is there (either because the file is not fragmented and this is not the last sample,
-          or because the file is fragmented and the moof for that sample has been received */
-          Log.debug(
-            'ISOFile',
-            'Creating media fragment on track #' + fragTrak.id + ' for sample ' + trak.nextSample,
-          );
-          const result = this.createFragment(fragTrak.id, trak.nextSample, fragTrak.segmentStream);
-          if (result) {
-            fragTrak.segmentStream = result;
-            trak.nextSample++;
-          } else {
-            /* The fragment could not be created because the media data is not there (not downloaded), wait for it */
+          // Check if the sample is available
+          const sample = this.getSample(trak, trak.nextSample);
+          if (sample === null) {
+            this.setNextSeekPositionFromSample(trak.samples[trak.nextSample]);
+            /* The fragment cannot not be created because the media data is not there (not downloaded), wait for it */
+            console.warn('sample null');
             break;
           }
-          /* A fragment is created by sample, but the segment is the accumulation in the buffer of these fragments.
-             It is flushed only as requested by the application (nb_samples) to avoid too many callbacks */
+
+          /* The sample information is there (either because the file is not fragmented and this is not the last sample,
+          or because the file is fragmented and the moof for that sample has been received */
           if (
-            trak.nextSample % fragTrak.nb_samples === 0 ||
+            (trak.nextSample + 1) % fragTrak.nb_samples_per_fragment === 0 ||
+            (trak.nextSample + 1) % fragTrak.nb_samples === 0 ||
             last ||
-            trak.nextSample >= trak.samples.length
+            trak.nextSample + 1 >= trak.samples.length
+          ) {
+            Log.debug(
+              'ISOFile',
+              'Creating media fragment on track #' +
+                fragTrak.id +
+                ' for samples [' +
+                (fragTrak.lastFragmentSampleNumber ?? 0) +
+                ', ' +
+                trak.nextSample +
+                ']',
+            );
+
+            const result = this.createFragment(
+              fragTrak.id,
+              fragTrak.lastFragmentSampleNumber ?? 0,
+              trak.nextSample,
+              fragTrak.segmentStream,
+            );
+            if (result) {
+              fragTrak.segmentStream = result;
+              fragTrak.lastFragmentSampleNumber = trak.nextSample + 1;
+            } else {
+              /* The fragment could not be created because the media data is not there (not downloaded), wait for it */
+              break;
+            }
+          }
+
+          /* A fragment is created by a collection of samples, but the segment is the accumulation in the
+          buffer of these fragments. It is flushed only as requested by the application (nb_samples)
+          to avoid too many callbacks */
+          if (
+            (trak.nextSample + 1) % fragTrak.nb_samples === 0 ||
+            last ||
+            trak.nextSample + 1 >= trak.samples.length
           ) {
             Log.info(
               'ISOFile',
@@ -705,7 +742,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
                 fragTrak.id +
                 ' for samples [' +
                 Math.max(0, trak.nextSample - fragTrak.nb_samples) +
-                ',' +
+                ', ' +
                 (trak.nextSample - 1) +
                 ']',
             );
@@ -715,7 +752,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
                 fragTrak.id,
                 fragTrak.user,
                 fragTrak.segmentStream.buffer,
-                trak.nextSample,
+                trak.nextSample + 1,
                 last || trak.nextSample >= trak.samples.length,
               );
             }
@@ -726,6 +763,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               break;
             }
           }
+
+          // Advance to the next sample
+          trak.nextSample++;
         }
       }
     }
@@ -996,18 +1036,28 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /** @bundle isofile-write.js */
-  createFragment(track_id: number, sampleNumber: number, _stream: DataStream) {
-    const trak = this.getTrackById(track_id);
-    const sample = this.getSample(trak, sampleNumber);
-    if (sample === null) {
-      this.setNextSeekPositionFromSample(trak.samples[sampleNumber]);
-      return null;
+  createFragment(
+    track_id: number,
+    sampleStart: number,
+    sampleEnd: number,
+    existingStream: DataStream,
+  ) {
+    // Check existence of all samples
+    const samples: Array<Sample> = [];
+    for (let i = sampleStart; i <= sampleEnd; i++) {
+      const trak = this.getTrackById(track_id);
+      const sample = this.getSample(trak, i);
+      if (sample === null) {
+        this.setNextSeekPositionFromSample(trak.samples[i]);
+        return null;
+      }
+      samples.push(sample);
     }
 
-    const stream = _stream || new DataStream();
+    const stream = existingStream || new DataStream();
     stream.endianness = Endianness.BIG_ENDIAN;
 
-    const moof = this.createSingleSampleMoof(sample);
+    const moof = this.createMoof(samples);
     moof.write(stream);
 
     /* adjusting the data_offset now that the moof size is known*/
@@ -1022,7 +1072,15 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     );
 
     const mdat = new mdatBox();
-    mdat.data = sample.data;
+    mdat.stream = new MultiBufferStream();
+    let offset = 0;
+    for (const sample of samples) {
+      if (sample.data) {
+        const mp4Buffer = MP4BoxBuffer.fromArrayBuffer(sample.data.buffer, offset);
+        mdat.stream.insertBuffer(mp4Buffer);
+        offset += sample.data.byteLength;
+      }
+    }
     mdat.write(stream);
     return stream;
   }
@@ -2666,7 +2724,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     this.processSamples();
 
-    const moof = this.addBox(this.createSingleSampleMoof(sample));
+    const moof = this.addBox(this.createMoof([sample]));
     moof.computeSize();
     /* adjusting the data_offset now that the moof size is known*/
     moof.trafs[0].truns[0].data_offset = moof.size + 8; //8 is mdat header
@@ -2678,29 +2736,40 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /** @bundle isofile-advanced-creation.js */
-  createSingleSampleMoof(sample: Sample) {
-    let sample_flags = 0;
-    if (sample.is_sync)
-      sample_flags = 1 << 25; // sample_depends_on_none (I picture)
-    else sample_flags = 1 << 16; // non-sync
+  createMoof(samples: Array<Sample>) {
+    // All samples must be from the same track
+    if (samples.length === 0) return null;
+    if (samples.some(s => s.track_id !== samples[0].track_id)) {
+      throw new Error(
+        'Cannot create moof for samples from different tracks: ' +
+          samples.map(s => s.track_id).join(', '),
+      );
+    }
+    const trackId = samples[0].track_id;
+    const trak = this.getTrackById(trackId);
+    if (trak === null) {
+      throw new Error('Cannot create moof for non-existing track: ' + trackId);
+    }
 
+    // Create the moof box
     const moof = new moofBox();
 
+    // Add the mfhd box with the sequence number
     const mfhd = moof.addBox(new mfhdBox());
     mfhd.sequence_number = this.nextMoofNumber;
-
     this.nextMoofNumber++;
 
+    // Create the traf box
     const traf = moof.addBox(new trafBox());
-    const trak = this.getTrackById(sample.track_id);
 
+    // Add the tfhd and tfdt boxes
     const tfhd = traf.addBox(new tfhdBox());
-    tfhd.track_id = sample.track_id;
+    tfhd.track_id = trackId;
     tfhd.flags = TFHD_FLAG_DEFAULT_BASE_IS_MOOF;
-
     const tfdt = traf.addBox(new tfdtBox());
-    tfdt.baseMediaDecodeTime = sample.dts - (trak.first_dts || 0);
+    tfdt.baseMediaDecodeTime = samples[0].dts - (trak.first_dts || 0);
 
+    // Construct the trun box
     const trun = traf.addBox(new trunBox());
     trun.flags =
       TRUN_FLAGS_DATA_OFFSET |
@@ -2710,11 +2779,19 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       TRUN_FLAGS_CTS_OFFSET;
     trun.data_offset = 0;
     trun.first_sample_flags = 0;
-    trun.sample_count = 1;
-    trun.sample_duration = [sample.duration];
-    trun.sample_size = [sample.size];
-    trun.sample_flags = [sample_flags];
-    trun.sample_composition_time_offset = [sample.cts - sample.dts];
+    trun.sample_count = samples.length;
+
+    for (const sample of samples) {
+      let sample_flags = 0;
+      if (sample.is_sync)
+        sample_flags = 1 << 25; // sample_depends_on_none (I picture)
+      else sample_flags = 1 << 16; // non-sync
+
+      trun.sample_duration.push(sample.duration);
+      trun.sample_size.push(sample.size);
+      trun.sample_flags.push(sample_flags);
+      trun.sample_composition_time_offset.push(sample.cts - sample.dts);
+    }
 
     return moof;
   }

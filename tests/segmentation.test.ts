@@ -11,7 +11,8 @@ describe('File Segmentation', () => {
 
     // Set up the segmentation options
     mp4.setSegmentOptions(201, null, {
-      nbSamples: 50,
+      nbSamples: 100,
+      nbSamplesPerFragment: 50,
       rapAlignement: false,
     });
 
@@ -42,7 +43,8 @@ describe('File Segmentation', () => {
 
     // Assertions
     expect(newMP4.getTrackById(201).samples.length).toBe(250);
-    expect(out.getAbsoluteEndPosition()).toBe(174410);
-    expect(segmentCount).toBe(5);
+    expect(out.getAbsoluteEndPosition()).toBe(151870);
+    expect(segmentCount).toBe(3);
+    expect(newMP4.getBoxes('moof', false).length).toBe(5);
   });
 });

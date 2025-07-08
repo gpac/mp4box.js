@@ -95,6 +95,8 @@ export interface FragmentedTrack<TUser> {
   trak: trakBox;
   segmentStream: DataStream;
   nb_samples: number;
+  nb_samples_per_fragment: number;
+  lastFragmentSampleNumber?: number;
   rapAlignement: boolean;
 }
 export interface ExtractedTrack<TUser> {
