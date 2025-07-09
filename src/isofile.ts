@@ -254,6 +254,15 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     let nbSamples = opts.nbSamples ?? opts.nbSamplesPerFragment ?? 1000;
     const nbSamplesPerFragment = opts.nbSamplesPerFragment ?? nbSamples;
 
+    // Validate number of samples
+    if (nbSamples <= 0 || nbSamplesPerFragment <= 0 || sizePerSegment <= 0) {
+      Log.error(
+        'ISOFile',
+        `Invalid segment options: nbSamples=${nbSamples}, nbSamplesPerFragment=${nbSamplesPerFragment}, sizePerSegment=${sizePerSegment}`,
+      );
+      return;
+    }
+
     // Check if the number of samples is valid
     if (nbSamples < nbSamplesPerFragment) {
       Log.warn(
@@ -263,9 +272,18 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       nbSamples = nbSamplesPerFragment;
     }
 
+    // Number of samples per segment must be same across all tracks
+    if (this.fragmentedTracks.some(track => track.nb_samples !== nbSamples)) {
+      Log.error(
+        'ISOFile',
+        `Cannot set segment options for track ${id}: nbSamples (${nbSamples}) does not match existing tracks`,
+      );
+      return;
+    }
+
     const trak = this.getTrackById(id);
     if (trak) {
-      const fragTrack = {
+      const fragTrack: FragmentedTrack<TSegmentUser> = {
         id,
         user,
         trak,
@@ -699,146 +717,154 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
        check if the next sample is there (i.e. if the sample information is known (i.e. moof has arrived) and if it has been downloaded)
        and create a fragment with it */
     if (this.isFragmentationInitialized && this.onSegment !== null) {
-      for (let i = 0; i < this.fragmentedTracks.length; i++) {
-        const fragTrak = this.fragmentedTracks[i];
-        const trak = fragTrak.trak;
-        while (trak.nextSample < trak.samples.length && this.sampleProcessingStarted) {
-          // Check if the sample is available
-          const sample = this.getSample(trak, trak.nextSample);
-          if (sample === null) {
-            this.setNextSeekPositionFromSample(trak.samples[trak.nextSample]);
-            /* The fragment cannot not be created because the media data is not there (not downloaded), wait for it */
-            break;
-          }
+      const consumedTracks = new Set<number>();
+      while (
+        consumedTracks.size < this.fragmentedTracks.length &&
+        this.fragmentedTracks.some(track => track.trak.nextSample < track.trak.samples.length) &&
+        this.sampleProcessingStarted
+      ) {
+        for (const fragTrak of this.fragmentedTracks) {
+          const trak = fragTrak.trak;
+          if (!consumedTracks.has(fragTrak.id) && trak.nextSample < trak.samples.length) {
+            // Check if the sample is available
+            const sample = this.getSample(trak, trak.nextSample);
+            if (sample === null) {
+              this.setNextSeekPositionFromSample(trak.samples[trak.nextSample]);
+              /* The fragment cannot not be created because the media data is not there (not downloaded), wait for it */
+              consumedTracks.add(fragTrak.id);
+              continue;
+            }
 
-          // Accumulate the size of the sample in the fragment state
-          fragTrak.state.accumulatedSize += sample.size;
+            // Accumulate the size of the sample in the fragment state
+            fragTrak.state.accumulatedSize += sample.size;
 
-          // Check if fragment or segment are overdue or if we are at a boundary
-          const sampleNum = trak.nextSample + 1;
-          const isFragmentOverdue =
-            sampleNum - fragTrak.state.lastFragmentSampleNumber > fragTrak.nb_samples_per_fragment;
-          const isSegmentOverdue =
-            sampleNum - fragTrak.state.lastSegmentSampleNumber > fragTrak.nb_samples;
-          let isFragmentBoundary =
-            isFragmentOverdue || sampleNum % fragTrak.nb_samples_per_fragment === 0;
-          let isSegmentBoundary = isSegmentOverdue || sampleNum % fragTrak.nb_samples === 0;
+            // Check if fragment or segment are overdue or if we are at a boundary
+            const sampleNum = trak.nextSample + 1;
+            const isFragmentOverdue =
+              sampleNum - fragTrak.state.lastFragmentSampleNumber >
+              fragTrak.nb_samples_per_fragment;
+            const isSegmentOverdue =
+              sampleNum - fragTrak.state.lastSegmentSampleNumber > fragTrak.nb_samples;
+            let isFragmentBoundary =
+              isFragmentOverdue || sampleNum % fragTrak.nb_samples_per_fragment === 0;
+            let isSegmentBoundary = isSegmentOverdue || sampleNum % fragTrak.nb_samples === 0;
 
-          // Check if the segment size is reached
-          let isSizeBoundary = fragTrak.state.accumulatedSize >= fragTrak.size_per_segment;
+            // Check if the segment size is reached
+            let isSizeBoundary = fragTrak.state.accumulatedSize >= fragTrak.size_per_segment;
 
-          // Check if the sample is a RAP (Random Access Point)
-          const isRAP = !fragTrak.rapAlignement || sample.is_sync;
+            // Check if the sample is a RAP (Random Access Point)
+            const isRAP = !fragTrak.rapAlignement || sample.is_sync;
 
-          // During flush, we create a fragment even if we are not at a boundary
-          const isFlush = last || trak.nextSample + 1 >= trak.samples.length;
-          if (isFlush && !isRAP) {
-            Log.warn(
-              'ISOFile',
-              'Flushing track #' +
-                fragTrak.id +
-                ' at sample #' +
-                trak.nextSample +
-                ' which is not a RAP, this may lead to playback issues',
-            );
-          }
-
-          // Align fragment/segment boundaries with RAPs if requested
-          isFragmentBoundary = isFragmentBoundary && isRAP;
-          isSegmentBoundary = isSegmentBoundary && isRAP;
-          isSizeBoundary = isSizeBoundary && isRAP;
-
-          // Create a fragment if needed
-          if (isFragmentBoundary || isSizeBoundary || isFlush) {
-            if (isFragmentOverdue) {
+            // During flush, we create a fragment even if we are not at a boundary
+            const isFlush = last || trak.nextSample + 1 >= trak.samples.length;
+            if (isFlush && !isRAP) {
               Log.warn(
                 'ISOFile',
-                'Fragment on track #' +
+                'Flushing track #' +
                   fragTrak.id +
-                  ' is overdue, creating it with samples [' +
-                  fragTrak.state.lastFragmentSampleNumber +
-                  ', ' +
+                  ' at sample #' +
                   trak.nextSample +
-                  ']',
-              );
-            } else {
-              Log.debug(
-                'ISOFile',
-                'Creating media fragment on track #' +
-                  fragTrak.id +
-                  ' for samples [' +
-                  fragTrak.state.lastFragmentSampleNumber +
-                  ', ' +
-                  trak.nextSample +
-                  ']',
+                  ' which is not a RAP, this may lead to playback issues',
               );
             }
 
-            const result = this.createFragment(
-              fragTrak.id,
-              fragTrak.state.lastFragmentSampleNumber,
-              trak.nextSample,
-              fragTrak.segmentStream,
-            );
-            if (result) {
-              fragTrak.segmentStream = result;
-              fragTrak.state.lastFragmentSampleNumber = trak.nextSample + 1;
-            } else {
-              /* The fragment could not be created because the media data is not there (not downloaded), wait for it */
-              break;
-            }
-          }
+            // Align fragment/segment boundaries with RAPs if requested
+            isFragmentBoundary = isFragmentBoundary && isRAP;
+            isSegmentBoundary = isSegmentBoundary && isRAP;
+            isSizeBoundary = isSizeBoundary && isRAP;
 
-          /* A fragment is created by a collection of samples, but the segment is the accumulation in the
-          buffer of these fragments. It is flushed only as requested by the application (nb_samples)
-          to avoid too many callbacks */
-          if (isSegmentBoundary || isSizeBoundary || isFlush) {
-            if (isSegmentOverdue) {
-              Log.warn(
-                'ISOFile',
-                'Segment on track #' +
-                  fragTrak.id +
-                  ' is overdue, sending it with samples [' +
-                  Math.max(0, trak.nextSample - fragTrak.nb_samples) +
-                  ', ' +
-                  (trak.nextSample - 1) +
-                  ']',
+            // Create a fragment if needed
+            if (isFragmentBoundary || isSizeBoundary || isFlush) {
+              if (isFragmentOverdue) {
+                Log.warn(
+                  'ISOFile',
+                  'Fragment on track #' +
+                    fragTrak.id +
+                    ' is overdue, creating it with samples [' +
+                    fragTrak.state.lastFragmentSampleNumber +
+                    ', ' +
+                    trak.nextSample +
+                    ']',
+                );
+              } else {
+                Log.debug(
+                  'ISOFile',
+                  'Creating media fragment on track #' +
+                    fragTrak.id +
+                    ' for samples [' +
+                    fragTrak.state.lastFragmentSampleNumber +
+                    ', ' +
+                    trak.nextSample +
+                    ']',
+                );
+              }
+
+              const result = this.createFragment(
+                fragTrak.id,
+                fragTrak.state.lastFragmentSampleNumber,
+                trak.nextSample,
+                fragTrak.segmentStream,
               );
-            } else {
+              if (result) {
+                fragTrak.segmentStream = result;
+                fragTrak.state.lastFragmentSampleNumber = trak.nextSample + 1;
+              } else {
+                /* The fragment could not be created because the media data is not there (not downloaded), wait for it */
+                consumedTracks.add(fragTrak.id);
+                continue;
+              }
+            }
+
+            /* A fragment is created by a collection of samples, but the segment is the accumulation in the
+            buffer of these fragments. It is flushed only as requested by the application (nb_samples)
+            to avoid too many callbacks */
+            if (isSegmentBoundary || isSizeBoundary || isFlush) {
+              if (isSegmentOverdue) {
+                Log.warn(
+                  'ISOFile',
+                  'Segment on track #' +
+                    fragTrak.id +
+                    ' is overdue, sending it with samples [' +
+                    Math.max(0, trak.nextSample - fragTrak.nb_samples) +
+                    ', ' +
+                    (trak.nextSample - 1) +
+                    ']',
+                );
+              } else {
+                Log.info(
+                  'ISOFile',
+                  'Sending fragmented data on track #' +
+                    fragTrak.id +
+                    ' for samples [' +
+                    Math.max(0, trak.nextSample - fragTrak.nb_samples) +
+                    ', ' +
+                    (trak.nextSample - 1) +
+                    ']',
+                );
+              }
               Log.info(
                 'ISOFile',
-                'Sending fragmented data on track #' +
-                  fragTrak.id +
-                  ' for samples [' +
-                  Math.max(0, trak.nextSample - fragTrak.nb_samples) +
-                  ', ' +
-                  (trak.nextSample - 1) +
-                  ']',
+                'Sample data size in memory: ' + this.getAllocatedSampleDataSize(),
               );
+              if (this.onSegment) {
+                this.onSegment(
+                  fragTrak.id,
+                  fragTrak.user,
+                  fragTrak.segmentStream.buffer,
+                  trak.nextSample + 1,
+                  last || trak.nextSample + 1 >= trak.samples.length,
+                );
+              }
+              /* force the creation of a new buffer */
+              fragTrak.segmentStream = null;
+              // Reset the accumulated size and sample number
+              fragTrak.state.accumulatedSize = 0;
+              fragTrak.state.lastSegmentSampleNumber = trak.nextSample + 1;
             }
-            Log.info('ISOFile', 'Sample data size in memory: ' + this.getAllocatedSampleDataSize());
-            if (this.onSegment) {
-              this.onSegment(
-                fragTrak.id,
-                fragTrak.user,
-                fragTrak.segmentStream.buffer,
-                trak.nextSample + 1,
-                last || trak.nextSample + 1 >= trak.samples.length,
-              );
-            }
-            /* force the creation of a new buffer */
-            fragTrak.segmentStream = null;
-            if (fragTrak !== this.fragmentedTracks[i]) {
-              /* make sure we can stop fragmentation if needed */
-              break;
-            }
-            // Reset the accumulated size and sample number
-            fragTrak.state.accumulatedSize = 0;
-            fragTrak.state.lastSegmentSampleNumber = trak.nextSample + 1;
-          }
 
-          // Advance to the next sample
-          trak.nextSample++;
+            // Advance to the next sample
+            trak.nextSample++;
+          }
         }
       }
     }
@@ -1162,12 +1188,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * Modify the file and create the initialization segment
    * @bundle isofile-write.js
    */
-  static writeInitializationSegment(
-    ftyp: ftypBox,
-    moov: moovBox,
-    total_duration: number,
-    sample_duration: number,
-  ) {
+  static writeInitializationSegment(ftyp: ftypBox, moov: moovBox, total_duration: number) {
     Log.debug('ISOFile', 'Generating initialization segment');
 
     const stream = new DataStream();
@@ -1180,15 +1201,16 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       const mehd = mvex.addBox(new mehdBox());
       mehd.fragment_duration = total_duration;
     }
+
+    // Add trex boxes for each track
     for (let i = 0; i < moov.traks.length; i++) {
       const trex = mvex.addBox(new trexBox());
       trex.track_id = moov.traks[i].tkhd.track_id;
       trex.default_sample_description_index = 1;
-      trex.default_sample_duration = sample_duration;
+      trex.default_sample_duration = moov.traks[i].samples[0]?.duration ?? 0;
       trex.default_sample_size = 0;
       trex.default_sample_flags = 1 << 16;
     }
-
     moov.write(stream);
 
     return stream.buffer;
@@ -1219,30 +1241,37 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
     if (!this.isFragmentationInitialized) {
       this.isFragmentationInitialized = true;
-      this.nextMoofNumber = 0;
       this.resetTables();
     }
-    const initSegs: Array<{ id: number; user: TSegmentUser; buffer: MP4BoxBuffer }> = [];
+
+    // Create the moov that will hold all the tracks
+    const moov = new moovBox();
+    moov.addBox(this.moov.mvhd);
+
+    // Add the tracks we want to fragment
     for (let i = 0; i < this.fragmentedTracks.length; i++) {
-      const moov = new moovBox();
-      moov.mvhd = this.moov.mvhd;
-      moov.addBox(moov.mvhd);
       const trak = this.getTrackById(this.fragmentedTracks[i].id);
+      if (!trak) {
+        Log.warn(
+          'ISOFile',
+          `Track with id ${this.fragmentedTracks[i].id} not found, skipping fragmentation initialization`,
+        );
+        continue;
+      }
       moov.addBox(trak);
-      moov.traks.push(trak);
-      const seg = {
+    }
+
+    return {
+      tracks: moov.traks.map((trak, i) => ({
         id: trak.tkhd.track_id,
         user: this.fragmentedTracks[i].user,
-        buffer: ISOFile.writeInitializationSegment(
-          this.ftyp,
-          moov,
-          this.moov.mvex && this.moov.mvex.mehd ? this.moov.mvex.mehd.fragment_duration : undefined,
-          this.moov.traks[i].samples.length > 0 ? this.moov.traks[i].samples[0].duration : 0,
-        ),
-      };
-      initSegs.push(seg);
-    }
-    return initSegs;
+      })),
+      buffer: ISOFile.writeInitializationSegment(
+        this.ftyp,
+        moov,
+        this.moov?.mvex?.mehd.fragment_duration,
+      ),
+    };
   }
 
   /**
@@ -2829,8 +2858,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     // Add the mfhd box with the sequence number
     const mfhd = moof.addBox(new mfhdBox());
-    mfhd.sequence_number = this.nextMoofNumber;
-    this.nextMoofNumber++;
+    mfhd.sequence_number = ++this.nextMoofNumber;
 
     // Create the traf box
     const traf = moof.addBox(new trafBox());
