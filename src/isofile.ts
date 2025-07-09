@@ -823,7 +823,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
                 fragTrak.user,
                 fragTrak.segmentStream.buffer,
                 trak.nextSample + 1,
-                last || trak.nextSample >= trak.samples.length,
+                last || trak.nextSample + 1 >= trak.samples.length,
               );
             }
             /* force the creation of a new buffer */

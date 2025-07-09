@@ -39,11 +39,15 @@ describe('File Segmentation', () => {
 
     // Write segments to the output stream
     let segmentCount = 0;
-    mp4.onSegment = (id, user, buffer, _nextSample, _last) => {
+    mp4.onSegment = (id, user, buffer, _, last) => {
       out.insertBuffer(MP4BoxBuffer.fromArrayBuffer(buffer, offset));
       offset += buffer.byteLength;
       segmentCount++;
       saveBufferToFile(buffer, task.id, false);
+
+      // Check if the last segment is reached
+      if (segmentCount === 3) expect(last).toBe(true);
+      else expect(last).toBe(false);
     };
 
     // Start the segmentation process
