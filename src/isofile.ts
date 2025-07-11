@@ -917,7 +917,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   getBoxes(type: AllIdentifiers, returnEarly: boolean) {
-    const result = [];
+    const result: Array<Box> = [];
 
     const sweep = (root: Box | ISOFile) => {
       if (root instanceof Box && root.type && root.type === type) {
@@ -2681,10 +2681,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       sde.depth = 0x18;
 
       if (options.avcDecoderConfigRecord) {
-        const avcC = sde.addBox(new avcCBox());
+        const avcC = sde.addBox(new avcCBox(options.avcDecoderConfigRecord.byteLength));
         avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
       } else if (options.hevcDecoderConfigRecord) {
-        const hvcC = sde.addBox(new hvcCBox());
+        const hvcC = sde.addBox(new hvcCBox(options.hevcDecoderConfigRecord.byteLength));
         hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
       }
     } else if (sample_description_entry instanceof AudioSampleEntry) {
@@ -2723,8 +2723,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         (sample_description_entry.addBox as (box: Box) => Box).call(sample_description_entry, b);
       });
     }
-    minf.addBox(new dinfBox());
-    const dref = minf.addBox(new drefBox());
+    const dinf = minf.addBox(new dinfBox());
+    const dref = dinf.addBox(new drefBox());
     const url = new urlBox();
     url.flags = 0x1;
     dref.addEntry(url);

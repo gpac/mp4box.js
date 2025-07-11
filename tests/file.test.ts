@@ -1,23 +1,74 @@
-import { createFile } from '../entries/all';
+import { createFile, DataStream, Endianness, MP4BoxBuffer, type Sample } from '../entries/all';
+import { getFilePath, loadAndGetInfo } from './common';
 
-describe('File Creation', () => {
-  it('addSample and file save', () => {
-    const f = createFile(true);
-    const track_id = f.addTrack();
-    f.addSample(track_id, new Uint8Array(100));
-    f.addSample(track_id, new Uint8Array(100));
-    const blob = f.save('test.mp4');
-    expect(blob).toBeInstanceOf(Blob);
-    expect(blob.size).toBe(972);
+async function collectTestSamples() {
+  const { testFile } = getFilePath('isobmff', '17_negative_ctso.mp4');
+  const { mp4 } = await loadAndGetInfo(testFile, true, true);
+
+  // Extract samples from the MP4 file
+  mp4.setExtractionOptions(1, null, { nbSamples: 100 });
+
+  // Create a new promise to handle the extraction
+  const samples = await new Promise<Array<Sample>>(resolve => {
+    // Set up the onSamples callback to resolve the promise
+    mp4.onSamples = (id, user, extracted) => resolve(extracted);
+
+    // Start the extraction process
+    mp4.start();
   });
 
-  it('Create simple stpp track and save file', () => {
-    const f = createFile(true);
-    const track_id = f.addTrack({ type: 'stpp', hdlr: 'subt', namespace: 'mynamespace' });
-    f.addSample(track_id, new TextEncoder().encode('<xml></xml>'));
-    f.addSample(track_id, new TextEncoder().encode('<xml></xml>'));
-    const blob = f.save('stpp-track.mp4');
-    expect(blob).toBeInstanceOf(Blob);
-    expect(blob.size).toBe(730);
+  // Extract the decoder configuration
+  const avcC = new DataStream();
+  avcC.endianness = Endianness.BIG_ENDIAN;
+  mp4.getBox('avcC').write(avcC);
+
+  // Wrap it as an ArrayBuffer
+  const decoderConfig = new ArrayBuffer(avcC.buffer.byteLength - 8);
+  new Uint8Array(decoderConfig).set(new Uint8Array(avcC.buffer, 8));
+
+  return { samples, decoderConfig };
+}
+
+describe('File Creation', () => {
+  it('should create a valid file', async () => {
+    // Get test samples
+    const { samples, decoderConfig } = await collectTestSamples();
+
+    // Create a new MP4 file
+    const mp4 = createFile();
+
+    // Create a new track
+    const track = mp4.addTrack({
+      timescale: 100,
+      avcDecoderConfigRecord: decoderConfig,
+      width: 320,
+      height: 180,
+    });
+
+    // Add samples to the track
+    for (const sample of samples) {
+      mp4.addSample(track, sample.data, {
+        duration: sample.duration,
+        cts: sample.cts,
+        dts: sample.dts,
+        is_sync: sample.is_sync,
+      });
+    }
+
+    // Output the file to a buffer
+    const ds = new DataStream();
+    ds.endianness = Endianness.BIG_ENDIAN;
+    mp4.write(ds);
+
+    // Create a new MP4 file from the output stream
+    const newMP4 = createFile(true);
+    newMP4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(ds.buffer, 0), true);
+    newMP4.flush();
+
+    // Assertions
+    expect(newMP4.getInfo().tracks.length).toBe(1);
+    expect(newMP4.getTrackById(1).samples.length).toBe(100);
+    expect(newMP4.getBoxes('moof', false).length).toBe(100);
+    expect(ds.buffer.byteLength).toBe(40_591);
   });
 });

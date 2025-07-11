@@ -8,7 +8,7 @@ import { MAX_SIZE } from '#/constants';
 import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
 import { MP4BoxStream } from '#/stream';
-import type { BoxFourCC, Extends, Output, Reference } from '@types';
+import type { BoxFourCC, Output, Reference } from '@types';
 import type { mdatBox } from 'entries/all-boxes';
 
 export class Box {
@@ -41,7 +41,7 @@ export class Box {
 
   constructor(public size = 0) {}
 
-  addBox<T extends Extends<this, Box>>(box: T): T {
+  addBox<T extends Box>(box: T): T {
     if (!this.boxes) {
       this.boxes = [];
     }
