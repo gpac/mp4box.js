@@ -2773,8 +2773,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       is_depended_on = 0,
       has_redundancy = 0,
       degradation_priority = 0,
-      offset = 0,
       subsamples,
+      offset = 0,
     }: {
       sample_description_index?: number;
       duration?: number;
