@@ -1,7 +1,7 @@
 import { Log } from '#//log';
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { MAX_SIZE } from '#/constants';
+import { MAX_UINT32 } from '#/constants';
 
 export class mehdBox extends FullBox {
   static override readonly fourcc = 'mehd' as const;
@@ -24,7 +24,7 @@ export class mehdBox extends FullBox {
 
   /** @bundle writing/mehd.js */
   write(stream: MultiBufferStream) {
-    const useVersion1 = this.fragment_duration > MAX_SIZE || this.version === 1;
+    const useVersion1 = this.fragment_duration > MAX_UINT32 || this.version === 1;
     this.version = useVersion1 ? 1 : 0;
 
     this.size = 4;
