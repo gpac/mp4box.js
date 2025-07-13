@@ -1876,6 +1876,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       } else {
         // We might have already transferred the sample data to mdat
         for (const mdat of this.mdats) {
+          if (!mdat.stream) continue;
           index = mdat.stream.findPosition(
             true,
             sample.offset + sample.alreadyRead - mdat.start - mdat.hdr_size,
