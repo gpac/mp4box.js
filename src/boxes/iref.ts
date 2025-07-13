@@ -21,6 +21,7 @@ const REFERENCE_TYPE_NAMES = {
   pred: 'Predictively coded item',
   prem: 'Pre-multiplied item',
   tbas: 'HEVC tile track base item',
+  text: 'Text item',
   thmb: 'Thumbnail image item',
 };
 
@@ -45,6 +46,7 @@ export class irefBox extends FullBox {
     'pred',
     'prem',
     'tbas',
+    'text',
     'thmb',
   ] as const;
 
