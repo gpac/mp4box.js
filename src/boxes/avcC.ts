@@ -1,6 +1,6 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { DataStream, Endianness } from '#/DataStream';
+import { DataStream } from '#/DataStream';
 import { MP4BoxStream } from '#/stream';
 import { ParameterSetArray } from './displays/parameterSetArray';
 
@@ -66,12 +66,12 @@ export class avcCBox extends Box {
     stream.writeUint8(this.lengthSizeMinusOne + (63 << 2));
     stream.writeUint8(this.SPS.length + (7 << 5));
     for (let i = 0; i < this.SPS.length; i++) {
-      stream.writeUint16(this.SPS[i].length, Endianness.BIG_ENDIAN);
+      stream.writeUint16(this.SPS[i].length);
       stream.writeUint8Array(this.SPS[i].data);
     }
     stream.writeUint8(this.PPS.length);
     for (let i = 0; i < this.PPS.length; i++) {
-      stream.writeUint16(this.PPS[i].length, Endianness.BIG_ENDIAN);
+      stream.writeUint16(this.PPS[i].length);
       stream.writeUint8Array(this.PPS[i].data);
     }
     if (this.ext) {
