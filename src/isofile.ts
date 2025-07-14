@@ -1877,7 +1877,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         // We might have already transferred the sample data to mdat
         for (const mdat of this.mdats) {
           if (!mdat.stream) {
-		  Log.warn('ISOFile', 'Expecting data in an mdat but stream is not present');
+		  Log.warn('ISOFile', 'Expecting data in an mdat but stream is not present. Ignoring...');
 		  continue;
 	  }
           index = mdat.stream.findPosition(
