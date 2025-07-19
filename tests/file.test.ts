@@ -1,5 +1,5 @@
 import { createFile, DataStream, Endianness, MP4BoxBuffer, type Sample } from '../entries/all';
-import { getFilePath, loadAndGetInfo } from './common';
+import { getFilePath, getFileRange, loadAndGetInfo } from './common';
 
 async function collectTestSamples() {
   const { testFile } = getFilePath('isobmff', '17_negative_ctso.mp4');
@@ -70,5 +70,24 @@ describe('File Creation', () => {
     expect(newMP4.getTrackById(1).samples.length).toBe(100);
     expect(newMP4.getBoxes('moof', false).length).toBe(100);
     expect(ds.buffer.byteLength).toBe(40_591);
+  });
+
+  it('should not fail with incomplete mdat', async () => {
+    const { testFile } = getFilePath('isobmff', '17_negative_ctso.mp4');
+    const mp4 = createFile(false);
+
+    // Load only until the first sample
+    const mdatOffset = 17_105 + 8; // ftyp + moov + mdat header
+    const firstSampleSize = 2_895; // mdat header + first sample size
+    await getFileRange(testFile, data => mp4.appendBuffer(data), 0, mdatOffset + firstSampleSize);
+
+    // Setup for extraction
+    mp4.setExtractionOptions(1, null, { nbSamples: 1 });
+    let sampleCount = 0;
+    mp4.onSamples = (id, user, extracted) => (sampleCount += extracted.length);
+    mp4.start();
+
+    // Check if the sample is extracted correctly
+    expect(sampleCount).toBe(0);
   });
 });
