@@ -36,7 +36,6 @@ export class elstBox extends FullBox {
     this.size += useVersion1 ? 2 * 4 * this.entries.length : 0;
 
     this.writeHeader(stream);
-
     stream.writeUint32(this.entries.length);
     for (let i = 0; i < this.entries.length; i++) {
       const entry = this.entries[i];

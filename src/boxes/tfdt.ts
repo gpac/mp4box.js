@@ -28,7 +28,6 @@ export class tfdtBox extends FullBox {
 
     this.flags = 0;
     this.writeHeader(stream);
-
     if (useVersion1) {
       stream.writeUint64(this.baseMediaDecodeTime);
     } else {
