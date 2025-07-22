@@ -1,6 +1,7 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import type { Entry } from '@types';
+import { MAX_UINT32 } from '#/constants';
 
 export class elstBox extends FullBox {
   static override readonly fourcc = 'elst' as const;
@@ -25,12 +26,20 @@ export class elstBox extends FullBox {
 
   /** @bundle writing/elst.js */
   write(stream: MultiBufferStream) {
+    const useVersion1 =
+      this.entries.some(
+        entry => entry.segment_duration > MAX_UINT32 || entry.media_time > MAX_UINT32,
+      ) || this.version === 1;
+    this.version = useVersion1 ? 1 : 0;
+
     this.size = 4 + 12 * this.entries.length;
+    this.size += useVersion1 ? 2 * 4 * this.entries.length : 0;
+
     this.writeHeader(stream);
     stream.writeUint32(this.entries.length);
     for (let i = 0; i < this.entries.length; i++) {
       const entry = this.entries[i];
-      if (this.version === 1) {
+      if (useVersion1) {
         stream.writeUint64(entry.segment_duration);
         stream.writeInt64(entry.media_time);
       } else {

@@ -1,4 +1,5 @@
 export const MAX_SIZE = Math.pow(2, 32);
+export const MAX_UINT32 = Math.pow(2, 32) - 1;
 
 // Flags
 export const TKHD_FLAG_ENABLED = 0x000001;

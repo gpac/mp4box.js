@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { MAX_SIZE } from '#/constants';
+import { MAX_UINT32 } from '#/constants';
 import type { Matrix, Output } from '@types';
 
 export class mvhdBox extends FullBox {
@@ -41,9 +41,9 @@ export class mvhdBox extends FullBox {
   /** @bundle writing/mvhd.js */
   write(stream: MultiBufferStream) {
     const useVersion1 =
-      this.modification_time > MAX_SIZE ||
-      this.creation_time > MAX_SIZE ||
-      this.duration > MAX_SIZE ||
+      this.modification_time > MAX_UINT32 ||
+      this.creation_time > MAX_UINT32 ||
+      this.duration > MAX_UINT32 ||
       this.version === 1;
     this.version = useVersion1 ? 1 : 0;
 

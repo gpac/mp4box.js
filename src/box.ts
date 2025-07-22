@@ -4,7 +4,7 @@
  */
 
 import { MultiBufferStream } from '#/buffer';
-import { MAX_SIZE } from '#/constants';
+import { MAX_UINT32 } from '#/constants';
 import { DataStream, Endianness } from '#/DataStream';
 import { Log } from '#/log';
 import { MP4BoxStream } from '#/stream';
@@ -71,7 +71,7 @@ export class Box {
   /** @bundle box-write.js */
   writeHeader(stream: DataStream, msg?: string) {
     this.size += 8;
-    if (this.size > MAX_SIZE || this.original_size === 1) {
+    if (this.size > MAX_UINT32 || this.original_size === 1) {
       this.size += 8;
     }
     if (this.type === 'uuid') {
@@ -89,7 +89,7 @@ export class Box {
     );
     if (this.original_size === 0) {
       stream.writeUint32(0);
-    } else if (this.size > MAX_SIZE || this.original_size === 1) {
+    } else if (this.size > MAX_UINT32 || this.original_size === 1) {
       stream.writeUint32(1);
     } else {
       this.sizePosition = stream.getPosition();
@@ -103,7 +103,7 @@ export class Box {
       }
       stream.writeUint8Array(uuidBytes);
     }
-    if (this.size > MAX_SIZE || this.original_size === 1) {
+    if (this.size > MAX_UINT32 || this.original_size === 1) {
       this.sizePosition = stream.getPosition();
       stream.writeUint64(this.size);
     }
@@ -137,7 +137,7 @@ export class Box {
   /** @bundle box-print.js */
   printHeader(output: Output) {
     this.size += 8;
-    if (this.size > MAX_SIZE) {
+    if (this.size > MAX_UINT32) {
       this.size += 8;
     }
     if (this.type === 'uuid') {
