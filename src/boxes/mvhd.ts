@@ -33,7 +33,7 @@ export class mvhdBox extends FullBox {
     this.volume = stream.readUint16() >> 8;
     stream.readUint16();
     stream.readUint32Array(2);
-    this.matrix = stream.readInt32Array(9);
+    this.matrix = stream.readUint32Array(9);
     stream.readUint32Array(6);
     this.next_track_id = stream.readUint32();
   }
@@ -69,7 +69,7 @@ export class mvhdBox extends FullBox {
     stream.writeUint16(0);
     stream.writeUint32(0);
     stream.writeUint32(0);
-    stream.writeInt32Array(this.matrix);
+    stream.writeUint32Array(this.matrix);
     stream.writeUint32(0);
     stream.writeUint32(0);
     stream.writeUint32(0);
