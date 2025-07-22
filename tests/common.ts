@@ -17,7 +17,7 @@ export function getFilePath(group: string, test: string) {
   return { testFile, gpacFile };
 }
 
-async function getFileRange(
+export async function getFileRange(
   path: string,
   progress: (data: MP4BoxBuffer) => void,
   start = 0,

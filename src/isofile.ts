@@ -301,6 +301,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       this.fragmentedTracks.push(fragTrack);
       trak.nextSample = 0;
     }
+
+    if (this.discardMdatData) {
+      Log.warn(
+        'ISOFile',
+        'Segmentation options set but discardMdatData is true, samples will not be segmented',
+      );
+    }
   }
 
   unsetSegmentOptions(id: number) {
@@ -331,6 +338,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         samples: [],
       });
       trak.nextSample = 0;
+    }
+
+    if (this.discardMdatData) {
+      Log.warn(
+        'ISOFile',
+        'Extraction options set but discardMdatData is true, samples will not be extracted',
+      );
     }
   }
 
@@ -1876,6 +1890,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       } else {
         // We might have already transferred the sample data to mdat
         for (const mdat of this.mdats) {
+          if (!mdat.stream) {
+            Log.debug(
+              'ISOFile',
+              'mdat stream not yet fully read for #' + this.mdats.indexOf(mdat) + ' mdat',
+            );
+            continue; // mdat stream not yet fully read
+          }
           index = mdat.stream.findPosition(
             true,
             sample.offset + sample.alreadyRead - mdat.start - mdat.hdr_size,
