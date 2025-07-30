@@ -89,6 +89,18 @@ export type SampleGroupEntryKind = InstanceOf<
   Extends<BoxRegistry['sampleGroupEntry'], typeof SampleGroupEntry>
 >;
 
+export type AllRegisteredBoxes = {
+  [K in AllIdentifiers]: K extends keyof BoxRegistry['box']
+    ? InstanceOf<BoxRegistry['box'][K]>
+    : K extends keyof BoxRegistry['sampleEntry']
+      ? InstanceOf<BoxRegistry['sampleEntry'][K]>
+      : K extends keyof BoxRegistry['sampleGroupEntry']
+        ? InstanceOf<BoxRegistry['sampleGroupEntry'][K]>
+        : K extends keyof BoxRegistry['uuid']
+          ? InstanceOf<BoxRegistry['uuid'][K]>
+          : never;
+};
+
 export interface FragmentedTrack<TUser> {
   id: number;
   user: TUser;

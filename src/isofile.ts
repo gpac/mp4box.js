@@ -84,6 +84,7 @@ import { BoxRegistry } from '#/registry';
 import { MP4BoxStream } from '#/stream';
 import type {
   AllIdentifiers,
+  AllRegisteredBoxes,
   BoxKind,
   Description,
   EntityGroup,
@@ -921,17 +922,17 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /* Find and return specific boxes using recursion and early return */
-  getBox(type: AllIdentifiers) {
+  getBox<T extends AllIdentifiers>(type: T): AllRegisteredBoxes[T] {
     const result = this.getBoxes(type, true);
     return result.length ? result[0] : undefined;
   }
 
-  getBoxes(type: AllIdentifiers, returnEarly: boolean) {
-    const result: Array<Box> = [];
+  getBoxes<T extends AllIdentifiers>(type: T, returnEarly: boolean) {
+    const result: Array<AllRegisteredBoxes[T]> = [];
 
     const sweep = (root: Box | ISOFile) => {
       if (root instanceof Box && root.type && root.type === type) {
-        result.push(root);
+        result.push(root as unknown as AllRegisteredBoxes[T]);
       }
 
       const inner: Array<Box> = [];
