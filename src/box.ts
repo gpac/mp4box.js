@@ -32,7 +32,7 @@ export class Box {
   #type?: string;
   static readonly fourcc?: string;
 
-  get type(): string | undefined {
+  get type(): string {
     return (this.constructor as typeof Box).fourcc ?? this.#type;
   }
   set type(value: string) {
@@ -95,7 +95,7 @@ export class Box {
       this.sizePosition = stream.getPosition();
       stream.writeUint32(this.size);
     }
-    stream.writeString(this.type, null, 4);
+    stream.writeString(this.type, undefined, 4);
     if (this.type === 'uuid') {
       const uuidBytes = new Uint8Array(16);
       for (let i = 0; i < 16; i++) {

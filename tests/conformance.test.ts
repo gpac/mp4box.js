@@ -50,6 +50,7 @@ function spyOnLog(notices: Set<string>, reportedUnknownBoxes: Set<string>) {
 }
 
 interface Tree {
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   [key: string]: Tree | unknown;
 }
 type IncomingRoot = Record<string, string | object>;

@@ -411,7 +411,7 @@ export class MultiBufferStream extends DataStream {
    * @return {Number} the position in the file
    */
   getPosition() {
-    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) return 0;
+    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === undefined) return 0;
     return this.buffers[this.bufferIndex].fileStart + this.position;
   }
 
@@ -424,7 +424,7 @@ export class MultiBufferStream extends DataStream {
   }
 
   getEndPosition() {
-    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === null) return 0;
+    if (this.bufferIndex === -1 || this.buffers[this.bufferIndex] === undefined) return 0;
     return this.buffers[this.bufferIndex].fileStart + this.byteLength;
   }
 

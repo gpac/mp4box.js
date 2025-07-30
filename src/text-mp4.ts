@@ -95,7 +95,7 @@ export class TX3GParser {
     const size = stream.readUint16();
     if (size === 0) {
       // If size is 0, it indicates an empty text sample
-      return null;
+      return;
     }
 
     return stream.readString(size);

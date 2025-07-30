@@ -29,7 +29,7 @@ export class hdlrBox extends FullBox {
     this.flags = 0;
     this.writeHeader(stream);
     stream.writeUint32(0);
-    stream.writeString(this.handler, null, 4);
+    stream.writeString(this.handler, undefined, 4);
     stream.writeUint32Array([0, 0, 0]); // reserved
     stream.writeCString(this.name);
   }

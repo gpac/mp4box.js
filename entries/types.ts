@@ -184,7 +184,7 @@ export interface Movie {
   brands: Array<string>;
   created: Date;
   duration: number;
-  fragment_duration: number | undefined;
+  fragment_duration?: number;
   hasIOD: boolean;
   hintTracks: Array<Track>;
   isFragmented: boolean;

@@ -20,7 +20,7 @@ describe('File Segmentation', () => {
     const out = new MultiBufferStream();
 
     // Set up the segmentation options
-    mp4.setSegmentOptions(201, null, {
+    mp4.setSegmentOptions(201, undefined, {
       nbSamples: 100,
       nbSamplesPerFragment: 50,
       rapAlignement: false,
@@ -71,7 +71,7 @@ describe('File Segmentation', () => {
     const out = new MultiBufferStream();
 
     // Set up the segmentation options
-    mp4.setSegmentOptions(201, null, {
+    mp4.setSegmentOptions(201, undefined, {
       sizePerSegment: 25_000, // 20KB per segment
       rapAlignement: false,
     });
@@ -118,7 +118,7 @@ describe('File Segmentation', () => {
     const out = new MultiBufferStream();
 
     // Set up the segmentation options
-    mp4.setSegmentOptions(201, null, {
+    mp4.setSegmentOptions(201, undefined, {
       nbSamples: 10,
       rapAlignement: true,
     });
@@ -164,11 +164,11 @@ describe('File Segmentation', () => {
     const out = new MultiBufferStream();
 
     // Set up the segmentation options
-    mp4.setSegmentOptions(101, null, {
+    mp4.setSegmentOptions(101, undefined, {
       nbSamples: 50,
       rapAlignement: false,
     });
-    mp4.setSegmentOptions(201, null, {
+    mp4.setSegmentOptions(201, undefined, {
       nbSamples: 50,
       rapAlignement: false,
     });

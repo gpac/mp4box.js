@@ -6,7 +6,7 @@ async function collectTestSamples() {
   const { mp4 } = await loadAndGetInfo(testFile, true, true);
 
   // Extract samples from the MP4 file
-  mp4.setExtractionOptions(1, null, { nbSamples: 100 });
+  mp4.setExtractionOptions(1, undefined, { nbSamples: 100 });
 
   // Create a new promise to handle the extraction
   const samples = await new Promise<Array<Sample>>(resolve => {
@@ -82,7 +82,7 @@ describe('File Creation', () => {
     await getFileRange(testFile, data => mp4.appendBuffer(data), 0, mdatOffset + firstSampleSize);
 
     // Setup for extraction
-    mp4.setExtractionOptions(1, null, { nbSamples: 1 });
+    mp4.setExtractionOptions(1, undefined, { nbSamples: 1 });
     let sampleCount = 0;
     mp4.onSamples = (id, user, extracted) => (sampleCount += extracted.length);
     mp4.start();

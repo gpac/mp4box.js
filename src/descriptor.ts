@@ -31,7 +31,6 @@ export class Descriptor {
         return this.descs[i];
       }
     }
-    return null;
   }
 
   parseOneDescriptor(stream: DataStream): DescriptorKinds {
@@ -118,7 +117,7 @@ export class ES_Descriptor extends Descriptor {
 
   getAudioConfig() {
     const dcd = this.findDescriptor(DecoderConfigDescrTag);
-    if (!dcd) return null;
+    if (!dcd) return;
     const dsi = dcd.findDescriptor(DecSpecificInfoTag);
     if (dsi && dsi.data) {
       let audioObjectType = (dsi.data[0] & 0xf8) >> 3;
@@ -126,8 +125,6 @@ export class ES_Descriptor extends Descriptor {
         audioObjectType = 32 + ((dsi.data[0] & 0x7) << 3) + ((dsi.data[1] & 0xe0) >> 5);
       }
       return audioObjectType;
-    } else {
-      return null;
     }
   }
 }
