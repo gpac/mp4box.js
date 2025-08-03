@@ -739,10 +739,13 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       ) {
         for (const fragTrak of this.fragmentedTracks) {
           const trak = fragTrak.trak;
-          if (!consumedTracks.has(fragTrak.id) && trak.nextSample < trak.samples.length) {
+          if (!consumedTracks.has(fragTrak.id)) {
             // Check if the sample is available
-            const sample = this.getSample(trak, trak.nextSample);
-            if (sample === null) {
+            const sample =
+              trak.nextSample < trak.samples.length
+                ? this.getSample(trak, trak.nextSample)
+                : undefined;
+            if (!sample) {
               this.setNextSeekPositionFromSample(trak.samples[trak.nextSample]);
               /* The fragment cannot not be created because the media data is not there (not downloaded), wait for it */
               consumedTracks.add(fragTrak.id);
