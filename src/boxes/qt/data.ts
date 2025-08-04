@@ -54,11 +54,11 @@ export class dataBox extends Box {
   box_name = 'DataBox' as const;
 
   country: number;
-  countryString: string | null;
+  countryString?: string;
   language: number;
-  languageString: string | null;
+  languageString?: string;
   raw: Uint8Array;
-  value: string | number | bigint | boolean | object | null;
+  value?: string | number | bigint | boolean | object;
   valueType: number;
 
   /*

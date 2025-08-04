@@ -16,9 +16,9 @@ import {
 } from './base';
 
 /** @bundle box-codecs.js */
-function decimalToHex(d: number | string, padding?: number | null) {
+function decimalToHex(d: number | string, padding?: number) {
   let hex = Number(d).toString(16);
-  padding = typeof padding === 'undefined' || padding === null ? (padding = 2) : padding;
+  padding = typeof padding === 'undefined' ? 2 : padding;
   while (hex.length < padding) {
     hex = '0' + hex;
   }
@@ -232,7 +232,7 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
         let byte = 0;
         byte |= this.vvcC.ptl_frame_only_constraint_flag << 7;
         byte |= this.vvcC.ptl_multilayer_enabled_flag << 6;
-        let last_nonzero: number | undefined = undefined;
+        let last_nonzero: number;
         for (let i = 0; i < this.vvcC.general_constraint_info.length; ++i) {
           byte |= (this.vvcC.general_constraint_info[i] >> 2) & 0x3f;
           bytes.push(byte);

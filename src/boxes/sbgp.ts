@@ -39,7 +39,7 @@ export class sbgpBox extends FullBox {
     this.flags = 0;
     this.size = 8 + 8 * this.entries.length + (this.version === 1 ? 4 : 0);
     this.writeHeader(stream);
-    stream.writeString(this.grouping_type, null, 4);
+    stream.writeString(this.grouping_type, undefined, 4);
     if (this.version === 1) {
       stream.writeUint32(this.grouping_type_parameter);
     }

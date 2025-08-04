@@ -97,7 +97,7 @@ export class sgpdBox extends FullBox {
       }
     }
     this.writeHeader(stream);
-    stream.writeString(this.grouping_type, null, 4);
+    stream.writeString(this.grouping_type, undefined, 4);
     if (this.version === 1) {
       stream.writeUint32(this.default_length);
     }
