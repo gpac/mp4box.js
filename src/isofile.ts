@@ -577,6 +577,36 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     return nextFileStart;
   }
 
+  getFragmentDuration() {
+    const mvex = this.getBox('mvex');
+    if (!mvex) return;
+
+    // Use mehd if available
+    if (mvex.mehd) {
+      return {
+        num: mvex.mehd.fragment_duration,
+        den: this.moov.mvhd.timescale,
+      };
+    }
+
+    // Find the longest track
+    const traks = this.getBoxes('trak', false);
+    let maximum = { num: 0, den: 1 };
+
+    for (const trak of traks) {
+      const duration = trak.samples_duration;
+      const timescale = trak.mdia.mdhd.timescale;
+      if (duration && timescale) {
+        const ratio = duration / timescale;
+        if (ratio > maximum.num / maximum.den) {
+          maximum = { num: duration, den: timescale };
+        }
+      }
+    }
+
+    return maximum;
+  }
+
   getInfo(): Movie {
     if (!this.moov) {
       return {
@@ -586,14 +616,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     const _1904 = new Date('1904-01-01T00:00:00Z').getTime();
-    const isFragmented = this.moov.mvex?.mehd !== undefined;
+    const isFragmented = this.getBox('mvex') !== undefined;
 
     const movie: Movie = {
       hasMoov: true,
       duration: this.moov.mvhd.duration,
       timescale: this.moov.mvhd.timescale,
       isFragmented,
-      fragment_duration: isFragmented ? this.moov.mvex.mehd.fragment_duration : undefined,
+      fragment_duration: this.getFragmentDuration(),
       isProgressive: this.isProgressive,
       hasIOD: this.moov.iods !== undefined,
       brands: [this.ftyp.major_brand].concat(this.ftyp.compatible_brands),

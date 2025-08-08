@@ -551,7 +551,7 @@ function load() {
     Log.info('Application', 'Movie information received');
     movieInfo = info;
     if (info.isFragmented) {
-      ms.duration = info.fragment_duration / info.timescale;
+      ms.duration = info.fragment_duration.num / info.fragment_duration.den;
     } else {
       ms.duration = info.duration / info.timescale;
     }

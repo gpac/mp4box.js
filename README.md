@@ -156,7 +156,7 @@ The `info` argument is an object with the following structure.
 - **duration**: Number, providing the duration of the movie (unfragmented part) in timescale units,
 - **isProgressive**: boolean, indicating if the file can be played progressively,
 - **isFragmented**: boolean, indicating if the file is already fragmented,
-- **fragment_duration**: Number, giving the duration of the fragmented part of the file, in timescale units,
+- **fragment_duration**: Fraction, giving the duration of the fragmented part of the file along with the timescale (in the form `{ num: Number, den: Number }`)
 - **hasIOD**: boolean, indicating if the file contains an MPEG-4 Initial Object Descriptor
 - **tracks**: Array of track information objects
 
