@@ -294,9 +294,9 @@ function displayMovieInfo(info, div, _displaySourceBuffer) {
   if (info.isFragmented) {
     html +=
       '<tr><th>Fragmented duration</th><td>' +
-      info.fragment_duration +
+      info.fragment_duration.num +
       (info.fragment_duration
-        ? ' - ' + Log.getDurationString(info.fragment_duration, info.timescale)
+        ? ' - ' + Log.getDurationString(info.fragment_duration.num, info.fragment_duration.den)
         : '') +
       '</td></tr>';
   }

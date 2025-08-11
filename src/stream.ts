@@ -136,7 +136,7 @@ export class MP4BoxStream {
         break;
       }
     }
-    return String.fromCharCode.apply(null, arr);
+    return String.fromCharCode.apply(undefined, arr);
   }
 
   readInt8() {

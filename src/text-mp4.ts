@@ -88,3 +88,16 @@ export class Textin4Parser {
     return textString;
   }
 }
+
+export class TX3GParser {
+  parseSample(sample: Sample) {
+    const stream = new MP4BoxStream(sample.data.buffer);
+    const size = stream.readUint16();
+    if (size === 0) {
+      // If size is 0, it indicates an empty text sample
+      return;
+    }
+
+    return stream.readString(size);
+  }
+}

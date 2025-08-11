@@ -18,9 +18,9 @@ import {
 } from './base';
 
 /** @bundle box-codecs.js */
-function decimalToHex(d: number | string, padding?: number | null) {
+function decimalToHex(d: number | string, padding?: number) {
   let hex = Number(d).toString(16);
-  padding = typeof padding === 'undefined' || padding === null ? (padding = 2) : padding;
+  padding = typeof padding === 'undefined' ? 2 : padding;
   while (hex.length < padding) {
     hex = '0' + hex;
   }
@@ -47,18 +47,26 @@ class avcCSampleEntryBase extends VisualSampleEntry {
 // Sample entries inheriting from Audio and Video
 export class avc1SampleEntry extends avcCSampleEntryBase {
   static override readonly fourcc = 'avc1' as const;
+  // ISO/IEC 14496-15:2024 5.4.2.1.2
+  box_name = 'AVCSampleEntry' as const;
 }
 
 export class avc2SampleEntry extends avcCSampleEntryBase {
   static override readonly fourcc = 'avc2' as const;
+  // ISO/IEC 14496-15:2024 5.4.2.1.2
+  box_name = 'AVC2SampleEntry' as const;
 }
 
 export class avc3SampleEntry extends avcCSampleEntryBase {
   static override readonly fourcc = 'avc3' as const;
+  // ISO/IEC 14496-15:2024 5.4.2.1.2
+  box_name = 'AVCSampleEntry' as const;
 }
 
 export class avc4SampleEntry extends avcCSampleEntryBase {
   static override readonly fourcc = 'avc4' as const;
+  // ISO/IEC 14496-15:2024 5.4.2.1.2
+  box_name = 'AVC2SampleEntry' as const;
 }
 
 export class av01SampleEntry extends VisualSampleEntry {
@@ -66,6 +74,9 @@ export class av01SampleEntry extends VisualSampleEntry {
   av1Cs: Array<av1CBox>;
 
   static override readonly fourcc = 'av01' as const;
+
+  // AV1 Codec ISO Media File Format Binding v1.2.0 Section 2.2.3
+  box_name = 'AV1SampleEntry' as const;
 
   /** @bundle box-codecs.js */
   getCodec(): string {
@@ -96,6 +107,7 @@ export class av01SampleEntry extends VisualSampleEntry {
 
 export class avs3SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'avs3' as const;
+  box_name = 'AVS3VideoSampleEntry' as const;
 
   av3c: av3cBox;
 
@@ -172,6 +184,8 @@ class hvcCSampleEntryBase extends VisualSampleEntry {
 
 export class hvc1SampleEntry extends hvcCSampleEntryBase {
   static override readonly fourcc = 'hvc1' as const;
+  // ISO/IEC 14496-15:2024 8.4.1.1.2
+  box_name = 'HEVCSampleEntry' as const;
 }
 
 export class hvc2SampleEntry extends hvcCSampleEntryBase {
@@ -180,6 +194,8 @@ export class hvc2SampleEntry extends hvcCSampleEntryBase {
 
 export class hev1SampleEntry extends hvcCSampleEntryBase {
   static override readonly fourcc = 'hev1' as const;
+  // ISO/IEC 14496-15:2024 8.4.1.1.2
+  box_name = 'HEVCSampleEntry' as const;
   colrs: Array<colrBox> = [];
   subBoxNames = ['colr'] as const;
 }
@@ -190,14 +206,20 @@ export class hev2SampleEntry extends hvcCSampleEntryBase {
 
 export class hvt1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'hvt1' as const;
+  // ISO/IEC 14496-15:2024 10.5.2.2
+  box_name = 'HEVCTileSampleSampleEntry' as const;
 }
 
 export class lhe1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'lhe1' as const;
+  // ISO/IEC 14496-15:2024 9.5.3.1.2
+  box_name = 'LHEVCSampleEntry' as const;
 }
 
 export class lhv1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'lhv1' as const;
+  // ISO/IEC 14496-15:2024 9.5.3.1.2
+  box_name = 'LHEVCSampleEntry' as const;
 }
 
 export class dvh1SampleEntry extends VisualSampleEntry {
@@ -229,7 +251,7 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
         let byte = 0;
         byte |= this.vvcC.ptl_frame_only_constraint_flag << 7;
         byte |= this.vvcC.ptl_multilayer_enabled_flag << 6;
-        let last_nonzero: number | undefined = undefined;
+        let last_nonzero: number;
         for (let i = 0; i < this.vvcC.general_constraint_info.length; ++i) {
           byte |= (this.vvcC.general_constraint_info[i] >> 2) & 0x3f;
           bytes.push(byte);
@@ -273,18 +295,26 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
 
 export class vvc1SampleEntry extends vvcCSampleEntryBase {
   static override readonly fourcc = 'vvc1' as const;
+  // ISO/IEC 14496-15:2024 11.3.1.2
+  box_name = 'VvcSampleEntry' as const;
 }
 
 export class vvi1SampleEntry extends vvcCSampleEntryBase {
   static override readonly fourcc = 'vvi1' as const;
+  // ISO/IEC 14496-15:2024 11.3.1.2
+  box_name = 'VvcSampleEntry' as const;
 }
 
 export class vvs1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'vvs1' as const;
+  // ISO/IEC 14496-15:2024 11.3.1.2
+  box_name = 'VvcSampleEntry' as const;
 }
 
 export class vvcNSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'vvcN' as const;
+  // ISO/IEC 14496-15:2024 11.3.3.1.2
+  box_name = 'VvcNonVCLSampleEntry' as const;
 }
 
 class vpcCSampleEntryBase extends VisualSampleEntry {
@@ -314,6 +344,8 @@ export class vp09SampleEntry extends vpcCSampleEntryBase {
 
 export class j2kiSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'j2ki' as const;
+  // ISO/IEC 15444-16:2021 Section 7.3
+  box_name = 'J2KSampleEntry' as const;
 }
 
 export class mjp2SampleEntry extends VisualSampleEntry {
@@ -326,14 +358,20 @@ export class mjpgSampleEntry extends VisualSampleEntry {
 
 export class uncvSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'uncv' as const;
+  // ISO/IEC 23001-17:2024 4.2
+  box_name = 'UncompressedVideoSampleEntry' as const;
 }
 
 export class mp4vSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'mp4v' as const;
+  // ISO/IEC 14496-14:2020 Section 6.7.3
+  box_name = 'MP4VisualSampleEntry' as const;
 }
 
 export class mp4aSampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'mp4a' as const;
+  // ISO/IEC 14496-14:2020 Section 6.7.3
+  box_name = 'MP4AudioSampleEntry' as const;
 
   esds: esdsBox;
   esdss: Array<esdsBox>;
@@ -451,4 +489,6 @@ export class encmSampleEntry extends MetadataSampleEntry {
 // Restricted sample entries
 export class resvSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'resv' as const;
+  // ISO/IEC 14496-12:2022 Section 8.15
+  box_name = 'RestrictedVideoSampleEntry' as const;
 }

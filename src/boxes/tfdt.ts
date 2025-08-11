@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { MAX_SIZE } from '#/constants';
+import { MAX_UINT32 } from '#/constants';
 
 export class tfdtBox extends FullBox {
   static override readonly fourcc = 'tfdt' as const;
@@ -20,14 +20,15 @@ export class tfdtBox extends FullBox {
   /** @bundle writing/tdft.js */
   write(stream: MultiBufferStream) {
     // use version 1 if baseMediaDecodeTime does not fit 32 bits
-    this.version = this.baseMediaDecodeTime > MAX_SIZE || this.version === 1 ? 1 : 0;
-    this.flags = 0;
+    const useVersion1 = this.baseMediaDecodeTime > MAX_UINT32 || this.version === 1;
+    this.version = useVersion1 ? 1 : 0;
+
     this.size = 4;
-    if (this.version === 1) {
-      this.size += 4;
-    }
+    this.size += useVersion1 ? 4 : 0;
+
+    this.flags = 0;
     this.writeHeader(stream);
-    if (this.version === 1) {
+    if (useVersion1) {
       stream.writeUint64(this.baseMediaDecodeTime);
     } else {
       stream.writeUint32(this.baseMediaDecodeTime);

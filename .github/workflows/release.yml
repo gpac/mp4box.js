@@ -12,6 +12,11 @@ permissions:
 env:
   PUBLISH_MODE: true
 
+concurrency:
+  group: 'release'
+  # Prevent semantic-release from being cancelled abruptly
+  cancel-in-progress: false
+
 jobs:
   release:
     if: github.repository == 'gpac/mp4box.js'

@@ -2,7 +2,7 @@ import type * as MP4Box from '@types';
 import type { Box, SampleGroupEntry } from '#/box';
 import type { SampleEntry } from '#/boxes/sampleentries/base';
 
-function getRegistryId(boxClass: object): symbol | undefined {
+function getRegistryId(boxClass: object): symbol {
   let current = boxClass;
   while (current) {
     if ('registryId' in current) {
@@ -10,7 +10,6 @@ function getRegistryId(boxClass: object): symbol | undefined {
     }
     current = Object.getPrototypeOf(current);
   }
-  return undefined;
 }
 
 const isSampleGroupEntry = (value: object): value is SampleGroupEntry => {
@@ -85,8 +84,8 @@ export function registerBoxes<T>(registry: T): MP4Box.BoxRegistry<T> {
 
     // Check if Box class
     if (isBox(value)) {
-      const fourcc = 'fourcc' in value ? (value.fourcc as string) : null;
-      const uuid = 'uuid' in value ? (value.uuid as string) : null;
+      const fourcc = 'fourcc' in value ? (value.fourcc as string) : undefined;
+      const uuid = 'uuid' in value ? (value.uuid as string) : undefined;
 
       // Check for UUID first
       if (fourcc === 'uuid') {

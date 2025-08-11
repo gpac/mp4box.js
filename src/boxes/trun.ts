@@ -16,10 +16,10 @@ export class trunBox extends FullBox {
   sample_count: number;
   data_offset: number;
   first_sample_flags: number;
-  sample_duration: Array<number>;
-  sample_size: Array<number>;
-  sample_flags: Array<number>;
-  sample_composition_time_offset: Array<number>;
+  sample_duration: Array<number> = [];
+  sample_size: Array<number> = [];
+  sample_flags: Array<number> = [];
+  sample_composition_time_offset: Array<number> = [];
   data_offset_position: number;
 
   parse(stream: MultiBufferStream) {

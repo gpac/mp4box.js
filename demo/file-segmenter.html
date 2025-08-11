@@ -36,7 +36,7 @@ Number of samples per segment or per extraction: <input id="nbSamples" type="ran
         console.log("Sample batch size: "+(+document.getElementById('nbSamples').value));
         for (var i = 0; i < info.tracks.length; i++) {
           var track = info.tracks[i];
-          mp4.setSegmentOptions(info.tracks[i].id, null, { nbSamples: +document.getElementById('nbSamples').value } );
+          mp4.setSegmentOptions(info.tracks[i].id, undefined, { nbSamples: +document.getElementById('nbSamples').value } );
         }
         mp4.initializeSegmentation();
       }

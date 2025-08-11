@@ -89,13 +89,32 @@ export type SampleGroupEntryKind = InstanceOf<
   Extends<BoxRegistry['sampleGroupEntry'], typeof SampleGroupEntry>
 >;
 
+export type AllRegisteredBoxes = {
+  [K in AllIdentifiers]: K extends keyof BoxRegistry['box']
+    ? InstanceOf<BoxRegistry['box'][K]>
+    : K extends keyof BoxRegistry['sampleEntry']
+      ? InstanceOf<BoxRegistry['sampleEntry'][K]>
+      : K extends keyof BoxRegistry['sampleGroupEntry']
+        ? InstanceOf<BoxRegistry['sampleGroupEntry'][K]>
+        : K extends keyof BoxRegistry['uuid']
+          ? InstanceOf<BoxRegistry['uuid'][K]>
+          : never;
+};
+
 export interface FragmentedTrack<TUser> {
   id: number;
   user: TUser;
   trak: trakBox;
   segmentStream: DataStream;
   nb_samples: number;
+  nb_samples_per_fragment: number;
+  size_per_segment: number;
   rapAlignement: boolean;
+  state: {
+    lastFragmentSampleNumber: number;
+    lastSegmentSampleNumber: number;
+    accumulatedSize: number;
+  };
 }
 export interface ExtractedTrack<TUser> {
   id: number;
@@ -177,7 +196,7 @@ export interface Movie {
   brands: Array<string>;
   created: Date;
   duration: number;
-  fragment_duration: number | undefined;
+  fragment_duration?: { num: number; den: number };
   hasIOD: boolean;
   hintTracks: Array<Track>;
   isFragmented: boolean;

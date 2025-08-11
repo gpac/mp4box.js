@@ -11,10 +11,13 @@ export class DescribedValue {
 
   constructor(value: number, descriptionFn?: DescriberFunction) {
     this.value = value;
-    this.description = descriptionFn ? descriptionFn(value) : null;
+    this.description = descriptionFn ? descriptionFn(value) : undefined;
   }
   toString() {
-    return this.value + (this.description ? ' (' + this.description + ')' : '');
+    return (
+      this.value +
+      (this.description && this.description.length > 0 ? ' (' + this.description + ')' : '')
+    );
   }
   get() {
     return this.value;
@@ -27,7 +30,7 @@ export class HexadecimalValue {
 
   constructor(value: number, descriptionFn?: DescriberFunction) {
     this.value = value;
-    this.description = descriptionFn ? descriptionFn(value) : null;
+    this.description = descriptionFn ? descriptionFn(value) : undefined;
   }
   toString() {
     return '0x' + this.value.toString(16) + (this.description ? ' (' + this.description + ')' : '');
@@ -45,7 +48,7 @@ export class BinaryValue {
   constructor(value: number, bits: number, descriptionFn?: DescriberFunction) {
     this.value = value;
     this.bits = bits;
-    this.description = descriptionFn ? descriptionFn(value) : null;
+    this.description = descriptionFn ? descriptionFn(value) : undefined;
   }
   toString() {
     let res = 'b';

@@ -227,7 +227,7 @@ export class VisualSampleEntry extends SampleEntry {
     stream.writeUint32(0);
     stream.writeUint16(this.frame_count);
     stream.writeUint8(Math.min(31, this.compressorname.length));
-    stream.writeString(this.compressorname, null, 31);
+    stream.writeString(this.compressorname, undefined, 31);
     stream.writeUint16(this.depth);
     stream.writeInt16(-1);
     this.writeFooter(stream);

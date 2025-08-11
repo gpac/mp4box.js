@@ -2,7 +2,7 @@ import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { DataStream } from '#/DataStream';
 import { MP4BoxStream } from '#/stream';
-import type { ParameterSetArray } from './displays/parameterSetArray';
+import { ParameterSetArray } from './displays/parameterSetArray';
 
 export class avcCBox extends Box {
   static override readonly fourcc = 'avcC' as const;
@@ -27,24 +27,18 @@ export class avcCBox extends Box {
     this.lengthSizeMinusOne = stream.readUint8() & 0x3;
     this.nb_SPS_nalus = stream.readUint8() & 0x1f;
     let toparse = this.size - this.hdr_size - 6;
-    this.SPS = [];
+    this.SPS = new ParameterSetArray();
     for (let i = 0; i < this.nb_SPS_nalus; i++) {
       const length = stream.readUint16();
-      this.SPS[i] = {
-        length,
-        data: stream.readUint8Array(length),
-      };
+      this.SPS.push({ length, data: stream.readUint8Array(length) });
       toparse -= 2 + length;
     }
     this.nb_PPS_nalus = stream.readUint8();
     toparse--;
-    this.PPS = [];
+    this.PPS = new ParameterSetArray();
     for (let i = 0; i < this.nb_PPS_nalus; i++) {
       const length = stream.readUint16();
-      this.PPS[i] = {
-        length,
-        data: stream.readUint8Array(length),
-      };
+      this.PPS.push({ length, data: stream.readUint8Array(length) });
       toparse -= 2 + length;
     }
     if (toparse > 0) {

@@ -19,27 +19,18 @@ env:
   NPM_CONFIG_COLOR: always
 
 jobs:
-  # verify against ranges defined as supported in engines.node
-  test_matrix:
-    strategy:
-      matrix:
-        node-version:
-          - 20.8.1
-          - 20
-          - 22.0.0
-
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
+          node-version: 'lts/*'
           cache: npm
-          node-version: ${{ matrix.node-version }}
 
       - run: npm clean-install
       - run: npm install --global corepack@latest

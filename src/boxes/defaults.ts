@@ -144,7 +144,7 @@ export class trakBox extends ContainerBox {
   udta: udtaBox;
   udtas: Array<udtaBox>;
   samples_duration: number;
-  samples: Array<Sample>;
+  samples: Array<Sample> = [];
   samples_size: number;
   nextSample: number;
   lastValidSample: number;
@@ -358,4 +358,9 @@ export class etypBox extends ContainerBox {
   box_name = 'ExtendedTypeBox' as const;
   tycos: Array<tycoBox> = [];
   subBoxNames = ['tyco'] as const;
+}
+export class povdBox extends ContainerBox {
+  static override readonly fourcc = 'povd' as const;
+  box_name = 'ProjectedOmniVideoBox' as const;
+  subBoxNames = ['prfr'] as const;
 }

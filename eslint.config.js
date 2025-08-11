@@ -1,9 +1,12 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import eslintPlugin from 'eslint-plugin-prettier/recommended';
+import eslintPrettier from 'eslint-plugin-prettier/recommended';
+import eslintUnicorn from 'eslint-plugin-unicorn';
 
 export default tseslint.config(
-  { ignores: ['dist', '**/*.{mjs,js}'] },
+  { ignores: ['dist', '**/*.{mjs,js}', '*.ts'] },
+  { plugins: { unicorn: eslintUnicorn } },
+  { languageOptions: { parserOptions: { projectService: true } } },
   eslint.configs.recommended,
 
   tseslint.configs.strict,
@@ -29,7 +32,23 @@ export default tseslint.config(
       curly: ['error', 'multi-line'],
       // Enforce strict equality checks
       eqeqeq: 'error',
+      // Consistent use of undefined
+      'unicorn/no-null': 'error',
+      '@typescript-eslint/no-restricted-types': [
+        'error',
+        {
+          types: {
+            null: {
+              message: 'Use undefined instead of null',
+              fixWith: 'undefined',
+            },
+          },
+        },
+      ],
+      '@typescript-eslint/no-inferrable-types': 'error',
+      'no-useless-return': 'error',
+      '@typescript-eslint/no-redundant-type-constituents': 'error',
     },
   },
-  eslintPlugin,
+  eslintPrettier,
 );
