@@ -23,33 +23,33 @@ interface ReferencePicture {
 }
 
 class ReferencePictureSet {
-  list: number;
-  set: number;
-  pics: Array<ReferencePicture>;
-  reference_to_library_enable_flag?: number;
-  private library_enable_flag_set: boolean;
+  private _list: number;
+  private _set: number;
+  private _pics: Array<ReferencePicture>;
+  private _reference_to_library_enable_flag?: number;
+  private _library_enable_flag_set: boolean;
 
   constructor(list: number, set: number) {
-    this.list = list;
-    this.set = set;
-    this.pics = [];
-    this.library_enable_flag_set = false;
+    this._list = list;
+    this._set = set;
+    this._pics = [];
+    this._library_enable_flag_set = false;
   }
   set_reference_to_library_enable_flag(flag: number) {
-    this.library_enable_flag_set = true;
-    this.reference_to_library_enable_flag = flag;
+    this._library_enable_flag_set = true;
+    this._reference_to_library_enable_flag = flag;
   }
   get_reference_to_library_enable_flag(): number {
-    return this.library_enable_flag_set ? this.reference_to_library_enable_flag : 0;
+    return this._library_enable_flag_set ? this._reference_to_library_enable_flag : 0;
   }
   push(pic: ReferencePicture) {
-    this.pics.push(pic);
+    this._pics.push(pic);
   }
   toString() {
     let ret = '{';
-    if (this.library_enable_flag_set)
-      ret += 'reference_to_library_enable_flag: ' + this.reference_to_library_enable_flag;
-    this.pics.forEach(e => {
+    if (this._library_enable_flag_set)
+      ret += 'reference_to_library_enable_flag: ' + this._reference_to_library_enable_flag;
+    this._pics.forEach(e => {
       ret += (ret.length > 3 ? ', ' : '') + JSON.stringify(e).replace(/"/g, '');
     });
     ret += '}';
@@ -58,20 +58,20 @@ class ReferencePictureSet {
 }
 
 class ReferencePictureList {
-  list?: number;
-  sets?: Array<ReferencePictureSet>;
+  private _list?: number;
+  private _sets?: Array<ReferencePictureSet>;
 
   constructor(list: number) {
-    this.list = list;
-    this.sets = [];
+    this._list = list;
+    this._sets = [];
   }
   push(set: ReferencePictureSet) {
-    this.sets.push(set);
+    this._sets.push(set);
   }
   toString() {
-    if (this.sets.length === 0) return '(empty)';
+    if (this._sets.length === 0) return '(empty)';
     const l: Array<string> = [];
-    this.sets.forEach(set => {
+    this._sets.forEach(set => {
       l.push(set.toString());
     });
     return l.join(', ');
@@ -322,9 +322,9 @@ class AVS3SequenceHeader extends AVS3data {
     this.data.progressive_sequence = new BooleanValue(bit_reader.getBit());
     this.data.field_coded_sequence = new BooleanValue(bit_reader.getBit());
     this.data.library_stream_flag = new BooleanValue(bit_reader.getBit());
-    if (!this.data.library_stream_flag.get()) {
+    if (!this.data.library_stream_flag.value) {
       this.data.library_picture_enable_flag = new BooleanValue(bit_reader.getBit());
-      if (this.data.library_picture_enable_flag.get())
+      if (this.data.library_picture_enable_flag.value)
         this.data.duplicate_sequence_number_flag = new BooleanValue(bit_reader.getBit());
     }
     bit_reader.skipBit(); // marker_bit
@@ -336,7 +336,7 @@ class AVS3SequenceHeader extends AVS3data {
     this.data.chroma_format = new BinaryValue(bit_reader.getBits(2), 2, AVS3chroma);
     this.data.sample_precision = new BinaryValue(bit_reader.getBits(3), 3, AVS3precision);
 
-    if (this.data.profile_id.get() === MAIN_10 || this.data.profile_id.get() === HIGH_10)
+    if (this.data.profile_id.value === MAIN_10 || this.data.profile_id.value === HIGH_10)
       this.data.encoding_precision = new BinaryValue(bit_reader.getBits(3), 3, AVS3precision);
     bit_reader.skipBit(); // marker_bit
 
@@ -388,7 +388,7 @@ class AVS3SequenceHeader extends AVS3data {
     this.data.rpl0 = new ReferencePictureList(0);
     for (let j = 0; j < this.data.num_ref_pic_list_set0; j++)
       this.data.rpl0.push(
-        reference_picture_list(0, j, this.data.library_picture_enable_flag.get()),
+        reference_picture_list(0, j, this.data.library_picture_enable_flag.value),
       );
 
     if (!this.data.rpl1_same_as_rpl0_flag) {
@@ -396,7 +396,7 @@ class AVS3SequenceHeader extends AVS3data {
       this.data.rpl1 = new ReferencePictureList(1);
       for (let j = 0; j < this.data.num_ref_pic_list_set1; j++)
         this.data.rpl1.push(
-          reference_picture_list(1, j, this.data.library_picture_enable_flag.get()),
+          reference_picture_list(1, j, this.data.library_picture_enable_flag.value),
         );
     }
 
@@ -412,9 +412,9 @@ class AVS3SequenceHeader extends AVS3data {
     bit_reader.skipBit(); // marker_bit
 
     this.data.weight_quant_enable_flag = new BooleanValue(bit_reader.getBit());
-    if (this.data.weight_quant_enable_flag.get()) {
+    if (this.data.weight_quant_enable_flag.value) {
       this.data.load_seq_weight_quant_data_flag = new BooleanValue(bit_reader.getBit());
-      if (this.data.load_seq_weight_quant_data_flag.get())
+      if (this.data.load_seq_weight_quant_data_flag.value)
         this.data.weight_quant_matrix = new WeightQuantMatrix(bit_reader);
     }
 
@@ -427,21 +427,21 @@ class AVS3SequenceHeader extends AVS3data {
     this.data.amvr_enable_flag = new BooleanValue(bit_reader.getBit());
     this.data.num_of_hmvp_cand = bit_reader.getBits(4);
     this.data.umve_enable_flag = new BooleanValue(bit_reader.getBit());
-    if (this.data.num_of_hmvp_cand !== 0 && this.data.amvr_enable_flag.get())
+    if (this.data.num_of_hmvp_cand !== 0 && this.data.amvr_enable_flag.value)
       this.data.emvr_enable_flag = new BooleanValue(bit_reader.getBit());
     this.data.intra_pf_enable_flag = new BooleanValue(bit_reader.getBit());
     this.data.tscpm_enable_flag = new BooleanValue(bit_reader.getBit());
     bit_reader.skipBit(); // marker_bit
 
     this.data.dt_enable_flag = new BooleanValue(bit_reader.getBit());
-    if (this.data.dt_enable_flag.get()) this.data.log2_max_dt_size_minus4 = bit_reader.getBits(2);
+    if (this.data.dt_enable_flag.value) this.data.log2_max_dt_size_minus4 = bit_reader.getBits(2);
     this.data.pbt_enable_flag = new BooleanValue(bit_reader.getBit());
 
-    if (this.data.profile_id.get() === MAIN_10 || this.data.profile_id.get() === HIGH_10) {
+    if (this.data.profile_id.value === MAIN_10 || this.data.profile_id.value === HIGH_10) {
       this.data.pmc_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.iip_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.sawp_enable_flag = new BooleanValue(bit_reader.getBit());
-      if (this.data.affine_enable_flag.get())
+      if (this.data.affine_enable_flag.value)
         this.data.asr_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.awp_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.etmvp_mvap_enable_flag = new BooleanValue(bit_reader.getBit());
@@ -457,13 +457,13 @@ class AVS3SequenceHeader extends AVS3data {
 
       this.data.esao_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.ccsao_enable_flag = new BooleanValue(bit_reader.getBit());
-      if (this.data.alf_enable_flag.get())
+      if (this.data.alf_enable_flag.value)
         this.data.ealf_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.ibc_enable_flag = new BooleanValue(bit_reader.getBit());
       bit_reader.skipBit(); // marker_bit
 
       this.data.isc_enable_flag = new BooleanValue(bit_reader.getBit());
-      if (this.data.ibc_enable_flag.get() || this.data.isc_enable_flag.get())
+      if (this.data.ibc_enable_flag.value || this.data.isc_enable_flag.value)
         this.data.num_of_intra_hmvp_cand = bit_reader.getBits(4);
       this.data.fimc_enable_flag = new BooleanValue(bit_reader.getBit());
       this.data.nn_tools_set_hook = bit_reader.getBits(8);
@@ -475,9 +475,9 @@ class AVS3SequenceHeader extends AVS3data {
     this.data.cross_patch_loop_filter_enable_flag = new BooleanValue(bit_reader.getBit());
     this.data.ref_colocated_patch_flag = new BooleanValue(bit_reader.getBit());
     this.data.stable_patch_flag = new BooleanValue(bit_reader.getBit());
-    if (this.data.stable_patch_flag.get()) {
+    if (this.data.stable_patch_flag.value) {
       this.data.uniform_patch_flag = new BooleanValue(bit_reader.getBit());
-      if (this.data.uniform_patch_flag.get()) {
+      if (this.data.uniform_patch_flag.value) {
         bit_reader.skipBit(); // marker_bit
         this.data.patch_width_minus1 = bit_reader.getUE();
         this.data.patch_height_minus1 = bit_reader.getUE();
