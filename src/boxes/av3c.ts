@@ -502,7 +502,7 @@ export class av3cBox extends Box {
   parse(stream: MP4BoxStream) {
     const bit_reader = new BitBuffer();
     this.configurationVersion = new DescribedValue(stream.readUint8(), AVS3Vconfiguration);
-    if (this.configurationVersion.get() === 1) {
+    if (this.configurationVersion.value === 1) {
       this.sequence_header_length = stream.readUint16();
       for (let i = 0; i < this.sequence_header_length; i++)
         bit_reader.appendUint8(stream.readUint8());
