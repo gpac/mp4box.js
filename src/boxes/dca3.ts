@@ -228,7 +228,7 @@ export class dca3Box extends Box {
     for (let i = 0; i < this.size - this.hdr_size; i++) bit_reader.appendUint8(stream.readUint8());
     this.audio_codec_id = new DescribedValue(bit_reader.getBits(4), AVS3Acodec);
 
-    switch (this.audio_codec_id.get()) {
+    switch (this.audio_codec_id.value) {
       case FULL_RATE_CODING:
         this.Avs3AudioGAConfig = new AVS3GAConfig(bit_reader);
         break;
@@ -243,6 +243,6 @@ export class dca3Box extends Box {
   }
 
   get_audio_codec_id_str() {
-    return this.audio_codec_id.get().toString(10).padStart(2, '0');
+    return this.audio_codec_id.value.toString(10).padStart(2, '0');
   }
 }

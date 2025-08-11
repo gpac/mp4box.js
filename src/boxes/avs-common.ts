@@ -6,18 +6,18 @@
 export type DescriberFunction = (n: number) => string;
 
 export class DescribedValue {
-  private value: number;
-  private description: string;
+  private _value: number;
+  private _description: string;
 
   constructor(value: number, descriptionFn?: DescriberFunction) {
-    this.value = value;
-    this.description = descriptionFn ? descriptionFn(value) : undefined;
+    this._value = value;
+    this._description = descriptionFn ? descriptionFn(value) : undefined;
   }
   toString() {
-    return `${this.value}${this.description && this.description.length > 0 ? ' (' + this.description + ')' : ''}`;
+    return `${this.value}${this._description && this._description.length > 0 ? ' (' + this._description + ')' : ''}`;
   }
-  get() {
-    return this.value;
+  get value(): number {
+    return this._value;
   }
 }
 
