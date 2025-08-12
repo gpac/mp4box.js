@@ -133,8 +133,8 @@ class AVS3GAConfig extends AVS3data {
     this.data.total_bitrate = bit_reader.getUint16();
     this.data.resolution = new DescribedValue(bit_reader.getBits(2), AVS3Aresolution);
   }
-  toHTML(): string {
-    return super.toHTML(this.data);
+  toString(): string {
+    return super.toString(this.data);
   }
 }
 
@@ -172,8 +172,8 @@ class AVS3GHConfig extends AVS3data {
         this.data.addition_info.push(bit_reader.getUint8());
     }
   }
-  toHTML(): string {
-    return super.toHTML(this.data);
+  toString(): string {
+    return super.toString(this.data);
   }
 }
 
@@ -209,8 +209,8 @@ class AVS3LLConfig extends AVS3data {
     }
     bit_reader.skipBits(2); // reserved
   }
-  toHTML(): string {
-    return super.toHTML(this.data);
+  toString(): string {
+    return super.toString(this.data);
   }
 }
 

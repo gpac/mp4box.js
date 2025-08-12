@@ -75,6 +75,7 @@ export class BooleanValue {
 }
 
 export class AVS3data {
+  /* not currently used to beautify output 
   toHTML(data: object): string {
     let res = '';
     const props = Object.getOwnPropertyNames(data);
@@ -91,5 +92,22 @@ export class AVS3data {
         res += `<tr><td><code>${val}</code></td><td><code>${fmt_val}</code></td></tr>`;
       });
     return `<table>${res}</table>`;
+  } */
+
+  toString(data: object): string {
+    let res = '';
+    const props = Object.getOwnPropertyNames(data);
+    props.forEach(function (val) {
+      let fmt_val = '';
+      if (Array.isArray(data[val])) {
+        for (let i = 0; i < data[val].length; i++) {
+          const hex = data[val][i].toString(16);
+          fmt_val += hex.length === 1 ? '0' + hex : hex;
+          if (i % 4 === 3) fmt_val += ' ';
+        }
+      } else fmt_val = data[val];
+      res += `${val}: ${fmt_val}\n`;
+    });
+    return res;
   }
 }

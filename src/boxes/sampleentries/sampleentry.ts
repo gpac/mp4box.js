@@ -431,6 +431,7 @@ export class fLaCSampleEntry extends AudioSampleEntry {
 export class av3aSampleEntry extends AudioSampleEntry {
   // AATF (AVS3 Audio Transport Format) audio sample entry
   static override readonly fourcc = 'av3a' as const;
+  box_name = 'AVS3AudioSampleEntry' as const;
 
   dca3: dca3Box;
 

@@ -485,8 +485,11 @@ class AVS3SequenceHeader extends AVS3data {
     }
     bit_reader.skipBits(2); // reserved bits
   }
-  toHTML() {
-    return super.toHTML(this.data);
+  //PH  toHTML() {
+  //PH    return super.toHTML(this.data);
+  //PH  }
+  toString() {
+    return super.toString(this.data);
   }
 }
 
