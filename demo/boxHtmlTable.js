@@ -11,21 +11,21 @@ function generatePropertyValue(prop, value) {
   // Check if we explicitly have a toString method
   if (typeof value?.toString === 'function') {
     const content = value.toString();
-    //  if (value.hasOwnProperty('toString') || content.startsWith('<')) {
-    return content.replace(
-      /[&<>"'\-\n]/g,
-      m =>
-        ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;',
-          '-': '&#8209;',
-          '\n': '<br/>',
-        })[m],
-    );
-    //  }
+    if (value.hasOwnProperty('toString') || content.startsWith('<')) {
+      return content.replace(
+        /[&<>"'\-\n]/g,
+        m =>
+          ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '-': '&#8209;',
+            '\n': '<br/>',
+          })[m],
+      );
+    }
   }
 
   // Display arrays concisely

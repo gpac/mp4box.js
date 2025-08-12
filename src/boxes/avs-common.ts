@@ -13,6 +13,10 @@ export class DescribedValue {
     this._value = value;
     this._description = descriptionFn ? descriptionFn(value) : undefined;
   }
+  hasOwnProperty(name: string) {
+    // we need to 'trick' the check done in generatePropertyValue() og boxHTMLTable.js
+    return name === 'toString';
+  }
   toString() {
     return `${this.value}${this._description && this._description.length > 0 ? ' (' + this._description + ')' : ''}`;
   }
@@ -28,6 +32,10 @@ export class HexadecimalValue {
   constructor(value: number, descriptionFn?: DescriberFunction) {
     this._value = value;
     this._description = descriptionFn ? descriptionFn(value) : undefined;
+  }
+  hasOwnProperty(name: string) {
+    // we need to 'trick' the check done in generatePropertyValue() og boxHTMLTable.js
+    return name === 'toString';
   }
   toString() {
     return `0x${this._value.toString(16)}${this._description && this._description.length > 0 ? ' (' + this._description + ')' : ''}`;
@@ -47,6 +55,10 @@ export class BinaryValue {
     this._bits = bits;
     this._description = descriptionFn ? descriptionFn(value) : undefined;
   }
+  hasOwnProperty(name: string) {
+    // we need to 'trick' the check done in generatePropertyValue() og boxHTMLTable.js
+    return name === 'toString';
+  }
   toString() {
     let res = 'b';
     for (let i = this._bits; i > 0; i--) res += this._value & (1 << (i - 1)) ? '1' : '0';
@@ -65,6 +77,10 @@ export class BooleanValue {
 
   constructor(value: boolean | number) {
     this._value = typeof value === 'number' ? value > 0 : value;
+  }
+  hasOwnProperty(name: string) {
+    // we need to 'trick' the check done in generatePropertyValue() og boxHTMLTable.js
+    return name === 'toString';
   }
   toString() {
     return `${this._value ? 1 : 0} (${this._value ? 'true' : 'false'})`;
@@ -94,6 +110,10 @@ export class AVS3data {
     return `<table>${res}</table>`;
   } */
 
+  hasOwnProperty(name: string) {
+    // we need to 'trick' the check done in generatePropertyValue() og boxHTMLTable.js
+    return name === 'toString';
+  }
   toString(data: object): string {
     let res = '';
     const props = Object.getOwnPropertyNames(data);
