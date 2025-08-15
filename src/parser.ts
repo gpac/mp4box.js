@@ -1,16 +1,15 @@
 import type { MultiBufferStream } from '#/buffer';
-import type { MP4BoxStream } from '#/stream';
 import type { BoxFourCC, IncompleteBox } from '@types';
 import { Log } from '#/log';
 import { ERR_INVALID_DATA, ERR_NOT_ENOUGH_DATA, OK } from '#/constants';
 import { Box } from '#/box';
 import { BoxRegistry } from '#/registry';
 
-export function parseUUID(stream: MultiBufferStream | MP4BoxStream) {
+export function parseUUID(stream: MultiBufferStream) {
   return parseHex16(stream);
 }
 
-export function parseHex16(stream: MultiBufferStream | MP4BoxStream) {
+export function parseHex16(stream: MultiBufferStream) {
   let hex16 = '';
   for (let i = 0; i < 16; i++) {
     const hex = stream.readUint8().toString(16);
@@ -20,7 +19,7 @@ export function parseHex16(stream: MultiBufferStream | MP4BoxStream) {
 }
 
 export function parseOneBox(
-  stream: MultiBufferStream | MP4BoxStream,
+  stream: MultiBufferStream,
   headerOnly: boolean,
   parentSize?: number,
 ): IncompleteBox {

@@ -5,9 +5,8 @@
 
 import { MultiBufferStream } from '#/buffer';
 import { MAX_UINT32 } from '#/constants';
-import { DataStream, Endianness } from '#/DataStream';
+import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
-import { MP4BoxStream } from '#/stream';
 import type { BoxFourCC, Output, Reference } from '@types';
 import type { mdatBox } from 'entries/all-boxes';
 
@@ -153,7 +152,7 @@ export class Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream | MP4BoxStream) {
+  parse(stream: MultiBufferStream) {
     if (this.type !== 'mdat') {
       this.data = stream.readUint8Array(this.size - this.hdr_size);
     } else {
@@ -166,7 +165,7 @@ export class Box {
   }
 
   /** @bundle box-parse.js */
-  parseDataAndRewind(stream: MultiBufferStream | MP4BoxStream) {
+  parseDataAndRewind(stream: MultiBufferStream) {
     this.data = stream.readUint8Array(this.size - this.hdr_size);
     // rewinding
     stream.seek(this.start + this.hdr_size);
@@ -185,11 +184,10 @@ export class Box {
   /** @bundle isofile-advanced-creation.js */
   computeSize(stream_?: MultiBufferStream) {
     const stream = stream_ || new MultiBufferStream();
-    stream.endianness = Endianness.BIG_ENDIAN;
     this.write(stream);
   }
 
-  isEndOfBox(stream: MultiBufferStream | MP4BoxStream): boolean {
+  isEndOfBox(stream: MultiBufferStream): boolean {
     const pos = stream.getPosition();
     const end = this.start + this.size;
     return pos === end;
@@ -336,7 +334,7 @@ export class TrackReferenceTypeBox extends Box {
     this.type = fourcc as BoxFourCC;
   }
 
-  parse(stream: MultiBufferStream | MP4BoxStream | DataStream) {
+  parse(stream: MultiBufferStream | DataStream) {
     this.track_ids = stream.readUint32Array((this.size - this.hdr_size) / 4);
   }
 

@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { DataStream, Endianness } from '#/DataStream';
+import { DataStream } from '#/DataStream';
 import type { ES_Descriptor } from '#/descriptor';
 import { DescriptorRegistry } from '#/registry';
 
@@ -16,9 +16,7 @@ export class esdsBox extends FullBox {
     // NOTE:    This used to be `typeof MPEG4DescriptorParser !== 'undefined'`
     if ('MPEG4DescriptorParser' in DescriptorRegistry) {
       const esd_parser = new DescriptorRegistry.MPEG4DescriptorParser();
-      this.esd = esd_parser.parseOneDescriptor(
-        new DataStream(esd_data.buffer, 0, Endianness.BIG_ENDIAN),
-      ) as ES_Descriptor;
+      this.esd = esd_parser.parseOneDescriptor(new DataStream(esd_data.buffer, 0)) as ES_Descriptor;
     }
   }
 }

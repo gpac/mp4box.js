@@ -1,8 +1,10 @@
 import { Box } from '#/box';
 import { OK } from '#/constants';
-import { MP4BoxStream } from '#/stream';
 import type { Sample, TypedArray } from '@types';
 import { parseOneBox } from '#/parser';
+import { DataStream } from '#/DataStream';
+import { MultiBufferStream } from '#/buffer';
+import { MP4BoxBuffer } from '#/mp4boxbuffer';
 
 /*
  * Copyright (c) 2012-2013. Telecom ParisTech/TSI/MM/GPAC Cyril Concolato
@@ -11,9 +13,9 @@ import { parseOneBox } from '#/parser';
 export class VTTin4Parser {
   parseSample(data: TypedArray) {
     const cues: Array<Box> = [];
-    const stream = new MP4BoxStream(data.buffer);
+    const stream = new MultiBufferStream(MP4BoxBuffer.fromArrayBuffer(data.buffer, 0));
 
-    while (!stream.isEos()) {
+    while (!stream.isEof()) {
       const cue = parseOneBox(stream, false);
       if (cue.code === OK && cue.box?.type === 'vttc') {
         cues.push(cue.box);
@@ -56,7 +58,7 @@ export class XMLSubtitlein4Parser {
       documentString: '',
       document: undefined as undefined | Document,
     };
-    const stream = new MP4BoxStream(sample.data.buffer);
+    const stream = new DataStream(sample.data.buffer);
     if (!sample.subsamples || sample.subsamples.length === 0) {
       res.documentString = stream.readString(sample.data.length);
     } else {
@@ -76,13 +78,13 @@ export class XMLSubtitlein4Parser {
 
 export class Textin4Parser {
   parseSample(sample: Sample) {
-    const stream = new MP4BoxStream(sample.data.buffer);
+    const stream = new DataStream(sample.data.buffer);
     const textString = stream.readString(sample.data.length);
     return textString;
   }
 
   parseConfig(data: TypedArray) {
-    const stream = new MP4BoxStream(data.buffer);
+    const stream = new DataStream(data.buffer);
     stream.readUint32(); // version & flags
     const textString = stream.readCString();
     return textString;
@@ -91,7 +93,7 @@ export class Textin4Parser {
 
 export class TX3GParser {
   parseSample(sample: Sample) {
-    const stream = new MP4BoxStream(sample.data.buffer);
+    const stream = new DataStream(sample.data.buffer);
     const size = stream.readUint16();
     if (size === 0) {
       // If size is 0, it indicates an empty text sample
