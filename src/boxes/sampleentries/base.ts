@@ -235,18 +235,34 @@ export class VisualSampleEntry extends SampleEntry {
 }
 
 export class AudioSampleEntry extends SampleEntry {
+  version: number;
   channel_count: number;
   samplesize: number;
   samplerate: number;
 
+  // Quicktime only
+  extensions: Uint8Array;
+
   parse(stream: MultiBufferStream) {
     this.parseHeader(stream);
-    stream.readUint32Array(2);
+    this.version = stream.readUint16();
+    stream.readUint16(); // revision
+    stream.readUint32(); // vendor
     this.channel_count = stream.readUint16();
     this.samplesize = stream.readUint16();
     stream.readUint16();
     stream.readUint16();
     this.samplerate = stream.readUint32() / (1 << 16);
+
+    const isQT = stream.isofile?.ftyp?.major_brand.includes('qt');
+    if (isQT) {
+      if (this.version === 1) {
+        this.extensions = stream.readUint8Array(16);
+      } else if (this.version === 2) {
+        this.extensions = stream.readUint8Array(36);
+      }
+    }
+
     this.parseFooter(stream);
   }
 
