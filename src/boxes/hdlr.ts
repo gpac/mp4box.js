@@ -1,5 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
+import { Log } from '#/log';
 
 export class hdlrBox extends FullBox {
   static override readonly fourcc = 'hdlr' as const;
@@ -17,7 +18,20 @@ export class hdlrBox extends FullBox {
       this.handler = stream.readString(4);
       stream.readUint32Array(3);
       if (!this.isEndOfBox(stream)) {
+        const name_size = this.start + this.size - stream.getPosition();
         this.name = stream.readCString();
+
+        // Check if last byte was null-terminator indeed
+        const end = this.start + this.size - 1;
+        stream.seek(end);
+        const lastByte = stream.readUint8();
+        if (lastByte !== 0 && name_size > 1) {
+          Log.info(
+            'BoxParser',
+            'Warning: hdlr name is not null-terminated, possibly length-prefixed string. Trimming first byte.',
+          );
+          this.name = this.name.slice(1);
+        }
       }
     }
   }
