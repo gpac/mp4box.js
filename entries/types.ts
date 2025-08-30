@@ -61,7 +61,7 @@ export type TypedArray<T extends ArrayBufferLike = ArrayBuffer> =
   | BigUint64Array<T>;
 
 export type ValueOf<T> = T[keyof T];
-export type InstanceOf<T> = T extends new (...args: Array<unknown>) => infer R ? R : never;
+export type InstanceOf<T> = T extends new (...args: Array<never>) => infer R ? R : never;
 export type KindOf<T> = InstanceOf<ValueOf<T>>;
 export type Extends<TObject, TExtends> = {
   [TKey in keyof TObject]: TObject[TKey] extends TExtends ? TObject[TKey] : undefined;
@@ -72,32 +72,35 @@ export type TupleOf<T, N extends number, R extends Array<T> = []> = R['length'] 
   : TupleOf<T, N, [T, ...R]>;
 export type NumberTuple<T extends number> = TupleOf<number, T>;
 
-export type BoxFourCC = keyof BoxRegistry['box'];
-export type SampleEntryFourCC = keyof BoxRegistry['sampleEntry'];
-export type SampleGroupEntryGroupingType = keyof BoxRegistry['sampleGroupEntry'];
-export type UUIDKeys = keyof BoxRegistry['uuid'];
+type ConcreteBoxRegistry = BoxRegistry<typeof BOXES>;
+export type BoxFourCC = keyof ConcreteBoxRegistry['box'];
+export type SampleEntryFourCC = keyof ConcreteBoxRegistry['sampleEntry'];
+export type SampleGroupEntryGroupingType = keyof ConcreteBoxRegistry['sampleGroupEntry'];
+export type UUIDKeys = keyof ConcreteBoxRegistry['uuid'];
 export type AllIdentifiers =
   | BoxFourCC
   | SampleEntryFourCC
   | SampleGroupEntryGroupingType
   | UUIDKeys;
 
-export type UUIDKind = InstanceOf<Extends<BoxRegistry['uuid'], typeof Box>>;
-export type BoxKind = InstanceOf<Extends<BoxRegistry['box'], typeof Box>>;
-export type SampleEntryKind = InstanceOf<Extends<BoxRegistry['sampleEntry'], typeof SampleEntry>>;
+export type UUIDKind = InstanceOf<Extends<ConcreteBoxRegistry['uuid'], typeof Box>>;
+export type BoxKind = InstanceOf<Extends<ConcreteBoxRegistry['box'], typeof Box>>;
+export type SampleEntryKind = InstanceOf<
+  Extends<ConcreteBoxRegistry['sampleEntry'], typeof SampleEntry>
+>;
 export type SampleGroupEntryKind = InstanceOf<
-  Extends<BoxRegistry['sampleGroupEntry'], typeof SampleGroupEntry>
+  Extends<ConcreteBoxRegistry['sampleGroupEntry'], typeof SampleGroupEntry>
 >;
 
 export type AllRegisteredBoxes = {
-  [K in AllIdentifiers]: K extends keyof BoxRegistry['box']
-    ? InstanceOf<BoxRegistry['box'][K]>
-    : K extends keyof BoxRegistry['sampleEntry']
-      ? InstanceOf<BoxRegistry['sampleEntry'][K]>
-      : K extends keyof BoxRegistry['sampleGroupEntry']
-        ? InstanceOf<BoxRegistry['sampleGroupEntry'][K]>
-        : K extends keyof BoxRegistry['uuid']
-          ? InstanceOf<BoxRegistry['uuid'][K]>
+  [K in AllIdentifiers]: K extends keyof ConcreteBoxRegistry['box']
+    ? InstanceOf<ConcreteBoxRegistry['box'][K]>
+    : K extends keyof ConcreteBoxRegistry['sampleEntry']
+      ? InstanceOf<ConcreteBoxRegistry['sampleEntry'][K]>
+      : K extends keyof ConcreteBoxRegistry['sampleGroupEntry']
+        ? InstanceOf<ConcreteBoxRegistry['sampleGroupEntry'][K]>
+        : K extends keyof ConcreteBoxRegistry['uuid']
+          ? InstanceOf<ConcreteBoxRegistry['uuid'][K]>
           : never;
 };
 
