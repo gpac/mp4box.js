@@ -139,7 +139,7 @@ export class trakBox extends ContainerBox {
   tkhds: Array<tkhdBox>;
   tref: trefBox;
   trefs: Array<trefBox>;
-  edts: edtsBox;
+  edts?: edtsBox;
   edtss: Array<edtsBox>;
   udta: udtaBox;
   udtas: Array<udtaBox>;
