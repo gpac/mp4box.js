@@ -687,7 +687,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         }
       }
 
-      if (trak.edts) {
+      if (trak.edts !== undefined && trak.edts.elst !== undefined) {
         track.edits = trak.edts.elst.entries;
       }
 

@@ -156,7 +156,7 @@ export class trakBox extends ContainerBox {
 export class edtsBox extends ContainerBox {
   static override readonly fourcc = 'edts' as const;
   box_name = 'EditBox' as const;
-  elst: elstBox;
+  elst?: elstBox;
   elsts: Array<elstBox>;
 }
 export class mdiaBox extends ContainerBox {
