@@ -8,7 +8,7 @@ export class MP4BoxBuffer extends ArrayBuffer {
     this.usedBytes = 0;
   }
 
-  static fromArrayBuffer(buffer: ArrayBuffer, fileStart: number): MP4BoxBuffer {
+  static fromArrayBuffer(buffer: ArrayBufferLike, fileStart: number): MP4BoxBuffer {
     const mp4BoxBuffer = new MP4BoxBuffer(buffer.byteLength);
     const view = new Uint8Array(mp4BoxBuffer);
     view.set(new Uint8Array(buffer));

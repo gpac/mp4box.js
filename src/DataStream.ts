@@ -57,7 +57,7 @@ export class DataStream {
    *
    * @param arrayBuffer ArrayBuffer to read from.
    * @param byteOffset Offset from arrayBuffer beginning for the DataStream.
-   * @param endianness DataStream.BIG_ENDIAN or DataStream.LITTLE_ENDIAN (the default).
+   * @param endianness Endianness of the DataStream (default: BIG_ENDIAN).
    */
   constructor(
     arrayBuffer?: ArrayBuffer | DataView<ArrayBuffer> | number,
@@ -74,7 +74,7 @@ export class DataStream {
       this.buffer = new MP4BoxBuffer(arrayBuffer || 0);
     }
     this.position = 0;
-    this.endianness = endianness ? endianness : Endianness.LITTLE_ENDIAN;
+    this.endianness = endianness ? endianness : Endianness.BIG_ENDIAN;
   }
 
   getPosition() {

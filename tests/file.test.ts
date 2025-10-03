@@ -1,4 +1,11 @@
-import { createFile, DataStream, Endianness, MP4BoxBuffer, type Sample } from '../entries/all';
+import {
+  createFile,
+  DataStream,
+  Endianness,
+  MP4BoxBuffer,
+  MultiBufferStream,
+  type Sample,
+} from '../entries/all';
 import { getFilePath, getFileRange, loadAndGetInfo } from './common';
 
 async function collectTestSamples() {
@@ -18,7 +25,7 @@ async function collectTestSamples() {
   });
 
   // Extract the decoder configuration
-  const avcC = new DataStream();
+  const avcC = new MultiBufferStream();
   avcC.endianness = Endianness.BIG_ENDIAN;
   mp4.getBox('avcC').write(avcC);
 

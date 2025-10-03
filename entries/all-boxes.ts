@@ -84,6 +84,7 @@ export * from '#/boxes/qt/ilst';
 export * from '#/boxes/qt/keys';
 export * from '#/boxes/qt/prof';
 export * from '#/boxes/qt/tapt';
+export * from '#/boxes/qt/wave';
 export * from '#/boxes/rtp';
 export * from '#/boxes/saio';
 export * from '#/boxes/saiz';

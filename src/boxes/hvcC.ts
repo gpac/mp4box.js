@@ -1,8 +1,8 @@
 import { Box } from '#/box';
 import { DataStream } from '#/DataStream';
-import { MP4BoxStream } from '#/stream';
 import type { NaluArray } from '@types';
 import type { NALUArrays } from './displays/naluArrays';
+import type { MultiBufferStream } from '#/buffer';
 
 export class hvcCBox extends Box {
   static override readonly fourcc = 'hvcC' as const;
@@ -27,7 +27,7 @@ export class hvcCBox extends Box {
   lengthSizeMinusOne: number;
   nalu_arrays: NALUArrays;
 
-  parse(stream: DataStream | MP4BoxStream) {
+  parse(stream: MultiBufferStream | DataStream) {
     this.configurationVersion = stream.readUint8();
     let tmp_byte = stream.readUint8();
     this.general_profile_space = tmp_byte >> 6;

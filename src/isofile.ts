@@ -78,10 +78,9 @@ import {
   TRUN_FLAGS_FLAGS,
   TRUN_FLAGS_SIZE,
 } from '#/constants';
-import { DataStream, Endianness } from '#/DataStream';
+import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
-import { MP4BoxStream } from '#/stream';
 import type {
   AllIdentifiers,
   AllRegisteredBoxes,
@@ -1196,7 +1195,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     const stream = existingStream || new DataStream();
-    stream.endianness = Endianness.BIG_ENDIAN;
 
     const moof = this.createMoof(samples);
     moof.write(stream);
@@ -1234,7 +1232,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     Log.debug('ISOFile', 'Generating initialization segment');
 
     const stream = new DataStream();
-    stream.endianness = Endianness.BIG_ENDIAN;
     ftyp.write(stream);
 
     /* we can now create the new mvex box */
@@ -1262,7 +1259,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   save(name: string) {
     const stream = new DataStream();
     stream.isofile = this;
-    stream.endianness = Endianness.BIG_ENDIAN;
     this.write(stream);
     return stream.save(name);
   }
@@ -1271,7 +1267,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   getBuffer() {
     const stream = new DataStream();
     stream.isofile = this;
-    stream.endianness = Endianness.BIG_ENDIAN;
     this.write(stream);
     return stream;
   }
@@ -2705,10 +2700,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
       if (options.avcDecoderConfigRecord) {
         const avcC = sde.addBox(new avcCBox(options.avcDecoderConfigRecord.byteLength));
-        avcC.parse(new MP4BoxStream(options.avcDecoderConfigRecord));
+        avcC.parse(new DataStream(options.avcDecoderConfigRecord));
       } else if (options.hevcDecoderConfigRecord) {
         const hvcC = sde.addBox(new hvcCBox(options.hevcDecoderConfigRecord.byteLength));
-        hvcC.parse(new MP4BoxStream(options.hevcDecoderConfigRecord));
+        hvcC.parse(new DataStream(options.hevcDecoderConfigRecord));
       }
     } else if (sample_description_entry instanceof AudioSampleEntry) {
       const sde = sample_description_entry as AudioSampleEntry;

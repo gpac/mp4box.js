@@ -1,4 +1,4 @@
-import { MP4BoxStream } from '#/stream';
+import { DataStream } from '#/DataStream';
 
 export class AudioSpecificConfig {
   samplingFrequencyIndex?: number;
@@ -9,7 +9,7 @@ export class AudioSpecificConfig {
   extensionAudioObjectType?: number;
   extensionSamplingFrequencyIndex?: number;
 
-  static getAudioObjectType(stream: MP4BoxStream) {
+  static getAudioObjectType(stream: DataStream) {
     let tmp = stream.readUint8();
     let audioObjectType = tmp >> 3;
     if (audioObjectType === 0x1f) {
@@ -21,7 +21,7 @@ export class AudioSpecificConfig {
     return audioObjectType;
   }
 
-  parse(stream: MP4BoxStream, audioObjectType: number) {
+  parse(stream: DataStream, audioObjectType: number) {
     let tmp = stream.readUint8();
     this.samplingFrequencyIndex = tmp >> 4;
     if (this.samplingFrequencyIndex === 0xf) {

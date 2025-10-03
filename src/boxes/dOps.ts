@@ -31,4 +31,27 @@ export class dOpsBox extends Box {
       }
     }
   }
+
+  write(stream: MultiBufferStream) {
+    this.size = 11; // Version(1) + OutputChannelCount(1) + PreSkip(2) + InputSampleRate(4) + OutputGain(2) + ChannelMappingFamily(1)
+    if (this.ChannelMappingFamily !== 0) {
+      // Add StreamCount(1) + CoupledCount(1) + ChannelMapping array
+      this.size += 2 + this.OutputChannelCount;
+    }
+
+    this.writeHeader(stream);
+    stream.writeUint8(this.Version);
+    stream.writeUint8(this.OutputChannelCount);
+    stream.writeUint16(this.PreSkip);
+    stream.writeUint32(this.InputSampleRate);
+    stream.writeInt16(this.OutputGain);
+    stream.writeUint8(this.ChannelMappingFamily);
+    if (this.ChannelMappingFamily !== 0) {
+      stream.writeUint8(this.StreamCount);
+      stream.writeUint8(this.CoupledCount);
+      for (let i = 0; i < this.OutputChannelCount; i++) {
+        stream.writeUint8(this.ChannelMapping[i]);
+      }
+    }
+  }
 }

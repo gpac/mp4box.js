@@ -1,7 +1,6 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { DataStream } from '#/DataStream';
-import { MP4BoxStream } from '#/stream';
 import { ParameterSetArray } from './displays/parameterSetArray';
 
 export class avcCBox extends Box {
@@ -19,7 +18,7 @@ export class avcCBox extends Box {
   PPS: ParameterSetArray;
   ext: Uint8Array;
 
-  parse(stream: DataStream | MP4BoxStream) {
+  parse(stream: MultiBufferStream | DataStream) {
     this.configurationVersion = stream.readUint8();
     this.AVCProfileIndication = stream.readUint8();
     this.profile_compatibility = stream.readUint8();

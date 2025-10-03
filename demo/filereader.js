@@ -639,7 +639,7 @@ function displayItemContent(id) {
     case 'text/html':
     case 'text/css':
     case 'application/ecmascript':
-      string = new MP4BoxStream(item.data.buffer).readString(item.data.length);
+      string = new DataStream(item.data.buffer).readString(item.data.length);
       console.log(string);
       break;
     default:
