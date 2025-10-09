@@ -954,7 +954,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /* Find and return specific boxes using recursion and early return */
-  getBox<T extends AllIdentifiers>(type: T): AllRegisteredBoxes[T] {
+  getBox<T extends AllIdentifiers>(type: T): AllRegisteredBoxes[T] | undefined {
     const result = this.getBoxes(type, true);
     return result.length ? result[0] : undefined;
   }
