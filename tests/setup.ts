@@ -25,32 +25,59 @@ async function ensureAssetExists(asset: string) {
   // Check hash when FFC provides it
 }
 
-// Create the .cache directory if it doesn't exist
-fs.mkdirSync(CACHE_DIR, { recursive: true });
+export async function setup() {
+  // Create the .cache directory if it doesn't exist
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
 
-// Ensure both assets exist
-await ensureAssetExists(FFC_FILES);
-await ensureAssetExists(FFC_ARCHIVE);
+  // Ensure both assets exist
+  await ensureAssetExists(FFC_FILES);
+  await ensureAssetExists(FFC_ARCHIVE);
 
-// Ensure the files.json file is valid JSON
-const boxesPath = path.join(CACHE_DIR, FFC_FILES);
-const boxesContent = fs.readFileSync(boxesPath, 'utf-8');
-const files = JSON.parse(boxesContent);
-const metadata = files.file_metadata || {};
+  // Ensure the files.json file is valid JSON
+  const boxesPath = path.join(CACHE_DIR, FFC_FILES);
+  const boxesContent = fs.readFileSync(boxesPath, 'utf-8');
+  const files = JSON.parse(boxesContent);
+  const metadata = files.file_metadata || {};
 
-// Extract the archive if not already extracted
-const archivePath = path.join(CACHE_DIR, 'files');
-if (!fs.existsSync(archivePath)) {
-  console.log(`Extracting ${FFC_ARCHIVE}...`);
-  await tar.x({
-    file: path.join(CACHE_DIR, FFC_ARCHIVE),
-    cwd: CACHE_DIR,
-  });
+  // Extract the archive if not already extracted
+  const archivePath = path.join(CACHE_DIR, 'files');
+  if (!fs.existsSync(archivePath)) {
+    console.log(`Extracting ${FFC_ARCHIVE}...`);
+    await tar.x({
+      file: path.join(CACHE_DIR, FFC_ARCHIVE),
+      cwd: CACHE_DIR,
+    });
+
+    // Force file system sync after extraction
+    try {
+      const fd = fs.openSync(archivePath, 'r');
+      fs.fsyncSync(fd);
+      fs.closeSync(fd);
+    } catch {
+      // fsync not critical, continue if it fails
+      console.warn('fsync failed, continuing without it.');
+    }
+  }
+
+  // Ensure the extracted files are valid
+  // Add a small retry mechanism for CI environments
+  for (const fpath of Object.keys(metadata)) {
+    const filePath = path.join(CACHE_DIR, 'files', fpath);
+    let exists = fs.existsSync(filePath);
+
+    // Retry a few times with a small delay if file doesn't exist
+    if (!exists) {
+      for (let attempt = 0; attempt < 3 && !exists; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        exists = fs.existsSync(filePath);
+      }
+    }
+
+    if (!exists) throw new Error(`File ${filePath} does not exist, but is listed in metadata.`);
+  }
 }
 
-// Ensure the extracted files are valid
-for (const fpath of Object.keys(metadata)) {
-  const filePath = path.join(CACHE_DIR, 'files', fpath);
-  if (!fs.existsSync(filePath))
-    throw new Error(`File ${filePath} does not exist, but is listed in metadata.`);
+export function teardown() {
+  // Optionally clean up the .cache directory after tests
+  // fs.rmSync(CACHE_DIR, { recursive: true, force: true });
 }

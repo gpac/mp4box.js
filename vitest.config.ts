@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     include: ['tests/**/*.test.ts'],
-    setupFiles: ['tests/setup.ts'],
+    globalSetup: ['tests/setup.ts'],
     typecheck: {
       tsconfig: './tsconfig.test.json',
     },
