@@ -2513,7 +2513,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const endBufferIndex = this.stream.findPosition(true, mdat.start + mdat.size, false);
 
     if (startBufferIndex === -1 || endBufferIndex === -1) {
-      console.trace(mdat, startBufferIndex, endBufferIndex);
       Log.warn('ISOFile', "Cannot transfer 'mdat' data, start or end buffer not found");
       return;
     }
