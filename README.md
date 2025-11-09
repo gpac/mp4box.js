@@ -44,12 +44,11 @@ npm install mp4box@latest
 
 ## Demos
 
-- [A player that performs on-the-fly fragmentation](./test/index.html)
-- [A file inspection tool](./test/filereader.html)
-- [A basic file segmenter](./test/file-segmenter.html)
-- [A file diff tool](./test/filediff.html)
-- [An MSE-based AVIF viewing tool](./test/mse-avif-viewer.html)
-- [QUnit tests](./test/qunit.html)
+- [A player that performs on-the-fly fragmentation](./demo/index.html)
+- [A file inspection tool](./demo/filereader.html)
+- [A basic file segmenter](./demo/file-segmenter.html)
+- [A file diff tool](./demo/filediff.html)
+- [An MSE-based AVIF viewing tool](./demo/mse-avif-viewer.html)
 
 ## API
 
