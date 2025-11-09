@@ -9,6 +9,7 @@ on:
     types:
       - opened
       - synchronize
+  merge_group:
   workflow_call:
 
 permissions:

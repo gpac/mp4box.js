@@ -27,6 +27,9 @@ jobs:
       id-token: write
     name: release
     runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/mp4box
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
