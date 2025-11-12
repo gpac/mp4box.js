@@ -49,6 +49,10 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
   "scripts": {
     "prepare": "node .husky/install.mjs",
     "build": "tsup",

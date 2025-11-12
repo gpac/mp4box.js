@@ -6,9 +6,6 @@ on:
       - main
       - next
 
-permissions:
-  contents: read
-
 env:
   PUBLISH_MODE: true
 
