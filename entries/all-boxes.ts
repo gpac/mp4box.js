@@ -97,6 +97,7 @@ export * from '#/boxes/sgpd';
 export * from '#/boxes/sidx';
 export * from '#/boxes/SmDm';
 export * from '#/boxes/smhd';
+export * from '#/boxes/srat';
 export * from '#/boxes/ssix';
 export * from '#/boxes/stco';
 export * from '#/boxes/stdp';
