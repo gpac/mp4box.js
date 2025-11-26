@@ -1306,7 +1306,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       buffer: ISOFile.writeInitializationSegment(
         this.ftyp,
         moov,
-        this.moov?.mvex?.mehd.fragment_duration,
+        this.moov?.mvex?.mehd?.fragment_duration,
       ),
     };
   }
