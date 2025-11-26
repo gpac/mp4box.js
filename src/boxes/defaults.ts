@@ -233,7 +233,7 @@ export class mvexBox extends ContainerBox {
   static override readonly fourcc = 'mvex' as const;
   box_name = 'MovieExtendsBox' as const;
   trex: trexBox;
-  mehd: mehdBox;
+  mehd?: mehdBox;
   mehds: Array<mehdBox>;
 
   trexs: Array<trexBox> = [];
