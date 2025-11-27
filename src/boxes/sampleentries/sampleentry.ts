@@ -1,3 +1,4 @@
+import type { MultiBufferStream } from '#/buffer';
 import { av1CBox } from '#/boxes/av1C';
 import { avcCBox } from '#/boxes/avcC';
 import { sinfBox } from '#/boxes/defaults';
@@ -454,6 +455,19 @@ export class encmSampleEntry extends MetadataSampleEntry {
   subBoxNames = ['sinf'] as const;
 
   sinfs: Array<sinfBox> = [];
+}
+
+export class urimSampleEntry extends MetadataSampleEntry {
+  the_label: string;
+  init?: string;
+
+  static override readonly fourcc = 'urim' as const;
+
+  parse(stream: MultiBufferStream) {
+    this.parseHeader(stream);
+    this.the_label = stream.readCString();
+    // TODO: this.init = remaining bytes
+  }
 }
 
 // Restricted sample entries
