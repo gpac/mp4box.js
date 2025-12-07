@@ -1006,89 +1006,73 @@ function buildSampleMap(start, end) {
   }
 }
 
-SampleTimeline.prototype.update = function () {
+function vericalTimeline () {
   var that = this;
   var data = this.data;
   if (!data || data.length === 0) {
     return;
   }
-  var scale = data[0].duration ? 50 / data[0].duration : 50;
-  var sample_height = 30;
-  var height_spacing = 10;
-  var x_offset = 100;
-  this.svg.html('');
-  this.svg
-    .append('text')
-    .attr('x', 0)
-    .attr('y', sample_height / 2)
-    .text('Decoding');
-  this.svg.append('text').attr('x', 0).attr('y', sample_height).text('Timeline');
-  this.svg
-    .append('text')
-    .attr('x', 0)
-    .attr('y', (3 * sample_height) / 2 + height_spacing)
-    .text('Composition');
-  this.svg
-    .append('text')
-    .attr('x', 0)
-    .attr('y', 2 * sample_height + height_spacing)
-    .text('Timeline');
-  this.svg
-    .append('defs')
-    .append('marker')
-    .attr('id', 'arrow')
-    .attr('markerWidth', 13)
-    .attr('markerHeight', 13)
-    .attr('refX', 2)
-    .attr('refY', 6)
-    .attr('orient', 'auto')
-    .append('path')
-    .attr('d', 'M2,2 L2,11 L10,6 L2,2')
-    .attr('fill', 'black');
+  var scale = data[0].duration ? 30 / data[0].duration : 30;
+  const sample_width = 120;
+  const content =   this.svg.select("g.content");
+  content.html('');
   var dts_offset = data[0].dts;
+  var ypos = 50;
   data.forEach(function (d, i) {
-    var sampleg = that.svg.append('g').attr('transform', 'translate(' + x_offset + ')');
+    var sampleg = content.append('g').attr("class","pair");
+    const dts_y = (d.dts - dts_offset) * scale + ypos;
+    const cts_y = (d.cts - dts_offset) * scale + ypos;
+    const rect_h = d.duration * scale;
+    const rect_middle =  rect_h / 2;
+    // Decoding Timeline
     sampleg
       .append('rect')
-      .attr('x', (d.dts - dts_offset) * scale)
-      .attr('y', 0)
-      .attr('width', d.duration * scale)
-      .attr('height', sample_height)
+      .attr('y', dts_y)
+      .attr('width', sample_width)
+      .attr('height',rect_h)
+      .attr("class","block")
       .style('fill', 'red')
       .style('stroke', d.is_sync ? 'black' : 'none');
     sampleg
       .append('text')
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
-      .attr('x', (d.dts - dts_offset + d.duration / 2) * scale)
-      .attr('y', sample_height / 2)
+      .attr('x', sample_width/ 2)
+      .attr('y', dts_y + rect_middle )
       .text(d.dts);
+
+    // Composition Timeline
     sampleg
       .append('rect')
-      .attr('x', (d.cts - dts_offset) * scale)
-      .attr('y', sample_height + height_spacing)
-      .attr('width', d.duration * scale)
-      .attr('height', sample_height)
+      .attr('x', sample_width *2)
+      .attr('y', cts_y)
+      .attr('width', sample_width)
+      .attr('height', rect_h)
+      .attr("class","block")
       .style('fill', 'blue')
       .style('stroke', d.is_sync ? 'black' : 'none');
     sampleg
       .append('text')
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
-      .attr('x', (d.cts - dts_offset + d.duration / 2) * scale)
-      .attr('y', sample_height + height_spacing + sample_height / 2)
+      .attr('x', sample_width *2.5)
+      .attr('y', cts_y + rect_middle)
       .text(d.cts);
+
     sampleg
       .append('line')
-      .attr('x1', (d.dts - dts_offset + d.duration / 2) * scale)
-      .attr('y1', sample_height)
-      .attr('x2', (d.cts - dts_offset + d.duration / 2) * scale)
-      .attr('y2', sample_height + height_spacing)
+      .attr('x1', sample_width)
+      .attr('y1', dts_y + rect_middle)
+      .attr('x2', sample_width*2)
+      .attr('y2', cts_y + rect_middle)
+      .attr("class","block")
       .attr('stroke-width', '1px')
       .attr('marker-end', 'url(#arrow)')
       .style('stroke', 'black');
   });
 };
+
+SampleTimeline.prototype.update = vericalTimeline;
 
 function SampleTimeline() {
   var margin = { top: 10, right: 10, bottom: 80, left: 20 };
@@ -1107,6 +1091,33 @@ function SampleTimeline() {
     )
     .append('g')
     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+  const sample_height = 30;
+  const sample_width = 120;
+  this.svg
+    .append('text')
+    .attr('x', sample_width/2)
+    .attr('y', sample_height/2)
+    .attr('text-anchor', 'middle')
+    .text('Decoding');
+  this.svg
+    .append('text')
+    .attr('x', sample_width*2.5)
+    .attr('y', sample_height/2)
+    .attr('text-anchor', 'middle')
+    .text('Composition');
+  this.svg
+    .append('defs')
+    .append('marker')
+    .attr('id', 'arrow')
+    .attr('markerWidth', 13)
+    .attr('markerHeight', 13)
+    .attr('refX', 10)
+    .attr('refY', 6)
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M2,2 L2,11 L10,6 z')
+    .attr('fill', 'black');
+  this.svg.append('g').attr("class","content");
 }
 
 SampleGraph.prototype.update = function () {
