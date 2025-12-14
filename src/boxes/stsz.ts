@@ -30,17 +30,7 @@ export class stszBox extends FullBox {
     let constant = true;
     this.version = 0;
     this.flags = 0;
-    if (this.sample_sizes.length > 0) {
-      let i = 0;
-      while (i + 1 < this.sample_sizes.length) {
-        if (this.sample_sizes[i + 1] !== this.sample_sizes[0]) {
-          constant = false;
-          break;
-        } else {
-          i++;
-        }
-      }
-    } else {
+    if (this.sample_sizes.length > 0 && this.sample_size === 0) {
       constant = false;
     }
     this.size = 8;
@@ -48,11 +38,7 @@ export class stszBox extends FullBox {
       this.size += 4 * this.sample_sizes.length;
     }
     this.writeHeader(stream);
-    if (!constant) {
-      stream.writeUint32(0);
-    } else {
-      stream.writeUint32(this.sample_sizes[0]);
-    }
+    stream.writeUint32(this.sample_size);
     stream.writeUint32(this.sample_sizes.length);
     if (!constant) {
       stream.writeUint32Array(this.sample_sizes);
