@@ -1443,14 +1443,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           sample_groups_info[k].last_sample_in_run = 0;
         }
         sample_groups_info[k].entry_index++;
-        if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp?.entries.length - 1) {
+        if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp.entries.length - 1) {
           sample_groups_info[k].last_sample_in_run +=
-            sample_groups_info[k].sbgp?.entries[sample_groups_info[k].entry_index].sample_count;
+            sample_groups_info[k].sbgp.entries[sample_groups_info[k].entry_index].sample_count;
         }
       }
-      if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp?.entries.length - 1) {
+      if (sample_groups_info[k].entry_index <= sample_groups_info[k].sbgp.entries.length - 1) {
         sample.sample_groups[k].group_description_index =
-          sample_groups_info[k].sbgp?.entries[
+          sample_groups_info[k].sbgp.entries[
             sample_groups_info[k].entry_index
           ].group_description_index;
       } else {
