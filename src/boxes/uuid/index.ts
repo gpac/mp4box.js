@@ -130,3 +130,21 @@ export class ItemContentIDPropertyBox extends UUIDBox {
     this.content_id = stream.readCString();
   }
 }
+
+export class ItemComponentContentIDPropertyBox extends UUIDBox {
+  static uuid = '9db9dd6e373c5a4e811021fc83a911fd' as const;
+  box_name = 'ItemComponentContentIDProperty' as const;
+
+  content_ids: Array<string>;
+  number_of_components: number;
+
+  parse(stream: MultiBufferStream): void {
+    this.number_of_components = stream.readUint32();
+
+    this.content_ids = [];
+    for (let i = 0; i < this.number_of_components; i++) {
+      const content_id: string = stream.readCString();
+      this.content_ids.push(content_id);
+    }
+  }
+}
