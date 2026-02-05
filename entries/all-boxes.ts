@@ -10,6 +10,7 @@ export * from '#/boxes/clap';
 export * from '#/boxes/clli';
 export * from '#/boxes/cmex';
 export * from '#/boxes/cmin';
+export * from '#/boxes/cmpC';
 export * from '#/boxes/cmpd';
 export * from '#/boxes/co64';
 export * from '#/boxes/CoLL';
