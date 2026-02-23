@@ -270,28 +270,29 @@ mp4boxfile.onSegment = function (id, user, buffer, sampleNumber, last) {
 };
 ```
 
-#### initializeSegmentation()
+#### initializeSegmentation(mode)
 
-Indicates that the application is ready to receive segments. Returns an array of objects containing the following properties:
+Indicates that the application is ready to receive segments.
+`mode` can be `'combined'` (default) or `'per-track'`.
 
-- **id**: Number, the track id
-- **user**: Object, the caller of the segmentation for this track, as given in [setSegmentOptions](##setsegmentoptionstrack_id-user-options)
-- **buffer**: ArrayBuffer, the initialization segment for this track.
-- **sampleNumber**: Number, sample number of the last sample in the segment, plus 1.
-- **last**: Boolean, indication if this is the last segment to be received.
+By default, it returns a single initialization segment containing all tracks configured with [setSegmentOptions](#setsegmentoptionstrack_id-user-options):
+
+```json
+{
+  "tracks": [
+    { "id": 2, "user": "[SourceBuffer]" },
+    { "id": 3, "user": "[SourceBuffer]" }
+  ],
+  "buffer": "[ArrayBuffer]"
+}
+```
+
+If called with `'per-track'`, it returns one initialization segment per fragmented track:
 
 ```json
 [
-  {
-    "id": 2,
-    "buffer": "[ArrayBuffer]",
-    "user": "[SourceBuffer]"
-  },
-  {
-    "id": 3,
-    "buffer": "[ArrayBuffer]",
-    "user": "[SourceBuffer]"
-  }
+  { "id": 2, "buffer": "[ArrayBuffer]", "user": "[SourceBuffer]" },
+  { "id": 3, "buffer": "[ArrayBuffer]", "user": "[SourceBuffer]" }
 ]
 ```
 

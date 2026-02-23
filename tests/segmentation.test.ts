@@ -31,7 +31,7 @@ describe('File Segmentation', () => {
     const init = mp4.initializeSegmentation();
 
     // Write the initialization segments to the output stream
-    out.insertBuffer(init.buffer);
+    out.insertBuffer(MP4BoxBuffer.fromArrayBuffer(init.buffer, offset));
     offset += init.buffer.byteLength;
     saveBufferToFile(init.buffer, task.id, true);
 
@@ -81,7 +81,7 @@ describe('File Segmentation', () => {
     const init = mp4.initializeSegmentation();
 
     // Write the initialization segments to the output stream
-    out.insertBuffer(init.buffer);
+    out.insertBuffer(MP4BoxBuffer.fromArrayBuffer(init.buffer, offset));
     offset += init.buffer.byteLength;
     saveBufferToFile(init.buffer, task.id, true);
 
@@ -128,7 +128,7 @@ describe('File Segmentation', () => {
     const init = mp4.initializeSegmentation();
 
     // Write the initialization segments to the output stream
-    out.insertBuffer(init.buffer);
+    out.insertBuffer(MP4BoxBuffer.fromArrayBuffer(init.buffer, offset));
     offset += init.buffer.byteLength;
     saveBufferToFile(init.buffer, task.id, true);
 
@@ -178,7 +178,7 @@ describe('File Segmentation', () => {
     const init = mp4.initializeSegmentation();
 
     // Write the initialization segments to the output stream
-    out.insertBuffer(init.buffer);
+    out.insertBuffer(MP4BoxBuffer.fromArrayBuffer(init.buffer, offset));
     offset += init.buffer.byteLength;
     saveBufferToFile(init.buffer, task.id, true);
 
@@ -290,5 +290,60 @@ describe('File Segmentation', () => {
     expect(fragTrack.state.lastSegmentSampleNumber).toBe(fragTrack.trak.nextSample);
     expect(fragTrack.state.accumulatedSize).toBe(0);
     expect(fragTrack.segmentStream).toBeUndefined();
+  });
+
+  it('with one init segment per fragmented track', async () => {
+    const { testFile } = getFilePath('isobmff', '01_simple.mp4');
+    const { mp4 } = await loadAndGetInfo(testFile, true, true);
+
+    mp4.setSegmentOptions(101, undefined, {
+      nbSamples: 50,
+      rapAlignement: false,
+    });
+    mp4.setSegmentOptions(201, undefined, {
+      nbSamples: 50,
+      rapAlignement: false,
+    });
+
+    const initSegments = mp4.initializeSegmentation('per-track');
+    expect(initSegments.length).toBe(2);
+
+    for (const initSegment of initSegments) {
+      const initMp4 = createFile();
+      initMp4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(initSegment.buffer, 0));
+      initMp4.flush();
+
+      const info = initMp4.getInfo();
+      expect(info.tracks.length).toBe(1);
+      expect(info.tracks[0].id).toBe(initSegment.id);
+      expect(initMp4.moov.mvex.trexs.length).toBe(1);
+      expect(initMp4.moov.mvex.trexs[0].track_id).toBe(initSegment.id);
+    }
+  });
+
+  it('with explicit combined mode', async () => {
+    const { testFile } = getFilePath('isobmff', '01_simple.mp4');
+    const { mp4 } = await loadAndGetInfo(testFile, true, true);
+
+    mp4.setSegmentOptions(101, undefined, {
+      nbSamples: 50,
+      rapAlignement: false,
+    });
+    mp4.setSegmentOptions(201, undefined, {
+      nbSamples: 50,
+      rapAlignement: false,
+    });
+
+    const defaultInit = mp4.initializeSegmentation();
+    const combinedInit = mp4.initializeSegmentation('combined');
+
+    expect(combinedInit.tracks.map(track => track.id)).toEqual(
+      defaultInit.tracks.map(track => track.id),
+    );
+
+    const initMp4 = createFile();
+    initMp4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(combinedInit.buffer, 0));
+    initMp4.flush();
+    expect(initMp4.getInfo().tracks.length).toBe(2);
   });
 });
