@@ -30,7 +30,7 @@ import { mehdBox } from '#/boxes/mehd';
 import { metaBox } from '#/boxes/meta';
 import { mfhdBox } from '#/boxes/mfhd';
 import { mvhdBox } from '#/boxes/mvhd';
-import { stppSampleEntry } from '#/boxes/sampleentries';
+import { mp4aSampleEntry, stppSampleEntry } from '#/boxes/sampleentries';
 import {
   AudioSampleEntry,
   HintSampleEntry,
@@ -245,10 +245,15 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       nbSamplesPerFragment: number;
       sizePerSegment: number;
       rapAlignement: boolean;
+      normalizeAudioSampleEntriesForMSE: boolean;
     }>,
   ) {
     // Destructure and provide defaults for optional properties
-    const { sizePerSegment = Number.MAX_SAFE_INTEGER, rapAlignement = true } = opts;
+    const {
+      sizePerSegment = Number.MAX_SAFE_INTEGER,
+      rapAlignement = true,
+      normalizeAudioSampleEntriesForMSE = true,
+    } = opts;
 
     // Set defaults for sample counts
     let nbSamples = opts.nbSamples ?? opts.nbSamplesPerFragment ?? 1000;
@@ -292,6 +297,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         nb_samples_per_fragment: nbSamplesPerFragment,
         size_per_segment: sizePerSegment,
         rapAlignement,
+        normalizeAudioSampleEntriesForMSE,
         state: {
           lastFragmentSampleNumber: 0,
           lastSegmentSampleNumber: 0,
@@ -1261,29 +1267,45 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * Modify the file and create the initialization segment
    * @bundle isofile-write.js
    */
-  static writeInitializationSegment(ftyp: ftypBox, moov: moovBox, total_duration: number) {
+  static writeInitializationSegment(
+    ftyp: ftypBox,
+    moov: moovBox,
+    total_duration: number,
+    normalizeAudioSampleEntryTrackIds?: Set<number>,
+  ) {
     Log.debug('ISOFile', 'Generating initialization segment');
 
     const stream = new DataStream();
     ftyp.write(stream);
 
-    /* we can now create the new mvex box */
-    const mvex = moov.addBox(new mvexBox());
-    if (total_duration) {
-      const mehd = mvex.addBox(new mehdBox());
-      mehd.fragment_duration = total_duration;
-    }
+    const restoreCallbacks = ISOFile.normalizeAudioSampleEntriesForMSEFragmentedInit(
+      moov.traks,
+      normalizeAudioSampleEntryTrackIds,
+    );
 
-    // Add trex boxes for each track
-    for (let i = 0; i < moov.traks.length; i++) {
-      const trex = mvex.addBox(new trexBox());
-      trex.track_id = moov.traks[i].tkhd.track_id;
-      trex.default_sample_description_index = 1;
-      trex.default_sample_duration = moov.traks[i].samples[0]?.duration ?? 0;
-      trex.default_sample_size = 0;
-      trex.default_sample_flags = 1 << 16;
+    try {
+      /* we can now create the new mvex box */
+      const mvex = moov.addBox(new mvexBox());
+      if (total_duration) {
+        const mehd = mvex.addBox(new mehdBox());
+        mehd.fragment_duration = total_duration;
+      }
+
+      // Add trex boxes for each track
+      for (let i = 0; i < moov.traks.length; i++) {
+        const trex = mvex.addBox(new trexBox());
+        trex.track_id = moov.traks[i].tkhd.track_id;
+        trex.default_sample_description_index = 1;
+        trex.default_sample_duration = moov.traks[i].samples[0]?.duration ?? 0;
+        trex.default_sample_size = 0;
+        trex.default_sample_flags = 1 << 16;
+      }
+      moov.write(stream);
+    } finally {
+      for (let i = restoreCallbacks.length - 1; i >= 0; i--) {
+        restoreCallbacks[i]();
+      }
     }
-    moov.write(stream);
 
     return stream.buffer;
   }
@@ -1302,6 +1324,51 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     stream.isofile = this;
     this.write(stream);
     return stream;
+  }
+
+  /** @bundle isofile-write.js */
+  private static normalizeAudioSampleEntriesForMSEFragmentedInit(
+    traks: Array<trakBox>,
+    normalizeAudioSampleEntryTrackIds?: Set<number>,
+  ) {
+    const restoreCallbacks: Array<() => void> = [];
+
+    for (const trak of traks) {
+      if (!normalizeAudioSampleEntryTrackIds?.has(trak.tkhd.track_id)) {
+        continue;
+      }
+
+      for (const sampleEntry of trak.mdia.minf.stbl.stsd?.entries ?? []) {
+        if (!(sampleEntry instanceof mp4aSampleEntry)) {
+          continue;
+        }
+
+        const esds = sampleEntry.wave?.esds;
+
+        if (sampleEntry.esds || !esds) {
+          continue;
+        }
+
+        const previousEsds = sampleEntry.esds;
+        const previousWave = sampleEntry.wave;
+        const previousBoxes = sampleEntry.boxes;
+
+        restoreCallbacks.push(() => {
+          sampleEntry.esds = previousEsds;
+          sampleEntry.wave = previousWave;
+          sampleEntry.boxes = previousBoxes;
+        });
+
+        const boxesWithoutWave = Array.isArray(sampleEntry.boxes)
+          ? sampleEntry.boxes.filter(box => box?.type !== 'wave' && box?.type !== 'esds')
+          : [];
+        sampleEntry.esds = esds;
+        sampleEntry.boxes = [...boxesWithoutWave, esds];
+        sampleEntry.wave = undefined;
+      }
+    }
+
+    return restoreCallbacks;
   }
 
   /** @bundle isofile-write.js */
@@ -1339,6 +1406,11 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
 
     const fragmentDuration = this.moov?.mvex?.mehd.fragment_duration;
+    const normalizeAudioSampleEntryTrackIds = new Set(
+      this.fragmentedTracks
+        .filter(track => track.normalizeAudioSampleEntriesForMSE !== false)
+        .map(track => track.id),
+    );
 
     if (mode === 'per-track') {
       return tracksToInitialize.map(({ id, user, trak }) => {
@@ -1349,7 +1421,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         return {
           id,
           user,
-          buffer: ISOFile.writeInitializationSegment(this.ftyp, moov, fragmentDuration),
+          buffer: ISOFile.writeInitializationSegment(
+            this.ftyp,
+            moov,
+            fragmentDuration,
+            normalizeAudioSampleEntryTrackIds,
+          ),
         };
       });
     }
@@ -1363,7 +1440,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     return {
       tracks: tracksToInitialize.map(({ id, user }) => ({ id, user })),
-      buffer: ISOFile.writeInitializationSegment(this.ftyp, moov, fragmentDuration),
+      buffer: ISOFile.writeInitializationSegment(
+        this.ftyp,
+        moov,
+        fragmentDuration,
+        normalizeAudioSampleEntryTrackIds,
+      ),
     };
   }
 
