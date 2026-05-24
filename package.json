@@ -55,6 +55,7 @@
   },
   "scripts": {
     "prepare": "node .husky/install.mjs",
+    "changeset": "changeset",
     "build": "tsdown",
     "release": "npm run build && changeset publish",
     "circular": "dpdm -T ./entries/all.ts --tsconfig tsconfig.lib.json --exit-code circular:1",
