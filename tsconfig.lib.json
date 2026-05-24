@@ -4,7 +4,6 @@
     "composite": true,
     "target": "es2022",
     "module": "es2022",
-    "baseUrl": ".",
     "paths": {
       "#/*": ["./src/*"],
       "@types": ["./entries/types"]
