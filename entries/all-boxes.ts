@@ -52,6 +52,7 @@ export * from '#/boxes/kind';
 export * from '#/boxes/leva';
 export * from '#/boxes/lhvC';
 export * from '#/boxes/lsel';
+export * from '#/boxes/lvcC';
 export * from '#/boxes/maxr';
 export * from '#/boxes/mdcv';
 export * from '#/boxes/mdhd';
