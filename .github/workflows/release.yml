@@ -29,22 +29,28 @@ jobs:
       url: https://www.npmjs.com/package/mp4box
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
+          node-version: 24
           cache: npm
-          node-version: lts/*
 
       - run: npm clean-install
       - run: npm install --global corepack@latest
       - run: corepack npm audit signatures
       - run: npm run build
 
-      - run: npx semantic-release@24
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+          commit: 'ci: release'
+          title: '[ci] release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
