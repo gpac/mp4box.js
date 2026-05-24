@@ -10,7 +10,7 @@ env:
   PUBLISH_MODE: true
 
 concurrency:
-  group: 'release'
+  group: "release"
   # Prevent semantic-release from being cancelled abruptly
   cancel-in-progress: false
 
@@ -44,7 +44,13 @@ jobs:
       - run: corepack npm audit signatures
       - run: npm run build
 
-      - run: npx semantic-release@24
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+          commit: "ci: release"
+          title: "[ci] release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
