@@ -4,6 +4,7 @@ import { Log } from '#/log';
 import type { av1CBox } from '../av1C';
 import type { avcCBox } from '../avcC';
 import type { hvcCBox } from '../hvcC';
+import type { lvcCBox } from '../lvcC';
 import type { vpcCBox } from '../vpcC';
 import type { vvcCBox } from '../vvcC';
 
@@ -164,6 +165,7 @@ export class VisualSampleEntry extends SampleEntry {
   av1C?: av1CBox;
   avcC?: avcCBox;
   hvcC?: hvcCBox;
+  lvcC?: lvcCBox;
   vpcC?: vpcCBox;
   vvcC?: vvcCBox;
 
