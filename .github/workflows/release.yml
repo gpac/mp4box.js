@@ -10,7 +10,7 @@ env:
   PUBLISH_MODE: true
 
 concurrency:
-  group: "release"
+  group: 'release'
   # Prevent semantic-release from being cancelled abruptly
   cancel-in-progress: false
 
@@ -49,8 +49,8 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: npm run release
-          commit: "ci: release"
-          title: "[ci] release"
+          commit: 'ci: release'
+          title: '[ci] release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

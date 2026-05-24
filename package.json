@@ -64,7 +64,8 @@
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint",
-    "check": "npm run lint && npm run build && npm run types && npm run circular"
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",

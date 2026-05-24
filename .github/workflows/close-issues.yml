@@ -2,7 +2,7 @@ name: Close Issues
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 permissions:
@@ -21,8 +21,8 @@ jobs:
           days-before-close: 7
           days-before-pr-stale: -1
           days-before-pr-close: -1
-          exempt-issue-labels: "enhancement,question,box request,bug"
-          stale-issue-label: "stale"
+          exempt-issue-labels: 'enhancement,question,box request,bug'
+          stale-issue-label: 'stale'
 
   action:
     if: github.repository == 'gpac/mp4box.js'
@@ -33,6 +33,6 @@ jobs:
         uses: dessant/lock-threads@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          issue-inactive-days: "180"
-          issue-lock-reason: ""
-          process-only: "issues"
+          issue-inactive-days: '180'
+          issue-lock-reason: ''
+          process-only: 'issues'
