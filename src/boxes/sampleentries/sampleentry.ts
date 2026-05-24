@@ -3,6 +3,7 @@ import { avcCBox } from '#/boxes/avcC';
 import { sinfBox } from '#/boxes/defaults';
 import { esdsBox } from '#/boxes/esds';
 import { hvcCBox } from '#/boxes/hvcC';
+import { lvcCBox } from '#/boxes/lvcC';
 import { vpcCBox } from '#/boxes/vpcC';
 import { vvcCBox } from '#/boxes/vvcC';
 import { colrBox } from '#/boxes/colr';
@@ -201,6 +202,29 @@ export class lhv1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'lhv1' as const;
   // ISO/IEC 14496-15:2024 9.5.3.1.2
   box_name = 'LHEVCSampleEntry' as const;
+}
+
+export class lvc1SampleEntry extends VisualSampleEntry {
+  lvcC: lvcCBox;
+  lvcCs: Array<lvcCBox>;
+
+  static override readonly fourcc = 'lvc1' as const;
+  // ISO/IEC 14496-15:2024 13.4.1.2
+  box_name = 'LCEVCSampleEntry' as const;
+
+  /** @bundle box-codecs.js */
+  getCodec(): string {
+    let baseCodec = super.getCodec();
+    if (this.lvcC) {
+      baseCodec += '.';
+      baseCodec += 'vprf';
+      baseCodec += this.lvcC.LCEVCProfileIndication;
+      baseCodec += '.';
+      baseCodec += 'vlev';
+      baseCodec += this.lvcC.LCEVCLevelIndication;
+    }
+    return baseCodec;
+  }
 }
 
 export class dvh1SampleEntry extends VisualSampleEntry {
