@@ -29,15 +29,15 @@ jobs:
       url: https://www.npmjs.com/package/mp4box
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
+          node-version: 24
           cache: npm
-          node-version: lts/*
 
       - run: npm clean-install
       - run: npm install --global corepack@latest
