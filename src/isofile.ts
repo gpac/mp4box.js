@@ -1073,6 +1073,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
     time = trak.samples[seek_sample_num].cts;
     trak.nextSample = seek_sample_num;
+    this.resetFragmentedTrackStateAfterSeek(trak, seek_sample_num);
+    this.resetExtractedTrackStateAfterSeek(trak);
     while (trak.samples[seek_sample_num].alreadyRead === trak.samples[seek_sample_num].size) {
       // No remaining samples to look for, all are downloaded.
       if (!trak.samples[seek_sample_num + 1]) {
@@ -1096,6 +1098,27 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         seek_offset,
     );
     return { offset: seek_offset, time: time / timescale };
+  }
+
+  resetFragmentedTrackStateAfterSeek(trak: trakBox, seekSampleNumber: number) {
+    const fragTrack = this.fragmentedTracks.find(t => t.trak === trak);
+    if (!fragTrack) {
+      return;
+    }
+
+    fragTrack.state.lastFragmentSampleNumber = seekSampleNumber;
+    fragTrack.state.lastSegmentSampleNumber = seekSampleNumber;
+    fragTrack.state.accumulatedSize = 0;
+    fragTrack.segmentStream = undefined;
+  }
+
+  resetExtractedTrackStateAfterSeek(trak: trakBox) {
+    const extractTrack = this.extractedTracks.find(t => t.trak === trak);
+    if (!extractTrack) {
+      return;
+    }
+
+    extractTrack.samples = [];
   }
 
   getTrackDuration(trak: trakBox) {
@@ -1182,6 +1205,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     sampleEnd: number,
     existingStream: DataStream,
   ) {
+    if (sampleEnd < sampleStart) {
+      Log.warn(
+        'ISOFile',
+        `Skipping fragment creation on track #${track_id}: invalid sample range [${sampleStart}, ${sampleEnd}]`,
+      );
+      return existingStream || new DataStream();
+    }
+
     // Check existence of all samples
     const samples: Array<Sample> = [];
     for (let i = sampleStart; i <= sampleEnd; i++) {

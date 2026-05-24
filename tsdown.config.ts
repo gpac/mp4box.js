@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 const PUBLISH_TO_NPM = process.env.PUBLISH_MODE === 'true';
 
@@ -9,10 +9,8 @@ const iifeBuild = defineConfig({
   format: ['iife'],
   globalName: 'MP4Box',
   tsconfig: 'tsconfig.build.json',
-  splitting: false,
   sourcemap: true,
   minify: true,
-  clean: true,
   dts: false,
 });
 
@@ -25,7 +23,6 @@ const regularBuild = defineConfig({
   target: 'es2022',
   format: ['cjs', 'esm'],
   tsconfig: 'tsconfig.build.json',
-  splitting: false,
   sourcemap: true,
   minify: false,
   clean: PUBLISH_TO_NPM,
