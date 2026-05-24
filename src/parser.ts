@@ -87,6 +87,8 @@ export function parseOneBox(
         box = new Box(size);
         box.type = type as BoxFourCC;
         return { code: OK, box, size: box.size };
+      } else {
+        size = stream.getEndPosition() - start;
       }
     }
   }
