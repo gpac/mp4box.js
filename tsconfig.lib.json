@@ -6,7 +6,8 @@
     "module": "es2022",
     "paths": {
       "#/*": ["./src/*"],
-      "@types": ["./entries/types"]
+      "@types": ["./entries/types"],
+      "entries/*": ["./entries/*"]
     }
   },
   "include": ["./src/**/*", "./entries/**/*"]
