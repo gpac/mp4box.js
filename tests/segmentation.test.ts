@@ -206,4 +206,89 @@ describe('File Segmentation', () => {
     expect(newMP4.getBoxes('moof', false).length).toBe(10);
     expect(out.getAbsoluteEndPosition()).toBe(203_175);
   });
+
+  it('resets segmentation state on seek', async () => {
+    const { testFile } = getFilePath('isobmff', '01_simple.mp4');
+    const { mp4 } = await loadAndGetInfo(testFile, true, true);
+
+    mp4.setSegmentOptions(201, undefined, {
+      nbSamples: 100,
+      nbSamplesPerFragment: 50,
+      rapAlignement: false,
+    });
+    mp4.initializeSegmentation();
+    mp4.onSegment = () => undefined;
+
+    mp4.start();
+
+    const fragTrack = mp4.fragmentedTracks.find(track => track.id === 201);
+    expect(fragTrack).toBeDefined();
+    if (!fragTrack) {
+      throw new Error('Missing fragmented track #201');
+    }
+
+    mp4.seek(0, false);
+
+    expect(fragTrack.state.lastFragmentSampleNumber).toBe(fragTrack.trak.nextSample);
+    expect(fragTrack.state.lastSegmentSampleNumber).toBe(fragTrack.trak.nextSample);
+    expect(fragTrack.state.accumulatedSize).toBe(0);
+    expect(fragTrack.segmentStream).toBeUndefined();
+    expect(() => mp4.start()).not.toThrow();
+  });
+
+  it('resets segmentation state on forward seek before processing', async () => {
+    const { testFile } = getFilePath('isobmff', '01_simple.mp4');
+    const { mp4 } = await loadAndGetInfo(testFile, true, true);
+
+    mp4.setSegmentOptions(201, undefined, {
+      nbSamples: 100,
+      nbSamplesPerFragment: 50,
+      rapAlignement: false,
+    });
+    mp4.initializeSegmentation();
+
+    const fragTrack = mp4.fragmentedTracks.find(track => track.id === 201);
+    expect(fragTrack).toBeDefined();
+    if (!fragTrack) {
+      throw new Error('Missing fragmented track #201');
+    }
+
+    mp4.seek(3, false);
+
+    expect(fragTrack.trak.nextSample).toBeGreaterThan(0);
+    expect(fragTrack.state.lastFragmentSampleNumber).toBe(fragTrack.trak.nextSample);
+    expect(fragTrack.state.lastSegmentSampleNumber).toBe(fragTrack.trak.nextSample);
+    expect(fragTrack.state.accumulatedSize).toBe(0);
+    expect(fragTrack.segmentStream).toBeUndefined();
+  });
+
+  it('resets segmentation state on backward seek after a forward seek', async () => {
+    const { testFile } = getFilePath('isobmff', '01_simple.mp4');
+    const { mp4 } = await loadAndGetInfo(testFile, true, true);
+
+    mp4.setSegmentOptions(201, undefined, {
+      nbSamples: 100,
+      nbSamplesPerFragment: 50,
+      rapAlignement: false,
+    });
+    mp4.initializeSegmentation();
+
+    const fragTrack = mp4.fragmentedTracks.find(track => track.id === 201);
+    expect(fragTrack).toBeDefined();
+    if (!fragTrack) {
+      throw new Error('Missing fragmented track #201');
+    }
+
+    mp4.seek(3, false);
+    const forwardSample = fragTrack.trak.nextSample;
+    expect(forwardSample).toBeGreaterThan(0);
+
+    mp4.seek(0, false);
+
+    expect(fragTrack.trak.nextSample).toBeLessThan(forwardSample);
+    expect(fragTrack.state.lastFragmentSampleNumber).toBe(fragTrack.trak.nextSample);
+    expect(fragTrack.state.lastSegmentSampleNumber).toBe(fragTrack.trak.nextSample);
+    expect(fragTrack.state.accumulatedSize).toBe(0);
+    expect(fragTrack.segmentStream).toBeUndefined();
+  });
 });

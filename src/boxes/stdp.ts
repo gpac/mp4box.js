@@ -2,7 +2,7 @@ import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 
 export class stdpBox extends FullBox {
-  static override readonly fourcc = 'stpd' as const;
+  static override readonly fourcc = 'stdp' as const;
   box_name = 'DegradationPriorityBox' as const;
 
   priority: Array<number>;
