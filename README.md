@@ -382,9 +382,10 @@ mp4boxfile.releaseUsedSamples(1, 250);
 
 For every flavor, tsup builds ESM, CJS, and IIFE versions of the library, which can be used in different environments (browser, Node.js, etc.). The IIFE version is not distributed to npm, but utilized in the demos.
 
-Run the following command to build the library:
+Install dependencies, then build the library:
 
 ```bash
+npm install
 npm run build
 ```
 
