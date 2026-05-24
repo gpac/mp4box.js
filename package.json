@@ -1,6 +1,6 @@
 {
   "name": "mp4box",
-  "version": "0.0.0-development",
+  "version": "2.3.0",
   "description": "JavaScript version of GPAC's MP4Box tool",
   "type": "module",
   "keywords": [
