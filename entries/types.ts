@@ -119,6 +119,23 @@ export interface FragmentedTrack<TUser> {
     accumulatedSize: number;
   };
 }
+
+export interface SegmentationInitializationTrack<TUser> {
+  id: number;
+  user: TUser;
+}
+
+export interface SegmentationInitialization<TUser> {
+  tracks: Array<SegmentationInitializationTrack<TUser>>;
+  buffer: ArrayBuffer;
+}
+
+export interface SegmentationInitializationPerTrack<
+  TUser,
+> extends SegmentationInitializationTrack<TUser> {
+  buffer: ArrayBuffer;
+}
+
 export interface ExtractedTrack<TUser> {
   id: number;
   user: TUser;

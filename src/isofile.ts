@@ -93,6 +93,8 @@ import type {
   Item,
   Movie,
   Output,
+  SegmentationInitialization,
+  SegmentationInitializationPerTrack,
   Sample,
   SampleEntryFourCC,
   SubSample,
@@ -1303,42 +1305,65 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /** @bundle isofile-write.js */
-  initializeSegmentation() {
+  initializeSegmentation(mode?: 'combined'): SegmentationInitialization<TSegmentUser>;
+  initializeSegmentation(
+    mode: 'per-track',
+  ): Array<SegmentationInitializationPerTrack<TSegmentUser>>;
+  initializeSegmentation(
+    mode?: 'combined' | 'per-track',
+  ):
+    | SegmentationInitialization<TSegmentUser>
+    | Array<SegmentationInitializationPerTrack<TSegmentUser>> {
     if (!this.onSegment) {
       Log.warn('MP4Box', 'No segmentation callback set!');
+    }
+    if (mode !== undefined && mode !== 'combined' && mode !== 'per-track') {
+      throw new Error(`Invalid segmentation mode: ${mode}`);
     }
     if (!this.isFragmentationInitialized) {
       this.isFragmentationInitialized = true;
       this.resetTables();
     }
 
-    // Create the moov that will hold all the tracks
-    const moov = new moovBox();
-    moov.addBox(this.moov.mvhd);
-
-    // Add the tracks we want to fragment
-    for (let i = 0; i < this.fragmentedTracks.length; i++) {
-      const trak = this.getTrackById(this.fragmentedTracks[i].id);
+    const tracksToInitialize: Array<{ id: number; user: TSegmentUser; trak: trakBox }> = [];
+    for (const fragmentedTrack of this.fragmentedTracks) {
+      const trak = this.getTrackById(fragmentedTrack.id);
       if (!trak) {
         Log.warn(
           'ISOFile',
-          `Track with id ${this.fragmentedTracks[i].id} not found, skipping fragmentation initialization`,
+          `Track with id ${fragmentedTrack.id} not found, skipping fragmentation initialization`,
         );
         continue;
       }
-      moov.addBox(trak);
+      tracksToInitialize.push({ id: fragmentedTrack.id, user: fragmentedTrack.user, trak });
+    }
+
+    const fragmentDuration = this.moov?.mvex?.mehd.fragment_duration;
+
+    if (mode === 'per-track') {
+      return tracksToInitialize.map(({ id, user, trak }) => {
+        const moov = new moovBox();
+        moov.addBox(this.moov.mvhd);
+        moov.addBox(trak);
+
+        return {
+          id,
+          user,
+          buffer: ISOFile.writeInitializationSegment(this.ftyp, moov, fragmentDuration),
+        };
+      });
+    }
+
+    // Create the moov that will hold all selected fragmented tracks
+    const moov = new moovBox();
+    moov.addBox(this.moov.mvhd);
+    for (const track of tracksToInitialize) {
+      moov.addBox(track.trak);
     }
 
     return {
-      tracks: moov.traks.map((trak, i) => ({
-        id: trak.tkhd.track_id,
-        user: this.fragmentedTracks[i].user,
-      })),
-      buffer: ISOFile.writeInitializationSegment(
-        this.ftyp,
-        moov,
-        this.moov?.mvex?.mehd.fragment_duration,
-      ),
+      tracks: tracksToInitialize.map(({ id, user }) => ({ id, user })),
+      buffer: ISOFile.writeInitializationSegment(this.ftyp, moov, fragmentDuration),
     };
   }
 
