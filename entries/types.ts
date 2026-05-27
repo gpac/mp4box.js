@@ -113,6 +113,7 @@ export interface FragmentedTrack<TUser> {
   nb_samples_per_fragment: number;
   size_per_segment: number;
   rapAlignement: boolean;
+  normalizeAudioSampleEntriesForMSE?: boolean;
   state: {
     lastFragmentSampleNumber: number;
     lastSegmentSampleNumber: number;

@@ -1,5 +1,7 @@
 import fs from 'fs';
-import { createFile, MP4BoxBuffer, MultiBufferStream } from '../entries/all';
+import { createFile, ISOFile, MP4BoxBuffer, MultiBufferStream } from '../entries/all';
+import { waveBox } from '../src/boxes/qt/wave';
+import { mp4aSampleEntry } from '../src/boxes/sampleentries/sampleentry';
 import { getFilePath, loadAndGetInfo } from './common';
 
 // Saves the segments to a file
@@ -9,6 +11,56 @@ function saveBufferToFile(buffer: ArrayBuffer, id: string, init: boolean) {
   if (!DEBUG_MODE) return;
   const fileName = `/tmp/${id}.mp4`;
   fs.writeFileSync(fileName, new DataView(buffer), { flag: init ? 'w' : 'a' });
+}
+
+function moveDirectEsdsIntoWave(sampleEntry: mp4aSampleEntry) {
+  const esds = sampleEntry.esds;
+  if (!esds) {
+    throw new Error('Missing direct esds box');
+  }
+
+  const wave = new waveBox();
+  wave.esds = esds;
+  wave.boxes = [esds];
+
+  sampleEntry.esds = undefined;
+  sampleEntry.wave = wave;
+  sampleEntry.boxes = sampleEntry.boxes?.map(box => (box.type === 'esds' ? wave : box)) ?? [wave];
+}
+
+type LoadedMp4 = Awaited<ReturnType<typeof loadAndGetInfo>>['mp4'];
+
+interface QuickTimeWaveEsdsFixture {
+  mp4: LoadedMp4;
+  audioTrackId: number;
+  sampleEntry: mp4aSampleEntry;
+}
+
+async function loadMp4WithQuickTimeWaveEsds(): Promise<QuickTimeWaveEsdsFixture> {
+  const { testFile } = getFilePath('isobmff', '01_simple.mp4');
+  const { mp4 } = await loadAndGetInfo(testFile, true, true);
+
+  const audioTrack = mp4.moov?.traks.find(trak => trak.mdia?.hdlr?.handler === 'soun');
+  if (!audioTrack) {
+    throw new Error('Missing audio track');
+  }
+  const sampleEntry = audioTrack.mdia.minf.stbl.stsd.entries[0] as mp4aSampleEntry;
+  moveDirectEsdsIntoWave(sampleEntry);
+
+  return {
+    mp4,
+    audioTrackId: audioTrack.tkhd.track_id,
+    sampleEntry,
+  };
+}
+
+function getInitSegmentSampleEntry(buffer: ArrayBuffer, audioTrackId: number): mp4aSampleEntry {
+  const initMp4 = createFile(true);
+  initMp4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(buffer, 0));
+  initMp4.flush();
+
+  const initAudioTrack = initMp4.getTrackById(audioTrackId);
+  return initAudioTrack.mdia.minf.stbl.stsd.entries[0] as mp4aSampleEntry;
 }
 
 describe('File Segmentation', () => {
@@ -345,5 +397,78 @@ describe('File Segmentation', () => {
     initMp4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(combinedInit.buffer, 0));
     initMp4.flush();
     expect(initMp4.getInfo().tracks.length).toBe(2);
+  });
+
+  describe('given an mp4a sample entry with QuickTime wave esds', () => {
+    describe('when MSE normalization is enabled (default)', () => {
+      it('writes a direct esds in init segment and restores source sample entry state', async () => {
+        const { mp4, audioTrackId, sampleEntry } = await loadMp4WithQuickTimeWaveEsds();
+
+        expect(sampleEntry).toBeInstanceOf(mp4aSampleEntry);
+        expect(sampleEntry.wave).toBeInstanceOf(waveBox);
+        expect(sampleEntry.esds).toBeUndefined();
+        expect(sampleEntry.boxes?.some(box => box.type === 'wave')).toBe(true);
+        expect(sampleEntry.boxes?.some(box => box.type === 'esds')).toBe(false);
+
+        const originalWave = sampleEntry.wave;
+
+        mp4.setSegmentOptions(audioTrackId, undefined, { nbSamples: 50 });
+        const initSegment = mp4.initializeSegmentation();
+        const initSampleEntry = getInitSegmentSampleEntry(initSegment.buffer, audioTrackId);
+
+        expect(initSampleEntry.boxes?.some(box => box.type === 'esds')).toBe(true);
+        expect(initSampleEntry.boxes?.some(box => box.type === 'wave')).toBe(false);
+
+        expect(sampleEntry.wave).toBe(originalWave);
+        expect(sampleEntry.esds).toBeUndefined();
+        expect(sampleEntry.boxes?.some(box => box.type === 'wave')).toBe(true);
+        expect(sampleEntry.boxes?.some(box => box.type === 'esds')).toBe(false);
+      });
+    });
+
+    describe('when MSE normalization is disabled', () => {
+      it('preserves nested wave esds in init segment and source sample entry state', async () => {
+        const { mp4, audioTrackId, sampleEntry } = await loadMp4WithQuickTimeWaveEsds();
+
+        const originalWave = sampleEntry.wave;
+
+        mp4.setSegmentOptions(audioTrackId, undefined, {
+          nbSamples: 50,
+          normalizeAudioSampleEntriesForMSE: false,
+        });
+        const initSegment = mp4.initializeSegmentation();
+        const initSampleEntry = getInitSegmentSampleEntry(initSegment.buffer, audioTrackId);
+
+        expect(initSampleEntry.wave).toBeInstanceOf(waveBox);
+        expect(initSampleEntry.esds).toBeUndefined();
+        expect(initSampleEntry.boxes?.some(box => box.type === 'wave')).toBe(true);
+        expect(initSampleEntry.boxes?.some(box => box.type === 'esds')).toBe(false);
+
+        expect(sampleEntry.wave).toBe(originalWave);
+        expect(sampleEntry.esds).toBeUndefined();
+        expect(sampleEntry.boxes?.some(box => box.type === 'wave')).toBe(true);
+        expect(sampleEntry.boxes?.some(box => box.type === 'esds')).toBe(false);
+      });
+    });
+
+    describe('when writing an initialization segment directly without MSE normalization track ids', () => {
+      it('preserves nested wave esds in init segment and source sample entry state', async () => {
+        const { mp4, audioTrackId, sampleEntry } = await loadMp4WithQuickTimeWaveEsds();
+        const originalWave = sampleEntry.wave;
+
+        const initBuffer = ISOFile.writeInitializationSegment(mp4.ftyp, mp4.moov, 0);
+        const initSampleEntry = getInitSegmentSampleEntry(initBuffer, audioTrackId);
+
+        expect(initSampleEntry.wave).toBeInstanceOf(waveBox);
+        expect(initSampleEntry.esds).toBeUndefined();
+        expect(initSampleEntry.boxes?.some(box => box.type === 'wave')).toBe(true);
+        expect(initSampleEntry.boxes?.some(box => box.type === 'esds')).toBe(false);
+
+        expect(sampleEntry.wave).toBe(originalWave);
+        expect(sampleEntry.esds).toBeUndefined();
+        expect(sampleEntry.boxes?.some(box => box.type === 'wave')).toBe(true);
+        expect(sampleEntry.boxes?.some(box => box.type === 'esds')).toBe(false);
+      });
+    });
   });
 });

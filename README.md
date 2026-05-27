@@ -240,6 +240,7 @@ Indicates that the track with the given `track_id` should be segmented, with the
 
 - **nbSamples**: Number, representing the number of frames per segment, i.e. the time between 2 callbacks to onSegment. If not enough data is received to form a segment, received samples are kept. If not provided, the default is 1000.
 - **rapAlignement**: boolean, indicating if segments should start with a RAP. If not provided, the default is true.
+- **normalizeAudioSampleEntriesForMSE**: boolean, indicating if QuickTime-style audio sample entries should be normalized in initialization segments for Media Source Extensions compatibility. If not provided, the default is true. Set to false to preserve nested QuickTime `wave.esds` sample entries.
 
 ```javascript
 mp4boxfile.setSegmentOptions(1, sb, { nbSamples: 1000 });
