@@ -1,6 +1,13 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import type { SampleEntry } from './sampleentries/base';
+
+class TfraEntry {
+  time: number;
+  moof_offset: number;
+  traf_number: number;
+  trun_number: number;
+  sample_delta: number;
+}
 
 export class tfraBox extends FullBox {
   static override readonly fourcc = 'tfra' as const;
@@ -10,12 +17,7 @@ export class tfraBox extends FullBox {
   length_size_of_traf_num: number;
   length_size_of_trun_num: number;
   length_size_of_sample_num: number;
-  entries: Array<SampleEntry>;
-  time: number;
-  moof_offset: number;
-  traf_number: number;
-  trun_number: number;
-  sample_number: number;
+  entries: Array<TfraEntry>;
 
   parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
@@ -28,16 +30,19 @@ export class tfraBox extends FullBox {
     this.entries = [];
     const number_of_entries = stream.readUint32();
     for (let i = 0; i < number_of_entries; i++) {
+      const entry = {} as TfraEntry;
+      this.entries.push(entry);
       if (this.version === 1) {
-        this.time = stream.readUint64();
-        this.moof_offset = stream.readUint64();
+        this.entries[i].time = stream.readUint64();
+        this.entries[i].moof_offset = stream.readUint64();
       } else {
-        this.time = stream.readUint32();
-        this.moof_offset = stream.readUint32();
+        this.entries[i].time = stream.readUint32();
+        this.entries[i].moof_offset = stream.readUint32();
       }
-      this.traf_number = stream['readUint' + 8 * (this.length_size_of_traf_num + 1)]();
-      this.trun_number = stream['readUint' + 8 * (this.length_size_of_trun_num + 1)]();
-      this.sample_number = stream['readUint' + 8 * (this.length_size_of_sample_num + 1)]();
+      this.entries[i].traf_number = stream['readUint' + 8 * (this.length_size_of_traf_num + 1)]();
+      this.entries[i].trun_number = stream['readUint' + 8 * (this.length_size_of_trun_num + 1)]();
+      this.entries[i].sample_delta =
+        stream['readUint' + 8 * (this.length_size_of_sample_num + 1)]();
     }
   }
 }
