@@ -2270,7 +2270,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       }
     }
     if (meta.pitm) {
-      items[meta.pitm.item_id].primary = true;
+      const id = meta.pitm.item_id;
+      if (!items[id]) {
+        Log.warn('ISOFile', 'Primary item_id is: #' + id + ' which does not exist');
+      } else {
+        items[id].primary = true;
+      }
     }
     if (meta.iref) {
       for (let i = 0; i < meta.iref.references.length; i++) {
