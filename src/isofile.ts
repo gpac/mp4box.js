@@ -1405,7 +1405,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       tracksToInitialize.push({ id: fragmentedTrack.id, user: fragmentedTrack.user, trak });
     }
 
-    const fragmentDuration = this.moov?.mvex?.mehd.fragment_duration;
+    const fragmentDuration = this.moov?.mvex?.mehd?.fragment_duration;
     const normalizeAudioSampleEntryTrackIds = new Set(
       this.fragmentedTracks
         .filter(track => track.normalizeAudioSampleEntriesForMSE !== false)
