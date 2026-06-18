@@ -30,19 +30,18 @@ export class tfraBox extends FullBox {
     this.entries = [];
     const number_of_entries = stream.readUint32();
     for (let i = 0; i < number_of_entries; i++) {
-      const entry = {} as TfraEntry;
-      this.entries.push(entry);
+      const entry = new TfraEntry();
       if (this.version === 1) {
-        this.entries[i].time = stream.readUint64();
-        this.entries[i].moof_offset = stream.readUint64();
+        entry.time = stream.readUint64();
+        entry.moof_offset = stream.readUint64();
       } else {
-        this.entries[i].time = stream.readUint32();
-        this.entries[i].moof_offset = stream.readUint32();
+        entry.time = stream.readUint32();
+        entry.moof_offset = stream.readUint32();
       }
-      this.entries[i].traf_number = stream['readUint' + 8 * (this.length_size_of_traf_num + 1)]();
-      this.entries[i].trun_number = stream['readUint' + 8 * (this.length_size_of_trun_num + 1)]();
-      this.entries[i].sample_delta =
-        stream['readUint' + 8 * (this.length_size_of_sample_num + 1)]();
+      entry.traf_number = stream['readUint' + 8 * (this.length_size_of_traf_num + 1)]();
+      entry.trun_number = stream['readUint' + 8 * (this.length_size_of_trun_num + 1)]();
+      entry.sample_delta = stream['readUint' + 8 * (this.length_size_of_sample_num + 1)]();
+      this.entries.push(entry);
     }
   }
 }
