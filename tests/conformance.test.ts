@@ -153,9 +153,6 @@ function traverseMP4(root: Array<Box>, testFile: string, withProperties = false)
             'item_infos',
             'references',
             'has_fragment_subsamples',
-            // FIXME: Remove the following keys
-            'start',
-            'size',
           ];
           const properties: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(box)) {
@@ -253,16 +250,7 @@ describe('Conformance Tests', () => {
       file_groups[groupName].filter(test => {
         // FIXME: These files might be correct but I haven't investigated them yet
         // Majority of the tests pass so I've left them out for now
-        const ignoredTests = [
-          'video_2500000bps_0.mp4',
-          'a3b-tone-deprot.mp4',
-          'a4-tone-fragmented.mp4',
-          'a6_tone_multifile.mp4',
-          'a7-tone-oddities.mp4',
-          'a9-aac-samplegroups-edit.mp4',
-          'hevc/hevc_tiles_multiple_tracks_empty_base.mp4',
-          'hevc/hevc_tiles_multiple_tracks.mp4',
-        ];
+        const ignoredTests = ['video_2500000bps_0.mp4'];
         return !ignoredTests.includes(test);
       }),
     )('roundtrip %s', async testName => {

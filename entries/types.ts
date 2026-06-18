@@ -113,12 +113,30 @@ export interface FragmentedTrack<TUser> {
   nb_samples_per_fragment: number;
   size_per_segment: number;
   rapAlignement: boolean;
+  normalizeAudioSampleEntriesForMSE?: boolean;
   state: {
     lastFragmentSampleNumber: number;
     lastSegmentSampleNumber: number;
     accumulatedSize: number;
   };
 }
+
+export interface SegmentationInitializationTrack<TUser> {
+  id: number;
+  user: TUser;
+}
+
+export interface SegmentationInitialization<TUser> {
+  tracks: Array<SegmentationInitializationTrack<TUser>>;
+  buffer: ArrayBuffer;
+}
+
+export interface SegmentationInitializationPerTrack<
+  TUser,
+> extends SegmentationInitializationTrack<TUser> {
+  buffer: ArrayBuffer;
+}
+
 export interface ExtractedTrack<TUser> {
   id: number;
   user: TUser;
