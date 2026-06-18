@@ -5,8 +5,6 @@ export class cmpCBox extends FullBox {
   static override readonly fourcc = 'cmpC' as const;
   box_name = 'CompressionConfigurationBox' as const;
 
-  version: number;
-  flags: number;
   compression_type: string;
   compressed_unit_type: number;
 
