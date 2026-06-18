@@ -153,9 +153,6 @@ function traverseMP4(root: Array<Box>, testFile: string, withProperties = false)
             'item_infos',
             'references',
             'has_fragment_subsamples',
-            // FIXME: Remove the following keys
-            'start',
-            'size',
           ];
           const properties: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(box)) {
