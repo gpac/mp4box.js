@@ -20,7 +20,7 @@ export class ftypBox extends Box {
       (this.minor_version >> 8) & 255,
       this.minor_version & 255,
     );
-    if (minor_version_str.match('[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]')) {
+    if (minor_version_str.match('[a-zA-Z0-9]{4}')) {
       // This seems like a four-character code. Display it as such.
       this.minor_version = minor_version_str;
     }
