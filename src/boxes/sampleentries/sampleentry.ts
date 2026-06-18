@@ -2,7 +2,9 @@ import { av1CBox } from '#/boxes/av1C';
 import { avcCBox } from '#/boxes/avcC';
 import { sinfBox } from '#/boxes/defaults';
 import { esdsBox } from '#/boxes/esds';
+import { waveBox } from '#/boxes/qt/wave';
 import { hvcCBox } from '#/boxes/hvcC';
+import { lvcCBox } from '#/boxes/lvcC';
 import { vpcCBox } from '#/boxes/vpcC';
 import { vvcCBox } from '#/boxes/vvcC';
 import { colrBox } from '#/boxes/colr';
@@ -203,6 +205,29 @@ export class lhv1SampleEntry extends VisualSampleEntry {
   box_name = 'LHEVCSampleEntry' as const;
 }
 
+export class lvc1SampleEntry extends VisualSampleEntry {
+  lvcC: lvcCBox;
+  lvcCs: Array<lvcCBox>;
+
+  static override readonly fourcc = 'lvc1' as const;
+  // ISO/IEC 14496-15:2024 13.4.1.2
+  box_name = 'LCEVCSampleEntry' as const;
+
+  /** @bundle box-codecs.js */
+  getCodec(): string {
+    let baseCodec = super.getCodec();
+    if (this.lvcC) {
+      baseCodec += '.';
+      baseCodec += 'vprf';
+      baseCodec += this.lvcC.LCEVCProfileIndication;
+      baseCodec += '.';
+      baseCodec += 'vlev';
+      baseCodec += this.lvcC.LCEVCLevelIndication;
+    }
+    return baseCodec;
+  }
+}
+
 export class dvh1SampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'dvh1' as const;
 }
@@ -360,12 +385,14 @@ export class mp4aSampleEntry extends AudioSampleEntry {
 
   esds: esdsBox;
   esdss: Array<esdsBox>;
+  wave: waveBox;
 
   getCodec() {
     const baseCodec = super.getCodec();
-    if (this.esds && this.esds.esd) {
-      const oti = this.esds.esd.getOTI();
-      const dsi = this.esds.esd.getAudioConfig();
+    const esds = this.esds ?? this.wave?.esds;
+    if (esds && esds.esd) {
+      const oti = esds.esd.getOTI();
+      const dsi = esds.esd.getAudioConfig();
       return baseCodec + '.' + decimalToHex(oti) + (dsi ? '.' + dsi : '');
     } else {
       return baseCodec;

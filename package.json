@@ -1,6 +1,6 @@
 {
   "name": "mp4box",
-  "version": "0.0.0-development",
+  "version": "2.3.0",
   "description": "JavaScript version of GPAC's MP4Box tool",
   "type": "module",
   "keywords": [
@@ -49,37 +49,43 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
   "scripts": {
     "prepare": "node .husky/install.mjs",
-    "build": "tsup",
+    "changeset": "changeset",
+    "build": "tsdown",
+    "release": "npm run build && changeset publish",
     "circular": "dpdm -T ./entries/all.ts --tsconfig tsconfig.lib.json --exit-code circular:1",
     "types": "tsc --noEmit -p tsconfig.lib.json",
     "test": "vitest run",
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint",
-    "check": "npm run lint && npm run build && npm run types && npm run circular"
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1",
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
     "@eslint/js": "^9.27.0",
-    "@types/node": "^22.15.21",
-    "@vitest/coverage-v8": "^3.1.4",
-    "dpdm": "^3.14.0",
+    "@types/node": "^25.9.1",
+    "@vitest/coverage-v8": "^4.1.7",
+    "dpdm": "^4.2.0",
     "eslint": "^9.27.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-unicorn": "^60.0.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.0.0",
-    "prettier": "^3.5.3",
-    "tar": "^7.4.3",
-    "tsup": "^8.3.5",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.32.1",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.1.4"
+    "lint-staged": "^17.0.5",
+    "prettier": "^3.8.3",
+    "tar": "^7.5.15",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4",
+    "vitest": "^4.1.7"
   },
-  "packageManager": "npm@11.4.1"
+  "packageManager": "npm@11.15.0"
 }

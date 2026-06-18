@@ -30,7 +30,7 @@ import { mehdBox } from '#/boxes/mehd';
 import { metaBox } from '#/boxes/meta';
 import { mfhdBox } from '#/boxes/mfhd';
 import { mvhdBox } from '#/boxes/mvhd';
-import { stppSampleEntry } from '#/boxes/sampleentries';
+import { mp4aSampleEntry, stppSampleEntry } from '#/boxes/sampleentries';
 import {
   AudioSampleEntry,
   HintSampleEntry,
@@ -93,6 +93,8 @@ import type {
   Item,
   Movie,
   Output,
+  SegmentationInitialization,
+  SegmentationInitializationPerTrack,
   Sample,
   SampleEntryFourCC,
   SubSample,
@@ -243,10 +245,15 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       nbSamplesPerFragment: number;
       sizePerSegment: number;
       rapAlignement: boolean;
+      normalizeAudioSampleEntriesForMSE: boolean;
     }>,
   ) {
     // Destructure and provide defaults for optional properties
-    const { sizePerSegment = Number.MAX_SAFE_INTEGER, rapAlignement = true } = opts;
+    const {
+      sizePerSegment = Number.MAX_SAFE_INTEGER,
+      rapAlignement = true,
+      normalizeAudioSampleEntriesForMSE = true,
+    } = opts;
 
     // Set defaults for sample counts
     let nbSamples = opts.nbSamples ?? opts.nbSamplesPerFragment ?? 1000;
@@ -290,6 +297,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         nb_samples_per_fragment: nbSamplesPerFragment,
         size_per_segment: sizePerSegment,
         rapAlignement,
+        normalizeAudioSampleEntriesForMSE,
         state: {
           lastFragmentSampleNumber: 0,
           lastSegmentSampleNumber: 0,
@@ -687,7 +695,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         }
       }
 
-      if (trak.edts) {
+      if (trak.edts !== undefined && trak.edts.elst !== undefined) {
         track.edits = trak.edts.elst.entries;
       }
 
@@ -954,7 +962,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /* Find and return specific boxes using recursion and early return */
-  getBox<T extends AllIdentifiers>(type: T): AllRegisteredBoxes[T] {
+  getBox<T extends AllIdentifiers>(type: T): AllRegisteredBoxes[T] | undefined {
     const result = this.getBoxes(type, true);
     return result.length ? result[0] : undefined;
   }
@@ -1073,6 +1081,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
     time = trak.samples[seek_sample_num].cts;
     trak.nextSample = seek_sample_num;
+    this.resetFragmentedTrackStateAfterSeek(trak, seek_sample_num);
+    this.resetExtractedTrackStateAfterSeek(trak);
     while (trak.samples[seek_sample_num].alreadyRead === trak.samples[seek_sample_num].size) {
       // No remaining samples to look for, all are downloaded.
       if (!trak.samples[seek_sample_num + 1]) {
@@ -1096,6 +1106,27 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         seek_offset,
     );
     return { offset: seek_offset, time: time / timescale };
+  }
+
+  resetFragmentedTrackStateAfterSeek(trak: trakBox, seekSampleNumber: number) {
+    const fragTrack = this.fragmentedTracks.find(t => t.trak === trak);
+    if (!fragTrack) {
+      return;
+    }
+
+    fragTrack.state.lastFragmentSampleNumber = seekSampleNumber;
+    fragTrack.state.lastSegmentSampleNumber = seekSampleNumber;
+    fragTrack.state.accumulatedSize = 0;
+    fragTrack.segmentStream = undefined;
+  }
+
+  resetExtractedTrackStateAfterSeek(trak: trakBox) {
+    const extractTrack = this.extractedTracks.find(t => t.trak === trak);
+    if (!extractTrack) {
+      return;
+    }
+
+    extractTrack.samples = [];
   }
 
   getTrackDuration(trak: trakBox) {
@@ -1182,6 +1213,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     sampleEnd: number,
     existingStream: DataStream,
   ) {
+    if (sampleEnd < sampleStart) {
+      Log.warn(
+        'ISOFile',
+        `Skipping fragment creation on track #${track_id}: invalid sample range [${sampleStart}, ${sampleEnd}]`,
+      );
+      return existingStream || new DataStream();
+    }
+
     // Check existence of all samples
     const samples: Array<Sample> = [];
     for (let i = sampleStart; i <= sampleEnd; i++) {
@@ -1228,29 +1267,45 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * Modify the file and create the initialization segment
    * @bundle isofile-write.js
    */
-  static writeInitializationSegment(ftyp: ftypBox, moov: moovBox, total_duration: number) {
+  static writeInitializationSegment(
+    ftyp: ftypBox,
+    moov: moovBox,
+    total_duration: number,
+    normalizeAudioSampleEntryTrackIds?: Set<number>,
+  ) {
     Log.debug('ISOFile', 'Generating initialization segment');
 
     const stream = new DataStream();
     ftyp.write(stream);
 
-    /* we can now create the new mvex box */
-    const mvex = moov.addBox(new mvexBox());
-    if (total_duration) {
-      const mehd = mvex.addBox(new mehdBox());
-      mehd.fragment_duration = total_duration;
-    }
+    const restoreCallbacks = ISOFile.normalizeAudioSampleEntriesForMSEFragmentedInit(
+      moov.traks,
+      normalizeAudioSampleEntryTrackIds,
+    );
 
-    // Add trex boxes for each track
-    for (let i = 0; i < moov.traks.length; i++) {
-      const trex = mvex.addBox(new trexBox());
-      trex.track_id = moov.traks[i].tkhd.track_id;
-      trex.default_sample_description_index = 1;
-      trex.default_sample_duration = moov.traks[i].samples[0]?.duration ?? 0;
-      trex.default_sample_size = 0;
-      trex.default_sample_flags = 1 << 16;
+    try {
+      /* we can now create the new mvex box */
+      const mvex = moov.addBox(new mvexBox());
+      if (total_duration) {
+        const mehd = mvex.addBox(new mehdBox());
+        mehd.fragment_duration = total_duration;
+      }
+
+      // Add trex boxes for each track
+      for (let i = 0; i < moov.traks.length; i++) {
+        const trex = mvex.addBox(new trexBox());
+        trex.track_id = moov.traks[i].tkhd.track_id;
+        trex.default_sample_description_index = 1;
+        trex.default_sample_duration = moov.traks[i].samples[0]?.duration ?? 0;
+        trex.default_sample_size = 0;
+        trex.default_sample_flags = 1 << 16;
+      }
+      moov.write(stream);
+    } finally {
+      for (let i = restoreCallbacks.length - 1; i >= 0; i--) {
+        restoreCallbacks[i]();
+      }
     }
-    moov.write(stream);
 
     return stream.buffer;
   }
@@ -1272,41 +1327,124 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /** @bundle isofile-write.js */
-  initializeSegmentation() {
+  private static normalizeAudioSampleEntriesForMSEFragmentedInit(
+    traks: Array<trakBox>,
+    normalizeAudioSampleEntryTrackIds?: Set<number>,
+  ) {
+    const restoreCallbacks: Array<() => void> = [];
+
+    for (const trak of traks) {
+      if (!normalizeAudioSampleEntryTrackIds?.has(trak.tkhd.track_id)) {
+        continue;
+      }
+
+      for (const sampleEntry of trak.mdia.minf.stbl.stsd?.entries ?? []) {
+        if (!(sampleEntry instanceof mp4aSampleEntry)) {
+          continue;
+        }
+
+        const esds = sampleEntry.wave?.esds;
+
+        if (sampleEntry.esds || !esds) {
+          continue;
+        }
+
+        const previousEsds = sampleEntry.esds;
+        const previousWave = sampleEntry.wave;
+        const previousBoxes = sampleEntry.boxes;
+
+        restoreCallbacks.push(() => {
+          sampleEntry.esds = previousEsds;
+          sampleEntry.wave = previousWave;
+          sampleEntry.boxes = previousBoxes;
+        });
+
+        const boxesWithoutWave = Array.isArray(sampleEntry.boxes)
+          ? sampleEntry.boxes.filter(box => box?.type !== 'wave' && box?.type !== 'esds')
+          : [];
+        sampleEntry.esds = esds;
+        sampleEntry.boxes = [...boxesWithoutWave, esds];
+        sampleEntry.wave = undefined;
+      }
+    }
+
+    return restoreCallbacks;
+  }
+
+  /** @bundle isofile-write.js */
+  initializeSegmentation(mode?: 'combined'): SegmentationInitialization<TSegmentUser>;
+  initializeSegmentation(
+    mode: 'per-track',
+  ): Array<SegmentationInitializationPerTrack<TSegmentUser>>;
+  initializeSegmentation(
+    mode?: 'combined' | 'per-track',
+  ):
+    | SegmentationInitialization<TSegmentUser>
+    | Array<SegmentationInitializationPerTrack<TSegmentUser>> {
     if (!this.onSegment) {
       Log.warn('MP4Box', 'No segmentation callback set!');
+    }
+    if (mode !== undefined && mode !== 'combined' && mode !== 'per-track') {
+      throw new Error(`Invalid segmentation mode: ${mode}`);
     }
     if (!this.isFragmentationInitialized) {
       this.isFragmentationInitialized = true;
       this.resetTables();
     }
 
-    // Create the moov that will hold all the tracks
-    const moov = new moovBox();
-    moov.addBox(this.moov.mvhd);
-
-    // Add the tracks we want to fragment
-    for (let i = 0; i < this.fragmentedTracks.length; i++) {
-      const trak = this.getTrackById(this.fragmentedTracks[i].id);
+    const tracksToInitialize: Array<{ id: number; user: TSegmentUser; trak: trakBox }> = [];
+    for (const fragmentedTrack of this.fragmentedTracks) {
+      const trak = this.getTrackById(fragmentedTrack.id);
       if (!trak) {
         Log.warn(
           'ISOFile',
-          `Track with id ${this.fragmentedTracks[i].id} not found, skipping fragmentation initialization`,
+          `Track with id ${fragmentedTrack.id} not found, skipping fragmentation initialization`,
         );
         continue;
       }
-      moov.addBox(trak);
+      tracksToInitialize.push({ id: fragmentedTrack.id, user: fragmentedTrack.user, trak });
+    }
+
+    const fragmentDuration = this.moov?.mvex?.mehd?.fragment_duration;
+    const normalizeAudioSampleEntryTrackIds = new Set(
+      this.fragmentedTracks
+        .filter(track => track.normalizeAudioSampleEntriesForMSE !== false)
+        .map(track => track.id),
+    );
+
+    if (mode === 'per-track') {
+      return tracksToInitialize.map(({ id, user, trak }) => {
+        const moov = new moovBox();
+        moov.addBox(this.moov.mvhd);
+        moov.addBox(trak);
+
+        return {
+          id,
+          user,
+          buffer: ISOFile.writeInitializationSegment(
+            this.ftyp,
+            moov,
+            fragmentDuration,
+            normalizeAudioSampleEntryTrackIds,
+          ),
+        };
+      });
+    }
+
+    // Create the moov that will hold all selected fragmented tracks
+    const moov = new moovBox();
+    moov.addBox(this.moov.mvhd);
+    for (const track of tracksToInitialize) {
+      moov.addBox(track.trak);
     }
 
     return {
-      tracks: moov.traks.map((trak, i) => ({
-        id: trak.tkhd.track_id,
-        user: this.fragmentedTracks[i].user,
-      })),
+      tracks: tracksToInitialize.map(({ id, user }) => ({ id, user })),
       buffer: ISOFile.writeInitializationSegment(
         this.ftyp,
         moov,
-        this.moov?.mvex?.mehd.fragment_duration,
+        fragmentDuration,
+        normalizeAudioSampleEntryTrackIds,
       ),
     };
   }
@@ -2513,7 +2651,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     const endBufferIndex = this.stream.findPosition(true, mdat.start + mdat.size, false);
 
     if (startBufferIndex === -1 || endBufferIndex === -1) {
-      console.trace(mdat, startBufferIndex, endBufferIndex);
       Log.warn('ISOFile', "Cannot transfer 'mdat' data, start or end buffer not found");
       return;
     }
