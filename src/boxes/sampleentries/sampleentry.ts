@@ -2,6 +2,7 @@ import { av1CBox } from '#/boxes/av1C';
 import { avcCBox } from '#/boxes/avcC';
 import { sinfBox } from '#/boxes/defaults';
 import { esdsBox } from '#/boxes/esds';
+import { waveBox } from '#/boxes/qt/wave';
 import { hvcCBox } from '#/boxes/hvcC';
 import { lvcCBox } from '#/boxes/lvcC';
 import { vpcCBox } from '#/boxes/vpcC';
@@ -384,12 +385,14 @@ export class mp4aSampleEntry extends AudioSampleEntry {
 
   esds: esdsBox;
   esdss: Array<esdsBox>;
+  wave: waveBox;
 
   getCodec() {
     const baseCodec = super.getCodec();
-    if (this.esds && this.esds.esd) {
-      const oti = this.esds.esd.getOTI();
-      const dsi = this.esds.esd.getAudioConfig();
+    const esds = this.esds ?? this.wave?.esds;
+    if (esds && esds.esd) {
+      const oti = esds.esd.getOTI();
+      const dsi = esds.esd.getAudioConfig();
       return baseCodec + '.' + decimalToHex(oti) + (dsi ? '.' + dsi : '');
     } else {
       return baseCodec;
