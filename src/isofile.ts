@@ -2272,7 +2272,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (meta.pitm) {
       const id = meta.pitm.item_id;
       if (!items[id]) {
-        Log.warn('ISOFile', 'Primary item_id is: #' + id + ' which does not exist');
+        Log.warn('ISOFile', 'Primary item_id #' + id + ' does not exist in items');
       } else {
         items[id].primary = true;
       }
