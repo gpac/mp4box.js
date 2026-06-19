@@ -31,18 +31,18 @@
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/mp4box.all.d.ts",
+        "import": "./dist/mp4box.all.d.mts",
         "require": "./dist/mp4box.all.d.cts"
       },
-      "import": "./dist/mp4box.all.js",
+      "import": "./dist/mp4box.all.mjs",
       "require": "./dist/mp4box.all.cjs"
     },
     "./simple": {
       "types": {
-        "import": "./dist/mp4box.simple.d.ts",
+        "import": "./dist/mp4box.simple.d.mts",
         "require": "./dist/mp4box.simple.d.cts"
       },
-      "import": "./dist/mp4box.simple.js",
+      "import": "./dist/mp4box.simple.mjs",
       "require": "./dist/mp4box.simple.cjs"
     }
   },
