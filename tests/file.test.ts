@@ -79,6 +79,44 @@ describe('File Creation', () => {
     expect(ds.buffer.byteLength).toBe(40_591);
   });
 
+  it('should create fragments with 1 sample each', async () => {
+    const { samples, decoderConfig } = await collectTestSamples();
+
+    const mp4 = createFile();
+    const track = mp4.addTrack({
+      timescale: 100,
+      avcDecoderConfigRecord: decoderConfig,
+      width: 320,
+      height: 180,
+    });
+
+    mp4.setSegmentOptions(track, undefined, {
+      nbSamplesPerFragment: 1,
+      rapAlignement: false,
+    });
+
+    const fragmentBuffers: Array<ArrayBuffer> = [];
+    mp4.onSegment = (id, user, buffer) => {
+      fragmentBuffers.push(buffer);
+    };
+
+    const { buffer: initBuffer } = mp4.initializeSegmentation();
+    mp4.start();
+
+    for (const sample of samples) {
+      mp4.addSample(track, sample.data, {
+        duration: sample.duration,
+        cts: sample.cts,
+        dts: sample.dts,
+        is_sync: sample.is_sync,
+      });
+    }
+    mp4.flush();
+
+    expect(initBuffer.byteLength).toBeGreaterThan(0);
+    expect(fragmentBuffers.length).toBe(samples.length);
+  });
+
   it('should not fail with incomplete mdat', async () => {
     const { testFile } = getFilePath('isobmff', '17_negative_ctso.mp4');
     const mp4 = createFile(false);
