@@ -1,6 +1,7 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { ColorPoint } from './displays/colorPoint';
+import type { BitStream } from '#/bitstream';
 
 export class mdcvBox extends Box {
   static override readonly fourcc = 'mdcv' as const;
@@ -11,7 +12,7 @@ export class mdcvBox extends Box {
   max_display_mastering_luminance: number;
   min_display_mastering_luminance: number;
 
-  parse(stream: MultiBufferStream) {
+  parse(stream: MultiBufferStream | BitStream) {
     this.display_primaries = [];
     this.display_primaries[0] = new ColorPoint(stream.readUint16(), stream.readUint16());
     this.display_primaries[1] = new ColorPoint(stream.readUint16(), stream.readUint16());
