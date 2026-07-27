@@ -137,6 +137,7 @@ export * from '#/boxes/tsel';
 export * from '#/boxes/txtC';
 export * from '#/boxes/tyco';
 export * from '#/boxes/udes';
+export * from '#/boxes/altt';
 export * from '#/boxes/uncC';
 export * from '#/boxes/url';
 export * from '#/boxes/urn';
