@@ -416,6 +416,11 @@ export class ec_3SampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'ec-3' as const;
 }
 
+export class mlpaSampleEntry extends AudioSampleEntry {
+  static override readonly fourcc = 'mlpa' as const;
+  box_name = 'MLPSampleEntry' as const;
+}
+
 export class OpusSampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'Opus' as const;
 }
