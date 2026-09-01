@@ -6,26 +6,29 @@ import type { ISOFile } from './isofile';
  */
 const start = new Date();
 
-const LOG_LEVEL_ERROR = 4;
-const LOG_LEVEL_WARNING = 3;
-const LOG_LEVEL_INFO = 2;
-const LOG_LEVEL_DEBUG = 1;
-
-let log_level = LOG_LEVEL_ERROR;
-
 export const Log = {
-  setLogLevel(level: (module: string, msg?: string) => void) {
-    if (level === this.debug) log_level = LOG_LEVEL_DEBUG;
-    else if (level === this.info) log_level = LOG_LEVEL_INFO;
-    else if (level === this.warn) log_level = LOG_LEVEL_WARNING;
-    else if (level === this.error) log_level = LOG_LEVEL_ERROR;
-    else log_level = LOG_LEVEL_ERROR;
+  LOG_LEVEL_NONE: 9,
+  LOG_LEVEL_ERROR: 4,
+  LOG_LEVEL_WARNING: 3,
+  LOG_LEVEL_INFO: 2,
+  LOG_LEVEL_DEBUG: 1,
+
+  setLogLevel(level: number | ((module: string, msg?: string) => void)) {
+    if (typeof level === 'number') {
+      log_level = level;
+      return;
+    }
+    if (level === this.debug) log_level = Log.LOG_LEVEL_DEBUG;
+    else if (level === this.info) log_level = Log.LOG_LEVEL_INFO;
+    else if (level === this.warn) log_level = Log.LOG_LEVEL_WARNING;
+    else if (level === this.error) log_level = Log.LOG_LEVEL_ERROR;
+    else log_level = Log.LOG_LEVEL_ERROR;
   },
   debug(module: string, msg?: string) {
     if (console.debug === undefined) {
       console.debug = console.log;
     }
-    if (LOG_LEVEL_DEBUG >= log_level) {
+    if (Log.LOG_LEVEL_DEBUG >= log_level) {
       console.debug(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
@@ -37,7 +40,7 @@ export const Log = {
     this.debug(module.msg);
   },
   info(module: string, msg?: string) {
-    if (LOG_LEVEL_INFO >= log_level) {
+    if (Log.LOG_LEVEL_INFO >= log_level) {
       console.info(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
@@ -46,7 +49,7 @@ export const Log = {
     }
   },
   warn(module: string, msg?: string) {
-    if (LOG_LEVEL_WARNING >= log_level) {
+    if (Log.LOG_LEVEL_WARNING >= log_level) {
       console.warn(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
@@ -57,7 +60,7 @@ export const Log = {
   error(module: string, msg?: string, isofile?: ISOFile) {
     if (isofile?.onError) {
       isofile.onError(module, msg);
-    } else if (LOG_LEVEL_ERROR >= log_level) {
+    } else if (Log.LOG_LEVEL_ERROR >= log_level) {
       console.error(
         '[' + Log.getDurationString(new Date().getTime() - start.getTime(), 1000) + ']',
         '[' + module + ']',
@@ -128,3 +131,5 @@ export const Log = {
     }
   },
 };
+
+let log_level = Log.LOG_LEVEL_ERROR;
