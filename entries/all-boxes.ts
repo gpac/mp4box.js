@@ -61,6 +61,7 @@ export * from '#/boxes/mehd';
 export * from '#/boxes/meta';
 export * from '#/boxes/mfhd';
 export * from '#/boxes/mfro';
+export * from '#/boxes/mhaC';
 export * from '#/boxes/mskC';
 export * from '#/boxes/mvhd';
 export * from '#/boxes/npck';
