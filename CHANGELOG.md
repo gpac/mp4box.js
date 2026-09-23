@@ -1,5 +1,13 @@
 # mp4box
 
+## 2.5.0
+
+### Minor Changes
+
+- [#567](https://github.com/gpac/mp4box.js/pull/567) [`38c2ac5`](https://github.com/gpac/mp4box.js/commit/38c2ac5d36d444f5eb2f5a7f0305fca7327b77e8) Thanks [@dukesook](https://github.com/dukesook)! - The uuid boxes now display the extended_type, even if the box is already registered
+
+- [#565](https://github.com/gpac/mp4box.js/pull/565) [`9925057`](https://github.com/gpac/mp4box.js/commit/992505793e5a4aa5d513ec85e0cd7939535674a7) Thanks [@dukesook](https://github.com/dukesook)! - Read altt item property
+
 ## 2.4.1
 
 ### Patch Changes
