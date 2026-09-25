@@ -12,7 +12,19 @@ function generatePropertyValue(prop, value) {
   if (typeof value?.toString === 'function') {
     const content = value.toString();
     if (value.hasOwnProperty('toString') || content.startsWith('<')) {
-      return content;
+      return content.replace(
+        /[&<>"'\-\n]/g,
+        m =>
+          ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '-': '&#8209;',
+            '\n': '<br/>',
+          })[m],
+      );
     }
   }
 
