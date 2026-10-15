@@ -173,7 +173,10 @@ export function parseOneBox(
     );
     box.parseDataAndRewind(stream);
   }
-  box.parse(stream);
+  if (box.parse(stream) === ERR_INVALID_DATA) {
+    stream.seek(start);
+    return { code: ERR_INVALID_DATA, type, size, hdr_size, start };
+  }
   const diff = stream.getPosition() - (box.start + box.size);
   if (diff < 0) {
     Log.warn(

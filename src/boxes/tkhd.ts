@@ -1,6 +1,6 @@
-import { FullBox } from '#/box';
+import { FullBox, type BoxParseResult } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { MAX_UINT32 } from '#/constants';
+import { ERR_INVALID_DATA, MAX_UINT32 } from '#/constants';
 import type { Matrix } from '@types';
 
 export class tkhdBox extends FullBox {
@@ -18,8 +18,19 @@ export class tkhdBox extends FullBox {
   width: number;
   height: number;
 
-  parse(stream: MultiBufferStream) {
+  parse(stream: MultiBufferStream): BoxParseResult {
+    // A complete declared box with too few fields is malformed, not incomplete input.
+    if (this.size - this.hdr_size < 4) {
+      return ERR_INVALID_DATA;
+    }
     this.parseFullHeader(stream);
+    if (this.version !== 0 && this.version !== 1) {
+      return ERR_INVALID_DATA;
+    }
+    const minimumFieldBytes = this.version === 1 ? 92 : 80;
+    if (this.size - this.hdr_size < minimumFieldBytes) {
+      return ERR_INVALID_DATA;
+    }
     if (this.version === 1) {
       this.creation_time = stream.readUint64();
       this.modification_time = stream.readUint64();

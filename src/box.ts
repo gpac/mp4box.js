@@ -4,11 +4,15 @@
  */
 
 import { MultiBufferStream } from '#/buffer';
-import { MAX_UINT32 } from '#/constants';
+import { ERR_INVALID_DATA, MAX_UINT32 } from '#/constants';
 import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import type { BoxFourCC, Output, Reference } from '@types';
 import type { mdatBox } from 'entries/all-boxes';
+
+// Existing parsers return void on success; malformed boxes return ERR_INVALID_DATA.
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+export type BoxParseResult = typeof ERR_INVALID_DATA | void;
 
 export class Box {
   static registryId = Symbol.for('BoxIdentifier');
@@ -152,7 +156,7 @@ export class Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream) {
+  parse(stream: MultiBufferStream): BoxParseResult {
     if (this.type !== 'mdat') {
       this.data = stream.readUint8Array(this.size - this.hdr_size);
     } else {
@@ -232,7 +236,7 @@ export class FullBox extends Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream) {
+  parse(stream: MultiBufferStream): BoxParseResult {
     this.parseFullHeader(stream);
     this.data = stream.readUint8Array(this.size - this.hdr_size);
   }

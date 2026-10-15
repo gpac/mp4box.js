@@ -1,9 +1,9 @@
 import type { BoxKind, Output } from '@types';
 import type { MultiBufferStream } from '#/buffer';
 import type { DataStream } from '#/DataStream';
-import { Box } from '#/box';
+import { Box, type BoxParseResult } from '#/box';
 import { Log } from '#/log';
-import { OK } from '#/constants';
+import { ERR_INVALID_DATA, OK } from '#/constants';
 import { parseOneBox } from '#/parser';
 
 export class ContainerBox extends Box {
@@ -40,7 +40,7 @@ export class ContainerBox extends Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream) {
+  parse(stream: MultiBufferStream): BoxParseResult {
     let ret: ReturnType<typeof parseOneBox>;
     while (stream.getPosition() < this.start + this.size) {
       ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
@@ -66,6 +66,8 @@ export class ContainerBox extends Box {
             this[box_type] = box;
           }
         }
+      } else if (ret.code === ERR_INVALID_DATA) {
+        return ERR_INVALID_DATA;
       } else {
         return;
       }

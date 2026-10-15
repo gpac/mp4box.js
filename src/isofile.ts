@@ -367,7 +367,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
   }
 
+  private parsingFailed = false;
+
   parse() {
+    if (this.parsingFailed) return;
     const parseBoxHeadersOnly = false;
 
     if (this.restoreParsePosition) {
@@ -459,6 +462,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             this.updateUsedBytes(box, ret);
           }
         } else if (ret.code === ERR_INVALID_DATA) {
+          this.parsingFailed = true;
           Log.error(
             'ISOFile',
             `Invalid data found while parsing box of type '${ret.type}' at position ${ret.start}. Aborting parsing.`,
@@ -496,6 +500,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * Returns the next expected file position, or undefined if not ready to parse
    */
   appendBuffer(ab: MP4BoxBuffer, last?: boolean) {
+    if (this.parsingFailed) return;
     let nextFileStart: number;
     if (!this.checkBuffer(ab)) {
       return;
@@ -503,6 +508,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
     /* Parse whatever is in the existing buffers */
     this.parse();
+    if (this.parsingFailed) return;
 
     /* Check if the moovStart callback needs to be called */
     if (this.moovStartFound && !this.moovStartSent) {
@@ -1038,6 +1044,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
 
   /* Called by the application to flush the remaining samples (e.g. once the download is finished or when no more samples will be added) */
   flush() {
+    if (this.parsingFailed) return;
     Log.info('ISOFile', 'Flushing remaining samples');
     this.updateSampleLists();
     this.processSamples(true);
