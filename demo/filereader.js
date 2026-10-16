@@ -1006,18 +1006,23 @@ function buildSampleMap(start, end) {
   }
 }
 
-function verticalTimeline () {
-  var that = this;
-  var data = this.data;
-  if (!data || data.length === 0) {
-    return;
-  }
-  var scale = data[0].duration ? 30 / data[0].duration : 30;
+function verticalTimeline() {
+  var data = this.data || [];
+  var scale = data.length && data[0].duration ? 30 / data[0].duration : 30;
   const sample_width = 120;
-  const content =   this.svg.select("g.content");
+  const content = this.svg.select('g.content');
   content.html('');
-  var dts_offset = data[0].dts;
+  var dts_offset = d3.min(data, function (d) {
+    return Math.min(d.dts, d.cts);
+  }) || 0;
+  var timeline_end = d3.max(data, function (d) {
+    return Math.max(d.dts, d.cts) + d.duration;
+  }) || 0;
   var ypos = 50;
+  this.height = ypos + (timeline_end - dts_offset) * scale;
+  var width = this.width + this.margin.left + this.margin.right;
+  var height = this.height + this.margin.top + this.margin.bottom;
+  this.viewport.attr('height', height).attr('viewBox', '0 0 ' + width + ' ' + height);
   data.forEach(function (d, i) {
     var sampleg = content.append('g').attr("class","pair");
     const dts_y = (d.dts - dts_offset) * scale + ypos;
@@ -1075,24 +1080,28 @@ function verticalTimeline () {
 SampleTimeline.prototype.update = verticalTimeline;
 
 function SampleTimeline() {
-  var margin = { top: 10, right: 10, bottom: 80, left: 20 };
-  var width = (this.width = document.body.clientWidth - margin.left - margin.right);
-  var height = (this.height = window.innerHeight - margin.top - margin.bottom);
+  var margin = (this.margin = { top: 10, right: 10, bottom: 20, left: 20 });
+  const sample_height = 30;
+  const sample_width = 120;
+  var width = (this.width = 3 * sample_width);
+  var height = (this.height = 50);
 
   var div = d3.select('#sampletimeline');
   div.html('');
-  this.svg = div
+  this.viewport = div
     .append('svg')
-    .attr('width', '100%')
-    .attr('height', '100%')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+    .style('max-width', '100%')
+    .style('height', 'auto')
+    .style('display', 'block')
     .attr(
       'viewBox',
       '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom),
-    )
+    );
+  this.svg = this.viewport
     .append('g')
     .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
-  const sample_height = 30;
-  const sample_width = 120;
   this.svg
     .append('text')
     .attr('x', sample_width/2)
