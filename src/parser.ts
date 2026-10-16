@@ -87,6 +87,8 @@ export function parseOneBox(
         box = new Box(size);
         box.type = type as BoxFourCC;
         return { code: OK, box, size: box.size };
+      } else {
+        size = stream.getEndPosition() - start;
       }
     }
   }
@@ -147,6 +149,7 @@ export function parseOneBox(
       } else {
         if (uuid in BoxRegistry.uuid) {
           box = new BoxRegistry.uuid[uuid](size);
+          box.uuid = uuid;
         } else {
           Log.warn('BoxParser', `Unknown UUID box type: '${uuid}'`);
           box = new Box(size);
