@@ -225,6 +225,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   ftyps: Array<ftypBox>;
   nextSeekPosition: number;
   initial_duration: number;
+  private parsingFailed = false;
 
   constructor(stream?: MultiBufferStream, discardMdatData = true) {
     this.discardMdatData = discardMdatData;
@@ -366,8 +367,6 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       this.extractedTracks.splice(index, 1);
     }
   }
-
-  private parsingFailed = false;
 
   parse() {
     if (this.parsingFailed) return;
