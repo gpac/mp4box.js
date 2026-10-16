@@ -4,7 +4,7 @@
  */
 
 import { MultiBufferStream } from '#/buffer';
-import { ERR_INVALID_DATA, MAX_UINT32 } from '#/constants';
+import { ErrorCode, MAX_UINT32 } from '#/constants';
 import { DataStream } from '#/DataStream';
 import { Log } from '#/log';
 import type { BoxFourCC, Output, Reference } from '@types';
@@ -152,7 +152,7 @@ export class Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream): typeof ERR_INVALID_DATA | ReturnType<() => void> {
+  parse(stream: MultiBufferStream): ErrorCode | ReturnType<() => void> {
     if (this.type !== 'mdat') {
       this.data = stream.readUint8Array(this.size - this.hdr_size);
     } else {
@@ -232,7 +232,7 @@ export class FullBox extends Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream): ReturnType<Box['parse']> {
+  parse(stream: MultiBufferStream) {
     this.parseFullHeader(stream);
     this.data = stream.readUint8Array(this.size - this.hdr_size);
   }

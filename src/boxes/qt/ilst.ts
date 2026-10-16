@@ -1,5 +1,5 @@
 import { Box } from '#/box';
-import { OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import { parseOneBox } from '#/parser';
 import type { MultiBufferStream } from '#/buffer';
 
@@ -25,7 +25,7 @@ export class ilstBox extends Box {
       const index = stream.readUint32();
 
       const res = parseOneBox(stream, false, size - 8);
-      if (res.code === OK) this.list[index] = res.box;
+      if (res.code === ErrorCode.OK) this.list[index] = res.box;
       total -= size;
     }
   }
