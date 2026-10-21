@@ -1882,6 +1882,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           last_run_position = base_data_offset; // an empty track fragment ends where it starts
           for (let j = 0; j < traf.truns.length; j++) {
             const trun = traf.truns[j];
+            // resolve each run's position even when it contains no sample
+            if (trun.flags & TRUN_FLAGS_DATA_OFFSET) {
+              last_run_position = base_data_offset + trun.data_offset;
+            }
             for (let k = 0; k < trun.sample_count; k++) {
               const description_index = default_sample_description_index - 1;
 
@@ -1924,15 +1928,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               }
 
               //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
-              let offset: number;
-              if (k === 0 && trun.flags & TRUN_FLAGS_DATA_OFFSET) {
-                offset = base_data_offset + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
-              } else if (j === 0 && k === 0) {
-                offset = base_data_offset; // the data for the first run starts at the base-data-offset defined by the track fragment header
-              } else {
-                offset = last_run_position; // this run starts immediately after the data of the previous run
-              }
-              last_run_position = offset + size;
+              const offset = last_run_position;
+              last_run_position += size;
 
               const number_in_traf = traf.sample_number;
               traf.sample_number++;
