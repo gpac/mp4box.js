@@ -39,8 +39,8 @@ export function parseOneBox(
   let size = stream.readUint32();
   const type = stream.readString(4);
 
-  // Check if type is a valid fourcc
-  if (type.length !== 4 || !/^[\x20-\x7E]{4}$/.test(type)) {
+  // Check if type is a valid fourcc. QuickTime user data types may start with © (0xA9).
+  if (type.length !== 4 || !/^[\x20-\x7E\xA9][\x20-\x7E]{3}$/.test(type)) {
     Log.error('BoxParser', `Invalid box type: '${type}'`);
     return { code: ERR_INVALID_DATA, start, type };
   }
