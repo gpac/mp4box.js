@@ -1,4 +1,4 @@
-import { OK } from '#//constants';
+import { ErrorCode } from '#/constants';
 import { Box, TrackReferenceTypeBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
 import { Log } from '#/log';
@@ -28,7 +28,7 @@ export class trefBox extends Box {
   parse(stream: MultiBufferStream) {
     while (stream.getPosition() < this.start + this.size) {
       const ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
-      if (ret.code === OK) {
+      if (ret.code === ErrorCode.OK) {
         if (!trefBox.allowed_types.includes(ret.type as (typeof trefBox.allowed_types)[number])) {
           Log.warn('BoxParser', `Unknown track reference type: '${ret.type}'`);
         }

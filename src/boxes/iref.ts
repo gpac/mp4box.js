@@ -1,6 +1,6 @@
 import { Box, FullBox, SingleItemTypeReferenceBox, SingleItemTypeReferenceBoxLarge } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import { Log } from '#/log';
 import { parseOneBox } from '#/parser';
 
@@ -59,7 +59,7 @@ export class irefBox extends FullBox {
 
     while (stream.getPosition() < this.start + this.size) {
       const ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
-      if (ret.code === OK) {
+      if (ret.code === ErrorCode.OK) {
         let name = 'Unknown item reference';
         if (!irefBox.allowed_types.includes(ret.type as (typeof irefBox.allowed_types)[number])) {
           Log.warn('BoxParser', `Unknown item reference type: '${ret.type}'`);
