@@ -1,6 +1,6 @@
 import { Box, FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import { Log } from '#/log';
 import { parseOneBox } from '#/parser';
 
@@ -16,7 +16,7 @@ export class drefBox extends FullBox {
     const entry_count = stream.readUint32();
     for (let i = 0; i < entry_count; i++) {
       const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
-      if (ret.code === OK) {
+      if (ret.code === ErrorCode.OK) {
         const box = ret.box;
         this.entries.push(box);
       } else {

@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import { parseOneBox } from '#/parser';
 
 export class trepBox extends FullBox {
@@ -15,7 +15,7 @@ export class trepBox extends FullBox {
     this.boxes = [];
     while (stream.getPosition() < this.start + this.size) {
       const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
-      if (ret.code === OK) {
+      if (ret.code === ErrorCode.OK) {
         const box = ret.box;
         this.boxes.push(box);
       } else {

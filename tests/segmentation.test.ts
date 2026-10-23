@@ -288,6 +288,17 @@ describe('File Segmentation', () => {
     expect(() => mp4.start()).not.toThrow();
   });
 
+  it('seeks past a track without samples', async () => {
+    const { testFile } = getFilePath('isobmff', '01_simple.mp4');
+    const { mp4 } = await loadAndGetInfo(testFile, true, true);
+    const expected = mp4.seek(3, false);
+
+    mp4.moov.traks[0].samples = [];
+
+    expect(() => mp4.seek(3, false)).not.toThrow();
+    expect(mp4.seek(3, false).time).toBe(expected.time);
+  });
+
   it('resets segmentation state on forward seek before processing', async () => {
     const { testFile } = getFilePath('isobmff', '01_simple.mp4');
     const { mp4 } = await loadAndGetInfo(testFile, true, true);

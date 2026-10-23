@@ -1,7 +1,7 @@
 import type { MultiBufferStream } from '#/buffer';
 import type { BoxFourCC, IncompleteBox } from '@types';
 import { Log } from '#/log';
-import { ERR_INVALID_DATA, ERR_NOT_ENOUGH_DATA, OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import { Box } from '#/box';
 import { BoxRegistry } from '#/registry';
 
@@ -30,11 +30,11 @@ export function parseOneBox(
   let uuid: string;
   if (stream.getEndPosition() - start < 8) {
     Log.debug('BoxParser', 'Not enough data in stream to parse the type and size of the box');
-    return { code: ERR_NOT_ENOUGH_DATA };
+    return { code: ErrorCode.ERR_NOT_ENOUGH_DATA };
   }
   if (parentSize && parentSize < 8) {
     Log.debug('BoxParser', 'Not enough bytes left in the parent box to parse a new box');
-    return { code: ERR_NOT_ENOUGH_DATA };
+    return { code: ErrorCode.ERR_NOT_ENOUGH_DATA };
   }
   let size = stream.readUint32();
   const type = stream.readString(4);
@@ -42,7 +42,7 @@ export function parseOneBox(
   // Check if type is a valid fourcc
   if (type.length !== 4 || !/^[\x20-\x7E]{4}$/.test(type)) {
     Log.error('BoxParser', `Invalid box type: '${type}'`);
-    return { code: ERR_INVALID_DATA, start, type };
+    return { code: ErrorCode.ERR_INVALID_DATA, start, type };
   }
 
   let box_type = type;
@@ -55,7 +55,7 @@ export function parseOneBox(
     if (stream.getEndPosition() - stream.getPosition() < 16 || parentSize - hdr_size < 16) {
       stream.seek(start);
       Log.debug('BoxParser', 'Not enough bytes left in the parent box to parse a UUID box');
-      return { code: ERR_NOT_ENOUGH_DATA };
+      return { code: ErrorCode.ERR_NOT_ENOUGH_DATA };
     }
     uuid = parseUUID(stream);
     hdr_size += 16;
@@ -71,7 +71,7 @@ export function parseOneBox(
         'BoxParser',
         'Not enough data in stream to parse the extended size of the "' + type + '" box',
       );
-      return { code: ERR_NOT_ENOUGH_DATA };
+      return { code: ErrorCode.ERR_NOT_ENOUGH_DATA };
     }
     originalSize = size;
     size = stream.readUint64();
@@ -86,7 +86,7 @@ export function parseOneBox(
         Log.error('BoxParser', "Unlimited box size not supported for type: '" + type + "'");
         box = new Box(size);
         box.type = type as BoxFourCC;
-        return { code: OK, box, size: box.size };
+        return { code: ErrorCode.OK, box, size: box.size };
       } else {
         size = stream.getEndPosition() - start;
       }
@@ -98,7 +98,7 @@ export function parseOneBox(
       'Box of type ' + type + ' has an invalid size ' + size + ' (too small to be a box)',
     );
     return {
-      code: ERR_NOT_ENOUGH_DATA,
+      code: ErrorCode.ERR_NOT_ENOUGH_DATA,
       type: type,
       size: size,
       hdr_size: hdr_size,
@@ -116,7 +116,7 @@ export function parseOneBox(
         parentSize,
     );
     return {
-      code: ERR_NOT_ENOUGH_DATA,
+      code: ErrorCode.ERR_NOT_ENOUGH_DATA,
       type: type,
       size: size,
       hdr_size: hdr_size,
@@ -127,7 +127,7 @@ export function parseOneBox(
     stream.seek(start);
     Log.info('BoxParser', "Not enough data in stream to parse the entire '" + type + "' box");
     return {
-      code: ERR_NOT_ENOUGH_DATA,
+      code: ErrorCode.ERR_NOT_ENOUGH_DATA,
       type: type,
       size: size,
       hdr_size: hdr_size,
@@ -136,7 +136,7 @@ export function parseOneBox(
     };
   }
   if (headerOnly) {
-    return { code: OK, type: type, size: size, hdr_size: hdr_size, start: start };
+    return { code: ErrorCode.OK, type: type, size: size, hdr_size: hdr_size, start: start };
   } else {
     if (type in BoxRegistry.box) {
       box = new BoxRegistry.box[type](size);
@@ -149,6 +149,7 @@ export function parseOneBox(
       } else {
         if (uuid in BoxRegistry.uuid) {
           box = new BoxRegistry.uuid[uuid](size);
+          box.uuid = uuid;
         } else {
           Log.warn('BoxParser', `Unknown UUID box type: '${uuid}'`);
           box = new Box(size);
@@ -172,7 +173,11 @@ export function parseOneBox(
     );
     box.parseDataAndRewind(stream);
   }
-  box.parse(stream);
+  if (box.parse(stream) === ErrorCode.ERR_INVALID_DATA) {
+    stream.seek(start);
+    stream.removeRange(start);
+    return { code: ErrorCode.ERR_INVALID_DATA, type, size, hdr_size, start };
+  }
   const diff = stream.getPosition() - (box.start + box.size);
   if (diff < 0) {
     Log.warn(
@@ -195,5 +200,5 @@ export function parseOneBox(
     );
     stream.seek(box.start + box.size);
   }
-  return { code: OK, box, size: box.size };
+  return { code: ErrorCode.OK, box, size: box.size };
 }
