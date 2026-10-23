@@ -173,7 +173,12 @@ export function parseOneBox(
     );
     box.parseDataAndRewind(stream);
   }
-  if (box.parse(stream) === ErrorCode.ERR_INVALID_DATA) {
+  const parseResult = box.parse(stream);
+  if (stream.inBitMode) {
+    Log.warn('BoxParser', "Parsing of box '" + box_type + "' did not exit bit mode, realigning");
+    while (stream.inBitMode) stream.exitBitMode(false);
+  }
+  if (parseResult === ErrorCode.ERR_INVALID_DATA) {
     stream.seek(start);
     stream.removeRange(start);
     return { code: ErrorCode.ERR_INVALID_DATA, type, size, hdr_size, start };

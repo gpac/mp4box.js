@@ -1,5 +1,4 @@
 import { Box, FullBox } from '#/box';
-import { BitStream } from '#/bitstream';
 import type { MultiBufferStream } from '#/buffer';
 
 class pixiBoxChannel extends Box {
@@ -27,21 +26,22 @@ export class pixiBox extends FullBox {
       channels[i].depth = stream.readUint8();
     }
     if (this.flags & 0x1) {
-      const bits = new BitStream(stream);
+      stream.enterBitMode();
       for (let i = 0; i < this.num_channels; i++) {
-        channels[i].channel_idc = bits.read(3);
-        channels[i].reserved = bits.read(1);
-        channels[i].component_format = bits.read(2);
-        const subsampling_flag = bits.bool();
-        const channel_label_flag = bits.bool();
+        channels[i].channel_idc = stream.readBits(3);
+        channels[i].reserved = stream.readBits(1);
+        channels[i].component_format = stream.readBits(2);
+        const subsampling_flag = stream.readFlag();
+        const channel_label_flag = stream.readFlag();
         if (subsampling_flag) {
-          channels[i].subsampling_type = bits.read(4);
-          channels[i].subsampling_location = bits.read(4);
+          channels[i].subsampling_type = stream.readBits(4);
+          channels[i].subsampling_location = stream.readBits(4);
         }
         if (channel_label_flag) {
           channels[i].channel_label = stream.readCString();
         }
       }
+      stream.exitBitMode();
     }
     for (let i = 0; i < this.num_channels; i++) {
       this.addEntry(channels[i]);

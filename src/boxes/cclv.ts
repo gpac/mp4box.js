@@ -1,6 +1,5 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import type { BitStream } from '#/bitstream';
 
 export class cclvBox extends Box {
   static override readonly fourcc = 'cclv' as const;
@@ -12,7 +11,7 @@ export class cclvBox extends Box {
   ccv_max_luminance_value: number;
   ccv_avg_luminance_value: number;
 
-  parse(stream: MultiBufferStream | BitStream) {
+  parse(stream: MultiBufferStream) {
     const flags = stream.readUint8();
     const ccv_primaries_present_flag = flags & 0x10;
     const ccv_min_luminance_value_present_flag = flags & 0x08;

@@ -1,5 +1,4 @@
 import { Box } from '#/box';
-import { BitStream } from '#/bitstream';
 import type { MultiBufferStream } from '#/buffer';
 import { amveBox } from './amve';
 import { cclvBox } from './cclv';
@@ -80,54 +79,54 @@ export class miniBox extends Box {
   xmp_data_size_minus1: number;
 
   parse(stream: MultiBufferStream) {
-    const bits = new BitStream(stream);
-    this.version = bits.read(2);
+    stream.enterBitMode();
+    this.version = stream.readBits(2);
 
-    this.explicit_codec_types_flag = bits.bool();
-    this.float_flag = bits.bool();
-    this.full_range_flag = bits.bool();
-    this.alpha_flag = bits.bool();
-    this.explicit_cicp_flag = bits.bool();
-    this.hdr_flag = bits.bool();
-    this.icc_flag = bits.bool();
-    this.exif_flag = bits.bool();
-    this.xmp_flag = bits.bool();
+    this.explicit_codec_types_flag = stream.readFlag();
+    this.float_flag = stream.readFlag();
+    this.full_range_flag = stream.readFlag();
+    this.alpha_flag = stream.readFlag();
+    this.explicit_cicp_flag = stream.readFlag();
+    this.hdr_flag = stream.readFlag();
+    this.icc_flag = stream.readFlag();
+    this.exif_flag = stream.readFlag();
+    this.xmp_flag = stream.readFlag();
 
-    this.chroma_subsampling = bits.read(2);
-    this.orientation_minus1 = bits.read(3);
+    this.chroma_subsampling = stream.readBits(2);
+    this.orientation_minus1 = stream.readBits(3);
 
-    this.large_dimensions_flag = bits.bool();
-    this.width_minus1 = bits.read(this.large_dimensions_flag ? 15 : 7);
-    this.height_minus1 = bits.read(this.large_dimensions_flag ? 15 : 7);
+    this.large_dimensions_flag = stream.readFlag();
+    this.width_minus1 = stream.readBits(this.large_dimensions_flag ? 15 : 7);
+    this.height_minus1 = stream.readBits(this.large_dimensions_flag ? 15 : 7);
 
     // Pixel information
     if (this.chroma_subsampling === 1 || this.chroma_subsampling === 2) {
-      this.chroma_is_horizontally_centered = bits.bool();
+      this.chroma_is_horizontally_centered = stream.readFlag();
     }
     if (this.chroma_subsampling === 1) {
-      this.chroma_is_vertically_centered = bits.bool();
+      this.chroma_is_vertically_centered = stream.readFlag();
     }
     if (this.float_flag) {
-      this.bit_depth = 1 << (bits.read(2) + 4);
+      this.bit_depth = 1 << (stream.readBits(2) + 4);
     } else {
-      this.bit_depth = bits.bool() ? bits.read(3) + 9 : 8;
+      this.bit_depth = stream.readFlag() ? stream.readBits(3) + 9 : 8;
     }
     if (this.alpha_flag) {
-      this.alpha_is_premultiplied = bits.bool();
+      this.alpha_is_premultiplied = stream.readFlag();
     }
     // Colour properties
     if (this.explicit_cicp_flag) {
-      this.colour_primaries = bits.read(8);
-      this.transfer_characteristics = bits.read(8);
-      this.matrix_coefficients = bits.read(8);
+      this.colour_primaries = stream.readBits(8);
+      this.transfer_characteristics = stream.readBits(8);
+      this.matrix_coefficients = stream.readBits(8);
     } else {
       this.colour_primaries = this.icc_flag ? 2 : 1;
       this.transfer_characteristics = this.icc_flag ? 2 : 13;
       this.matrix_coefficients = this.chroma_subsampling === 0 ? 2 : 6;
     }
     if (this.explicit_codec_types_flag) {
-      this.infe_type = bits.four_cc();
-      this.codec_config_type = bits.four_cc();
+      this.infe_type = stream.readString(4);
+      this.codec_config_type = stream.readString(4);
     } else {
       this.infe_type = '[deduced from ftyp minor_version]';
       this.codec_config_type = '[deduced from ftyp minor_version]';
@@ -135,39 +134,39 @@ export class miniBox extends Box {
 
     // High Dynamic Range properties
     if (this.hdr_flag) {
-      this.gainmap_flag = bits.bool();
+      this.gainmap_flag = stream.readFlag();
       if (this.gainmap_flag) {
-        const gainmap_dimension_same_as_main_item_flag = bits.bool();
+        const gainmap_dimension_same_as_main_item_flag = stream.readFlag();
         if (gainmap_dimension_same_as_main_item_flag) {
           this.gainmap_width_minus1 = this.width_minus1;
           this.gainmap_height_minus1 = this.height_minus1;
         } else {
-          this.gainmap_width_minus1 = bits.read(this.large_dimensions_flag ? 15 : 7);
-          this.gainmap_height_minus1 = bits.read(this.large_dimensions_flag ? 15 : 7);
+          this.gainmap_width_minus1 = stream.readBits(this.large_dimensions_flag ? 15 : 7);
+          this.gainmap_height_minus1 = stream.readBits(this.large_dimensions_flag ? 15 : 7);
         }
-        this.gainmap_matrix_coefficients = bits.read(8);
-        this.gainmap_full_range_flag = bits.bool();
-        this.gainmap_chroma_subsampling = bits.read(2);
+        this.gainmap_matrix_coefficients = stream.readBits(8);
+        this.gainmap_full_range_flag = stream.readFlag();
+        this.gainmap_chroma_subsampling = stream.readBits(2);
         if (this.gainmap_chroma_subsampling === 1 || this.gainmap_chroma_subsampling === 2) {
-          this.gainmap_chroma_is_horizontally_centered = bits.bool();
+          this.gainmap_chroma_is_horizontally_centered = stream.readFlag();
         }
         if (this.gainmap_chroma_subsampling === 1) {
-          this.gainmap_chroma_is_vertically_centered = bits.bool();
+          this.gainmap_chroma_is_vertically_centered = stream.readFlag();
         }
-        this.gainmap_float_flag = bits.bool();
+        this.gainmap_float_flag = stream.readFlag();
 
         if (this.gainmap_float_flag) {
-          this.gainmap_bit_depth = 1 << (bits.read(2) + 4);
+          this.gainmap_bit_depth = 1 << (stream.readBits(2) + 4);
         } else {
-          this.gainmap_bit_depth = bits.bool() ? bits.read(3) + 9 : 8;
+          this.gainmap_bit_depth = stream.readFlag() ? stream.readBits(3) + 9 : 8;
         }
-        this.tmap_icc_flag = bits.bool();
-        this.tmap_explicit_cicp_flag = bits.bool();
+        this.tmap_icc_flag = stream.readFlag();
+        this.tmap_explicit_cicp_flag = stream.readFlag();
         if (this.tmap_explicit_cicp_flag) {
-          this.tmap_colour_primaries = bits.read(8);
-          this.tmap_transfer_characteristics = bits.read(8);
-          this.tmap_matrix_coefficients = bits.read(8);
-          this.tmap_full_range_flag = bits.bool();
+          this.tmap_colour_primaries = stream.readBits(8);
+          this.tmap_transfer_characteristics = stream.readBits(8);
+          this.tmap_matrix_coefficients = stream.readBits(8);
+          this.tmap_full_range_flag = stream.readFlag();
         } else {
           this.tmap_colour_primaries = 1;
           this.tmap_transfer_characteristics = 13;
@@ -178,13 +177,13 @@ export class miniBox extends Box {
 
       // These are only the inner syntaxes, not the boxes themselves.
       // Still create child boxes for prettier display.
-      const parse_hdr_boxes = (parent: Box, stream: BitStream) => {
-        const clli_flag = stream.bool();
-        const mdcv_flag = stream.bool();
-        const cclv_flag = stream.bool();
-        const amve_flag = stream.bool();
-        const reve_flag = stream.bool();
-        const ndwt_flag = stream.bool();
+      const parse_hdr_boxes = (parent: Box) => {
+        const clli_flag = stream.readFlag();
+        const mdcv_flag = stream.readFlag();
+        const cclv_flag = stream.readFlag();
+        const amve_flag = stream.readFlag();
+        const reve_flag = stream.readFlag();
+        const ndwt_flag = stream.readFlag();
         if (clli_flag) {
           const clli = new clliBox();
           clli.parse(stream);
@@ -216,12 +215,12 @@ export class miniBox extends Box {
           parent.addBox(ndwt);
         }
       };
-      parse_hdr_boxes(this, bits);
+      parse_hdr_boxes(this);
 
       if (this.gainmap_flag) {
         const tmap_placeholder = new Box();
         tmap_placeholder.box_name = 'tmap';
-        parse_hdr_boxes(tmap_placeholder, bits);
+        parse_hdr_boxes(tmap_placeholder);
         if (tmap_placeholder.boxes) {
           this.addBox(tmap_placeholder);
         }
@@ -230,43 +229,43 @@ export class miniBox extends Box {
 
     // Chunk sizes
     if (this.icc_flag || this.exif_flag || this.xmp_flag || (this.hdr_flag && this.gainmap_flag)) {
-      this.large_metadata_flag = bits.bool();
+      this.large_metadata_flag = stream.readFlag();
     }
-    this.large_codec_config_flag = bits.bool();
-    this.large_item_data_flag = bits.bool();
+    this.large_codec_config_flag = stream.readFlag();
+    this.large_item_data_flag = stream.readFlag();
     if (this.icc_flag) {
-      this.icc_data_size_minus1 = bits.read(this.large_metadata_flag ? 20 : 10);
+      this.icc_data_size_minus1 = stream.readBits(this.large_metadata_flag ? 20 : 10);
     }
     if (this.hdr_flag && this.gainmap_flag && this.tmap_icc_flag) {
-      this.tmap_icc_data_size_minus1 = bits.read(this.large_metadata_flag ? 20 : 10);
+      this.tmap_icc_data_size_minus1 = stream.readBits(this.large_metadata_flag ? 20 : 10);
     }
     if (this.hdr_flag && this.gainmap_flag) {
-      this.gainmap_metadata_size = bits.read(this.large_metadata_flag ? 20 : 10);
+      this.gainmap_metadata_size = stream.readBits(this.large_metadata_flag ? 20 : 10);
     }
     if (this.hdr_flag && this.gainmap_flag) {
-      this.gainmap_item_data_size = bits.read(this.large_item_data_flag ? 28 : 15);
+      this.gainmap_item_data_size = stream.readBits(this.large_item_data_flag ? 28 : 15);
     }
     if (this.hdr_flag && this.gainmap_flag && this.gainmap_item_data_size > 0) {
-      this.gainmap_item_codec_config_size = bits.read(this.large_codec_config_flag ? 12 : 3);
+      this.gainmap_item_codec_config_size = stream.readBits(this.large_codec_config_flag ? 12 : 3);
     }
-    this.main_item_codec_config_size = bits.read(this.large_codec_config_flag ? 12 : 3);
-    this.main_item_data_size_minus1 = bits.read(this.large_item_data_flag ? 28 : 15);
+    this.main_item_codec_config_size = stream.readBits(this.large_codec_config_flag ? 12 : 3);
+    this.main_item_data_size_minus1 = stream.readBits(this.large_item_data_flag ? 28 : 15);
     if (this.alpha_flag) {
-      this.alpha_item_data_size = bits.read(this.large_item_data_flag ? 28 : 15);
+      this.alpha_item_data_size = stream.readBits(this.large_item_data_flag ? 28 : 15);
     }
     if (this.alpha_flag && this.alpha_item_data_size > 0) {
-      this.alpha_item_codec_config_size = bits.read(this.large_codec_config_flag ? 12 : 3);
+      this.alpha_item_codec_config_size = stream.readBits(this.large_codec_config_flag ? 12 : 3);
     }
     if (this.exif_flag || this.xmp_flag) {
-      this.exif_xmp_compressed_flag = bits.bool();
+      this.exif_xmp_compressed_flag = stream.readFlag();
     }
     if (this.exif_flag) {
-      this.exif_data_size_minus1 = bits.read(this.large_metadata_flag ? 20 : 10);
+      this.exif_data_size_minus1 = stream.readBits(this.large_metadata_flag ? 20 : 10);
     }
     if (this.xmp_flag) {
-      this.xmp_data_size_minus1 = bits.read(this.large_metadata_flag ? 20 : 10);
+      this.xmp_data_size_minus1 = stream.readBits(this.large_metadata_flag ? 20 : 10);
     }
-    bits.pad_with_zeros(); // bit padding till byte alignment
+    stream.exitBitMode(); // bit padding till byte alignment
 
     // The following chunks are raw bytes. No need to parse them as explicit fields.
 

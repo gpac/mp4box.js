@@ -1,6 +1,5 @@
 import { Box } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import type { BitStream } from '#/bitstream';
 
 export class reveBox extends Box {
   static override readonly fourcc = 'reve' as const;
@@ -13,7 +12,7 @@ export class reveBox extends Box {
   periphery_light_x: number;
   periphery_light_y: number;
 
-  parse(stream: MultiBufferStream | BitStream) {
+  parse(stream: MultiBufferStream) {
     this.surround_luminance = stream.readUint32();
     this.surround_light_x = stream.readUint16();
     this.surround_light_y = stream.readUint16();
