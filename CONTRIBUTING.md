@@ -2,17 +2,19 @@
 
 First off, thanks for considering contributing to MP4Box.js! We appreciate your help in making this project better.
 
+## Changesets
+
+Changesets are used to manage versioning and changelogs. When you make a user-facing change, it is advised to create a changeset. This helps keep track of changes and ensures proper versioning.
+
+```bash
+npm run changeset
+```
+
+Remember, not every pull request requires a changeset—only those that introduce user-facing changes affecting the API or functionality. For internal refactoring, tests, or documentation updates, a changeset is not needed.
+
 ## Commit Messages
 
 While we don't strictly enforce it, we **strongly encourage** you to use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for your commit messages. This helps us automate the release process using Semantic Release and makes it easier to understand the changes in the project history.
-
-**Why Conventional Commits?**
-
-- **Automated Changelog Generation:** Semantic Release can automatically generate a meaningful changelog.
-
-- **Automatic Version Bumping:** Semantic Release can determine the next version number based on the types of commits (fix, feat, BREAKING CHANGE, etc.).
-
-- **Clearer Commit History:** It makes the project history more readable and understandable.
 
 A typical commit message might look like:
 

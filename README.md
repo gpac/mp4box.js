@@ -44,12 +44,11 @@ npm install mp4box@latest
 
 ## Demos
 
-- [A player that performs on-the-fly fragmentation](./test/index.html)
-- [A file inspection tool](./test/filereader.html)
-- [A basic file segmenter](./test/file-segmenter.html)
-- [A file diff tool](./test/filediff.html)
-- [An MSE-based AVIF viewing tool](./test/mse-avif-viewer.html)
-- [QUnit tests](./test/qunit.html)
+- [A player that performs on-the-fly fragmentation](./demo/index.html)
+- [A file inspection tool](./demo/filereader.html)
+- [A basic file segmenter](./demo/file-segmenter.html)
+- [A file diff tool](./demo/filediff.html)
+- [An MSE-based AVIF viewing tool](./demo/mse-avif-viewer.html)
 
 ## API
 
@@ -241,6 +240,7 @@ Indicates that the track with the given `track_id` should be segmented, with the
 
 - **nbSamples**: Number, representing the number of frames per segment, i.e. the time between 2 callbacks to onSegment. If not enough data is received to form a segment, received samples are kept. If not provided, the default is 1000.
 - **rapAlignement**: boolean, indicating if segments should start with a RAP. If not provided, the default is true.
+- **normalizeAudioSampleEntriesForMSE**: boolean, indicating if QuickTime-style audio sample entries should be normalized in initialization segments for Media Source Extensions compatibility. If not provided, the default is true. Set to false to preserve nested QuickTime `wave.esds` sample entries.
 
 ```javascript
 mp4boxfile.setSegmentOptions(1, sb, { nbSamples: 1000 });
@@ -271,28 +271,29 @@ mp4boxfile.onSegment = function (id, user, buffer, sampleNumber, last) {
 };
 ```
 
-#### initializeSegmentation()
+#### initializeSegmentation(mode)
 
-Indicates that the application is ready to receive segments. Returns an array of objects containing the following properties:
+Indicates that the application is ready to receive segments.
+`mode` can be `'combined'` (default) or `'per-track'`.
 
-- **id**: Number, the track id
-- **user**: Object, the caller of the segmentation for this track, as given in [setSegmentOptions](##setsegmentoptionstrack_id-user-options)
-- **buffer**: ArrayBuffer, the initialization segment for this track.
-- **sampleNumber**: Number, sample number of the last sample in the segment, plus 1.
-- **last**: Boolean, indication if this is the last segment to be received.
+By default, it returns a single initialization segment containing all tracks configured with [setSegmentOptions](#setsegmentoptionstrack_id-user-options):
+
+```json
+{
+  "tracks": [
+    { "id": 2, "user": "[SourceBuffer]" },
+    { "id": 3, "user": "[SourceBuffer]" }
+  ],
+  "buffer": "[ArrayBuffer]"
+}
+```
+
+If called with `'per-track'`, it returns one initialization segment per fragmented track:
 
 ```json
 [
-  {
-    "id": 2,
-    "buffer": "[ArrayBuffer]",
-    "user": "[SourceBuffer]"
-  },
-  {
-    "id": 3,
-    "buffer": "[ArrayBuffer]",
-    "user": "[SourceBuffer]"
-  }
+  { "id": 2, "buffer": "[ArrayBuffer]", "user": "[SourceBuffer]" },
+  { "id": 3, "buffer": "[ArrayBuffer]", "user": "[SourceBuffer]" }
 ]
 ```
 
@@ -383,9 +384,10 @@ mp4boxfile.releaseUsedSamples(1, 250);
 
 For every flavor, tsup builds ESM, CJS, and IIFE versions of the library, which can be used in different environments (browser, Node.js, etc.). The IIFE version is not distributed to npm, but utilized in the demos.
 
-Run the following command to build the library:
+Install dependencies, then build the library:
 
 ```bash
+npm install
 npm run build
 ```
 
