@@ -41,9 +41,12 @@ export function parseOneBox(
 
   // Check if type is a valid fourcc. QuickTime accepts any 32-bit value
   const isQT = stream.isofile?.ftyp?.major_brand.includes('qt');
-  if (type.length !== 4 || (!isQT && !/^[\x20-\x7E]{4}$/.test(type))) {
-    Log.error('BoxParser', `Invalid box type: '${type}'`);
-    return { code: ErrorCode.ERR_INVALID_DATA, start, type };
+  if (!isQT && !/^[\x20-\x7E]{4}$/.test(type)) {
+    if (!stream.isofile?.allowInvalidBoxTypes) {
+      Log.error('BoxParser', `Invalid box type: '${type}'`);
+      return { code: ErrorCode.ERR_INVALID_DATA, start, type };
+    }
+    Log.warn('BoxParser', `Invalid box type: '${type}', parsing it anyway`);
   }
 
   let box_type = type;
