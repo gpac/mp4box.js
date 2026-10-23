@@ -1872,8 +1872,21 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           if (traf.sbgps.length > 0) {
             ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
           }
+          let base_data_offset: number;
+          if (traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET) {
+            base_data_offset = traf.tfhd.base_data_offset;
+          } else if (traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF || i === 0) {
+            base_data_offset = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
+          } else {
+            base_data_offset = last_run_position; // end of the data defined by the preceding track fragment in the moof
+          }
+          last_run_position = base_data_offset; // an empty track fragment ends where it starts
           for (let j = 0; j < traf.truns.length; j++) {
             const trun = traf.truns[j];
+            // resolve each run's position even when it contains no sample
+            if (trun.flags & TRUN_FLAGS_DATA_OFFSET) {
+              last_run_position = base_data_offset + trun.data_offset;
+            }
             for (let k = 0; k < trun.sample_count; k++) {
               const description_index = default_sample_description_index - 1;
 
@@ -1916,36 +1929,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               }
 
               //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
-              const bdop = traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
-              const dbim = traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
-              const dop = trun.flags & TRUN_FLAGS_DATA_OFFSET ? true : false;
-              let bdo = 0;
-              if (!bdop) {
-                if (!dbim) {
-                  if (j === 0) {
-                    // the first track in the movie fragment
-                    bdo = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
-                  } else {
-                    bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
-                  }
-                } else {
-                  bdo = moof.start;
-                }
-              } else {
-                bdo = traf.tfhd.base_data_offset;
-              }
-
-              let offset: number;
-              if (j === 0 && k === 0) {
-                if (dop) {
-                  offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
-                } else {
-                  offset = bdo; // the data for this run starts the base-data-offset defined by the track fragment header
-                }
-              } else {
-                offset = last_run_position; // this run starts immediately after the data of the previous run
-              }
-              last_run_position = offset + size;
+              const offset = last_run_position;
+              last_run_position += size;
 
               const number_in_traf = traf.sample_number;
               traf.sample_number++;
