@@ -21,9 +21,11 @@ export const TRUN_FLAGS_SIZE = 0x200;
 export const TRUN_FLAGS_FLAGS = 0x400;
 export const TRUN_FLAGS_CTS_OFFSET = 0x800;
 
-export const ERR_INVALID_DATA = -1;
-export const ERR_NOT_ENOUGH_DATA = 0;
-export const OK = 1;
+export enum ErrorCode {
+  ERR_INVALID_DATA = -1,
+  ERR_NOT_ENOUGH_DATA = 0,
+  OK = 1,
+}
 
 // Constants
 export const SAMPLE_ENTRY_TYPE_VISUAL = 'Visual';

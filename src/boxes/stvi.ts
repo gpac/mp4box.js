@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import { parseOneBox } from '#/parser';
 import type { BoxKind } from '@types';
 
@@ -22,7 +22,7 @@ export class stviBox extends FullBox {
     this.boxes = [];
     while (stream.getPosition() < this.start + this.size) {
       const ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));
-      if (ret.code === OK) {
+      if (ret.code === ErrorCode.OK) {
         const box = ret.box as BoxKind;
         this.boxes.push(box);
         this[box.type] = box;

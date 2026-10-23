@@ -1,5 +1,5 @@
 import { Box } from '#/box';
-import { OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import type { Sample, TypedArray } from '@types';
 import { parseOneBox } from '#/parser';
 import { DataStream } from '#/DataStream';
@@ -17,7 +17,7 @@ export class VTTin4Parser {
 
     while (!stream.isEof()) {
       const cue = parseOneBox(stream, false);
-      if (cue.code === OK && cue.box?.type === 'vttc') {
+      if (cue.code === ErrorCode.OK && cue.box?.type === 'vttc') {
         cues.push(cue.box);
       }
     }

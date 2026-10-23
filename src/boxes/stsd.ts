@@ -1,6 +1,6 @@
 import { FullBox } from '#/box';
 import type { MultiBufferStream } from '#/buffer';
-import { OK } from '#/constants';
+import { ErrorCode } from '#/constants';
 import { Log } from '#/log';
 import { BoxRegistry } from '#/registry';
 import type { BoxFourCC } from '@types';
@@ -22,7 +22,7 @@ export class stsdBox extends FullBox {
     for (let i = 1; i <= entryCount; i++) {
       const ret = parseOneBox(stream, true, this.size - (stream.getPosition() - this.start));
 
-      if (ret.code === OK) {
+      if (ret.code === ErrorCode.OK) {
         let box: SampleEntry;
         if (ret.type in BoxRegistry.sampleEntry) {
           box = new BoxRegistry.sampleEntry[ret.type](ret.size);
