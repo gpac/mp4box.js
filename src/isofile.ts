@@ -1133,6 +1133,9 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (!trak.samples) {
       return Infinity;
     }
+    if (trak.samples.length === 0) {
+      return 0;
+    }
 
     const sample = trak.samples[trak.samples.length - 1];
     return (sample.cts + sample.duration) / sample.timescale;
