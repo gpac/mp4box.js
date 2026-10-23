@@ -25,20 +25,44 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 'lts/*'
+          node-version: 24
           cache: npm
 
       - run: npm clean-install
       - run: npm install --global corepack@latest
       - run: corepack npm audit signatures
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run build
 
-      - name: Run Preliminary Checks
-        run: npm run check
+      - name: Create npm tarball
+        id: pack
+        run: |
+          TARBALL_PATH=$(npm pack | tail -n 1)
+          echo "TARBALL_FULL_PATH=$(pwd)/$TARBALL_PATH" >> $GITHUB_ENV
 
-      - name: Run Tests
-        run: npm test
+      - name: Verify tarball installation in isolation
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir test-tarball-install
+          cd test-tarball-install
+
+          # Initialize a dummy project and install the tarball
+          npm init -y
+          npm install ${{ env.TARBALL_FULL_PATH }} --omit=dev
+
+          # Verify CommonJS (CJS) works via require()
+          echo "Testing CommonJS resolution..."
+          node -e "const mp4box = require('mp4box'); console.log('CJS Success:', typeof mp4box);"
+
+          # Verify ECMAScript Modules (ESM) works via import
+          echo "Testing ESM resolution..."
+          node --input-type=module -e "import * as mp4box from 'mp4box'; console.log('ESM Success:', typeof mp4box);"
+
+      - run: npm run circular
+      - run: npm run test
