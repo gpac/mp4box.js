@@ -12,11 +12,14 @@ export class cclvBox extends Box {
   ccv_avg_luminance_value: number;
 
   parse(stream: MultiBufferStream) {
-    const flags = stream.readUint8();
-    const ccv_primaries_present_flag = flags & 0x10;
-    const ccv_min_luminance_value_present_flag = flags & 0x08;
-    const ccv_max_luminance_value_present_flag = flags & 0x04;
-    const ccv_avg_luminance_value_present_flag = flags & 0x02;
+    stream.enterBitMode();
+    stream.readBits(3);
+    const ccv_primaries_present_flag = stream.readFlag();
+    const ccv_min_luminance_value_present_flag = stream.readFlag();
+    const ccv_max_luminance_value_present_flag = stream.readFlag();
+    const ccv_avg_luminance_value_present_flag = stream.readFlag();
+    stream.readBits(1);
+    stream.exitBitMode();
 
     if (ccv_primaries_present_flag) {
       this.ccv_primaries_x = new Array<number>(3);
