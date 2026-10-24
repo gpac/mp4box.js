@@ -27,6 +27,7 @@ export * from '#/boxes/dfLa';
 export * from '#/boxes/dimm';
 export * from '#/boxes/dmax';
 export * from '#/boxes/dmed';
+export * from '#/boxes/dmlp';
 export * from '#/boxes/dOps';
 export * from '#/boxes/dref';
 export * from '#/boxes/drep';
