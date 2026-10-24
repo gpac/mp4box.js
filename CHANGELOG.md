@@ -1,5 +1,23 @@
 # mp4box
 
+## 2.5.0
+
+### Minor Changes
+
+- [#573](https://github.com/gpac/mp4box.js/pull/573) [`7e254e3`](https://github.com/gpac/mp4box.js/commit/7e254e304953f4d1f93f4f6cb4c58b239d490f6a) Thanks [@musatoktas](https://github.com/musatoktas)! - Box types are no longer reported as invalid in QuickTime files, where any 32-bit value is allowed. The new `allowInvalidBoxTypes` option of `createFile` and `ISOFile` logs a warning for an invalid box type and continues parsing, instead of aborting
+
+- [#567](https://github.com/gpac/mp4box.js/pull/567) [`38c2ac5`](https://github.com/gpac/mp4box.js/commit/38c2ac5d36d444f5eb2f5a7f0305fca7327b77e8) Thanks [@dukesook](https://github.com/dukesook)! - The uuid boxes now display the extended_type, even if the box is already registered
+
+- [#565](https://github.com/gpac/mp4box.js/pull/565) [`9925057`](https://github.com/gpac/mp4box.js/commit/992505793e5a4aa5d513ec85e0cd7939535674a7) Thanks [@dukesook](https://github.com/dukesook)! - Read altt item property
+
+### Patch Changes
+
+- [#572](https://github.com/gpac/mp4box.js/pull/572) [`213ac8d`](https://github.com/gpac/mp4box.js/commit/213ac8d951020c7d5324cb56981456b0ad4037f7) Thanks [@zzoraemon043](https://github.com/zzoraemon043)! - Fix `seek()` throwing when the movie contains a track without samples
+
+- [#571](https://github.com/gpac/mp4box.js/pull/571) [`55e5bce`](https://github.com/gpac/mp4box.js/commit/55e5bce07978e74b828e744eb3683be74b72d985) Thanks [@rbouqueau](https://github.com/rbouqueau)! - fix short tkhd atom range error
+
+- [#570](https://github.com/gpac/mp4box.js/pull/570) [`a9302b2`](https://github.com/gpac/mp4box.js/commit/a9302b278d439fdd6a102da6d5d20ad140ce4766) Thanks [@danilobassi8](https://github.com/danilobassi8)! - Honour the data_offset of every trun in a track fragment, and resolve the base data offset of non-first trafs per ISO/IEC 14496-12 when no base is declared
+
 ## 2.4.1
 
 ### Patch Changes
