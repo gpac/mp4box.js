@@ -4,10 +4,14 @@
  */
 
 import { MultiBufferStream } from '#/buffer';
-import { ISOFile } from '#/isofile';
+import { ISOFile, type ISOFileParseOptions } from '#/isofile';
 
-export function createFile(keepMdatData = false, stream?: MultiBufferStream) {
+export function createFile(
+  keepMdatData = false,
+  stream?: MultiBufferStream,
+  options?: ISOFileParseOptions,
+) {
   /* Boolean indicating if bytes containing media data should be kept in memory */
-  const file = new ISOFile(stream, !keepMdatData);
+  const file = new ISOFile(stream, !keepMdatData, options);
   return file;
 }

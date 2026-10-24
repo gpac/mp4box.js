@@ -147,6 +147,11 @@ export interface IsoFileOptions {
   default_sample_flags?: number;
 }
 
+export interface ISOFileParseOptions {
+  /** Accept box types that are not valid four-character codes with a warning instead of aborting the parsing (default: false) */
+  allowInvalidBoxTypes?: boolean;
+}
+
 export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** MutiBufferStream object used to parse boxes */
   stream: MultiBufferStream;
@@ -158,6 +163,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   moofs: Array<moofBox> = [];
   /** Boolean indicating if the file is compatible with progressive parsing (moov first) */
   isProgressive = false;
+  /** Boolean indicating if box types that are not valid four-character codes are accepted with a warning instead of aborting the parsing */
+  allowInvalidBoxTypes = false;
   /** Boolean used to fire moov start event only once */
   moovStartFound = false;
   /** Callback called when the moov parsing starts */
@@ -224,15 +231,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   nextSeekPosition: number;
   initial_duration: number;
 
-  constructor(stream?: MultiBufferStream, discardMdatData = true) {
+  constructor(stream?: MultiBufferStream, discardMdatData = true, options?: ISOFileParseOptions) {
     this.discardMdatData = discardMdatData;
-    if (stream) {
-      this.stream = stream;
-      this.parse();
-    } else {
-      this.stream = new MultiBufferStream();
-    }
+    this.allowInvalidBoxTypes = options?.allowInvalidBoxTypes ?? false;
+    this.stream = stream ?? new MultiBufferStream();
     this.stream.isofile = this;
+    if (stream) this.parse();
   }
 
   setSegmentOptions(
