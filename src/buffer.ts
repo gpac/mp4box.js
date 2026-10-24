@@ -424,6 +424,7 @@ export class MultiBufferStream extends DataStream {
    * @return {Boolean}              true if the seek succeeded, false otherwise
    */
   override seek(filePosition: number, fromStart?: boolean, markAsUsed?: boolean) {
+    this.assertByteAligned('seek');
     const index = this.findPosition(fromStart, filePosition, markAsUsed);
     if (index !== -1) {
       this.buffer = this.buffers[index];
