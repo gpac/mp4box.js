@@ -3033,7 +3033,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     trun.sample_count = samples.length;
 
     for (const sample of samples) {
-      let sample_flags = 0;
+      let sample_flags: number;
       if (sample.is_sync)
         sample_flags = 1 << 25; // sample_depends_on_none (I picture)
       else sample_flags = 1 << 16; // non-sync

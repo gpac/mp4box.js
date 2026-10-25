@@ -38,6 +38,7 @@ jobs:
       - run: corepack npm audit signatures
       - run: npm run format:check
       - run: npm run lint
+      - run: npm run types
       - run: npm run build
 
       - name: Create npm tarball

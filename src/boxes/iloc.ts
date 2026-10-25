@@ -38,7 +38,7 @@ export class ilocBox extends FullBox {
       // reserved = byte & 0xF;
     }
     this.items = [];
-    let item_count = 0;
+    let item_count: number;
     if (this.version < 2) {
       item_count = stream.readUint16();
     } else if (this.version === 2) {
@@ -47,9 +47,9 @@ export class ilocBox extends FullBox {
       throw new Error('version of iloc box not supported');
     }
     for (let i = 0; i < item_count; i++) {
-      let item_ID = 0;
-      let construction_method = 0;
-      let base_offset = 0;
+      let item_ID: number;
+      let construction_method: number;
+      let base_offset: number;
 
       if (this.version < 2) {
         item_ID = stream.readUint16();
@@ -84,8 +84,8 @@ export class ilocBox extends FullBox {
 
       for (let j = 0; j < extent_count; j++) {
         let extent_index = 0;
-        let extent_offset = 0;
-        let extent_length = 0;
+        let extent_offset: number;
+        let extent_length: number;
 
         if (this.version === 1 || this.version === 2) {
           switch (this.index_size) {

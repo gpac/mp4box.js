@@ -1358,7 +1358,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeString(value: string, encoding?: string, length?: number) {
-    let i = 0;
+    let i: number;
     if (encoding === undefined || encoding === 'ASCII') {
       if (length !== undefined) {
         const len = Math.min(value.length, length);
@@ -1390,7 +1390,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeCString(value: string, length?: number) {
-    let i = 0;
+    let i: number;
     if (length !== undefined) {
       const len = Math.min(value.length, length);
       for (i = 0; i < len; i++) {

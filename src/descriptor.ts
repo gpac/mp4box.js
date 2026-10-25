@@ -173,11 +173,7 @@ const DESCRIPTOR_CLASSES = {
   SLConfigDescriptor,
 };
 type DescriptorKinds =
-  | Descriptor
-  | ES_Descriptor
-  | DecoderConfigDescriptor
-  | DecoderSpecificInfo
-  | SLConfigDescriptor;
+  Descriptor | ES_Descriptor | DecoderConfigDescriptor | DecoderSpecificInfo | SLConfigDescriptor;
 
 const descTagToName = {
   [ES_DescrTag]: 'ES_Descriptor',

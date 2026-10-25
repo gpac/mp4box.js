@@ -40,7 +40,7 @@ export class ContainerBox extends Box {
   }
 
   /** @bundle box-parse.js */
-  parse(stream: MultiBufferStream) {
+  parse(stream: MultiBufferStream): ErrorCode | ReturnType<() => void> {
     let ret: ReturnType<typeof parseOneBox>;
     while (stream.getPosition() < this.start + this.size) {
       ret = parseOneBox(stream, false, this.size - (stream.getPosition() - this.start));

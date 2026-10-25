@@ -26,7 +26,7 @@ export function parseOneBox(
   let box: Box;
   let originalSize: number;
   const start = stream.getPosition();
-  let hdr_size = 0;
+  let hdr_size: number;
   let uuid: string;
   if (stream.getEndPosition() - start < 8) {
     Log.debug('BoxParser', 'Not enough data in stream to parse the type and size of the box');

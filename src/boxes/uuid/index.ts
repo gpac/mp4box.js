@@ -81,8 +81,8 @@ export class piffTfrfBox extends UUIDFullBox {
     this.entries = [];
 
     for (let i = 0; i < this.fragment_count; i++) {
-      let absolute_time = 0;
-      let absolute_duration = 0;
+      let absolute_time: number;
+      let absolute_duration: number;
 
       if (this.version === 1) {
         absolute_time = stream.readUint64();
