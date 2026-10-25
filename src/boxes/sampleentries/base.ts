@@ -242,6 +242,9 @@ export class AudioSampleEntry extends SampleEntry {
   samplesize: number;
   samplerate: number;
 
+  // Number of fractional bits in the samplerate field
+  protected samplerate_frac_bits = 16;
+
   // Quicktime only
   extensions: Uint8Array;
 
@@ -254,7 +257,7 @@ export class AudioSampleEntry extends SampleEntry {
     this.samplesize = stream.readUint16();
     stream.readUint16();
     stream.readUint16();
-    this.samplerate = stream.readUint32() / (1 << 16);
+    this.samplerate = stream.readUint32() / (1 << this.samplerate_frac_bits);
 
     const isQT = stream.isofile?.ftyp?.major_brand.includes('qt');
     if (isQT) {
@@ -298,7 +301,7 @@ export class AudioSampleEntry extends SampleEntry {
     stream.writeUint16(this.samplesize);
     stream.writeUint16(0);
     stream.writeUint16(0);
-    stream.writeUint32(this.samplerate << 16);
+    stream.writeUint32(this.samplerate * (1 << this.samplerate_frac_bits));
     this.writeFooter(stream);
   }
 }

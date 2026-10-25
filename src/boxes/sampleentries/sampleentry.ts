@@ -416,6 +416,13 @@ export class ec_3SampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'ec-3' as const;
 }
 
+export class mlpaSampleEntry extends AudioSampleEntry {
+  static override readonly fourcc = 'mlpa' as const;
+  box_name = 'MLPSampleEntry' as const;
+  // Dolby TrueHD stores samplerate as a plain 32-bit integer, not 16.16
+  protected override samplerate_frac_bits = 0;
+}
+
 export class OpusSampleEntry extends AudioSampleEntry {
   static override readonly fourcc = 'Opus' as const;
 }
