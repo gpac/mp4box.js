@@ -355,7 +355,21 @@ class vpcCSampleEntryBase extends VisualSampleEntry {
     if (bitDepth === 8) {
       bitDepth = '08';
     }
-    return `${baseCodec}.0${this.vpcC.profile}.${level}.${bitDepth}`;
+    const codec = `${baseCodec}.0${this.vpcC.profile}.${level}.${bitDepth}`;
+    // The optional fields can only be left out when they have their default values: 4:2:0
+    // colocated with luma, BT.709 primaries, transfer and matrix, and legal range
+    const vpcC = this.vpcC;
+    const optional = [
+      vpcC.chromaSubsampling,
+      vpcC.colourPrimaries,
+      vpcC.transferCharacteristics,
+      vpcC.matrixCoefficients,
+      vpcC.videoFullRangeFlag,
+    ];
+    if (vpcC.version === 1 && optional.join('.') !== '1.1.1.1.0') {
+      return `${codec}.${optional.map(value => String(value).padStart(2, '0')).join('.')}`;
+    }
+    return codec;
   }
 }
 
