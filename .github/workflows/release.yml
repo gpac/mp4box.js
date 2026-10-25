@@ -46,11 +46,11 @@ jobs:
 
       - name: Create Release Pull Request or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          publish: npm run release
-          commit: 'ci: release'
-          title: '[ci] release'
+          publish-script: npm run release
+          commit-message: 'ci: release'
+          pr-title: '[ci] release'
+          push-with-git-cli: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
