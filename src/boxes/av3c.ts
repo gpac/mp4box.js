@@ -396,7 +396,7 @@ class AVS3SequenceHeader {
     nextStartCode(stream);
   }
 
-  toString() {
+  toString = () => {
     let res = '';
     const props = Object.getOwnPropertyNames(this.data);
     props.forEach(property => {
@@ -411,7 +411,7 @@ class AVS3SequenceHeader {
       res += `${property}: ${fmt_val}\n`;
     });
     return res;
-  }
+  };
 }
 
 export class av3cBox extends Box {
