@@ -26,7 +26,7 @@ mp4boxfile.onReady = function (info) {
   }
   if (found) {
     var segs = mp4boxfile.initializeSegmentation();
-    out.write(toBuffer(segs[0].buffer));
+    out.write(toBuffer(segs.buffer));
     mp4boxfile.seek(0, true);
     mp4boxfile.start();
   } else {
