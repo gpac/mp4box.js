@@ -71,21 +71,24 @@
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "^9.27.0",
-    "@types/node": "^25.9.3",
-    "@vitest/coverage-v8": "^4.1.9",
-    "dpdm": "^4.2.0",
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.5",
+    "dpdm": "^4.3.0",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-prettier": "^5.5.7",
     "eslint-plugin-unicorn": "^60.0.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
-    "prettier": "^3.8.4",
-    "tar": "^7.5.16",
-    "tsdown": "^0.22.3",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "tar": "^7.5.22",
+    "tsdown": "^0.23.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.1",
-    "vitest": "^4.1.9"
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
   },
-  "packageManager": "npm@11.17.0"
+  "packageManager": "npm@12.2.1",
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  }
 }
