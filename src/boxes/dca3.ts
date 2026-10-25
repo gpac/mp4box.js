@@ -22,21 +22,20 @@ const enum ChannelType {
 }
 
 abstract class AVS3AudioBase {
-  //eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
-  constructor() {}
+  abstract data: object;
 
-  stringify(data: unknown): string {
+  toString(): string {
     let result = '';
-    const ownProperties = Object.getOwnPropertyNames(data);
+    const ownProperties = Object.getOwnPropertyNames(this.data);
     ownProperties.forEach(property => {
       let formatted_value = '';
-      if (Array.isArray(data[property])) {
-        for (let i = 0; i < data[property].length; i++) {
-          const hex = data[property][i].toString(16);
+      if (Array.isArray(this.data[property])) {
+        for (let i = 0; i < this.data[property].length; i++) {
+          const hex = this.data[property][i].toString(16);
           formatted_value += hex.length === 1 ? '0' + hex : hex;
           if (i % 4 === 3) formatted_value += ' ';
         }
-      } else formatted_value = data[property];
+      } else formatted_value = this.data[property];
       result += `${property}: ${formatted_value}\n`;
     });
     return result;
@@ -58,10 +57,10 @@ class AVS3GAConfig extends AVS3AudioBase {
   constructor(stream: MultiBufferStream) {
     super();
     this.data = {};
-    this.deserialise(stream);
+    this.deserialize(stream);
   }
 
-  deserialise(stream: MultiBufferStream) {
+  deserialize(stream: MultiBufferStream) {
     this.data.sampling_frequency_index = stream.readBits(4);
     this.data.nn_type = stream.readBits(3);
     stream.skipBits(1);
@@ -83,10 +82,6 @@ class AVS3GAConfig extends AVS3AudioBase {
     this.data.total_bitrate = stream.readUint16();
     this.data.resolution = stream.readBits(2);
   }
-
-  toString = (): string => {
-    return super.stringify(this.data);
-  };
 }
 
 class AVS3GHConfig extends AVS3AudioBase {
@@ -105,10 +100,10 @@ class AVS3GHConfig extends AVS3AudioBase {
   constructor(stream: MultiBufferStream) {
     super();
     this.data = {};
-    this.deserialise(stream);
+    this.deserialize(stream);
   }
 
-  deserialise(stream: MultiBufferStream) {
+  deserialize(stream: MultiBufferStream) {
     this.data.sampling_frequency_index = stream.readBits(4);
     this.data.anc_data_index = stream.readBits(1);
     this.data.coding_profile = stream.readBits(3);
@@ -125,10 +120,6 @@ class AVS3GHConfig extends AVS3AudioBase {
       }
     }
   }
-
-  toString = (): string => {
-    return super.stringify(this.data);
-  };
 }
 
 class AVS3LLConfig extends AVS3AudioBase {
@@ -145,10 +136,10 @@ class AVS3LLConfig extends AVS3AudioBase {
   constructor(stream: MultiBufferStream) {
     super();
     this.data = {};
-    this.deserialise(stream);
+    this.deserialize(stream);
   }
 
-  deserialise(stream: MultiBufferStream) {
+  deserialize(stream: MultiBufferStream) {
     this.data.sampling_frequency_index = stream.readBits(4);
     if (this.data.sampling_frequency_index === 0xf) {
       this.data.sampling_frequency = stream.readUint24();
@@ -166,10 +157,6 @@ class AVS3LLConfig extends AVS3AudioBase {
     }
     stream.skipBits(2); // reserved
   }
-
-  toString = (): string => {
-    return super.stringify(this.data);
-  };
 }
 
 export class dca3Box extends Box {

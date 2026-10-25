@@ -255,7 +255,7 @@ export class DataStream {
   /**
    * True if the read position in the stream is byte aligned
    */
-  get isByteAligned() {
+  isByteAligned() {
     return this.bitOffset % 8 === 0;
   }
 
@@ -352,7 +352,8 @@ export class DataStream {
     if (this.bitModeDepth === 0) {
       throw new Error(`DataStream.${name}: Not in bit mode, call enterBitMode() first.`);
     }
-    if ((numBits !== undefined && !Number.isInteger(numBits)) || numBits < 0 || numBits > 32) {
+    if (numBits === undefined) return;
+    if (!Number.isInteger(numBits) || numBits < 0 || numBits > 32) {
       throw new Error(`DataStream.${name}: Unsupported number of bits.`);
     }
   }

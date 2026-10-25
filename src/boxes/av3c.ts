@@ -119,9 +119,9 @@ const enum AVS3profile {
   HIGH_10 = 0x32,
 }
 
-const next_start_code = (stream: DataStream) => {
+const nextStartCode = (stream: DataStream) => {
   stream.skipBits(1);
-  while (!stream.isByteAligned) {
+  while (!stream.isByteAligned()) {
     stream.skipBits(1);
   }
   while (stream.peekBits(24) !== 0b000000000000000000000001) {
@@ -221,10 +221,10 @@ class AVS3SequenceHeader {
 
   constructor(stream: MultiBufferStream) {
     this.data = {};
-    this.deserialise(stream);
+    this.deserialize(stream);
   }
 
-  deserialise(stream: MultiBufferStream) {
+  deserialize(stream: MultiBufferStream) {
     this.data.video_sequence_start_code = stream.readUint32();
     this.data.profile_id = stream.readUint8();
     this.data.level_id = stream.readUint8();
@@ -272,7 +272,7 @@ class AVS3SequenceHeader {
     this.data.rpl1_same_as_rpl0_flag = stream.readFlag();
     stream.skipBits(1); // marker_bit
 
-    const MakeReferencePictureList = (
+    const makeReferencePictureList = (
       list: number,
       rpls: number,
       library_picture_enable_flag: boolean,
@@ -283,10 +283,10 @@ class AVS3SequenceHeader {
       const num_of_ref_pic = stream.readUE();
       for (let i = 0; i < num_of_ref_pic; i++) {
         const this_pic: ReferencePicture = {};
-        let LibraryIndexFlag = false;
+        let libraryIndexFlag = false;
         if (this_set.get_reference_to_library_enable_flag())
-          LibraryIndexFlag = this_pic.library_index_flag = stream.readFlag();
-        if (LibraryIndexFlag) this_pic.referenced_library_picture_index = stream.readUE();
+          libraryIndexFlag = this_pic.library_index_flag = stream.readFlag();
+        if (libraryIndexFlag) this_pic.referenced_library_picture_index = stream.readUE();
         else {
           this_pic.abs_delta_doi = stream.readUE();
           if (this_pic.abs_delta_doi > 0) this_pic.sign_delta_doi = stream.readBits(1);
@@ -299,13 +299,13 @@ class AVS3SequenceHeader {
     this.data.num_ref_pic_list_set0 = stream.readUE();
     this.data.rpl0 = new ReferencePictureList(0);
     for (let j = 0; j < this.data.num_ref_pic_list_set0; j++)
-      this.data.rpl0.push(MakeReferencePictureList(0, j, this.data.library_picture_enable_flag));
+      this.data.rpl0.push(makeReferencePictureList(0, j, this.data.library_picture_enable_flag));
 
     if (!this.data.rpl1_same_as_rpl0_flag) {
       this.data.num_ref_pic_list_set1 = stream.readUE();
       this.data.rpl1 = new ReferencePictureList(1);
       for (let j = 0; j < this.data.num_ref_pic_list_set1; j++)
-        this.data.rpl1.push(MakeReferencePictureList(1, j, this.data.library_picture_enable_flag));
+        this.data.rpl1.push(makeReferencePictureList(1, j, this.data.library_picture_enable_flag));
     }
 
     this.data.num_ref_default_active_minus1_0 = stream.readUE();
@@ -393,10 +393,10 @@ class AVS3SequenceHeader {
     }
     stream.skipBits(2); // reserved bits
 
-    next_start_code(stream);
+    nextStartCode(stream);
   }
 
-  toString = () => {
+  toString() {
     let res = '';
     const props = Object.getOwnPropertyNames(this.data);
     props.forEach(property => {
@@ -411,7 +411,7 @@ class AVS3SequenceHeader {
       res += `${property}: ${fmt_val}\n`;
     });
     return res;
-  };
+  }
 }
 
 export class av3cBox extends Box {
