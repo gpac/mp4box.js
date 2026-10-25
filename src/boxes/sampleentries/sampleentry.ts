@@ -114,11 +114,11 @@ export class avs3SampleEntry extends VisualSampleEntry {
   av3c: av3cBox;
 
   getCodec(): string {
-    const profile = this.av3c.sequence_header?.data?.profile_id
-      ? this.av3c.sequence_header.data?.profile_id.value.toString(16)
+    const profile = this.av3c.sequence_header?.data.profile_id
+      ? this.av3c.sequence_header.data.profile_id.toString(16)
       : 'XX';
-    const level = this.av3c.sequence_header?.data?.level_id
-      ? this.av3c.sequence_header.data?.level_id.value.toString(16)
+    const level = this.av3c.sequence_header?.data.level_id
+      ? this.av3c.sequence_header.data.level_id.toString(16)
       : 'XX';
     return `${super.getCodec()}.${profile}.${level}`;
   }
