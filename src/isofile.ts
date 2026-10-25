@@ -313,7 +313,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (this.discardMdatData) {
       Log.warn(
         'ISOFile',
-        'Segmentation options set but discardMdatData is true, samples will not be segmented',
+        'Segmentation options set but discardMdatData is true, only samples whose data is appended after start() will be segmented',
       );
     }
   }
@@ -351,7 +351,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (this.discardMdatData) {
       Log.warn(
         'ISOFile',
-        'Extraction options set but discardMdatData is true, samples will not be extracted',
+        'Extraction options set but discardMdatData is true, only samples whose data is appended after start() will be extracted',
       );
     }
   }
