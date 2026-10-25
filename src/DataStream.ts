@@ -253,6 +253,21 @@ export class DataStream {
   }
 
   /**
+   * True if the read position in the stream is byte aligned
+   */
+  isByteAligned() {
+    return this.bitOffset % 8 === 0;
+  }
+
+  /**
+   * skip some bits - often used as a marker or padding
+   */
+  skipBits(numBits: number) {
+    this.#checkBitAccess('skipBits', numBits);
+    this.readBits(numBits);
+  }
+
+  /**
    * Reads bits with or without byte alignment and potentially across multiple bytes.
    * The bits are read in the earliest byte first, and most significant bits in a byte first.
    * @param numBits Number of bits to read, up to 32.
@@ -333,10 +348,11 @@ export class DataStream {
     this.writeBits(flag ? 1 : 0, 1);
   }
 
-  #checkBitAccess(name: string, numBits: number) {
+  #checkBitAccess(name: string, numBits?: number) {
     if (this.bitModeDepth === 0) {
       throw new Error(`DataStream.${name}: Not in bit mode, call enterBitMode() first.`);
     }
+    if (numBits === undefined) return;
     if (!Number.isInteger(numBits) || numBits < 0 || numBits > 32) {
       throw new Error(`DataStream.${name}: Unsupported number of bits.`);
     }
@@ -663,6 +679,25 @@ export class DataStream {
     const v = this._dataView.getUint8(this.position);
     this.position += 1;
     return v;
+  }
+
+  /**
+   * Read a variable length value [Expontntial-Golomb codec] wthe number of leading zero bits indicates
+   * the length in bits of the value
+   * see https://en.wikipedia.org/wiki/Exponential-Golomb_coding
+   *
+   * @return The read unsigned number.
+   */
+  readUE(): number {
+    this.#checkBitAccess('readUE');
+    // read in an Unsigned Exp-Golomb code;
+    if (this.readBits(1) === 1) return 0;
+    let zero_count = 1;
+    while (this.peekBits(1) === 0) {
+      this.readBits(1);
+      zero_count++;
+    }
+    return this.readBits(zero_count + 1) - 1;
   }
 
   /**
