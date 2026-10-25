@@ -147,6 +147,11 @@ export interface IsoFileOptions {
   default_sample_flags?: number;
 }
 
+export interface ISOFileParseOptions {
+  /** Accept box types that are not valid four-character codes with a warning instead of aborting the parsing (default: false) */
+  allowInvalidBoxTypes?: boolean;
+}
+
 export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** MutiBufferStream object used to parse boxes */
   stream: MultiBufferStream;
@@ -158,6 +163,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   moofs: Array<moofBox> = [];
   /** Boolean indicating if the file is compatible with progressive parsing (moov first) */
   isProgressive = false;
+  /** Boolean indicating if box types that are not valid four-character codes are accepted with a warning instead of aborting the parsing */
+  allowInvalidBoxTypes = false;
   /** Boolean used to fire moov start event only once */
   moovStartFound = false;
   /** Callback called when the moov parsing starts */
@@ -224,15 +231,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   nextSeekPosition: number;
   initial_duration: number;
 
-  constructor(stream?: MultiBufferStream, discardMdatData = true) {
+  constructor(stream?: MultiBufferStream, discardMdatData = true, options?: ISOFileParseOptions) {
     this.discardMdatData = discardMdatData;
-    if (stream) {
-      this.stream = stream;
-      this.parse();
-    } else {
-      this.stream = new MultiBufferStream();
-    }
+    this.allowInvalidBoxTypes = options?.allowInvalidBoxTypes ?? false;
+    this.stream = stream ?? new MultiBufferStream();
     this.stream.isofile = this;
+    if (stream) this.parse();
   }
 
   setSegmentOptions(
@@ -309,7 +313,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (this.discardMdatData) {
       Log.warn(
         'ISOFile',
-        'Segmentation options set but discardMdatData is true, samples will not be segmented',
+        'Segmentation options set but discardMdatData is true, only samples whose data is appended after start() will be segmented',
       );
     }
   }
@@ -347,7 +351,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (this.discardMdatData) {
       Log.warn(
         'ISOFile',
-        'Extraction options set but discardMdatData is true, samples will not be extracted',
+        'Extraction options set but discardMdatData is true, only samples whose data is appended after start() will be extracted',
       );
     }
   }
@@ -1872,8 +1876,21 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           if (traf.sbgps.length > 0) {
             ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
           }
+          let base_data_offset: number;
+          if (traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET) {
+            base_data_offset = traf.tfhd.base_data_offset;
+          } else if (traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF || i === 0) {
+            base_data_offset = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
+          } else {
+            base_data_offset = last_run_position; // end of the data defined by the preceding track fragment in the moof
+          }
+          last_run_position = base_data_offset; // an empty track fragment ends where it starts
           for (let j = 0; j < traf.truns.length; j++) {
             const trun = traf.truns[j];
+            // resolve each run's position even when it contains no sample
+            if (trun.flags & TRUN_FLAGS_DATA_OFFSET) {
+              last_run_position = base_data_offset + trun.data_offset;
+            }
             for (let k = 0; k < trun.sample_count; k++) {
               const description_index = default_sample_description_index - 1;
 
@@ -1916,36 +1933,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               }
 
               //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
-              const bdop = traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
-              const dbim = traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
-              const dop = trun.flags & TRUN_FLAGS_DATA_OFFSET ? true : false;
-              let bdo = 0;
-              if (!bdop) {
-                if (!dbim) {
-                  if (j === 0) {
-                    // the first track in the movie fragment
-                    bdo = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
-                  } else {
-                    bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
-                  }
-                } else {
-                  bdo = moof.start;
-                }
-              } else {
-                bdo = traf.tfhd.base_data_offset;
-              }
-
-              let offset: number;
-              if (j === 0 && k === 0) {
-                if (dop) {
-                  offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
-                } else {
-                  offset = bdo; // the data for this run starts the base-data-offset defined by the track fragment header
-                }
-              } else {
-                offset = last_run_position; // this run starts immediately after the data of the previous run
-              }
-              last_run_position = offset + size;
+              const offset = last_run_position;
+              last_run_position += size;
 
               const number_in_traf = traf.sample_number;
               traf.sample_number++;

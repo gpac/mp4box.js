@@ -109,7 +109,7 @@ var MultiTracksSourceBuffer = function (mtms, type) {
     mtsb.output.setSegmentOptions(mtsb.output_track_id, mtsb.sb, { nbSamples: 1 });
     var initSegments = mtsb.output.initializeSegmentation();
     mtsb.sb.addEventListener('updateend', mtsb.sb.onInitAppended.bind(mtsb.sb));
-    mtsb.sb.appendBuffer(initSegments[0].buffer);
+    mtsb.sb.appendBuffer(initSegments.buffer);
     mtsb.output.onSegment = function (id, user, buffer, sampleNum, is_last) {
       var sb = user;
       sb.pendingAppends.push({ id: id, buffer: buffer, sampleNum: sampleNum, is_last: is_last });
