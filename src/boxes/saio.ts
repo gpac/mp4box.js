@@ -7,6 +7,7 @@ export class saioBox extends FullBox {
 
   aux_info_type: string;
   aux_info_type_parameter: number;
+  entry_count: number;
   offset: Array<number>;
 
   parse(stream: MultiBufferStream) {
@@ -15,9 +16,9 @@ export class saioBox extends FullBox {
       this.aux_info_type = stream.readString(4);
       this.aux_info_type_parameter = stream.readUint32();
     }
-    const count = stream.readUint32();
+    this.entry_count = stream.readUint32();
     this.offset = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < this.entry_count; i++) {
       if (this.version === 0) {
         this.offset[i] = stream.readUint32();
       } else {

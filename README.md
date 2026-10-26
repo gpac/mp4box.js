@@ -68,6 +68,22 @@ mp4boxfile.appendBuffer(data);
 mp4boxfile.flush();
 ```
 
+#### createFile(keepMdatData, stream, options)
+
+Creates a new ISOFile object.
+
+- **keepMdatData**: boolean, indicating if the media data (the content of 'mdat' boxes) should be kept in memory after it has been parsed. If not provided, the default is `false`, so media data is discarded once parsed and only the data appended after [start()](#start) can be segmented or extracted.
+- **stream**: optional `MultiBufferStream` to parse from, instead of appending buffers with [appendBuffer](#appendbufferdata).
+- **options**: optional object with the following properties:
+  - **allowInvalidBoxTypes**: boolean, indicating if box types that are not valid four-character codes should be accepted with a warning instead of aborting the parsing. If not provided, the default is `false`.
+
+Set `keepMdatData` to `true` when you need samples whose data was appended before calling [start()](#start). This is always the case for files where the 'moov' box comes after the 'mdat' box: by the time `onReady` is called, all the media data has already been received and, with the default setting, discarded. It is also required to write the file back with its media data. Note that keeping media data means the whole content of the 'mdat' boxes stays in memory.
+
+```javascript
+// keep media data, e.g. for files with 'moov' at the end
+var mp4boxfile = MP4Box.createFile(true);
+```
+
 #### onMoovStart()
 
 The `onMoovStart` callback is called when the 'moov' box is starting to be parsed. Depending on the download speed, it may take a while to download the whole 'moov' box. The end of parsing is signaled by the `onReady` callback.
@@ -222,8 +238,10 @@ Indicates that no more data will be received and that all remaining samples shou
 
 ### Segmentation
 
+Pass `true` to [createFile](#createfilekeepmdatdata-stream-options) to keep media data, otherwise samples whose data was appended before `start()` (e.g. all samples of a file with 'moov' at the end) will not be segmented.
+
 ```javascript
-var mp4boxfile = MP4Box.createFile();
+var mp4boxfile = MP4Box.createFile(true);
 mp4boxfile.onReady = function(info) {
   ...
   mp4boxfile.onSegment = function (id, user, buffer, sampleNumber, last) {}
@@ -240,6 +258,7 @@ Indicates that the track with the given `track_id` should be segmented, with the
 
 - **nbSamples**: Number, representing the number of frames per segment, i.e. the time between 2 callbacks to onSegment. If not enough data is received to form a segment, received samples are kept. If not provided, the default is 1000.
 - **rapAlignement**: boolean, indicating if segments should start with a RAP. If not provided, the default is true.
+- **normalizeAudioSampleEntriesForMSE**: boolean, indicating if QuickTime-style audio sample entries should be normalized in initialization segments for Media Source Extensions compatibility. If not provided, the default is true. Set to false to preserve nested QuickTime `wave.esds` sample entries.
 
 ```javascript
 mp4boxfile.setSegmentOptions(1, sb, { nbSamples: 1000 });
@@ -270,37 +289,38 @@ mp4boxfile.onSegment = function (id, user, buffer, sampleNumber, last) {
 };
 ```
 
-#### initializeSegmentation()
+#### initializeSegmentation(mode)
 
-Indicates that the application is ready to receive segments. Returns an array of objects containing the following properties:
+Indicates that the application is ready to receive segments.
+`mode` can be `'combined'` (default) or `'per-track'`.
 
-- **id**: Number, the track id
-- **user**: Object, the caller of the segmentation for this track, as given in [setSegmentOptions](##setsegmentoptionstrack_id-user-options)
-- **buffer**: ArrayBuffer, the initialization segment for this track.
-- **sampleNumber**: Number, sample number of the last sample in the segment, plus 1.
-- **last**: Boolean, indication if this is the last segment to be received.
+By default, it returns a single initialization segment containing all tracks configured with [setSegmentOptions](#setsegmentoptionstrack_id-user-options):
+
+```json
+{
+  "tracks": [
+    { "id": 2, "user": "[SourceBuffer]" },
+    { "id": 3, "user": "[SourceBuffer]" }
+  ],
+  "buffer": "[ArrayBuffer]"
+}
+```
+
+If called with `'per-track'`, it returns one initialization segment per fragmented track:
 
 ```json
 [
-  {
-    "id": 2,
-    "buffer": "[ArrayBuffer]",
-    "user": "[SourceBuffer]"
-  },
-  {
-    "id": 3,
-    "buffer": "[ArrayBuffer]",
-    "user": "[SourceBuffer]"
-  }
+  { "id": 2, "buffer": "[ArrayBuffer]", "user": "[SourceBuffer]" },
+  { "id": 3, "buffer": "[ArrayBuffer]", "user": "[SourceBuffer]" }
 ]
 ```
 
 ### Extraction
 
-It is possible to extract the samples of a track, in a similar manner to the segmentation process.
+It is possible to extract the samples of a track, in a similar manner to the segmentation process. As for segmentation, pass `true` to [createFile](#createfilekeepmdatdata-stream-options) to keep media data, otherwise samples whose data was appended before `start()` will not be extracted.
 
 ```javascript
-var mp4boxfile = MP4Box.createFile();
+var mp4boxfile = MP4Box.createFile(true);
 mp4boxfile.onReady = function(info) {
   ...
   /* create a texttrack */

@@ -7,42 +7,50 @@ import type * as BOXES from './all-boxes';
 
 export interface BoxRegistry<TBoxes = Partial<typeof BOXES>> {
   uuid: {
-    [K in keyof TBoxes as TBoxes[K] extends { fourcc: 'uuid' }
-      ? TBoxes[K] extends { uuid: infer TUuid }
-        ? TUuid extends string
-          ? TUuid
+    [
+      K in keyof TBoxes as TBoxes[K] extends { fourcc: 'uuid' }
+        ? TBoxes[K] extends { uuid: infer TUuid }
+          ? TUuid extends string
+            ? TUuid
+            : never
           : never
         : never
-      : never]: TBoxes[K];
+    ]: TBoxes[K];
   };
   sampleEntry: {
-    [K in keyof TBoxes as TBoxes[K] extends { fourcc: infer TFourCC }
-      ? TBoxes[K] extends typeof SampleEntry
-        ? TFourCC extends string
-          ? TFourCC
+    [
+      K in keyof TBoxes as TBoxes[K] extends { fourcc: infer TFourCC }
+        ? TBoxes[K] extends typeof SampleEntry
+          ? TFourCC extends string
+            ? TFourCC
+            : never
           : never
         : never
-      : never]: TBoxes[K];
+    ]: TBoxes[K];
   };
   sampleGroupEntry: {
-    [K in keyof TBoxes as TBoxes[K] extends { grouping_type: infer G }
-      ? G extends string
-        ? G
+    [
+      K in keyof TBoxes as TBoxes[K] extends { grouping_type: infer G }
+        ? G extends string
+          ? G
+          : never
         : never
-      : never]: TBoxes[K];
+    ]: TBoxes[K];
   };
   box: {
-    [K in keyof TBoxes as TBoxes[K] extends { fourcc: 'uuid' }
-      ? never
-      : TBoxes[K] extends typeof SampleEntry
+    [
+      K in keyof TBoxes as TBoxes[K] extends { fourcc: 'uuid' }
         ? never
-        : TBoxes[K] extends typeof SampleGroupEntry
+        : TBoxes[K] extends typeof SampleEntry
           ? never
-          : TBoxes[K] extends { fourcc: infer TFourCC }
-            ? TFourCC extends string
-              ? TFourCC
+          : TBoxes[K] extends typeof SampleGroupEntry
+            ? never
+            : TBoxes[K] extends { fourcc: infer TFourCC }
+              ? TFourCC extends string
+                ? TFourCC
+                : never
               : never
-            : never]: TBoxes[K];
+    ]: TBoxes[K];
   };
 }
 export type DescriptorRegistry = Partial<typeof DESCRIPTORS>;
@@ -78,10 +86,7 @@ export type SampleEntryFourCC = keyof ConcreteBoxRegistry['sampleEntry'];
 export type SampleGroupEntryGroupingType = keyof ConcreteBoxRegistry['sampleGroupEntry'];
 export type UUIDKeys = keyof ConcreteBoxRegistry['uuid'];
 export type AllIdentifiers =
-  | BoxFourCC
-  | SampleEntryFourCC
-  | SampleGroupEntryGroupingType
-  | UUIDKeys;
+  BoxFourCC | SampleEntryFourCC | SampleGroupEntryGroupingType | UUIDKeys;
 
 export type UUIDKind = InstanceOf<Extends<ConcreteBoxRegistry['uuid'], typeof Box>>;
 export type BoxKind = InstanceOf<Extends<ConcreteBoxRegistry['box'], typeof Box>>;
@@ -113,12 +118,30 @@ export interface FragmentedTrack<TUser> {
   nb_samples_per_fragment: number;
   size_per_segment: number;
   rapAlignement: boolean;
+  normalizeAudioSampleEntriesForMSE?: boolean;
   state: {
     lastFragmentSampleNumber: number;
     lastSegmentSampleNumber: number;
     accumulatedSize: number;
   };
 }
+
+export interface SegmentationInitializationTrack<TUser> {
+  id: number;
+  user: TUser;
+}
+
+export interface SegmentationInitialization<TUser> {
+  tracks: Array<SegmentationInitializationTrack<TUser>>;
+  buffer: ArrayBuffer;
+}
+
+export interface SegmentationInitializationPerTrack<
+  TUser,
+> extends SegmentationInitializationTrack<TUser> {
+  buffer: ArrayBuffer;
+}
+
 export interface ExtractedTrack<TUser> {
   id: number;
   user: TUser;
@@ -348,17 +371,9 @@ export type Charset =
   | 'Shift_JIS';
 
 export type SimpleNumberType =
-  | 'uint8'
-  | 'uint16'
-  | 'uint32'
-  | 'int8'
-  | 'int16'
-  | 'int32'
-  | 'float32'
-  | 'float64';
+  'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64';
 export type EndianNumberType =
-  | `${'uint' | 'int'}${32 | 16}${'le' | 'be'}`
-  | `float${64 | 32}${'le' | 'be'}`;
+  `${'uint' | 'int'}${32 | 16}${'le' | 'be'}` | `float${64 | 32}${'le' | 'be'}`;
 export type NumberType = SimpleNumberType | EndianNumberType;
 
 export type SimpleStringType = 'cstring' | 'string';

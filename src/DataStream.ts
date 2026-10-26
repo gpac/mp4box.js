@@ -50,6 +50,11 @@ export class DataStream {
 
   endianness: Endianness;
   protected position: number;
+  // Nesting depth of enterBitMode() calls. Bit-level access is only allowed when non-zero.
+  protected bitModeDepth = 0;
+  // Number of most significant bits already read or written in the byte at the current position.
+  // Only non-zero in bit mode. The position advances once all 8 bits of the byte are used.
+  protected bitOffset = 0;
 
   /**
    * DataStream reads scalars, arrays and structs of data from an ArrayBuffer.
@@ -196,6 +201,7 @@ export class DataStream {
    *   @return
    */
   seek(pos: number) {
+    this.assertByteAligned('seek');
     const npos = Math.max(0, Math.min(this.byteLength, pos));
     this.position = isNaN(npos) || !isFinite(npos) ? 0 : npos;
   }
@@ -208,6 +214,175 @@ export class DataStream {
    */
   isEof() {
     return this.position >= this._byteLength;
+  }
+
+  /**
+   * Enters bit mode, allowing bit-level reads and writes (readBits, writeBits, ...).
+   * While in bit mode, the scalar integer methods (readUint16, writeUint32, ...) also work
+   * at positions that are not byte aligned, reading or writing their bits big-endian.
+   * Calls can be nested: only the outermost exitBitMode() realigns the stream on a byte boundary.
+   */
+  enterBitMode() {
+    this.bitModeDepth++;
+  }
+
+  /**
+   * Leaves bit mode. When leaving the outermost bit mode, the remaining bits of a partially
+   * read or written byte are skipped so that the stream is byte aligned again.
+   * @param strict Throw if the skipped padding bits are not all zeros (default: true).
+   */
+  exitBitMode(strict = true) {
+    if (this.bitModeDepth === 0) {
+      throw new Error('DataStream.exitBitMode: Not in bit mode.');
+    }
+    let padding = 0;
+    if (this.bitModeDepth === 1 && this.bitOffset !== 0) {
+      padding = this.readBits(8 - this.bitOffset);
+    }
+    this.bitModeDepth--;
+    if (strict && padding !== 0) {
+      throw new Error('DataStream.exitBitMode: Padding bits were not all set to zero.');
+    }
+  }
+
+  /**
+   * True if the stream is in bit mode.
+   */
+  get inBitMode() {
+    return this.bitModeDepth > 0;
+  }
+
+  /**
+   * True if the read position in the stream is byte aligned
+   */
+  isByteAligned() {
+    return this.bitOffset % 8 === 0;
+  }
+
+  /**
+   * skip some bits - often used as a marker or padding
+   */
+  skipBits(numBits: number) {
+    this.#checkBitAccess('skipBits', numBits);
+    this.readBits(numBits);
+  }
+
+  /**
+   * Reads bits with or without byte alignment and potentially across multiple bytes.
+   * The bits are read in the earliest byte first, and most significant bits in a byte first.
+   * @param numBits Number of bits to read, up to 32.
+   * @return An unsigned integer whose binary representation is the big-endian read bits.
+   */
+  readBits(numBits: number) {
+    this.#checkBitAccess('readBits', numBits);
+    let value = 0;
+    let remaining = numBits;
+    while (remaining > 0) {
+      // Number of bits among remaining that can be read in the current byte.
+      const n = Math.min(8 - this.bitOffset, remaining);
+      const byte = this._dataView.getUint8(this.position);
+      const bits = (byte >> (8 - this.bitOffset - n)) & ((1 << n) - 1);
+      // Multiply rather than shift to keep 32-bit values unsigned.
+      value = value * (1 << n) + bits;
+      remaining -= n;
+      this.#advanceBits(n);
+    }
+    return value;
+  }
+
+  /**
+   * Reads bits without moving the read position.
+   * @param numBits Number of bits to read, up to 32.
+   * @return An unsigned integer whose binary representation is the big-endian read bits.
+   */
+  peekBits(numBits: number) {
+    const position = this.position;
+    const bitOffset = this.bitOffset;
+    try {
+      return this.readBits(numBits);
+    } finally {
+      this.position = position;
+      this.bitOffset = bitOffset;
+    }
+  }
+
+  /**
+   * Reads one bit.
+   * @return The read bit.
+   */
+  readFlag() {
+    return this.readBits(1) === 1;
+  }
+
+  /**
+   * Writes bits with or without byte alignment and potentially across multiple bytes.
+   * The bits are written in the earliest byte first, and most significant bits in a byte first.
+   * @param value Unsigned integer whose numBits least significant bits are written.
+   * @param numBits Number of bits to write, up to 32.
+   * @bundle DataStream-write.js
+   */
+  writeBits(value: number, numBits: number) {
+    this.#checkBitAccess('writeBits', numBits);
+    let remaining = numBits;
+    while (remaining > 0) {
+      if (this.bitOffset === 0) {
+        this._realloc(1);
+        this._dataView.setUint8(this.position, 0);
+      }
+      // Number of bits among remaining that can be written in the current byte.
+      const n = Math.min(8 - this.bitOffset, remaining);
+      remaining -= n;
+      const bits = Math.floor(value / 2 ** remaining) & ((1 << n) - 1);
+      const byte = this._dataView.getUint8(this.position);
+      this._dataView.setUint8(this.position, byte | (bits << (8 - this.bitOffset - n)));
+      this.#advanceBits(n);
+    }
+  }
+
+  /**
+   * Writes one bit.
+   * @param flag The bit to write.
+   * @bundle DataStream-write.js
+   */
+  writeFlag(flag: boolean) {
+    this.writeBits(flag ? 1 : 0, 1);
+  }
+
+  #checkBitAccess(name: string, numBits?: number) {
+    if (this.bitModeDepth === 0) {
+      throw new Error(`DataStream.${name}: Not in bit mode, call enterBitMode() first.`);
+    }
+    if (numBits === undefined) return;
+    if (!Number.isInteger(numBits) || numBits < 0 || numBits > 32) {
+      throw new Error(`DataStream.${name}: Unsupported number of bits.`);
+    }
+  }
+
+  #advanceBits(numBits: number) {
+    this.bitOffset += numBits;
+    if (this.bitOffset === 8) {
+      this.position++;
+      this.bitOffset = 0;
+    }
+  }
+
+  /**
+   * Checks that a scalar can be read or written at the current, unaligned, bit position.
+   * Bit-level fields are always big-endian.
+   */
+  #checkUnalignedEndianness(name: string, endianness?: Endianness) {
+    if ((endianness ?? this.endianness) === Endianness.LITTLE_ENDIAN) {
+      throw new Error(`DataStream.${name}: Little-endian is not supported when not byte aligned.`);
+    }
+  }
+
+  /**
+   * Throws if the stream is in the middle of a byte. Used by operations that only work on bytes.
+   */
+  protected assertByteAligned(name: string) {
+    if (this.bitOffset !== 0) {
+      throw new Error(`DataStream.${name}: Not byte aligned.`);
+    }
   }
 
   #isTupleType(type: unknown): type is TupleType {
@@ -224,6 +399,7 @@ export class DataStream {
    * @return Uint8Array to the DataStream backing buffer.
    */
   mapUint8Array(length: number) {
+    this.assertByteAligned('mapUint8Array');
     this._realloc(length * 1);
     const arr = new Uint8Array(this._buffer, this.byteOffset + this.position, length);
     this.position += length * 1;
@@ -347,6 +523,7 @@ export class DataStream {
    * @return The read Uint8Array.
    */
   readUint8Array(length?: number) {
+    this.assertByteAligned('readUint8Array');
     length = length === undefined ? this.byteLength - this.position : length;
     const arr = new Uint8Array(length);
     DataStream.memcpy(
@@ -411,6 +588,10 @@ export class DataStream {
    * @return The read number.
    */
   readInt32(endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('readInt32', endianness);
+      return this.readBits(32) | 0;
+    }
     const v = this._dataView.getInt32(
       this.position,
       (endianness ?? this.endianness) === Endianness.LITTLE_ENDIAN,
@@ -426,6 +607,10 @@ export class DataStream {
    * @return The read number.
    */
   readInt16(endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('readInt16', endianness);
+      return (this.readBits(16) << 16) >> 16;
+    }
     const v = this._dataView.getInt16(
       this.position,
       (endianness ?? this.endianness) === Endianness.LITTLE_ENDIAN,
@@ -440,6 +625,7 @@ export class DataStream {
    * @return The read number.
    */
   readInt8() {
+    if (this.bitOffset !== 0) return (this.readBits(8) << 24) >> 24;
     const v = this._dataView.getInt8(this.position);
     this.position += 1;
     return v;
@@ -452,6 +638,10 @@ export class DataStream {
    * @return The read number.
    */
   readUint32(endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('readUint32', endianness);
+      return this.readBits(32);
+    }
     const v = this._dataView.getUint32(
       this.position,
       (endianness ?? this.endianness) === Endianness.LITTLE_ENDIAN,
@@ -467,6 +657,10 @@ export class DataStream {
    * @return The read number.
    */
   readUint16(endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('readUint16', endianness);
+      return this.readBits(16);
+    }
     const v = this._dataView.getUint16(
       this.position,
       (endianness ?? this.endianness) === Endianness.LITTLE_ENDIAN,
@@ -481,9 +675,29 @@ export class DataStream {
    * @return The read number.
    */
   readUint8() {
+    if (this.bitOffset !== 0) return this.readBits(8);
     const v = this._dataView.getUint8(this.position);
     this.position += 1;
     return v;
+  }
+
+  /**
+   * Read a variable length value [Expontntial-Golomb codec] wthe number of leading zero bits indicates
+   * the length in bits of the value
+   * see https://en.wikipedia.org/wiki/Exponential-Golomb_coding
+   *
+   * @return The read unsigned number.
+   */
+  readUE(): number {
+    this.#checkBitAccess('readUE');
+    // read in an Unsigned Exp-Golomb code;
+    if (this.readBits(1) === 1) return 0;
+    let zero_count = 1;
+    while (this.peekBits(1) === 0) {
+      this.readBits(1);
+      zero_count++;
+    }
+    return this.readBits(zero_count + 1) - 1;
   }
 
   /**
@@ -493,6 +707,7 @@ export class DataStream {
    * @return The read number.
    */
   readFloat32(endianness?: Endianness) {
+    this.assertByteAligned('readFloat32');
     const value = this._dataView.getFloat32(
       this.position,
       (endianness ?? this.endianness) === Endianness.LITTLE_ENDIAN,
@@ -508,6 +723,7 @@ export class DataStream {
    * @return The read number.
    */
   readFloat64(endianness?: Endianness) {
+    this.assertByteAligned('readFloat64');
     const value = this._dataView.getFloat64(
       this.position,
       (endianness ?? this.endianness) === Endianness.LITTLE_ENDIAN,
@@ -605,12 +821,18 @@ export class DataStream {
    * @return The read string.
    */
   readString(length: number, encoding?: Charset): string {
-    if (encoding === undefined || encoding === 'ASCII') {
-      return fromCharCodeUint8(
-        this.mapUint8Array(length === undefined ? this.byteLength - this.position : length),
-      );
+    let bytes: Uint8Array;
+    if (this.bitOffset !== 0) {
+      // Not byte aligned (in bit mode): the bytes cannot be mapped, read them bit by bit.
+      length = length === undefined ? this.byteLength - this.position - 1 : length;
+      bytes = Uint8Array.from({ length }, () => this.readBits(8));
     } else {
-      return new TextDecoder(encoding).decode(this.mapUint8Array(length));
+      bytes = this.mapUint8Array(length === undefined ? this.byteLength - this.position : length);
+    }
+    if (encoding === undefined || encoding === 'ASCII') {
+      return fromCharCodeUint8(bytes);
+    } else {
+      return new TextDecoder(encoding).decode(bytes);
     }
   }
 
@@ -861,6 +1083,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeUint8Array(array: ArrayLike<number>) {
+    this.assertByteAligned('writeUint8Array');
     this._realloc(array.length * 1);
     if (
       array instanceof Uint8Array &&
@@ -945,6 +1168,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeInt64(value: number, endianness?: Endianness) {
+    this.assertByteAligned('writeInt64');
     this._realloc(8);
     this._dataView.setBigInt64(
       this.position,
@@ -962,6 +1186,10 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeInt32(value: number, endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('writeInt32', endianness);
+      return this.writeBits(value >>> 0, 32);
+    }
     this._realloc(4);
     this._dataView.setInt32(
       this.position,
@@ -979,6 +1207,10 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeInt16(value: number, endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('writeInt16', endianness);
+      return this.writeBits(value & 0xffff, 16);
+    }
     this._realloc(2);
     this._dataView.setInt16(
       this.position,
@@ -995,6 +1227,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeInt8(value: number) {
+    if (this.bitOffset !== 0) return this.writeBits(value & 0xff, 8);
     this._realloc(1);
     this._dataView.setInt8(this.position, value);
     this.position += 1;
@@ -1008,6 +1241,10 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeUint32(value: number, endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('writeUint32', endianness);
+      return this.writeBits(value >>> 0, 32);
+    }
     this._realloc(4);
     this._dataView.setUint32(
       this.position,
@@ -1025,6 +1262,10 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeUint16(value: number, endianness?: Endianness) {
+    if (this.bitOffset !== 0) {
+      this.#checkUnalignedEndianness('writeUint16', endianness);
+      return this.writeBits(value & 0xffff, 16);
+    }
     this._realloc(2);
     this._dataView.setUint16(
       this.position,
@@ -1041,6 +1282,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeUint8(value: number) {
+    if (this.bitOffset !== 0) return this.writeBits(value & 0xff, 8);
     this._realloc(1);
     this._dataView.setUint8(this.position, value);
     this.position += 1;
@@ -1054,6 +1296,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeFloat32(value: number, endianness?: Endianness) {
+    this.assertByteAligned('writeFloat32');
     this._realloc(4);
     this._dataView.setFloat32(
       this.position,
@@ -1071,6 +1314,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeFloat64(value: number, endianness?: Endianness) {
+    this.assertByteAligned('writeFloat64');
     this._realloc(8);
     this._dataView.setFloat64(
       this.position,
@@ -1114,7 +1358,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeString(value: string, encoding?: string, length?: number) {
-    let i = 0;
+    let i: number;
     if (encoding === undefined || encoding === 'ASCII') {
       if (length !== undefined) {
         const len = Math.min(value.length, length);
@@ -1146,7 +1390,7 @@ export class DataStream {
    * @bundle DataStream-write.js
    */
   writeCString(value: string, length?: number) {
-    let i = 0;
+    let i: number;
     if (length !== undefined) {
       const len = Math.min(value.length, length);
       for (i = 0; i < len; i++) {
@@ -1323,6 +1567,22 @@ export class DataStream {
     this.writeUint8((value & 0x00ff0000) >> 16);
     this.writeUint8((value & 0x0000ff00) >> 8);
     this.writeUint8(value & 0x000000ff);
+  }
+
+  /** @bundle DataStream-write.js */
+  adjustUint8(position: number, value: number) {
+    const pos = this.position;
+    this.seek(position);
+    this.writeUint8(value);
+    this.seek(pos);
+  }
+
+  /** @bundle DataStream-write.js */
+  adjustUint16(position: number, value: number) {
+    const pos = this.position;
+    this.seek(position);
+    this.writeUint16(value);
+    this.seek(pos);
   }
 
   /** @bundle DataStream-write.js */

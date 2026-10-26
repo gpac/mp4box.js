@@ -173,6 +173,37 @@ export class MultiBufferStream extends DataStream {
   }
 
   /**
+   * Removes a range of bytes from the buffers
+   * @param  {number} start start position of the range to remove
+   * @param  {number} [end] end position of the range to remove (optional)
+   */
+  removeRange(start: number, end?: number) {
+    if (end !== undefined && end <= start) return;
+    for (let i = 0; i < this.buffers.length; i++) {
+      const buffer = this.buffers[i];
+      const bufferEnd = buffer.fileStart + buffer.byteLength;
+      if (start >= bufferEnd) continue;
+      if (end !== undefined && end <= buffer.fileStart) break;
+
+      if (start <= buffer.fileStart && (end === undefined || end >= bufferEnd)) {
+        this.buffers.splice(i, 1);
+        i--;
+      } else {
+        const offset = Math.max(start - buffer.fileStart, 0);
+        const adjustedEnd = Math.min(end ?? bufferEnd, bufferEnd);
+        const newLength = adjustedEnd - buffer.fileStart - offset;
+        if (newLength > 0) {
+          const newBuffer = this.reduceBuffer(buffer, offset, newLength);
+          this.buffers[i] = newBuffer;
+        } else {
+          this.buffers.splice(i, 1);
+          i--;
+        }
+      }
+    }
+  }
+
+  /**
    * Displays the status of the buffers (number and used bytes)
    * @param  {Object} info callback method for display
    */
@@ -393,6 +424,7 @@ export class MultiBufferStream extends DataStream {
    * @return {Boolean}              true if the seek succeeded, false otherwise
    */
   override seek(filePosition: number, fromStart?: boolean, markAsUsed?: boolean) {
+    this.assertByteAligned('seek');
     const index = this.findPosition(fromStart, filePosition, markAsUsed);
     if (index !== -1) {
       this.buffer = this.buffers[index];

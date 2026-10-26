@@ -1,9 +1,10 @@
+import { defineConfig } from 'eslint/config';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import eslintPrettier from 'eslint-plugin-prettier/recommended';
 import eslintUnicorn from 'eslint-plugin-unicorn';
 
-export default tseslint.config(
+export default defineConfig(
   { ignores: ['dist', '**/*.{mjs,js}', '*.ts'] },
   { plugins: { unicorn: eslintUnicorn } },
   { languageOptions: { parserOptions: { projectService: true } } },

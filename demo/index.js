@@ -445,7 +445,7 @@ function initializeAllSourceBuffers() {
 }
 
 function initializeSourceBuffers() {
-  var initSegs = mp4boxfile.initializeSegmentation();
+  var initSegs = mp4boxfile.initializeSegmentation('per-track');
   for (var i = 0; i < initSegs.length; i++) {
     var sb = initSegs[i].user;
     if (i === 0) {

@@ -30,7 +30,7 @@ import { mehdBox } from '#/boxes/mehd';
 import { metaBox } from '#/boxes/meta';
 import { mfhdBox } from '#/boxes/mfhd';
 import { mvhdBox } from '#/boxes/mvhd';
-import { stppSampleEntry } from '#/boxes/sampleentries';
+import { mp4aSampleEntry, stppSampleEntry } from '#/boxes/sampleentries';
 import {
   AudioSampleEntry,
   HintSampleEntry,
@@ -59,9 +59,7 @@ import { urlBox } from '#/boxes/url';
 import { vmhdBox } from '#/boxes/vmhd';
 import { MultiBufferStream } from '#/buffer';
 import {
-  ERR_INVALID_DATA,
-  ERR_NOT_ENOUGH_DATA,
-  OK,
+  ErrorCode,
   TFHD_FLAG_BASE_DATA_OFFSET,
   TFHD_FLAG_DEFAULT_BASE_IS_MOOF,
   TFHD_FLAG_SAMPLE_DESC,
@@ -93,6 +91,8 @@ import type {
   Item,
   Movie,
   Output,
+  SegmentationInitialization,
+  SegmentationInitializationPerTrack,
   Sample,
   SampleEntryFourCC,
   SubSample,
@@ -147,6 +147,11 @@ export interface IsoFileOptions {
   default_sample_flags?: number;
 }
 
+export interface ISOFileParseOptions {
+  /** Accept box types that are not valid four-character codes with a warning instead of aborting the parsing (default: false) */
+  allowInvalidBoxTypes?: boolean;
+}
+
 export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   /** MutiBufferStream object used to parse boxes */
   stream: MultiBufferStream;
@@ -158,6 +163,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   moofs: Array<moofBox> = [];
   /** Boolean indicating if the file is compatible with progressive parsing (moov first) */
   isProgressive = false;
+  /** Boolean indicating if box types that are not valid four-character codes are accepted with a warning instead of aborting the parsing */
+  allowInvalidBoxTypes = false;
   /** Boolean used to fire moov start event only once */
   moovStartFound = false;
   /** Callback called when the moov parsing starts */
@@ -224,15 +231,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   nextSeekPosition: number;
   initial_duration: number;
 
-  constructor(stream?: MultiBufferStream, discardMdatData = true) {
+  constructor(stream?: MultiBufferStream, discardMdatData = true, options?: ISOFileParseOptions) {
     this.discardMdatData = discardMdatData;
-    if (stream) {
-      this.stream = stream;
-      this.parse();
-    } else {
-      this.stream = new MultiBufferStream();
-    }
+    this.allowInvalidBoxTypes = options?.allowInvalidBoxTypes ?? false;
+    this.stream = stream ?? new MultiBufferStream();
     this.stream.isofile = this;
+    if (stream) this.parse();
   }
 
   setSegmentOptions(
@@ -243,10 +247,15 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       nbSamplesPerFragment: number;
       sizePerSegment: number;
       rapAlignement: boolean;
+      normalizeAudioSampleEntriesForMSE: boolean;
     }>,
   ) {
     // Destructure and provide defaults for optional properties
-    const { sizePerSegment = Number.MAX_SAFE_INTEGER, rapAlignement = true } = opts;
+    const {
+      sizePerSegment = Number.MAX_SAFE_INTEGER,
+      rapAlignement = true,
+      normalizeAudioSampleEntriesForMSE = true,
+    } = opts;
 
     // Set defaults for sample counts
     let nbSamples = opts.nbSamples ?? opts.nbSamplesPerFragment ?? 1000;
@@ -290,6 +299,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
         nb_samples_per_fragment: nbSamplesPerFragment,
         size_per_segment: sizePerSegment,
         rapAlignement,
+        normalizeAudioSampleEntriesForMSE,
         state: {
           lastFragmentSampleNumber: 0,
           lastSegmentSampleNumber: 0,
@@ -303,7 +313,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (this.discardMdatData) {
       Log.warn(
         'ISOFile',
-        'Segmentation options set but discardMdatData is true, samples will not be segmented',
+        'Segmentation options set but discardMdatData is true, only samples whose data is appended after start() will be segmented',
       );
     }
   }
@@ -341,7 +351,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     if (this.discardMdatData) {
       Log.warn(
         'ISOFile',
-        'Extraction options set but discardMdatData is true, samples will not be extracted',
+        'Extraction options set but discardMdatData is true, only samples whose data is appended after start() will be extracted',
       );
     }
   }
@@ -380,7 +390,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           this.saveParsePosition();
         }
         const ret = parseOneBox(this.stream, parseBoxHeadersOnly);
-        if (ret.code === ERR_NOT_ENOUGH_DATA) {
+        if (ret.code === ErrorCode.ERR_NOT_ENOUGH_DATA) {
           if (this.processIncompleteBox) {
             if (this.processIncompleteBox(ret)) {
               continue;
@@ -390,7 +400,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           } else {
             return;
           }
-        } else if (ret.code === OK) {
+        } else if (ret.code === ErrorCode.OK) {
           /* the box is entirely parsed */
           const box = ret.box as BoxKind;
           /* store the box in the 'boxes' array to preserve box order (for file rewrite if needed)  */
@@ -450,10 +460,10 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           if (this.updateUsedBytes) {
             this.updateUsedBytes(box, ret);
           }
-        } else if (ret.code === ERR_INVALID_DATA) {
+        } else if (ret.code === ErrorCode.ERR_INVALID_DATA) {
           Log.error(
             'ISOFile',
-            `Invalid data found while parsing box of type '${ret.type}' at position ${ret.start}. Aborting parsing.`,
+            `Invalid data found while parsing box of type '${ret.type}' at position ${ret.start}. Discarded bytes from ${ret.start} until the end of the stream.`,
             this,
           );
           break;
@@ -1073,6 +1083,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     }
     time = trak.samples[seek_sample_num].cts;
     trak.nextSample = seek_sample_num;
+    this.resetFragmentedTrackStateAfterSeek(trak, seek_sample_num);
+    this.resetExtractedTrackStateAfterSeek(trak);
     while (trak.samples[seek_sample_num].alreadyRead === trak.samples[seek_sample_num].size) {
       // No remaining samples to look for, all are downloaded.
       if (!trak.samples[seek_sample_num + 1]) {
@@ -1098,9 +1110,33 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     return { offset: seek_offset, time: time / timescale };
   }
 
+  resetFragmentedTrackStateAfterSeek(trak: trakBox, seekSampleNumber: number) {
+    const fragTrack = this.fragmentedTracks.find(t => t.trak === trak);
+    if (!fragTrack) {
+      return;
+    }
+
+    fragTrack.state.lastFragmentSampleNumber = seekSampleNumber;
+    fragTrack.state.lastSegmentSampleNumber = seekSampleNumber;
+    fragTrack.state.accumulatedSize = 0;
+    fragTrack.segmentStream = undefined;
+  }
+
+  resetExtractedTrackStateAfterSeek(trak: trakBox) {
+    const extractTrack = this.extractedTracks.find(t => t.trak === trak);
+    if (!extractTrack) {
+      return;
+    }
+
+    extractTrack.samples = [];
+  }
+
   getTrackDuration(trak: trakBox) {
     if (!trak.samples) {
       return Infinity;
+    }
+    if (trak.samples.length === 0) {
+      return 0;
     }
 
     const sample = trak.samples[trak.samples.length - 1];
@@ -1182,6 +1218,14 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     sampleEnd: number,
     existingStream: DataStream,
   ) {
+    if (sampleEnd < sampleStart) {
+      Log.warn(
+        'ISOFile',
+        `Skipping fragment creation on track #${track_id}: invalid sample range [${sampleStart}, ${sampleEnd}]`,
+      );
+      return existingStream || new DataStream();
+    }
+
     // Check existence of all samples
     const samples: Array<Sample> = [];
     for (let i = sampleStart; i <= sampleEnd; i++) {
@@ -1228,29 +1272,45 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
    * Modify the file and create the initialization segment
    * @bundle isofile-write.js
    */
-  static writeInitializationSegment(ftyp: ftypBox, moov: moovBox, total_duration: number) {
+  static writeInitializationSegment(
+    ftyp: ftypBox,
+    moov: moovBox,
+    total_duration: number,
+    normalizeAudioSampleEntryTrackIds?: Set<number>,
+  ) {
     Log.debug('ISOFile', 'Generating initialization segment');
 
     const stream = new DataStream();
     ftyp.write(stream);
 
-    /* we can now create the new mvex box */
-    const mvex = moov.addBox(new mvexBox());
-    if (total_duration) {
-      const mehd = mvex.addBox(new mehdBox());
-      mehd.fragment_duration = total_duration;
-    }
+    const restoreCallbacks = ISOFile.normalizeAudioSampleEntriesForMSEFragmentedInit(
+      moov.traks,
+      normalizeAudioSampleEntryTrackIds,
+    );
 
-    // Add trex boxes for each track
-    for (let i = 0; i < moov.traks.length; i++) {
-      const trex = mvex.addBox(new trexBox());
-      trex.track_id = moov.traks[i].tkhd.track_id;
-      trex.default_sample_description_index = 1;
-      trex.default_sample_duration = moov.traks[i].samples[0]?.duration ?? 0;
-      trex.default_sample_size = 0;
-      trex.default_sample_flags = 1 << 16;
+    try {
+      /* we can now create the new mvex box */
+      const mvex = moov.addBox(new mvexBox());
+      if (total_duration) {
+        const mehd = mvex.addBox(new mehdBox());
+        mehd.fragment_duration = total_duration;
+      }
+
+      // Add trex boxes for each track
+      for (let i = 0; i < moov.traks.length; i++) {
+        const trex = mvex.addBox(new trexBox());
+        trex.track_id = moov.traks[i].tkhd.track_id;
+        trex.default_sample_description_index = 1;
+        trex.default_sample_duration = moov.traks[i].samples[0]?.duration ?? 0;
+        trex.default_sample_size = 0;
+        trex.default_sample_flags = 1 << 16;
+      }
+      moov.write(stream);
+    } finally {
+      for (let i = restoreCallbacks.length - 1; i >= 0; i--) {
+        restoreCallbacks[i]();
+      }
     }
-    moov.write(stream);
 
     return stream.buffer;
   }
@@ -1272,41 +1332,124 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   }
 
   /** @bundle isofile-write.js */
-  initializeSegmentation() {
+  private static normalizeAudioSampleEntriesForMSEFragmentedInit(
+    traks: Array<trakBox>,
+    normalizeAudioSampleEntryTrackIds?: Set<number>,
+  ) {
+    const restoreCallbacks: Array<() => void> = [];
+
+    for (const trak of traks) {
+      if (!normalizeAudioSampleEntryTrackIds?.has(trak.tkhd.track_id)) {
+        continue;
+      }
+
+      for (const sampleEntry of trak.mdia.minf.stbl.stsd?.entries ?? []) {
+        if (!(sampleEntry instanceof mp4aSampleEntry)) {
+          continue;
+        }
+
+        const esds = sampleEntry.wave?.esds;
+
+        if (sampleEntry.esds || !esds) {
+          continue;
+        }
+
+        const previousEsds = sampleEntry.esds;
+        const previousWave = sampleEntry.wave;
+        const previousBoxes = sampleEntry.boxes;
+
+        restoreCallbacks.push(() => {
+          sampleEntry.esds = previousEsds;
+          sampleEntry.wave = previousWave;
+          sampleEntry.boxes = previousBoxes;
+        });
+
+        const boxesWithoutWave = Array.isArray(sampleEntry.boxes)
+          ? sampleEntry.boxes.filter(box => box?.type !== 'wave' && box?.type !== 'esds')
+          : [];
+        sampleEntry.esds = esds;
+        sampleEntry.boxes = [...boxesWithoutWave, esds];
+        sampleEntry.wave = undefined;
+      }
+    }
+
+    return restoreCallbacks;
+  }
+
+  /** @bundle isofile-write.js */
+  initializeSegmentation(mode?: 'combined'): SegmentationInitialization<TSegmentUser>;
+  initializeSegmentation(
+    mode: 'per-track',
+  ): Array<SegmentationInitializationPerTrack<TSegmentUser>>;
+  initializeSegmentation(
+    mode?: 'combined' | 'per-track',
+  ):
+    | SegmentationInitialization<TSegmentUser>
+    | Array<SegmentationInitializationPerTrack<TSegmentUser>> {
     if (!this.onSegment) {
       Log.warn('MP4Box', 'No segmentation callback set!');
+    }
+    if (mode !== undefined && mode !== 'combined' && mode !== 'per-track') {
+      throw new Error(`Invalid segmentation mode: ${mode}`);
     }
     if (!this.isFragmentationInitialized) {
       this.isFragmentationInitialized = true;
       this.resetTables();
     }
 
-    // Create the moov that will hold all the tracks
-    const moov = new moovBox();
-    moov.addBox(this.moov.mvhd);
-
-    // Add the tracks we want to fragment
-    for (let i = 0; i < this.fragmentedTracks.length; i++) {
-      const trak = this.getTrackById(this.fragmentedTracks[i].id);
+    const tracksToInitialize: Array<{ id: number; user: TSegmentUser; trak: trakBox }> = [];
+    for (const fragmentedTrack of this.fragmentedTracks) {
+      const trak = this.getTrackById(fragmentedTrack.id);
       if (!trak) {
         Log.warn(
           'ISOFile',
-          `Track with id ${this.fragmentedTracks[i].id} not found, skipping fragmentation initialization`,
+          `Track with id ${fragmentedTrack.id} not found, skipping fragmentation initialization`,
         );
         continue;
       }
-      moov.addBox(trak);
+      tracksToInitialize.push({ id: fragmentedTrack.id, user: fragmentedTrack.user, trak });
+    }
+
+    const fragmentDuration = this.moov?.mvex?.mehd?.fragment_duration;
+    const normalizeAudioSampleEntryTrackIds = new Set(
+      this.fragmentedTracks
+        .filter(track => track.normalizeAudioSampleEntriesForMSE !== false)
+        .map(track => track.id),
+    );
+
+    if (mode === 'per-track') {
+      return tracksToInitialize.map(({ id, user, trak }) => {
+        const moov = new moovBox();
+        moov.addBox(this.moov.mvhd);
+        moov.addBox(trak);
+
+        return {
+          id,
+          user,
+          buffer: ISOFile.writeInitializationSegment(
+            this.ftyp,
+            moov,
+            fragmentDuration,
+            normalizeAudioSampleEntryTrackIds,
+          ),
+        };
+      });
+    }
+
+    // Create the moov that will hold all selected fragmented tracks
+    const moov = new moovBox();
+    moov.addBox(this.moov.mvhd);
+    for (const track of tracksToInitialize) {
+      moov.addBox(track.trak);
     }
 
     return {
-      tracks: moov.traks.map((trak, i) => ({
-        id: trak.tkhd.track_id,
-        user: this.fragmentedTracks[i].user,
-      })),
+      tracks: tracksToInitialize.map(({ id, user }) => ({ id, user })),
       buffer: ISOFile.writeInitializationSegment(
         this.ftyp,
         moov,
-        this.moov?.mvex?.mehd.fragment_duration,
+        fragmentDuration,
+        normalizeAudioSampleEntryTrackIds,
       ),
     };
   }
@@ -1733,8 +1876,21 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
           if (traf.sbgps.length > 0) {
             ISOFile.initSampleGroups(trak, traf, traf.sbgps, trak.mdia.minf.stbl.sgpds, traf.sgpds);
           }
+          let base_data_offset: number;
+          if (traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET) {
+            base_data_offset = traf.tfhd.base_data_offset;
+          } else if (traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF || i === 0) {
+            base_data_offset = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
+          } else {
+            base_data_offset = last_run_position; // end of the data defined by the preceding track fragment in the moof
+          }
+          last_run_position = base_data_offset; // an empty track fragment ends where it starts
           for (let j = 0; j < traf.truns.length; j++) {
             const trun = traf.truns[j];
+            // resolve each run's position even when it contains no sample
+            if (trun.flags & TRUN_FLAGS_DATA_OFFSET) {
+              last_run_position = base_data_offset + trun.data_offset;
+            }
             for (let k = 0; k < trun.sample_count; k++) {
               const description_index = default_sample_description_index - 1;
 
@@ -1777,36 +1933,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
               }
 
               //ISOFile.process_sdtp(traf.sdtp, sample, sample.number_in_traf);
-              const bdop = traf.tfhd.flags & TFHD_FLAG_BASE_DATA_OFFSET ? true : false;
-              const dbim = traf.tfhd.flags & TFHD_FLAG_DEFAULT_BASE_IS_MOOF ? true : false;
-              const dop = trun.flags & TRUN_FLAGS_DATA_OFFSET ? true : false;
-              let bdo = 0;
-              if (!bdop) {
-                if (!dbim) {
-                  if (j === 0) {
-                    // the first track in the movie fragment
-                    bdo = moof.start; // the position of the first byte of the enclosing Movie Fragment Box
-                  } else {
-                    bdo = last_run_position; // end of the data defined by the preceding *track* (irrespective of the track id) fragment in the moof
-                  }
-                } else {
-                  bdo = moof.start;
-                }
-              } else {
-                bdo = traf.tfhd.base_data_offset;
-              }
-
-              let offset: number;
-              if (j === 0 && k === 0) {
-                if (dop) {
-                  offset = bdo + trun.data_offset; // If the data-offset is present, it is relative to the base-data-offset established in the track fragment header
-                } else {
-                  offset = bdo; // the data for this run starts the base-data-offset defined by the track fragment header
-                }
-              } else {
-                offset = last_run_position; // this run starts immediately after the data of the previous run
-              }
-              last_run_position = offset + size;
+              const offset = last_run_position;
+              last_run_position += size;
 
               const number_in_traf = traf.sample_number;
               traf.sample_number++;
@@ -2132,7 +2260,12 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
       }
     }
     if (meta.pitm) {
-      items[meta.pitm.item_id].primary = true;
+      const id = meta.pitm.item_id;
+      if (!items[id]) {
+        Log.warn('ISOFile', 'Primary item_id #' + id + ' does not exist in items');
+      } else {
+        items[id].primary = true;
+      }
     }
     if (meta.iref) {
       for (let i = 0; i < meta.iref.references.length; i++) {
@@ -2900,7 +3033,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     trun.sample_count = samples.length;
 
     for (const sample of samples) {
-      let sample_flags = 0;
+      let sample_flags: number;
       if (sample.is_sync)
         sample_flags = 1 << 25; // sample_depends_on_none (I picture)
       else sample_flags = 1 << 16; // non-sync

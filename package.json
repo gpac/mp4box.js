@@ -1,6 +1,6 @@
 {
   "name": "mp4box",
-  "version": "0.0.0-development",
+  "version": "2.5.0",
   "description": "JavaScript version of GPAC's MP4Box tool",
   "type": "module",
   "keywords": [
@@ -31,18 +31,18 @@
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/mp4box.all.d.ts",
+        "import": "./dist/mp4box.all.d.mts",
         "require": "./dist/mp4box.all.d.cts"
       },
-      "import": "./dist/mp4box.all.js",
+      "import": "./dist/mp4box.all.mjs",
       "require": "./dist/mp4box.all.cjs"
     },
     "./simple": {
       "types": {
-        "import": "./dist/mp4box.simple.d.ts",
+        "import": "./dist/mp4box.simple.d.mts",
         "require": "./dist/mp4box.simple.d.cts"
       },
-      "import": "./dist/mp4box.simple.js",
+      "import": "./dist/mp4box.simple.mjs",
       "require": "./dist/mp4box.simple.cjs"
     }
   },
@@ -55,35 +55,40 @@
   },
   "scripts": {
     "prepare": "node .husky/install.mjs",
-    "build": "tsup",
+    "changeset": "changeset",
+    "build": "tsdown",
+    "release": "npm run build && changeset publish",
     "circular": "dpdm -T ./entries/all.ts --tsconfig tsconfig.lib.json --exit-code circular:1",
     "types": "tsc --noEmit -p tsconfig.lib.json",
     "test": "vitest run",
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint",
-    "check": "npm run lint && npm run build && npm run types && npm run circular"
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1",
-    "@eslint/js": "^9.27.0",
-    "@types/node": "^22.15.21",
-    "@vitest/coverage-v8": "^3.1.4",
-    "dpdm": "^3.14.0",
-    "eslint": "^9.27.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.0",
-    "eslint-plugin-unicorn": "^60.0.0",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.5",
+    "dpdm": "^4.3.0",
+    "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.7",
+    "eslint-plugin-unicorn": "^79.0.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.0.0",
-    "prettier": "^3.5.3",
-    "tar": "^7.4.3",
-    "tsup": "^8.3.5",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.32.1",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.1.4"
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "tar": "^7.5.22",
+    "tsdown": "^0.23.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
   },
-  "packageManager": "npm@11.4.1"
+  "packageManager": "npm@12.2.1",
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  }
 }

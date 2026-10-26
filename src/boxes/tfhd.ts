@@ -49,7 +49,6 @@ export class tfhdBox extends FullBox {
     }
     if (this.size - this.hdr_size > readBytes && this.flags & TFHD_FLAG_SAMPLE_FLAGS) {
       this.default_sample_flags = stream.readUint32();
-      readBytes += 4;
     } else {
       this.default_sample_flags = 0;
     }
