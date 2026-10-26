@@ -127,6 +127,24 @@ export class ES_Descriptor extends Descriptor {
       return audioObjectType;
     }
   }
+
+  getVisualProfileLevel() {
+    const dcd = this.findDescriptor(DecoderConfigDescrTag);
+    if (!dcd) return;
+    const dsi = dcd.findDescriptor(DecSpecificInfoTag);
+    // profile_and_level_indication follows the visual_object_sequence_start_code (00 00 01 B0)
+    if (
+      dsi &&
+      dsi.data &&
+      dsi.data.length >= 5 &&
+      dsi.data[0] === 0x00 &&
+      dsi.data[1] === 0x00 &&
+      dsi.data[2] === 0x01 &&
+      dsi.data[3] === 0xb0
+    ) {
+      return dsi.data[4];
+    }
+  }
 }
 
 class DecoderConfigDescriptor extends Descriptor {

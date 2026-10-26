@@ -391,6 +391,23 @@ export class mp4vSampleEntry extends VisualSampleEntry {
   static override readonly fourcc = 'mp4v' as const;
   // ISO/IEC 14496-14:2020 Section 6.7.3
   box_name = 'MP4VisualSampleEntry' as const;
+
+  esds: esdsBox;
+  esdss: Array<esdsBox>;
+
+  getCodec() {
+    const baseCodec = super.getCodec();
+    if (this.esds && this.esds.esd) {
+      const oti = this.esds.esd.getOTI();
+      // RFC 6381: for MPEG-4 Visual (0x20), the profile and level indication follows the OTI
+      const profileLevel = oti === 0x20 ? this.esds.esd.getVisualProfileLevel() : undefined;
+      return (
+        baseCodec + '.' + decimalToHex(oti) + (profileLevel !== undefined ? '.' + profileLevel : '')
+      );
+    } else {
+      return baseCodec;
+    }
+  }
 }
 
 export class mp4aSampleEntry extends AudioSampleEntry {
