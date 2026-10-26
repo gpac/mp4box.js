@@ -1,5 +1,17 @@
 # mp4box
 
+## 2.6.0
+
+### Minor Changes
+
+- [#578](https://github.com/gpac/mp4box.js/pull/578) [`3cbd165`](https://github.com/gpac/mp4box.js/commit/3cbd16535961d8d771d3374584c844660bad3241) Thanks [@paulhiggs](https://github.com/paulhiggs)! - Include support for HDR Vivid configuration information signalled in a `cuvv` box.
+
+### Patch Changes
+
+- [#576](https://github.com/gpac/mp4box.js/pull/576) [`9c20189`](https://github.com/gpac/mp4box.js/commit/9c201899cd9e47c8b7f96cf5342a92e64a5f4261) Thanks [@wleeaf](https://github.com/wleeaf)! - Include the object type indication, and the profile and level for MPEG-4 Visual, in `mp4v` codec strings
+
+- [#575](https://github.com/gpac/mp4box.js/pull/575) [`ed5d557`](https://github.com/gpac/mp4box.js/commit/ed5d557e05fe1982fbd776d98cd16f930f8b6377) Thanks [@wleeaf](https://github.com/wleeaf)! - Include the chroma subsampling, colour and range fields in `vp08`/`vp09` codec strings when they differ from the defaults that a shorter codec string implies
+
 ## 2.5.0
 
 ### Minor Changes
