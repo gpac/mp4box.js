@@ -23,6 +23,7 @@ export * from '#/boxes/cprt';
 export * from '#/boxes/csch';
 export * from '#/boxes/cslg';
 export * from '#/boxes/ctts';
+export * from '#/boxes/cuvv';
 export * from '#/boxes/dac3';
 export * from '#/boxes/dca3';
 export * from '#/boxes/dec3';
