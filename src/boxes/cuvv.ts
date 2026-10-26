@@ -4,6 +4,7 @@
  */
 
 import { Box } from '#/box';
+import { Log } from '#/log';
 import type { MultiBufferStream } from '#/buffer';
 
 class VersionMap16 {
@@ -54,7 +55,6 @@ export class cuvvBox extends Box {
   cuva_version_map: VersionMap16;
   terminal_provide_code: number;
   terminal_provide_oriented_code: HighVersion;
-  reserved_zero: Array<number>;
 
   parse(stream: MultiBufferStream) {
     this.cuva_version_map = new VersionMap16(stream.readUint16());
@@ -62,9 +62,11 @@ export class cuvvBox extends Box {
 
     // according to T/UWA 005.2-1, this element contains the 'highest version in the current ES'
     this.terminal_provide_oriented_code = new HighVersion(stream.readUint16());
-    this.reserved_zero = [];
     for (let i = 0; i < 4; i++) {
-      this.reserved_zero.push(stream.readUint32());
+      const reserved_zero = stream.readUint32();
+      if (reserved_zero !== 0) {
+        Log.error('BoxParser', 'cuvv reserved parsing problem', stream.isofile);
+      }
     }
   }
 }

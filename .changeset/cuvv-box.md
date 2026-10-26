@@ -1,5 +1,5 @@
 ---
-'mp4box': feature
+'mp4box': minor
 ---
 
-Include suport for HDR Vivid configuration information signalled in a `cuvv` box.
+Include support for HDR Vivid configuration information signalled in a `cuvv` box.
