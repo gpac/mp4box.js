@@ -13,12 +13,13 @@ export class cclvBox extends Box {
 
   parse(stream: MultiBufferStream) {
     stream.enterBitMode();
-    stream.readBits(3);
+    stream.skipBits(1); // reserved (ccv_cancel_flag)
+    stream.skipBits(1); // reserved (ccv_persistence_flag)
     const ccv_primaries_present_flag = stream.readFlag();
     const ccv_min_luminance_value_present_flag = stream.readFlag();
     const ccv_max_luminance_value_present_flag = stream.readFlag();
     const ccv_avg_luminance_value_present_flag = stream.readFlag();
-    stream.readBits(1);
+    stream.skipBits(2); // reserved
     stream.exitBitMode();
 
     if (ccv_primaries_present_flag) {
