@@ -211,7 +211,7 @@ export class miniBox extends Box {
         }
         if (ndwt_flag) {
           const ndwt = new ndwtBox();
-          ndwt.parse(stream);
+          ndwt.parse_body(stream);
           parent.addBox(ndwt);
         }
       };
@@ -219,6 +219,7 @@ export class miniBox extends Box {
 
       if (this.gainmap_flag) {
         const tmap_placeholder = new Box();
+        tmap_placeholder.type = 'tmap';
         tmap_placeholder.box_name = 'tmap';
         parse_hdr_boxes(tmap_placeholder);
         if (tmap_placeholder.boxes) {
