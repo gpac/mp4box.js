@@ -53,6 +53,16 @@ export class sgpdBox extends FullBox {
       if (this.grouping_type in BoxRegistry.sampleGroupEntry) {
         entry = new BoxRegistry.sampleGroupEntry[this.grouping_type](this.grouping_type);
       } else {
+        // Only version 1 gives entry sizes. Without one, an entry of an unknown type
+        // can't be read: it would take 0 bytes, so a large entry_count would loop
+        // without moving through the stream.
+        if (this.version !== 1) {
+          Log.warn(
+            'BoxParser',
+            `Cannot parse '${this.grouping_type}' sample group entries: unknown type and no entry size in sgpd version ${this.version}`,
+          );
+          break;
+        }
         entry = new SampleGroupEntry(this.grouping_type);
       }
       this.entries.push(entry);
