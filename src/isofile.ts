@@ -1950,6 +1950,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
                 number: trak.samples.length,
                 offset,
                 size,
+                alreadyRead: 0,
                 timescale: trak.mdia.mdhd.timescale,
                 track_id: trak.tkhd.track_id,
                 is_sync: (sample_flags >> 16) & 0x1 ? false : true,
