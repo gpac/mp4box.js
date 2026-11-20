@@ -299,6 +299,17 @@ describe('File Segmentation', () => {
     expect(mp4.seek(3, false).time).toBe(expected.time);
   });
 
+  it('seeks to a sample offset in a fragmented file', async () => {
+    const { testFile } = getFilePath('isobmff', '10_fragments.mp4');
+    const { mp4 } = await loadAndGetInfo(testFile, true);
+    const video = mp4.getTrackById(201);
+
+    const rap = mp4.seekTrack(2, true, video);
+
+    expect(rap.offset).toBe(video.samples[video.nextSample].offset);
+    expect(mp4.seek(2, true).time).toBe(rap.time);
+  });
+
   it('resets segmentation state on forward seek before processing', async () => {
     const { testFile } = getFilePath('isobmff', '01_simple.mp4');
     const { mp4 } = await loadAndGetInfo(testFile, true, true);
