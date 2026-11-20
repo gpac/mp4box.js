@@ -1,5 +1,25 @@
 # mp4box
 
+## 2.6.0
+
+### Minor Changes
+
+- [#578](https://github.com/gpac/mp4box.js/pull/578) [`3cbd165`](https://github.com/gpac/mp4box.js/commit/3cbd16535961d8d771d3374584c844660bad3241) Thanks [@paulhiggs](https://github.com/paulhiggs)! - Include support for HDR Vivid configuration information signalled in a `cuvv` box.
+
+### Patch Changes
+
+- [#579](https://github.com/gpac/mp4box.js/pull/579) [`ede6895`](https://github.com/gpac/mp4box.js/commit/ede6895803207f13bcbfcd6108d3e85bca00dfef) Thanks [@y-guyon](https://github.com/y-guyon)! - Fix `cclv` box syntax to skip two reserved bits before `ccv_primaries_present_flag` and two reserved bits after `ccv_avg_luminance_value_present_flag` per the ISOBMFF 9th Edition draft
+
+- [#583](https://github.com/gpac/mp4box.js/pull/583) [`0ae4c11`](https://github.com/gpac/mp4box.js/commit/0ae4c110b19fb2950037d60124f63d0435b70329) Thanks [@zzoraemon043](https://github.com/zzoraemon043)! - Fix `seek` on fragmented files: samples from `moof` boxes now start with `alreadyRead` set to 0, so the seek offset is no longer `NaN`
+
+- [#576](https://github.com/gpac/mp4box.js/pull/576) [`9c20189`](https://github.com/gpac/mp4box.js/commit/9c201899cd9e47c8b7f96cf5342a92e64a5f4261) Thanks [@wleeaf](https://github.com/wleeaf)! - Include the object type indication, and the profile and level for MPEG-4 Visual, in `mp4v` codec strings
+
+- [#580](https://github.com/gpac/mp4box.js/pull/580) [`d91bce4`](https://github.com/gpac/mp4box.js/commit/d91bce451d5a1e12d97229fc7834bbca4ac26cd6) Thanks [@y-guyon](https://github.com/y-guyon)! - Make `ndwt` an `ItemFullProperty` box (`FullBox`) per the HEIF 4th Edition draft, while still parsing only its body when inlined in `mini`
+
+- [#582](https://github.com/gpac/mp4box.js/pull/582) [`8b24318`](https://github.com/gpac/mp4box.js/commit/8b243183ceee526393ec9fe8584349f63cade95c) Thanks [@bardrop](https://github.com/bardrop)! - Stop parsing `sgpd` entries of an unknown grouping type when the box gives no entry size (version 0 or 2). Before, each such entry read 0 bytes, so a large `entry_count` looped until the heap ran out.
+
+- [#575](https://github.com/gpac/mp4box.js/pull/575) [`ed5d557`](https://github.com/gpac/mp4box.js/commit/ed5d557e05fe1982fbd776d98cd16f930f8b6377) Thanks [@wleeaf](https://github.com/wleeaf)! - Include the chroma subsampling, colour and range fields in `vp08`/`vp09` codec strings when they differ from the defaults that a shorter codec string implies
+
 ## 2.5.0
 
 ### Minor Changes
