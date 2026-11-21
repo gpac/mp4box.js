@@ -86,7 +86,7 @@ export class hvcCBox extends Box {
     stream.writeUint32(this.general_profile_compatibility);
     stream.writeUint8Array(this.general_constraint_indicator);
     stream.writeUint8(this.general_level_idc);
-    stream.writeUint16(this.min_spatial_segmentation_idc + (15 << 24));
+    stream.writeUint16(this.min_spatial_segmentation_idc + (15 << 12));
     stream.writeUint8(this.parallelismType + (63 << 2));
     stream.writeUint8(this.chroma_format_idc + (63 << 2));
     stream.writeUint8(this.bit_depth_luma_minus8 + (31 << 3));
