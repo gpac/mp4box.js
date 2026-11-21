@@ -44,7 +44,7 @@ export class hvcCBox extends Box {
     this.avgFrameRate = stream.readUint16();
     tmp_byte = stream.readUint8();
     this.constantFrameRate = tmp_byte >> 6;
-    this.numTemporalLayers = (tmp_byte & 0xd) >> 3;
+    this.numTemporalLayers = (tmp_byte & 0x38) >> 3;
     this.temporalIdNested = (tmp_byte & 0x4) >> 2;
     this.lengthSizeMinusOne = tmp_byte & 0x3;
 
