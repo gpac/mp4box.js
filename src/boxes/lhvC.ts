@@ -20,7 +20,7 @@ export class lhvCBox extends Box {
     this.min_spatial_segmentation_idc = stream.readUint16() & 0xfff;
     this.parallelismType = stream.readUint8() & 0x3;
     let tmp_byte = stream.readUint8();
-    this.numTemporalLayers = (tmp_byte & 0xd) >> 3;
+    this.numTemporalLayers = (tmp_byte & 0x38) >> 3;
     this.temporalIdNested = (tmp_byte & 0x4) >> 2;
     this.lengthSizeMinusOne = tmp_byte & 0x3;
 
