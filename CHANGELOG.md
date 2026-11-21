@@ -1,5 +1,11 @@
 # mp4box
 
+## 2.6.1
+
+### Patch Changes
+
+- [#587](https://github.com/gpac/mp4box.js/pull/587) [`9a8402a`](https://github.com/gpac/mp4box.js/commit/9a8402a0970153583ea0751894a4198921a981b2) Thanks [@zzoraemon043](https://github.com/zzoraemon043)! - Read `numTemporalLayers` in `hvcC` and `lhvC` from all three of its bits. It was masked with `0xd`, so 2, 4 and 6 layers were read as 0 and 3, 5 and 7 as 1, and a rewritten `hvcC` kept the wrong value.
+
 ## 2.6.0
 
 ### Minor Changes
