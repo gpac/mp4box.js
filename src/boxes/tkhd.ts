@@ -47,7 +47,7 @@ export class tkhdBox extends FullBox {
     stream.readUint32Array(2);
     this.layer = stream.readInt16();
     this.alternate_group = stream.readInt16();
-    this.volume = stream.readInt16() >> 8;
+    this.volume = stream.readInt16() / 256;
     stream.readUint16();
     this.matrix = stream.readInt32Array(9);
     this.width = stream.readUint32();
@@ -84,7 +84,7 @@ export class tkhdBox extends FullBox {
     stream.writeUint32Array([0, 0]); // reserved
     stream.writeInt16(this.layer);
     stream.writeInt16(this.alternate_group);
-    stream.writeInt16(this.volume << 8); // volume in 0.256 units
+    stream.writeInt16(Math.round(this.volume * 256)); // 8.8 fixed point
     stream.writeInt16(0); // reserved
     stream.writeInt32Array(this.matrix); // 3x3 matrix
     stream.writeUint32(this.width);
@@ -98,7 +98,7 @@ export class tkhdBox extends FullBox {
     output.log(output.indent + 'modification_time: ' + this.modification_time);
     output.log(output.indent + 'track_id: ' + this.track_id);
     output.log(output.indent + 'duration: ' + this.duration);
-    output.log(output.indent + 'volume: ' + (this.volume >> 8));
+    output.log(output.indent + 'volume: ' + this.volume);
     output.log(output.indent + 'matrix: ' + this.matrix.join(', '));
     output.log(output.indent + 'layer: ' + this.layer);
     output.log(output.indent + 'alternate_group: ' + this.alternate_group);
