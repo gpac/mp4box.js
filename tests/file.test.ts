@@ -117,6 +117,24 @@ describe('File Creation', () => {
     expect(fragmentBuffers.length).toBe(samples.length);
   });
 
+  it('should round-trip mvhd and tkhd volume as 8.8 fixed point', () => {
+    const mp4 = createFile();
+    mp4.init({ timescale: 48000 });
+    const track = mp4.addTrack({ timescale: 48000 });
+    mp4.getTrackById(track).tkhd.volume = 0.5;
+
+    const ds = new DataStream();
+    ds.endianness = Endianness.BIG_ENDIAN;
+    mp4.write(ds);
+
+    const newMP4 = createFile();
+    newMP4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(ds.buffer, 0));
+    newMP4.flush();
+
+    expect(newMP4.moov.mvhd.volume).toBe(1);
+    expect(newMP4.getTrackById(track).tkhd.volume).toBe(0.5);
+  });
+
   it('should not fail with incomplete mdat', async () => {
     const { testFile } = getFilePath('isobmff', '17_negative_ctso.mp4');
     const mp4 = createFile(false);
