@@ -30,7 +30,7 @@ export class mvhdBox extends FullBox {
       this.duration = stream.readUint32();
     }
     this.rate = stream.readUint32();
-    this.volume = stream.readUint16() >> 8;
+    this.volume = stream.readUint16() / 256;
     stream.readUint16();
     stream.readUint32Array(2);
     this.matrix = stream.readInt32Array(9);
@@ -65,7 +65,7 @@ export class mvhdBox extends FullBox {
       stream.writeUint32(this.duration);
     }
     stream.writeUint32(this.rate);
-    stream.writeUint16(this.volume << 8);
+    stream.writeUint16(Math.round(this.volume * 256));
     stream.writeUint16(0);
     stream.writeUint32(0);
     stream.writeUint32(0);
@@ -87,7 +87,7 @@ export class mvhdBox extends FullBox {
     output.log(output.indent + 'timescale: ' + this.timescale);
     output.log(output.indent + 'duration: ' + this.duration);
     output.log(output.indent + 'rate: ' + this.rate);
-    output.log(output.indent + 'volume: ' + (this.volume >> 8));
+    output.log(output.indent + 'volume: ' + this.volume);
     output.log(output.indent + 'matrix: ' + this.matrix.join(', '));
     output.log(output.indent + 'next_track_id: ' + this.next_track_id);
   }

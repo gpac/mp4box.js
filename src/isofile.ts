@@ -2757,7 +2757,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     mvhd.creation_time = 0;
     mvhd.modification_time = 0;
     mvhd.duration = options.duration || 0;
-    mvhd.volume = options.width ? 0 : 0x0100;
+    mvhd.volume = options.width ? 0 : 1;
     mvhd.matrix = [1 << 16, 0, 0, 0, 1 << 16, 0, 0, 0, 0x40000000];
     mvhd.next_track_id = 1;
 
