@@ -1,11 +1,14 @@
+import { createFile, MP4BoxBuffer } from '../entries/all';
 import {
   mp4aSampleEntry,
   mp4vSampleEntry,
   vp09SampleEntry,
+  vvc1SampleEntry,
 } from '../src/boxes/sampleentries/sampleentry';
 import type { esdsBox } from '../src/boxes/esds';
 import type { waveBox } from '../src/boxes/qt/wave';
 import type { vpcCBox } from '../src/boxes/vpcC';
+import type { vvcCBox } from '../src/boxes/vvcC';
 import { DataStream } from '../src/DataStream';
 import { type ES_Descriptor, MPEG4DescriptorParser } from '../src/descriptor';
 
@@ -96,5 +99,55 @@ describe('Codec strings', () => {
     entry.esds = makeVisualEsds(0x61);
 
     expect(entry.getCodec()).toBe('mp4v.61');
+  });
+
+  // vvcC with a PTL record for Main 10, Main tier, level 5.1 (83), followed by the given
+  // num_bytes_constraint_info bytes (ptl_frame_only_constraint_flag, ptl_multilayer_enabled_flag
+  // and general_constraint_info)
+  const parseVvcC = (constraintHex: string) => {
+    const n = constraintHex.length / 2;
+    const payload =
+      '00000000' + // version, flags
+      'ff' + // reserved, lengthSizeMinusOne 3, ptl_present_flag 1
+      '0015' + // ols_idx 0, num_sublayers 1, constant_frame_rate 1, chroma_format_idc 1
+      '5f' + // bit_depth_minus8 2, reserved
+      ((n << 8) | (1 << 1)).toString(16).padStart(4, '0') + // num_bytes_constraint_info, profile 1, tier 0
+      '53' + // general_level_idc 83
+      constraintHex +
+      '00' + // ptl_num_sub_profiles
+      '0780' + // max_picture_width
+      '0438' + // max_picture_height
+      '0000' + // avg_frame_rate
+      '00'; // num_of_arrays
+    const box = ((payload.length / 2 + 8).toString(16).padStart(8, '0') + '76766343' + payload)
+      .match(/../g)
+      .map(byte => parseInt(byte, 16));
+    const mp4 = createFile();
+    mp4.appendBuffer(MP4BoxBuffer.fromArrayBuffer(Uint8Array.from(box).buffer, 0));
+    mp4.flush();
+    return mp4.boxes.find(b => b.type === 'vvcC') as vvcCBox;
+  };
+
+  it('should encode the constraint bits of vvcC in the order they are stored', () => {
+    const entry = new vvc1SampleEntry();
+    entry.vvcC = parseVvcC('a5c380');
+
+    // 10100101 11000011 10000000 in base32
+    expect(entry.getCodec()).toBe('vvc1.1.L83.CUXBYA');
+  });
+
+  it('should keep the last six constraint bits of vvcC', () => {
+    const entry = new vvc1SampleEntry();
+    entry.vvcC = parseVvcC('000005');
+
+    // 00000000 00000000 00000101 in base32
+    expect(entry.getCodec()).toBe('vvc1.1.L83.CAAAAK');
+  });
+
+  it('should write CA when all constraint bits of vvcC are zero', () => {
+    const entry = new vvc1SampleEntry();
+    entry.vvcC = parseVvcC('00');
+
+    expect(entry.getCodec()).toBe('vvc1.1.L83.CA');
   });
 });

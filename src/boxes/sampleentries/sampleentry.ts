@@ -272,19 +272,26 @@ class vvcCSampleEntryBase extends VisualSampleEntry {
 
       let constraint_string = '';
       if (this.vvcC.general_constraint_info) {
+        // Rebuild the bytes as stored in the record: general_constraint_info holds 8 bits per entry
+        // starting after the two flags, except for the last entry, which holds the last 6 bits
+        const gci = this.vvcC.general_constraint_info;
         const bytes = [];
         let byte = 0;
         byte |= this.vvcC.ptl_frame_only_constraint_flag << 7;
         byte |= this.vvcC.ptl_multilayer_enabled_flag << 6;
         let last_nonzero: number;
-        for (let i = 0; i < this.vvcC.general_constraint_info.length; ++i) {
-          byte |= (this.vvcC.general_constraint_info[i] >> 2) & 0x3f;
+        for (let i = 0; i < gci.length; ++i) {
+          if (i < gci.length - 1) {
+            byte |= gci[i] >> 2;
+          } else {
+            byte |= gci[i] & 0x3f;
+          }
           bytes.push(byte);
           if (byte) {
             last_nonzero = i;
           }
 
-          byte = (this.vvcC.general_constraint_info[i] >> 2) & 0x03;
+          byte = (gci[i] & 0x03) << 6;
         }
 
         if (last_nonzero === undefined) {
