@@ -1,5 +1,15 @@
 # mp4box
 
+## 2.6.1
+
+### Patch Changes
+
+- [#589](https://github.com/gpac/mp4box.js/pull/589) [`1624d2c`](https://github.com/gpac/mp4box.js/commit/1624d2c43888de2bbc4e83c28a140a419ee07ac1) Thanks [@zzoraemon043](https://github.com/zzoraemon043)! - Read and write the `mvhd` and `tkhd` volume as 8.8 fixed point. Fractional volumes were truncated (0.5 became 0), `print()` shifted the value a second time so full volume showed as 0, and `init()` set `mvhd.volume` to `0x0100`, which was then written as `0x0100 << 8` and came out as 0 in new audio files.
+
+- [#587](https://github.com/gpac/mp4box.js/pull/587) [`9a8402a`](https://github.com/gpac/mp4box.js/commit/9a8402a0970153583ea0751894a4198921a981b2) Thanks [@zzoraemon043](https://github.com/zzoraemon043)! - Read `numTemporalLayers` in `hvcC` and `lhvC` from all three of its bits. It was masked with `0xd`, so 2, 4 and 6 layers were read as 0 and 3, 5 and 7 as 1, and a rewritten `hvcC` kept the wrong value.
+
+- [#590](https://github.com/gpac/mp4box.js/pull/590) [`8d187c2`](https://github.com/gpac/mp4box.js/commit/8d187c2dfd66dc4f240d8a10bd60058e1e271087) Thanks [@zzoraemon043](https://github.com/zzoraemon043)! - Build the constraint bytes of the VVC codec string in the bit order stored in `vvcC`. When `gci_present_flag` was set, two bits of each byte were taken from the wrong place and the last two bits were dropped, so the string did not match the stream.
+
 ## 2.6.0
 
 ### Minor Changes
