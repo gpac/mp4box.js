@@ -14,7 +14,7 @@ export class uncCBox extends FullBox {
   sampling_type: number;
   interleave_type: number;
   block_size: number;
-  component_little_endian: number;
+  components_little_endian: number;
   block_pad_lsb: number;
   block_little_endian: number;
   block_reversed: number;
@@ -46,7 +46,7 @@ export class uncCBox extends FullBox {
       this.interleave_type = stream.readUint8();
       this.block_size = stream.readUint8();
       const flags = stream.readUint8();
-      this.component_little_endian = (flags >> 7) & 0x1;
+      this.components_little_endian = (flags >> 7) & 0x1;
       this.block_pad_lsb = (flags >> 6) & 0x1;
       this.block_little_endian = (flags >> 5) & 0x1;
       this.block_reversed = (flags >> 4) & 0x1;
