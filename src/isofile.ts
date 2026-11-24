@@ -167,6 +167,8 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
   allowInvalidBoxTypes = false;
   /** Boolean used to fire moov start event only once */
   moovStartFound = false;
+  /** A box could not be parsed (ERR_INVALID_DATA): the rest of the stream was discarded */
+  invalidDataFound = false;
   /** Callback called when the moov parsing starts */
   onMoovStart?: () => void;
   /** Boolean keeping track of the call to onMoovStart, to avoid double calls */
@@ -461,6 +463,7 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
             this.updateUsedBytes(box, ret);
           }
         } else if (ret.code === ErrorCode.ERR_INVALID_DATA) {
+          this.invalidDataFound = true;
           Log.error(
             'ISOFile',
             `Invalid data found while parsing box of type '${ret.type}' at position ${ret.start}. Discarded bytes from ${ret.start} until the end of the stream.`,
@@ -1045,6 +1048,20 @@ export class ISOFile<TSegmentUser = unknown, TSampleUser = unknown> {
     this.processSamples(true);
     this.stream.cleanBuffers();
     this.stream.logBufferLevel(true);
+    // All the data is in and there is media data but no moov: onReady will never fire. Typically a recording
+    // that was interrupted (camera lost power, card pulled) before its index was written.
+    if (
+      !this.moov &&
+      !this.moovStartFound &&
+      !this.invalidDataFound &&
+      this.mdats.length > 0 &&
+      this.onError
+    ) {
+      this.onError(
+        'ISOFile',
+        'No moov box found: the file may be a recording that was interrupted before its index was written',
+      );
+    }
   }
 
   /* Finds the byte offset for a given time on a given track
