@@ -101,6 +101,25 @@ describe('Codec strings', () => {
     expect(entry.getCodec()).toBe('mp4v.61');
   });
 
+  it('should write the OTI of mp4a in uppercase hexadecimal', () => {
+    // MP3 (0x6B): Chromium recognizes mp4a.6B but not mp4a.6b
+    const mp3 = new mp4aSampleEntry();
+    mp3.esds = { esd: { getOTI: () => 0x6b, getAudioConfig: () => undefined } } as esdsBox;
+    expect(mp3.getCodec()).toBe('mp4a.6B');
+
+    const ac3 = new mp4aSampleEntry();
+    ac3.esds = { esd: { getOTI: () => 0xa5, getAudioConfig: () => undefined } } as esdsBox;
+    expect(ac3.getCodec()).toBe('mp4a.A5');
+  });
+
+  it('should write the OTI of mp4v in uppercase hexadecimal', () => {
+    // MPEG-1 video (0x6A)
+    const entry = new mp4vSampleEntry();
+    entry.esds = makeVisualEsds(0x6a);
+
+    expect(entry.getCodec()).toBe('mp4v.6A');
+  });
+
   // vvcC with a PTL record for Main 10, Main tier, level 5.1 (83), followed by the given
   // num_bytes_constraint_info bytes (ptl_frame_only_constraint_flag, ptl_multilayer_enabled_flag
   // and general_constraint_info)

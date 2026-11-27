@@ -423,7 +423,10 @@ export class mp4vSampleEntry extends VisualSampleEntry {
       // RFC 6381: for MPEG-4 Visual (0x20), the profile and level indication follows the OTI
       const profileLevel = oti === 0x20 ? this.esds.esd.getVisualProfileLevel() : undefined;
       return (
-        baseCodec + '.' + decimalToHex(oti) + (profileLevel !== undefined ? '.' + profileLevel : '')
+        baseCodec +
+        '.' +
+        decimalToHex(oti).toUpperCase() +
+        (profileLevel !== undefined ? '.' + profileLevel : '')
       );
     } else {
       return baseCodec;
@@ -446,7 +449,8 @@ export class mp4aSampleEntry extends AudioSampleEntry {
     if (esds && esds.esd) {
       const oti = esds.esd.getOTI();
       const dsi = esds.esd.getAudioConfig();
-      return baseCodec + '.' + decimalToHex(oti) + (dsi ? '.' + dsi : '');
+      // RFC 6381 hexadecimal OTI, written in uppercase as MP4Box does (Chromium only knows mp4a.6B)
+      return baseCodec + '.' + decimalToHex(oti).toUpperCase() + (dsi ? '.' + dsi : '');
     } else {
       return baseCodec;
     }
